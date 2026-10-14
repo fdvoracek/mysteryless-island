@@ -28,7 +28,7 @@ Six screen layouts, switchable from *layout:* in the bottom menu (the choice is 
 |---|---|
 | `classic` | three columns like A Dark Room: story (newest on top), actions, panels |
 | `journal` | a book page: story in reading order, newest paragraph large, actions as underlined words; status strip on top, notes in the margin |
-| `scene` | the last result as a large paragraph with the buttons under it, earlier text in one quiet line; panels on a shelf |
+| `scene` | the last result as a large paragraph, the few before it above it fading upwards; under the text the places as signposts (*go to the forest →*), then the buttons; panels on a shelf |
 | `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
 | `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
 | `bujo` | *old journal*, 19th century: a two-page spread, double rule under the title, the hour in the margin. Left page: only the log (the hour in the margin, a heading per day). Right page: places and actions, survival bars, tasks (struck through when done), stores and inventory |
@@ -39,11 +39,11 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 
 - **Exploration:** the game starts with one button, *look around* (1 h). Each look explores the region one step further and reveals new buttons; when nothing is left to find, the button disappears.
 - **The beach:** 1st look: the forest, close and hard to miss → forest tab. 2nd: a ring of rocks out of the wind → *light fire* (3 firewood), *sleep* (needs the fire; creates the checkpoint). 3rd: a cliff with shells → *collect shells*; eat them raw, or cook them for more food. 4th: a school of fish → *catch fish* (needs a fishing spear) and the task *build a fishing spear*. *Stoke fire* appears while the fire burns.
-- **Cooking:** while the fire burns and you are on the beach, raw food in the stores (raw fish, shells) shows a small flame icon; click it to cook one. Defined per item as an `actions` entry in `content/items/`.
+- **Cooking:** while the fire burns and you are on the beach, raw food in the stores (raw fish, shells) shows a *cook* button next to it; click it to cook one. Defined per item as an `actions` entry in `content/items/`.
 - **The forest** (1 h walk): 1st look: dry wood → *collect wood*. 2nd: a spring → *drink water*.
 - Survival: health, energy, fullness, hydration and comfort (freezing / cold / comfortable), shown as ink bars (fuller is better; hover for the word; red when low). Only an empty health bar kills; the others drain health. Action-based clock in 30-minute steps; day phases; the fire heats the beach.
 - Death restores the last checkpoint (last sleep). Saved in `localStorage`.
-- Tasks (quests): "survive the first night" (done at day 2, 06:00); "build a fishing spear" once the fish are found: collect 10 firewood (progress shown under the task), then click ⚒ next to it. Only active tasks are listed; hover for a hint.
+- Tasks (quests): "survive the first night" (done at day 2, 06:00); "build a fishing spear" once the fish are found: collect 10 firewood (progress shown under the task), then click *build* next to it. Only active tasks are listed; hover for a hint.
 - Inventory: tools and clothing (knife and summer clothes at the start, then the fishing spear), listed apart from stores.
 
 ## Adding content (no code changes)

@@ -39,15 +39,15 @@ export interface View {
     id: string; title: string; hint?: string;
     /** cost progress for the quest action, e.g. firewood 4/10 */
     progress: Array<{ label: string; have: number; need: number }>;
-    action?: ButtonView & { icon: string };
+    action?: ButtonView;
   }>;
   /** tools and clothing (categories from game.json) */
   inventory: Array<{ id: string; label: string; count: number }>;
   stores: Array<{
     id: string; label: string; count: number;
     use?: { verb: string; tooltip: string[] };
-    /** icon buttons next to the item, e.g. cook over the fire */
-    actions: Array<ButtonView & { icon: string }>;
+    /** buttons next to the item, e.g. cook over the fire */
+    actions: ButtonView[];
   }>;
   /** story lines for a line-by-line log: newest action first, each action's lines in reading order */
   log: string[];
@@ -127,7 +127,7 @@ export function view(engine: Engine): View {
       const tooltip = [`${q.action.label} · ${fmtHours(q.action.hours)}`];
       action = {
         id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: q.action.label,
-        icon: q.action.icon ?? "›", enabled: c.enabled, reason: c.reason, tooltip,
+        enabled: c.enabled, reason: c.reason, tooltip,
       };
     }
     quests.push({ id: q.id, title: q.title, hint: q.hint, progress, action });
@@ -149,7 +149,7 @@ export function view(engine: Engine): View {
       const c = engine.checkItemAction(id, a);
       if (!c.visible) continue;
       actions.push({
-        id: `item:${id}:${a.id}`, command: { type: "itemAction", item: id, action: a.id }, label: a.label, icon: a.icon,
+        id: `item:${id}:${a.id}`, command: { type: "itemAction", item: id, action: a.id }, label: a.label,
         enabled: c.enabled, reason: c.reason, tooltip: [`${a.label} · ${fmtHours(a.hours)}`],
       });
     }

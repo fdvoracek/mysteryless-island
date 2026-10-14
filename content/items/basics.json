@@ -19,7 +19,6 @@
       {
         "id": "cook",
         "label": "cook",
-        "icon": "fire",
         "hours": 0.5,
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
@@ -56,7 +55,6 @@
       {
         "id": "cook",
         "label": "cook",
-        "icon": "fire",
         "hours": 0.25,
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },

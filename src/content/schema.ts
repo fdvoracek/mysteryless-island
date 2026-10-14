@@ -197,18 +197,16 @@ export const Consume = z
   .strict();
 
 /**
- * An icon button next to an item in the stores (e.g. cook raw fish over the fire).
+ * A small button next to an item in the stores, labelled with `label` (e.g. cook raw fish over the fire).
  * Each use spends `uses` of the item (default 1) plus any extra `cost`.
  */
 export const ItemAction = z
   .object({
     id: Id,
     label: z.string(),
-    /** "fire" draws the built-in flame; any other string is shown as a text glyph */
-    icon: z.string(),
     hours: z.number().positive(),
     effort: Effort,
-    /** the icon is shown only while this is true (e.g. a fire is burning here) */
+    /** the button is shown only while this is true (e.g. a fire is burning here) */
     visibleWhen: Condition.optional(),
     requires: Condition.optional(),
     requiresText: z.string().optional(),
@@ -343,8 +341,6 @@ export const Quest = z
     action: z
       .object({
         label: z.string(),
-        /** a short glyph shown as the button, e.g. "⚒" */
-        icon: z.string().optional(),
         hours: z.number().positive(),
         effort: Effort,
         requires: Condition.optional(),

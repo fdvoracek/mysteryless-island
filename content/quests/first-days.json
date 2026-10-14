@@ -15,7 +15,6 @@
     "trigger": { "when": { "discovered": "school_of_fish" } },
     "action": {
       "label": "build",
-      "icon": "⚒\ufe0e",
       "hours": 1,
       "effort": "light",
       "cost": { "firewood": 10 },

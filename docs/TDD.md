@@ -457,7 +457,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "log": "a straight shaft, a lashed point. it will do." }
 ```
 
-- **Item actions [implemented]:** an item can list `actions` — icon buttons shown next to it in the stores, e.g. raw fish → `{ "id": "cook", "icon": "fire", "hours": 0.5, "visibleWhen": { "all": [ { "timer": "fire" }, { "at": "beach" } ] }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1) plus any `cost`; the `itemAction` command runs it. `"fire"` is a built-in ink icon; other strings are shown as text glyphs.
+- **Item actions [implemented]:** an item can list `actions` — small buttons labelled with the action's `label`, shown next to it in the stores, e.g. raw fish → `{ "id": "cook", "label": "cook", "hours": 0.5, "visibleWhen": { "all": [ { "timer": "fire" }, { "at": "beach" } ] }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1) plus any `cost`; the `itemAction` command runs it. Eating (`consume`) is a button of the same kind.
 - `station` is `camp` (always available at the beach) or a building id (`workbench`, `forge`, `loom`). The craft menu is shown in the region where the station is.
 - Processes (§6.6) belong to a building. Several processes per building are allowed (the kiln fires pots *or* bricks).
 - Knowledge: `{ "id": "boiling_water", "name": "boiling water", "learnWhen": { "item": "clay_pot" }, "log": "water boiled in clay will not make you sick." }`. It can also be granted by the `learn` effect.
@@ -497,7 +497,7 @@ Example (not shipped; the current content has only *survive the first night*):
 ```
 
 - Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
-- Optional `action` **[implemented]**: `{ label, icon?, hours, effort, requires?, requiresText?, cost?, effects, log? }`. The panel shows cost progress and an icon button; the `questAction` command checks `requires` and the cost, pays, advances time and applies `effects`. The quest finishes through its normal `completeWhen` (e.g. `{ "item": "fishing_spear" }`).
+- Optional `action` **[implemented]**: `{ label, hours, effort, requires?, requiresText?, cost?, effects, log? }`. The panel shows cost progress and a small button with the label; the `questAction` command checks `requires` and the cost, pays, advances time and applies `effects`. The quest finishes through its normal `completeWhen` (e.g. `{ "item": "fishing_spear" }`).
 - Inventory vs stores: `game.json` → `inventoryCategories` (currently `tool`, `clothing`) decides which items are listed in the inventory box.
 - `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
 - New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.

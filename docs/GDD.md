@@ -378,7 +378,7 @@ Short goals that point the player at the next thing to learn, without explaining
 - **Trigger** (when a task becomes active): at the start of a new game; when a condition becomes true (a time such as "day 1, 16:00", an item seen, a region unlocked, another task done, a flag set by an event); or manually, from an effect in an activity outcome, an event or another task's reward.
 - **Goal** (when it's done): any condition, such as "drank for the first time", "a fire is burning", "it's day 2 after 06:00", "a shelter is built".
 - **Rewards:** a finished task can run effects (give items, start the next task).
-- **Task actions:** a task can carry its own action, shown as a small icon (⚒) next to it, with progress towards the cost underneath ("firewood 4/10"). When the materials are in the stores, clicking it spends them, takes the time and gives the result. This is how simple builds work before a crafting menu exists.
+- **Task actions:** a task can carry its own action, shown as a small button next to it (e.g. *build*), with progress towards the cost underneath ("firewood 4/10"). When the materials are in the stores, clicking it spends them, takes the time and gives the result. This is how simple builds work before a crafting menu exists.
 - Tasks never fail in v1. Timed or failable tasks can be added later if the design needs them.
 
 Current set:
@@ -386,7 +386,7 @@ Current set:
 | Task | Trigger | Done when |
 |---|---|---|
 | survive the first night | start | day 2, 06:00 |
-| build a fishing spear | the school of fish is found | the spear is built (⚒, 10 firewood, 1 h) |
+| build a fishing spear | the school of fish is found | the spear is built (*build*, 10 firewood, 1 h) |
 
 Examples the system supports (not shipped): *find water* (start → first drink), *find food* (start → first time eating), *light a fire* (day 1, 16:00 if no fire was ever lit → a fire is burning), *build a roof over your head* (after the first night → shelter built).
 

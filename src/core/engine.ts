@@ -128,7 +128,7 @@ export class Engine {
     return this.ok(a.hours);
   }
 
-  /** Is an item's icon action (e.g. cook) shown, and usable now? */
+  /** Is an item's action button (e.g. cook) shown, and usable now? */
   checkItemAction(itemId: string, a: ItemAction): { visible: boolean; enabled: boolean; reason?: string } {
     const ctx = this.ctx();
     const have = this.state.items[itemId] ?? 0;

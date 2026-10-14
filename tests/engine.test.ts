@@ -37,13 +37,13 @@ describe("engine: the prototype loop", () => {
     e.dispatch({ type: "activity", id: "collect_shells" });
     expect(e.state.items.shells).toBeGreaterThanOrEqual(2);
     const cookIcon = () => view(e).stores.find((s) => s.id === "shells")?.actions.find((a) => a.label === "cook");
-    expect(cookIcon()).toBeUndefined(); // no fire, no cook icon
+    expect(cookIcon()).toBeUndefined(); // no fire, no cook button
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "shells" });
     const rawGain = 60 - e.state.stats.hunger;
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(cookIcon()).toMatchObject({ enabled: true, icon: "fire" });
+    expect(cookIcon()).toMatchObject({ enabled: true, label: "cook" });
     e.dispatch({ type: "itemAction", item: "shells", action: "cook" });
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "cooked_shells" });
@@ -172,13 +172,13 @@ describe("engine: the prototype loop", () => {
     expect(f.dispatch({ type: "activity", id: "sleep" }).cooldownMs).toBe(maxMs); // 8 h is capped
   });
 
-  it("the cook icon shows only next to raw food, only while a fire burns, and only at the fire", () => {
+  it("the cook button shows only next to raw food, only while a fire burns, and only at the fire", () => {
     const e = fresh();
     e.applyEffects([{ give: { raw_fish: 2, shells: 1, firewood: 3 } }]);
-    const icons = () => view(e).stores.filter((s) => s.actions.length).map((s) => s.id);
-    expect(icons()).toEqual([]); // fire out
+    const withButtons = () => view(e).stores.filter((s) => s.actions.length).map((s) => s.id);
+    expect(withButtons()).toEqual([]); // fire out
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(icons()).toEqual(["raw_fish", "shells"]); // never on cooked food or firewood
+    expect(withButtons()).toEqual(["raw_fish", "shells"]); // never on cooked food or firewood
     expect(view(e).actions.map((a) => a.id)).not.toContain("cook_fish"); // no cook buttons any more
 
     expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(true);
@@ -186,7 +186,7 @@ describe("engine: the prototype loop", () => {
     expect(e.state.counters["did:cook"]).toBe(1);
 
     e.dispatch({ type: "travel", region: "forest" }); // the fire is still burning, but on the beach
-    expect(icons()).toEqual([]);
+    expect(withButtons()).toEqual([]);
     expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(false);
   });
 });
