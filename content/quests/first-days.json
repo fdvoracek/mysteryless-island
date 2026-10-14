@@ -7,5 +7,23 @@
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
     "doneLog": "grey light over the water. you made it through the night."
+  },
+  {
+    "id": "build_fishing_spear",
+    "title": "build a fishing spear",
+    "hint": "a long, straight shaft and a sharp point. gather branches enough to choose a good one.",
+    "trigger": { "when": { "discovered": "school_of_fish" } },
+    "action": {
+      "label": "build",
+      "icon": "⚒\ufe0e",
+      "hours": 1,
+      "effort": "light",
+      "cost": { "firewood": 10 },
+      "effects": [{ "give": { "fishing_spear": 1 } }],
+      "log": "you choose the straightest branch and carve it to a point with the knife."
+    },
+    "completeWhen": { "item": "fishing_spear" },
+    "startLog": "a spear would reach them. you will need wood to choose from.",
+    "doneLog": "the spear is light and true. the fish will not be so quick now."
   }
 ]

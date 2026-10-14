@@ -17,23 +17,19 @@ describe("engine: the prototype loop", () => {
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
   });
 
-  it("once the beach is explored: fire, shells, spear, fish, sleep", () => {
+  it("once the beach is explored: fire, shells, fish, sleep", () => {
     const e = fresh();
     const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["light_fire", "collect_shells", "make_spear", "catch_fish", "sleep"]);
+    expect(v.actions.map((a) => a.id)).toEqual(["light_fire", "collect_shells", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
-    expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("needs 1 wooden spear");
+    expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("needs 1 fishing spear");
     expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire");
   });
 
-  it("fishing needs a wooden spear; making one costs a branch and hides the button", () => {
-    const e = fresh();
-    expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(false);
-    e.applyEffects([{ give: { firewood: 1 } }]);
-    expect(e.dispatch({ type: "activity", id: "make_spear" }).ok).toBe(true);
-    expect(e.state.items).toMatchObject({ wooden_spear: 1, firewood: 0 });
-    expect(view(e).actions.map((a) => a.id)).not.toContain("make_spear");
-    expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(true);
+  it("starts with a knife and summer clothes, listed under inventory, not stores", () => {
+    const v = view(Engine.newGame(reg, 1));
+    expect(v.inventory.map((i) => i.id)).toEqual(["knife", "summer_clothes"]);
+    expect(v.stores).toEqual([]);
   });
 
   it("shells: collect, eat raw, or cook over the fire for more food", () => {
@@ -83,7 +79,7 @@ describe("engine: the prototype loop", () => {
     expect(e.state.timers.fire).toBeGreaterThan(0);
 
     // fish until we have one (seeded, so deterministic)
-    e.applyEffects([{ give: { wooden_spear: 1 } }]);
+    e.applyEffects([{ give: { fishing_spear: 1 } }]);
     for (let i = 0; i < 5 && !(e.state.items.raw_fish > 0); i++) e.dispatch({ type: "activity", id: "catch_fish" });
     expect(e.state.items.raw_fish).toBeGreaterThan(0);
     expect(e.dispatch({ type: "activity", id: "cook_fish" }).ok).toBe(true);
@@ -122,7 +118,7 @@ describe("engine: the prototype loop", () => {
   it("is deterministic for the same seed and commands", () => {
     const run = () => {
       const e = fresh(42);
-      e.applyEffects([{ give: { wooden_spear: 1 } }]);
+      e.applyEffects([{ give: { fishing_spear: 1 } }]);
       for (let i = 0; i < 6; i++) e.dispatch({ type: "activity", id: "catch_fish" });
       return e.state.items.raw_fish ?? 0;
     };

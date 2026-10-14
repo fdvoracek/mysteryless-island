@@ -92,22 +92,12 @@
       "log": "the shell pops open in the embers."
     },
     {
-      "id": "make_spear",
-      "name": "make a spear",
-      "hours": 1,
-      "effort": "light",
-      "visibleWhen": { "all": [{ "discovered": "school_of_fish" }, { "not": { "item": "wooden_spear" } }] },
-      "cost": { "firewood": 1 },
-      "effects": [{ "give": { "wooden_spear": 1 } }],
-      "log": "you grind a straight branch to a point against the rocks."
-    },
-    {
       "id": "catch_fish",
       "name": "catch fish",
       "hours": 2,
       "effort": "work",
       "visibleWhen": { "discovered": "school_of_fish" },
-      "requires": { "all": [{ "item": "wooden_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
+      "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [
         { "weight": 4, "text": "two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
         { "weight": 4, "text": "one fish. it will do.", "effects": [{ "give": { "raw_fish": 1 } }] },

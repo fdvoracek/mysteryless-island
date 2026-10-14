@@ -496,6 +496,8 @@ Example (not shipped; the current content has only *survive the first night*):
 ```
 
 - Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
+- Optional `action` **[implemented]**: `{ label, icon?, hours, effort, requires?, requiresText?, cost?, effects, log? }`. The panel shows cost progress and an icon button; the `questAction` command checks `requires` and the cost, pays, advances time and applies `effects`. The quest finishes through its normal `completeWhen` (e.g. `{ "item": "fishing_spear" }`).
+- Inventory vs stores: `game.json` → `inventoryCategories` (currently `tool`, `clothing`) decides which items are listed in the inventory box.
 - `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
 - New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.
 - State: `quests: { [id]: { status, startedAt, doneAt? } }` and `counters: { "did:<key>": n }`. Both are part of checkpoints, so dying rolls quests back too.

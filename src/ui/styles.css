@@ -93,7 +93,7 @@ button { font: inherit; color: inherit; }
 
 /* tasks: active quests; a finished one is struck through, then fades out */
 .quest { position: relative; padding: 1px 0; cursor: default; }
-.quest::before { content: "– "; color: var(--muted); }
+.quest .title::before { content: "– "; color: var(--muted); }
 .quest.appear { animation: fadein 0.8s ease-out; }
 .quest.done .title { text-decoration: line-through; color: var(--muted); }
 .quest.done { animation: questdone 1.8s ease-in forwards; }
@@ -104,7 +104,17 @@ button { font: inherit; color: inherit; }
   box-shadow: 2px 2px 0 var(--bar); font-size: 14px;
 }
 .quest:hover .tip, .quest:focus-visible .tip { display: block; }
-.quest .title { display: inline; }
+.quest .head { display: flex; align-items: baseline; gap: 8px; }
+.quest .title { flex: 1; }
+.quest .progress { font-size: 14px; color: var(--muted); padding-left: 1em; }
+.qaction {
+  flex: none; width: 28px; height: 24px; padding: 0; line-height: 22px; text-align: center; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--line); font-size: 18px;
+}
+.qaction:hover { background: var(--bar); }
+.qaction.off { color: var(--muted); border-color: var(--muted); cursor: default; background: var(--bg); }
+.quest.done .qaction { visibility: hidden; }
+.busy .qaction { pointer-events: none; }
 
 /* menu */
 .menu { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: flex-end; gap: 16px;

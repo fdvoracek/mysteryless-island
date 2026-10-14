@@ -9,7 +9,8 @@ export type Command =
   | { type: "activity"; id: string }
   | { type: "travel"; region: string }
   | { type: "consume"; item: string }
-  | { type: "explore" };
+  | { type: "explore" }
+  | { type: "questAction"; quest: string };
 
 export interface Result {
   ok: boolean;
@@ -71,6 +72,7 @@ export class Engine {
       case "travel": return this.travel(cmd.region);
       case "consume": return this.consume(cmd.item);
       case "explore": return this.explore();
+      case "questAction": return this.questAction(cmd.quest);
     }
   }
 
@@ -88,6 +90,35 @@ export class Engine {
       return { visible: true, enabled: false, reason: ex.requiresText ?? explain(ex.requires, ctx) ?? undefined, found, total };
     }
     return { visible: true, enabled: true, found, total };
+  }
+
+  /** Can the action next to an active quest be used now? */
+  checkQuestAction(id: string): { visible: boolean; enabled: boolean; reason?: string } {
+    const q = this.reg.quests.get(id);
+    if (!q?.action || this.state.quests[id]?.status !== "active") return { visible: false, enabled: false };
+    const a = q.action;
+    const ctx = this.ctx();
+    if (!evaluate(a.requires, ctx)) {
+      return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
+    }
+    for (const [item, n] of Object.entries(a.cost ?? {})) {
+      const have = this.state.items[item] ?? 0;
+      if (have < n) return { visible: true, enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${have})` };
+    }
+    return { visible: true, enabled: true };
+  }
+
+  private questAction(id: string): Result {
+    const c = this.checkQuestAction(id);
+    if (!c.visible) return refuse("no such task");
+    if (!c.enabled) return refuse(c.reason ?? "not possible now");
+    const a = this.reg.quests.get(id)!.action!;
+    this.take(a.cost);
+    this.log(textOf(a.log, this.state));
+    if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
+    this.applyEffects(a.effects);
+    this.postCheck();
+    return this.ok(a.hours);
   }
 
   private explore(): Result {

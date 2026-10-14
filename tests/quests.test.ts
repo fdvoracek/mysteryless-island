@@ -28,7 +28,7 @@ const reg = registryWith(EXTRA);
 /** fully explored, with a spear so fishing can be used to pass 2 hours */
 const fresh = () => {
   const e = revealAll(Engine.newGame(reg, 3));
-  e.applyEffects([{ give: { wooden_spear: 1 } }]);
+  e.applyEffects([{ give: { fishing_spear: 1 } }]);
   return e;
 };
 const active = (e: Engine) => view(e).quests.map((q) => q.id);
@@ -41,8 +41,9 @@ describe("quests", () => {
   });
 
   it("start quests are active at once; condition quests wait for their trigger", () => {
-    const e = fresh();
-    expect(active(e)).toEqual(["survive_first_night", "find_water", "find_food"]);
+    const e = revealAll(Engine.newGame(reg, 3));
+    // the spear quest is triggered by finding the fish (revealAll found everything)
+    expect(active(e)).toEqual(["survive_first_night", "build_fishing_spear", "find_water", "find_food"]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
   });
 
@@ -145,5 +146,43 @@ describe("quests", () => {
     bad({ id: "q1", title: "x", trigger: "start", completeWhen: { did: "dance" } }, /unknown did "dance"/);
     bad({ id: "q2", title: "x", trigger: { when: { quest: "nope", is: "done" } }, completeWhen: { did: "drink" } }, /unknown quest "nope"/);
     bad({ id: "q3", title: "x", trigger: "manual", completeWhen: { did: "drink" } }, /can never start/);
+  });
+});
+
+describe("quest actions: build a fishing spear", () => {
+  const reg2 = loadRegistry();
+  const explored = () => revealAll(Engine.newGame(reg2, 1));
+
+  it("appears when the school of fish is found, with progress towards 10 firewood", () => {
+    const e = Engine.newGame(reg2, 1);
+    expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
+    for (let i = 0; i < 4; i++) e.dispatch({ type: "explore" });
+    const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;
+    expect(q.progress).toEqual([{ label: "firewood", have: 0, need: 10 }]);
+    expect(q.action).toMatchObject({ label: "build", enabled: false, reason: "needs 10 firewood (have 0)" });
+  });
+
+  it("building spends the wood, takes time, puts the spear in the inventory and finishes the quest", () => {
+    const e = explored();
+    e.applyEffects([{ give: { firewood: 12 } }]);
+    expect(view(e).quests.find((x) => x.id === "build_fishing_spear")!.progress[0]).toMatchObject({ have: 10, need: 10 });
+    const t0 = e.state.time;
+    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(true);
+    expect(e.state.time - t0).toBe(60);
+    expect(e.state.items.firewood).toBe(2);
+    expect(e.state.quests.build_fishing_spear.status).toBe("done");
+    expect(view(e).inventory.map((i) => i.id)).toContain("fishing_spear");
+    expect(view(e).quests.map((q) => q.id)).not.toContain("build_fishing_spear");
+    expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(true);
+  });
+
+  it("refuses to build without enough wood, or once the quest is done", () => {
+    const e = explored();
+    e.applyEffects([{ give: { firewood: 9 } }]);
+    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" })).toMatchObject({ ok: false, reason: "needs 10 firewood (have 9)" });
+    e.applyEffects([{ give: { firewood: 11 } }]);
+    e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
+    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(false);
+    expect(e.state.items.fishing_spear).toBe(1);
   });
 });

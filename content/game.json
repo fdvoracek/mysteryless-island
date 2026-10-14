@@ -7,7 +7,7 @@
     "day": 1,
     "hour": 6,
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
-    "items": {},
+    "items": { "knife": 1, "summer_clothes": 1 },
     "log": [
       "awake. salt in the mouth.",
       "the sea is quiet now. the ship is gone.",
@@ -35,5 +35,6 @@
       "expireLog": "the fire goes out. only embers now.",
       "showInStatus": false
     }
-  ]
+  ],
+  "inventoryCategories": ["tool", "clothing"]
 }

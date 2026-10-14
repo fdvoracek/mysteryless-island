@@ -44,8 +44,9 @@ test("the game is visible and not covered on load", async ({ page }) => {
   await expect(health.locator(".tip")).toBeVisible();
   await expect(health.locator(".tip")).toContainText("bruised");
 
-  // the first task is listed
+  // the first task is listed; the inventory holds the starting kit
   await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
+  await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
 
   // nothing may sit on top of the buttons (the bug that blanked the first deploy)
   const box = (await action(page, "look around").boundingBox())!;
@@ -86,6 +87,20 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#log")).toContainText("the fire takes");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).not.toHaveClass(/off/);
+});
+
+test("finding the fish starts the spear task; building it puts the spear in the inventory", async ({ page }) => {
+  for (let i = 0; i < 4; i++) await action(page, "look around").click();
+  const quest = page.locator('#quests .quest[data-id="build_fishing_spear"]');
+  await expect(quest.locator(".progress")).toHaveText("firewood 0/10");
+  await expect(quest.locator(".qaction")).toHaveClass(/off/);
+
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
+  await expect(quest.locator(".progress")).toHaveText("firewood 10/10");
+  await quest.locator(".qaction").click();
+  await expect(page.locator("#inventory")).toContainText("fishing spear");
+  await expect(quest).toHaveCount(0, { timeout: 5_000 });
+  await expect(action(page, "catch fish")).not.toHaveClass(/off/);
 });
 
 test("dying fades out and restores the checkpoint", async ({ page }) => {

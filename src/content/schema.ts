@@ -240,6 +240,8 @@ export const Game = z
     deathLog: z.string(),
     restoreLog: z.string(),
     timers: z.array(Timer),
+    /** item categories listed in the inventory box; everything else is listed under stores */
+    inventoryCategories: z.array(z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"])),
   })
   .strict();
 
@@ -298,6 +300,25 @@ export const Quest = z
     doneLog: Text.optional(),
     /** applied when the quest is done (rewards, follow-up quests) */
     effects: z.array(Effect).optional(),
+    /**
+     * Optional action button next to the quest in the tasks panel (e.g. "build").
+     * The panel shows progress towards its cost; clicking spends the cost, takes the time and applies the effects.
+     */
+    action: z
+      .object({
+        label: z.string(),
+        /** a short glyph shown as the button, e.g. "⚒" */
+        icon: z.string().optional(),
+        hours: z.number().positive(),
+        effort: Effort,
+        requires: Condition.optional(),
+        requiresText: z.string().optional(),
+        cost: Amounts.optional(),
+        effects: z.array(Effect).min(1),
+        log: Text.optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 

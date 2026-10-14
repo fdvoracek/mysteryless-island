@@ -52,5 +52,7 @@
       "log": "tender and hot. the smell of the sea."
     }
   },
-  { "id": "wooden_spear", "name": "wooden spear", "category": "tool" }
+  { "id": "fishing_spear", "name": "fishing spear", "category": "tool" },
+  { "id": "knife", "name": "knife", "category": "tool" },
+  { "id": "summer_clothes", "name": "summer clothes", "category": "clothing" }
 ]

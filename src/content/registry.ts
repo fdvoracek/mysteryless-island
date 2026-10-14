@@ -169,6 +169,11 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof q.trigger === "object") checkCond(q.trigger.when, `${w}.trigger.when`);
     checkCond(q.completeWhen, `${w}.completeWhen`);
     checkEffects(q.effects, w);
+    if (q.action) {
+      if (q.action.requires) checkCond(q.action.requires, `${w}.action.requires`);
+      Object.keys(q.action.cost ?? {}).forEach((k) => ref("item", k, `${w}.action.cost`));
+      checkEffects(q.action.effects, `${w}.action`);
+    }
   }
   for (const r of regions.values()) {
     if (r.unlockWhen) checkCond(r.unlockWhen, `region ${r.id}.unlockWhen`);

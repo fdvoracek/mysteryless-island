@@ -30,6 +30,7 @@ export function revealAll(e: Engine): Engine {
     st.discoveries = (r.explore?.discoveries ?? []).map((d) => d.id);
     st.explored = Math.max(0, ...(r.explore?.discoveries ?? []).map((d) => d.at));
   }
+  e.syncQuests(); // quests triggered by discoveries (e.g. the fishing spear)
   e.checkpoint = JSON.parse(JSON.stringify(e.state));
   return e;
 }

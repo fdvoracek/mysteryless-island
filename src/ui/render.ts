@@ -34,6 +34,7 @@ export class UI {
           <fieldset class="box"><legend id="clock"></legend><div id="status"></div></fieldset>
           <fieldset class="box" id="questsBox"><legend>tasks</legend><div id="quests"></div></fieldset>
           <fieldset class="box" id="storesBox"><legend>stores</legend><div id="stores"></div></fieldset>
+          <fieldset class="box" id="inventoryBox"><legend>inventory</legend><div id="inventory"></div></fieldset>
         </aside>
       </div>
       <footer class="menu">
@@ -41,7 +42,7 @@ export class UI {
         <button class="link" id="restart">restart.</button>
       </footer>
       <div class="fade" id="fade"><p id="fadeText"></p></div>`;
-    for (const id of ["log", "tabs", "actions", "clock", "status", "quests", "questsBox", "stores", "storesBox", "fade", "fadeText", "wrap"]) {
+    for (const id of ["log", "tabs", "actions", "clock", "status", "quests", "questsBox", "stores", "storesBox", "inventory", "inventoryBox", "fade", "fadeText", "wrap"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
@@ -61,6 +62,7 @@ export class UI {
     this.renderStatus(v);
     this.renderQuests(v);
     this.renderStores(v);
+    this.renderInventory(v);
     this.renderLog(v);
     if (v.dead && !this.restoring) this.showDeath(v.log[0]);
   }
@@ -174,14 +176,52 @@ export class UI {
         el.dataset.id = q.id;
         el.dataset.title = q.title;
         el.tabIndex = 0;
-        el.append(div(q.title, "title"));
+        const head = div("", "head");
+        head.append(div(q.title, "title"));
+        if (q.action) {
+          const action = q.action;
+          const b = document.createElement("button");
+          b.className = "qaction";
+          b.textContent = action.icon;
+          b.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!b.classList.contains("off")) this.send(action.command, b);
+          });
+          head.append(b);
+        }
+        el.append(head);
+        if (q.progress.length) el.append(div("", "progress"));
         if (q.hint) el.append(div(q.hint, "tip"));
         if (prev) prev.after(el);
         else box.prepend(el);
       }
+      // refresh progress and the action button on every render
+      const progress = el.querySelector(".progress");
+      if (progress) progress.textContent = q.progress.map((p) => `${p.label} ${p.have}/${p.need}`).join(" · ");
+      const b = el.querySelector<HTMLButtonElement>(".qaction");
+      if (b && q.action) {
+        b.classList.toggle("off", !q.action.enabled);
+        const label = `${q.action.label} (${q.action.tooltip.join(", ")})`;
+        b.title = q.action.reason ? `${label}: ${q.action.reason}` : label;
+        b.setAttribute("aria-label", `${q.action.label} ${q.title}${q.action.reason ? ", " + q.action.reason : ""}`);
+        b.setAttribute("aria-disabled", String(!q.action.enabled));
+      }
       prev = el;
     }
     this.els.questsBox.hidden = !box.querySelector(".quest");
+  }
+
+  private renderInventory(v: View) {
+    this.els.inventoryBox.hidden = v.inventory.length === 0;
+    this.els.inventory.replaceChildren(
+      ...v.inventory.map((it) => {
+        const row = div("", "row");
+        row.dataset.id = it.id;
+        row.append(div(it.label, "key"));
+        if (it.count > 1) row.append(div(String(it.count), "val"));
+        return row;
+      }),
+    );
   }
 
   private renderStores(v: View) {

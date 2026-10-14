@@ -34,7 +34,14 @@ export interface View {
     lines: StatusLine[];
   };
   /** active quests only, in content order */
-  quests: Array<{ id: string; title: string; hint?: string }>;
+  quests: Array<{
+    id: string; title: string; hint?: string;
+    /** cost progress for the quest action, e.g. firewood 4/10 */
+    progress: Array<{ label: string; have: number; need: number }>;
+    action?: ButtonView & { icon: string };
+  }>;
+  /** tools and clothing (categories from game.json) */
+  inventory: Array<{ id: string; label: string; count: number }>;
   stores: Array<{ id: string; label: string; count: number; use?: { verb: string; tooltip: string[] } }>;
   log: string[];
   dead: boolean;
@@ -99,20 +106,37 @@ export function view(engine: Engine): View {
 
   const quests: View["quests"] = [];
   for (const q of reg.quests.values()) {
-    if (s.quests[q.id]?.status === "active") quests.push({ id: q.id, title: q.title, hint: q.hint });
+    if (s.quests[q.id]?.status !== "active") continue;
+    const progress = Object.entries(q.action?.cost ?? {}).map(([item, need]) => ({
+      label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
+    }));
+    let action: View["quests"][number]["action"];
+    if (q.action) {
+      const c = engine.checkQuestAction(q.id);
+      const tooltip = [`${q.action.label} · ${fmtHours(q.action.hours)}`];
+      action = {
+        id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: q.action.label,
+        icon: q.action.icon ?? "›", enabled: c.enabled, reason: c.reason, tooltip,
+      };
+    }
+    quests.push({ id: q.id, title: q.title, hint: q.hint, progress, action });
   }
 
   const stores: View["stores"] = [];
+  const inventory: View["inventory"] = [];
+  const invCats = new Set<string>(reg.game.inventoryCategories);
   for (const [id, count] of Object.entries(s.items)) {
     if (count <= 0) continue;
     const item = reg.items.get(id);
     if (!item) continue;
+    if (invCats.has(item.category)) { inventory.push({ id, label: item.name, count }); continue; }
     const use = item.consume
       ? { verb: item.consume.verb, tooltip: [`${fmtHours(item.consume.hours)}`] }
       : undefined;
     stores.push({ id, label: item.name, count, use });
   }
   stores.sort((a, b) => a.label.localeCompare(b.label));
+  inventory.sort((a, b) => a.label.localeCompare(b.label));
 
   return {
     title: region.title,
@@ -120,6 +144,7 @@ export function view(engine: Engine): View {
     actions,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     quests,
+    inventory,
     stores,
     log: s.log.map((l) => l.text),
     dead: s.dead,
