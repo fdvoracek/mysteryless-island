@@ -1,9 +1,5 @@
 [
-  {
-    "id": "firewood",
-    "name": "firewood",
-    "category": "material"
-  },
+  { "id": "firewood", "name": "firewood", "category": "material" },
   {
     "id": "raw_fish",
     "name": "raw fish",
@@ -16,7 +12,7 @@
       "log": "cold, slippery, barely food.",
       "outcomes": [
         { "weight": 3 },
-        { "weight": 1, "text": "your stomach turns.", "effects": [ { "stat": { "health": -6 } } ] }
+        { "weight": 1, "text": "your stomach turns.", "effects": [{ "stat": { "health": -6 } }] }
       ]
     }
   },
@@ -31,5 +27,30 @@
       "tags": ["eat"],
       "log": "hot flesh, flaking from the bone."
     }
-  }
+  },
+  {
+    "id": "shells",
+    "name": "shells",
+    "category": "food",
+    "consume": {
+      "verb": "eat raw",
+      "hours": 0.25,
+      "stats": { "hunger": -6 },
+      "tags": ["eat"],
+      "log": "salty and chewy. barely a mouthful."
+    }
+  },
+  {
+    "id": "cooked_shells",
+    "name": "cooked shells",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -15 },
+      "tags": ["eat"],
+      "log": "tender and hot. the smell of the sea."
+    }
+  },
+  { "id": "wooden_spear", "name": "wooden spear", "category": "tool" }
 ]

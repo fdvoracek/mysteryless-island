@@ -10,35 +10,41 @@ const look = (e: Engine) => e.dispatch({ type: "explore" });
 const logHas = (e: Engine, text: string) => e.state.log.some((l) => l.text.includes(text));
 
 describe("exploration", () => {
-  it("beach step 1: the beach is described and fish appear", () => {
+  it("beach step 1: the beach is described and the forest is found", () => {
     const e = Engine.newGame(reg, 1);
     const t0 = e.state.time;
     expect(look(e).ok).toBe(true);
     expect(e.state.time - t0).toBe(60); // takes an hour
-    expect(logHas(e, "a school of small fish")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "catch fish"]);
-    expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
-  });
-
-  it("beach step 2: the forest is found and its tab appears", () => {
-    const e = Engine.newGame(reg, 1);
-    look(e); look(e);
-    expect(logHas(e, "the dark line is a forest")).toBe(true);
+    expect(logHas(e, "a forest, close and hard to miss")).toBe(true);
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach", "forest"]);
     expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);
   });
 
-  it("beach step 3: the rock shelter reveals light fire and sleep; then 'look around' is gone", () => {
+  it("beach step 2: the rocks with cover reveal light fire and sleep", () => {
+    const e = Engine.newGame(reg, 1);
+    look(e); look(e);
+    expect(logHas(e, "a ring of rocks breaks the sea wind")).toBe(true);
+    expect(labels(e)).toEqual(["look around", "light fire", "sleep"]);
+  });
+
+  it("beach step 3: the cliff with shells reveals collect shells", () => {
     const e = Engine.newGame(reg, 1);
     look(e); look(e); look(e);
-    expect(logHas(e, "a ring of rocks breaks the sea wind")).toBe(true);
-    expect(labels(e)).toEqual(["light fire", "catch fish", "sleep"]);
+    expect(logHas(e, "shells cling to the wet stone")).toBe(true);
+    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
+  });
+
+  it("beach step 4: the fish need a spear; then 'look around' is gone", () => {
+    const e = Engine.newGame(reg, 1);
+    look(e); look(e); look(e); look(e);
+    expect(logHas(e, "with a sharp stick you might spear one")).toBe(true);
+    expect(labels(e)).toEqual(["light fire", "collect shells", "make a spear", "catch fish", "sleep"]);
     expect(look(e).ok).toBe(false); // nothing left to find
   });
 
   it("forest: dry wood on the first look, the spring on the second", () => {
     const e = Engine.newGame(reg, 1);
-    look(e); look(e);
+    look(e);
     e.dispatch({ type: "travel", region: "forest" });
     expect(labels(e)).toEqual(["look around"]);
     look(e);
@@ -60,9 +66,10 @@ describe("exploration", () => {
   it("paragraphs read top-down in the log (newest-first log)", () => {
     const e = Engine.newGame(reg, 1);
     look(e);
+    look(e); // step 2 makes no region unlock, so its paragraph is on top
     const top = e.state.log.slice(0, 2).map((l) => l.text);
-    expect(top[0]).toMatch(/^grey sand runs both ways/);
-    expect(top[1]).toMatch(/school of small fish/);
+    expect(top[0]).toMatch(/^at the far end of the beach/);
+    expect(top[1]).toMatch(/you could light a fire here/);
   });
 
   it("dying rolls exploration back to the checkpoint", () => {

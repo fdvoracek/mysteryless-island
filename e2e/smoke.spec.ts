@@ -60,15 +60,13 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator('#status .row[data-id="fire"]')).toHaveCount(0);
   await expect(page.locator('#status .row[data-id="comfort"] .key')).toHaveText("comfort");
 
-  // beach: fish, then the forest, then the rock shelter
-  await action(page, "look around").click();
-  await expect(action(page, "catch fish")).toBeVisible();
+  // beach: the forest first, then the rocks with cover
   await expect(tab(page, "the forest")).toHaveCount(0);
-  await action(page, "look around").click(); // waits until the cosmetic cooldown ends
-  await expect(tab(page, "the forest")).toBeVisible();
   await action(page, "look around").click();
+  await expect(tab(page, "the forest")).toBeVisible();
+  await expect(action(page, "light fire")).toHaveCount(0);
+  await action(page, "look around").click(); // waits until the cosmetic cooldown ends
   await expect(action(page, "light fire")).toBeVisible();
-  await expect(action(page, "look around")).toHaveCount(0);
 
   // forest: dry wood, then the spring
   await tab(page, "the forest").click();

@@ -25,7 +25,12 @@ function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) 
 
 const shipped = loadRegistry();
 const reg = registryWith(EXTRA);
-const fresh = () => revealAll(Engine.newGame(reg, 3));
+/** fully explored, with a spear so fishing can be used to pass 2 hours */
+const fresh = () => {
+  const e = revealAll(Engine.newGame(reg, 3));
+  e.applyEffects([{ give: { wooden_spear: 1 } }]);
+  return e;
+};
 const active = (e: Engine) => view(e).quests.map((q) => q.id);
 
 describe("quests", () => {

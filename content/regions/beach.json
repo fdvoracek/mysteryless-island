@@ -13,24 +13,35 @@
     "nothingLog": ["you walk the shore again. nothing new.", "only sand, and the sea."],
     "discoveries": [
       {
-        "id": "school_of_fish",
+        "id": "forest_edge",
         "at": 1,
         "text": [
           "grey sand runs both ways until it bends out of sight. wrack and broken shells mark the tide line.",
-          "in the shallows, a school of small fish turns and flashes. with a bit of time, you could catch some."
+          "behind the dunes the trees begin. a forest, close and hard to miss."
         ]
       },
       {
-        "id": "forest_edge",
-        "at": 2,
-        "text": ["behind the dunes, the dark line is a forest. close enough to walk to."]
-      },
-      {
         "id": "rock_shelter",
-        "at": 3,
+        "at": 2,
         "text": [
           "at the far end of the beach, a ring of rocks breaks the sea wind.",
           "you could light a fire here, if you find some wood."
+        ]
+      },
+      {
+        "id": "cliff_shells",
+        "at": 3,
+        "text": [
+          "past the rocks, a low cliff drops into the surf. shells cling to the wet stone below it.",
+          "you could pick them and eat them as they are. cooked, they would go further."
+        ]
+      },
+      {
+        "id": "school_of_fish",
+        "at": 4,
+        "text": [
+          "in the shallows, a school of small fish turns and flashes.",
+          "too quick for bare hands. with a sharp stick you might spear one."
         ]
       }
     ]
@@ -57,19 +68,52 @@
       "log": ["the fire crackles.", "sparks climb into the dark."]
     },
     {
+      "id": "collect_shells",
+      "name": "collect shells",
+      "hours": 1,
+      "effort": "work",
+      "visibleWhen": { "discovered": "cliff_shells" },
+      "yields": [{ "item": "shells", "min": 2, "max": 4 }],
+      "log": [
+        "you prise shells off the wet stone. the surf soaks your legs.",
+        "a handful of shells, cold and heavy."
+      ]
+    },
+    {
+      "id": "cook_shells",
+      "name": "cook shells",
+      "hours": 0.25,
+      "effort": "light",
+      "visibleWhen": { "seen": "shells" },
+      "requires": { "timer": "fire" },
+      "requiresText": "the fire is out",
+      "cost": { "shells": 1 },
+      "effects": [{ "give": { "cooked_shells": 1 } }],
+      "log": "the shell pops open in the embers."
+    },
+    {
+      "id": "make_spear",
+      "name": "make a spear",
+      "hours": 1,
+      "effort": "light",
+      "visibleWhen": { "all": [{ "discovered": "school_of_fish" }, { "not": { "item": "wooden_spear" } }] },
+      "cost": { "firewood": 1 },
+      "effects": [{ "give": { "wooden_spear": 1 } }],
+      "log": "you grind a straight branch to a point against the rocks."
+    },
+    {
       "id": "catch_fish",
       "name": "catch fish",
       "hours": 2,
       "effort": "work",
       "visibleWhen": { "discovered": "school_of_fish" },
-      "requires": { "phase": ["dawn", "day", "dusk"] },
-      "requiresText": "too dark to see the fish",
+      "requires": { "all": [{ "item": "wooden_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [
         { "weight": 4, "text": "two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
         { "weight": 4, "text": "one fish. it will do.", "effects": [{ "give": { "raw_fish": 1 } }] },
         { "weight": 2, "text": "nothing. the fish are quicker than you." }
       ],
-      "log": "you wade into the shallows, hands ready."
+      "log": "you wade into the shallows, spear raised."
     },
     {
       "id": "cook_fish",
