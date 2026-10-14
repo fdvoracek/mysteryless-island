@@ -19,6 +19,8 @@
 }
 
 * { box-sizing: border-box; }
+/* the hidden attribute must win over component display rules (e.g. .fade { display: grid }) */
+[hidden] { display: none !important; }
 html, body { margin: 0; background: var(--bg); color: var(--fg); }
 body { font-family: var(--font); font-size: 16px; line-height: 1.35; min-height: 100vh; }
 button { font: inherit; color: inherit; }
@@ -83,8 +85,8 @@ button { font: inherit; color: inherit; }
 .menu .link:hover { color: var(--fg); }
 
 /* death fade and modal */
-.fade { position: fixed; inset: 0; background: var(--bg); display: grid; place-items: center; z-index: 20;
-  animation: fadein 1.2s ease-in; }
+.fade { position: fixed; inset: 0; background: var(--bg); display: none; place-items: center; z-index: 20; }
+.fade.show { display: grid; animation: fadein 1.2s ease-in; }
 .fade p { font-size: 20px; }
 .modal { position: fixed; inset: 0; display: grid; place-items: center; z-index: 30; background: color-mix(in srgb, var(--bg) 60%, transparent); }
 .modal .panel { background: var(--bg); border: 1px solid var(--line); box-shadow: 3px 3px 0 var(--bar); padding: 16px 20px; width: min(360px, 90vw); display: grid; gap: 12px; }

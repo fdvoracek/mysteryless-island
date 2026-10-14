@@ -39,7 +39,7 @@ export class UI {
         <button class="link" id="lights">lights off.</button>
         <button class="link" id="restart">restart.</button>
       </footer>
-      <div class="fade" id="fade" hidden><p id="fadeText"></p></div>`;
+      <div class="fade" id="fade"><p id="fadeText"></p></div>`;
     for (const id of ["log", "tabs", "actions", "clock", "status", "stores", "storesBox", "fade", "fadeText", "wrap"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
@@ -172,10 +172,10 @@ export class UI {
   private showDeath(text: string) {
     this.restoring = true;
     this.els.fadeText.textContent = text;
-    this.els.fade.hidden = false;
+    this.els.fade.classList.add("show");
     window.setTimeout(() => {
       this.onRestore();
-      this.els.fade.hidden = true;
+      this.els.fade.classList.remove("show");
       this.restoring = false;
       this.render();
     }, 3000);
