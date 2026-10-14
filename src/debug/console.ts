@@ -3,7 +3,7 @@ import type { Engine } from "../core/engine";
 /**
  * Debug helpers on window.ti (open the browser console):
  *   ti.give("firewood", 10)   ti.stat("thirst", 0)   ti.time(5)   ti.fire(6)
- *   ti.state()                ti.quests()            ti.quest("light_a_fire")    ti.reset()
+ *   ti.state()                ti.quests()            ti.quest("survive_first_night")    ti.reset()
  */
 export function installDebug(getEngine: () => Engine, render: () => void, reset: () => void) {
   // debug changes skip the command pipeline, so re-check quests before drawing

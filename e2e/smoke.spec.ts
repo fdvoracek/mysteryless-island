@@ -42,8 +42,8 @@ test("the game is visible and not covered on load", async ({ page }) => {
   await expect(health.locator(".tip")).toBeVisible();
   await expect(health.locator(".tip")).toContainText("bruised");
 
-  // the first tasks are listed
-  await expect(page.locator("#quests .quest .title")).toHaveText(["find water", "find food", "survive the first night"]);
+  // the first task is listed
+  await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
 
   // nothing may sit on top of the buttons (the bug that blanked the first deploy)
   const box = (await action(page, "catch fish").boundingBox())!;
@@ -64,9 +64,8 @@ test("walk to the forest, gather wood, come back and light the fire", async ({ p
   await action(page, "gather wood").click(); // waits until the cosmetic cooldown ends
   await action(page, "drink from stream").click();
   await expect(page.locator("#stores")).toContainText("firewood");
-  // the first drink finishes "find water": struck through, then gone
-  await expect(page.locator('#quests .quest[data-id="find_water"]')).toHaveClass(/done/);
-  await expect(page.locator('#quests .quest[data-id="find_water"]')).toHaveCount(0, { timeout: 5_000 });
+  // still day 1: the night task stays active
+  await expect(page.locator('#quests .quest[data-id="survive_first_night"]')).not.toHaveClass(/done/);
 
   await tab(page, "the beach").click();
   await expect(tab(page, "the beach")).toHaveClass(/here/);

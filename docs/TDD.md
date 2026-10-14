@@ -479,6 +479,8 @@ While an event is active, every command except `choose` is rejected. An event st
 
 ### 6.10b Quests **[decided]**
 
+Example (not shipped; the current content has only *survive the first night*):
+
 ```json
 {
   "id": "light_a_fire",

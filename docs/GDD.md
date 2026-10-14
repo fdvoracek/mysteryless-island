@@ -380,15 +380,13 @@ Short goals that point the player at the next thing to learn, without explaining
 - **Rewards:** a finished task can run effects (give items, start the next task).
 - Tasks never fail in v1. Timed or failable tasks can be added later if the design needs them.
 
-First set:
+Current set:
 
 | Task | Trigger | Done when |
 |---|---|---|
-| find water | start | first drink |
-| find food | start | first time eating |
 | survive the first night | start | day 2, 06:00 |
-| light a fire | day 1, 16:00, if no fire was ever lit | a fire is burning |
-| *build a roof over your head* (later) | e.g. after the first night | shelter built |
+
+Examples the system supports (not shipped): *find water* (start → first drink), *find food* (start → first time eating), *light a fire* (day 1, 16:00 if no fire was ever lit → a fire is burning), *build a roof over your head* (after the first night → shelter built).
 
 ## 12. Weather **[proposal]**
 

@@ -1,37 +1,11 @@
 [
   {
     "_note": "Quests are listed in the tasks panel while active, in this order. trigger: \"start\" (new game), \"manual\" (only via a { \"startQuest\": id } effect) or { \"when\": condition }.",
-    "id": "find_water",
-    "title": "find water",
-    "hint": "salt dries the mouth. there must be fresh water somewhere inland.",
-    "trigger": "start",
-    "completeWhen": { "did": "drink" },
-    "doneLog": "fresh water. you will last a while longer."
-  },
-  {
-    "id": "find_food",
-    "title": "find food",
-    "hint": "something to eat. the sea must give something.",
-    "trigger": "start",
-    "completeWhen": { "did": "eat" },
-    "doneLog": "food in the belly. the shaking stops."
-  },
-  {
     "id": "survive_first_night",
     "title": "survive the first night",
     "hint": "the dark comes early here, and cold with it.",
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
     "doneLog": "grey light over the water. you made it through the night."
-  },
-  {
-    "_note": "Example of a time trigger: appears in the afternoon of day 1 unless a fire was already lit.",
-    "id": "light_a_fire",
-    "title": "light a fire",
-    "hint": "the light is going. gather wood and make a fire before dark.",
-    "trigger": { "when": { "all": [ { "reached": { "day": 1, "hour": 16 } }, { "not": { "did": "light_fire" } } ] } },
-    "completeWhen": { "timer": "fire" },
-    "startLog": "the sun is low. it will be cold soon.",
-    "doneLog": "warmth, and a little light against the dark."
   }
 ]

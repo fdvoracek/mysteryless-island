@@ -4,17 +4,41 @@ import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import { loadRegistry, readContentFiles } from "./helpers";
 
-const reg = loadRegistry();
-const fresh = () => Engine.newGame(reg, 3);
-const active = (e: Engine) => view(e).quests.map((q) => q.id);
 const QUESTS = "content/quests/first-days.json";
 
+/** Test-only quests (the shipped content has just "survive the first night"). */
+const EXTRA = [
+  { id: "find_water", title: "find water", trigger: "start", completeWhen: { did: "drink" }, doneLog: "fresh water. you will last a while longer." },
+  { id: "find_food", title: "find food", trigger: "start", completeWhen: { did: "eat" } },
+  {
+    id: "light_a_fire", title: "light a fire",
+    trigger: { when: { all: [ { reached: { day: 1, hour: 16 } }, { not: { did: "light_fire" } } ] } },
+    completeWhen: { timer: "fire" }, startLog: "the sun is low. it will be cold soon.",
+  },
+];
+function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) => void) {
+  const files = readContentFiles();
+  files[QUESTS] = [...(structuredClone(files[QUESTS]) as unknown[]), ...extra];
+  edit?.(files);
+  return buildRegistry(files);
+}
+
+const shipped = loadRegistry();
+const reg = registryWith(EXTRA);
+const fresh = () => Engine.newGame(reg, 3);
+const active = (e: Engine) => view(e).quests.map((q) => q.id);
+
 describe("quests", () => {
-  it("a new game starts with the three start quests, and only active ones are listed", () => {
+  it("the shipped game starts with one task: survive the first night", () => {
+    const e = Engine.newGame(shipped, 3);
+    expect(active(e)).toEqual(["survive_first_night"]);
+    expect(e.checkpoint.quests.survive_first_night?.status).toBe("active"); // part of the first checkpoint
+  });
+
+  it("start quests are active at once; condition quests wait for their trigger", () => {
     const e = fresh();
-    expect(active(e)).toEqual(["find_water", "find_food", "survive_first_night"]);
+    expect(active(e)).toEqual(["survive_first_night", "find_water", "find_food"]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
-    expect(e.checkpoint.quests.find_water?.status).toBe("active"); // part of the first checkpoint
   });
 
   it("find water completes on the first drink and leaves the list", () => {
@@ -82,17 +106,19 @@ describe("quests", () => {
   });
 
   it("supports manual quests started by an effect, and chains via { quest } conditions", () => {
-    const files = readContentFiles();
-    const quests = structuredClone(files[QUESTS]) as unknown[];
-    quests.push(
-      { id: "q_manual", title: "manual", trigger: "manual", completeWhen: { item: "firewood", gte: 5 } },
-      { id: "q_after_water", title: "after water", trigger: { when: { quest: "find_water", is: "done" } }, completeWhen: { did: "gather_wood" } },
+    const r = registryWith(
+      [
+        ...EXTRA,
+        { id: "q_manual", title: "manual", trigger: "manual", completeWhen: { item: "firewood", gte: 5 } },
+        { id: "q_after_water", title: "after water", trigger: { when: { quest: "find_water", is: "done" } }, completeWhen: { did: "gather_wood" } },
+      ],
+      (files) => {
+        const forest = structuredClone(files["content/regions/forest.json"]) as { activities: Array<{ effects?: unknown[] }> };
+        forest.activities[0].effects = [{ startQuest: "q_manual" }];
+        files["content/regions/forest.json"] = forest;
+      },
     );
-    const forest = structuredClone(files["content/regions/forest.json"]) as { activities: Array<{ effects?: unknown[] }> };
-    forest.activities[0].effects = [{ startQuest: "q_manual" }];
-    files[QUESTS] = quests;
-    files["content/regions/forest.json"] = forest;
-    const e = Engine.newGame(buildRegistry(files), 1);
+    const e = Engine.newGame(r, 1);
     expect(active(e)).not.toContain("q_manual");
 
     e.dispatch({ type: "travel", region: "forest" });
