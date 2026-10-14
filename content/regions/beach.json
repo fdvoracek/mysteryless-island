@@ -6,15 +6,44 @@
   "description": ["wet sand, broken shells, a line of wrack.", "the wind never quite stops."],
   "climate": { "baseC": 20 },
   "travelHours": 0,
+  "explore": {
+    "name": "look around",
+    "hours": 1,
+    "effort": "work",
+    "nothingLog": ["you walk the shore again. nothing new.", "only sand, and the sea."],
+    "discoveries": [
+      {
+        "id": "school_of_fish",
+        "at": 1,
+        "text": [
+          "grey sand runs both ways until it bends out of sight. wrack and broken shells mark the tide line.",
+          "in the shallows, a school of small fish turns and flashes. with a bit of time, you could catch some."
+        ]
+      },
+      {
+        "id": "forest_edge",
+        "at": 2,
+        "text": ["behind the dunes, the dark line is a forest. close enough to walk to."]
+      },
+      {
+        "id": "rock_shelter",
+        "at": 3,
+        "text": [
+          "at the far end of the beach, a ring of rocks breaks the sea wind.",
+          "you could light a fire here, if you find some wood."
+        ]
+      }
+    ]
+  },
   "activities": [
     {
       "id": "light_fire",
       "name": "light fire",
       "hours": 0.5,
       "effort": "light",
-      "visibleWhen": { "not": { "timer": "fire" } },
+      "visibleWhen": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] },
       "cost": { "firewood": 3 },
-      "effects": [ { "timer": "fire", "addHours": 6 } ],
+      "effects": [{ "timer": "fire", "addHours": 6 }],
       "log": "a spark, a curl of smoke. the fire takes."
     },
     {
@@ -24,7 +53,7 @@
       "effort": "light",
       "visibleWhen": { "timer": "fire" },
       "cost": { "firewood": 2 },
-      "effects": [ { "timer": "fire", "addHours": 4 } ],
+      "effects": [{ "timer": "fire", "addHours": 4 }],
       "log": ["the fire crackles.", "sparks climb into the dark."]
     },
     {
@@ -32,14 +61,15 @@
       "name": "catch fish",
       "hours": 2,
       "effort": "work",
+      "visibleWhen": { "discovered": "school_of_fish" },
       "requires": { "phase": ["dawn", "day", "dusk"] },
       "requiresText": "too dark to see the fish",
-      "log": "you wade into the shallows, hands ready.",
       "outcomes": [
-        { "weight": 4, "text": "two fish, flapping on the sand.", "effects": [ { "give": { "raw_fish": 2 } } ] },
-        { "weight": 4, "text": "one fish. it will do.", "effects": [ { "give": { "raw_fish": 1 } } ] },
+        { "weight": 4, "text": "two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
+        { "weight": 4, "text": "one fish. it will do.", "effects": [{ "give": { "raw_fish": 1 } }] },
         { "weight": 2, "text": "nothing. the fish are quicker than you." }
-      ]
+      ],
+      "log": "you wade into the shallows, hands ready."
     },
     {
       "id": "cook_fish",
@@ -50,7 +80,7 @@
       "requires": { "timer": "fire" },
       "requiresText": "the fire is out",
       "cost": { "raw_fish": 1 },
-      "effects": [ { "give": { "cooked_fish": 1 } } ],
+      "effects": [{ "give": { "cooked_fish": 1 } }],
       "log": "the fish hisses on a flat stone by the fire."
     },
     {
@@ -58,14 +88,19 @@
       "name": "sleep",
       "hours": 8,
       "effort": "sleep",
+      "visibleWhen": { "discovered": "rock_shelter" },
       "requires": { "timer": "fire" },
       "requiresText": "too cold and dark to sleep without a fire",
-      "checkpoint": true,
-      "log": "you curl up by the fire and sleep.",
       "outcomes": [
         { "weight": 1, "when": { "phase": ["dawn", "day"] }, "text": "morning comes, grey and wet." },
-        { "weight": 1, "when": { "phase": ["dusk", "night"] }, "text": "you wake in the dark. the surf is loud." }
-      ]
+        {
+          "weight": 1,
+          "when": { "phase": ["dusk", "night"] },
+          "text": "you wake in the dark. the surf is loud."
+        }
+      ],
+      "checkpoint": true,
+      "log": "you curl up by the fire and sleep."
     }
   ]
 }

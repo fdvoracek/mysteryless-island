@@ -8,7 +8,8 @@ import { clone, createInitialState, type GameState } from "./state";
 export type Command =
   | { type: "activity"; id: string }
   | { type: "travel"; region: string }
-  | { type: "consume"; item: string };
+  | { type: "consume"; item: string }
+  | { type: "explore" };
 
 export interface Result {
   ok: boolean;
@@ -54,6 +55,11 @@ export class Engine {
     if (this.state.log.length > 100) this.state.log.length = 100;
   }
 
+  /** Log a paragraph. The log is newest-first, so lines go in reverse to read top-down. */
+  logLines(lines: Array<string | undefined>) {
+    for (let i = lines.length - 1; i >= 0; i--) this.log(lines[i]);
+  }
+
   // ---------------------------------------------------------------- commands
 
   dispatch(cmd: Command): Result {
@@ -64,7 +70,48 @@ export class Engine {
       case "activity": return this.doActivity(cmd.id);
       case "travel": return this.travel(cmd.region);
       case "consume": return this.consume(cmd.item);
+      case "explore": return this.explore();
     }
+  }
+
+  /** The "look around" action of the current region: visible until everything is discovered. */
+  checkExplore(): { visible: boolean; enabled: boolean; reason?: string; found: number; total: number } {
+    const region = this.reg.regions.get(this.state.location)!;
+    const ex = region.explore;
+    if (!ex) return { visible: false, enabled: false, found: 0, total: 0 };
+    const st = this.state.regions[region.id];
+    const total = ex.discoveries.length;
+    const found = ex.discoveries.filter((d) => st.discoveries.includes(d.id)).length;
+    if (found >= total && ex.hideWhenDone !== false) return { visible: false, enabled: false, found, total };
+    const ctx = this.ctx();
+    if (!evaluate(ex.requires, ctx)) {
+      return { visible: true, enabled: false, reason: ex.requiresText ?? explain(ex.requires, ctx) ?? undefined, found, total };
+    }
+    return { visible: true, enabled: true, found, total };
+  }
+
+  private explore(): Result {
+    const region = this.reg.regions.get(this.state.location)!;
+    const ex = region.explore;
+    const c = this.checkExplore();
+    if (!ex || !c.visible) return refuse("nothing more to find here");
+    if (!c.enabled) return refuse(c.reason ?? "not possible now");
+
+    if (!this.advance(ex.hours, ex.effort)) return this.died(ex.hours);
+    const st = this.state.regions[region.id];
+    st.explored += 1;
+    const ctx = this.ctx();
+    const found = ex.discoveries.filter(
+      (d) => !st.discoveries.includes(d.id) && d.at <= st.explored && evaluate(d.when, ctx),
+    );
+    for (const d of found) {
+      st.discoveries.push(d.id);
+      this.logLines(d.text);
+      this.applyEffects(d.effects);
+    }
+    if (!found.length) this.log(textOf(ex.nothingLog, this.state) ?? "nothing new.");
+    this.postCheck();
+    return this.ok(ex.hours);
   }
 
   /** Can this activity be shown, and can it be done now? Used by the UI and by dispatch. */
@@ -122,8 +169,7 @@ export class Engine {
     const r = this.state.regions[regionId];
     if (!r.visited) {
       r.visited = true;
-      to.description.forEach((line) => this.log(line));
-      this.log(textOf(to.firstVisit?.log, this.state));
+      this.logLines([...to.description, textOf(to.firstVisit?.log, this.state)]);
     }
     this.postCheck();
     return this.ok(hours);

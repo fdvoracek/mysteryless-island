@@ -57,7 +57,7 @@ export class UI {
   render() {
     const v = view(this.getEngine());
     this.renderTabs(v);
-    this.renderButtons(this.els.actions, v.actions, (id) => ({ type: "activity", id }));
+    this.renderButtons(this.els.actions, v.actions);
     this.renderStatus(v);
     this.renderQuests(v);
     this.renderStores(v);
@@ -83,7 +83,7 @@ export class UI {
     );
   }
 
-  private renderButtons(container: HTMLElement, buttons: ButtonView[], toCmd: (id: string) => Command) {
+  private renderButtons(container: HTMLElement, buttons: ButtonView[]) {
     const existing = new Map<string, HTMLButtonElement>();
     container.querySelectorAll<HTMLButtonElement>("button.btn").forEach((b) => existing.set(b.dataset.id!, b));
     const keep = new Set(buttons.map((b) => b.id));
@@ -96,7 +96,7 @@ export class UI {
         el.className = "btn appear";
         el.dataset.id = bv.id;
         el.innerHTML = `<span class="label"></span><span class="cd"></span><span class="tip" role="tooltip"></span>`;
-        el.addEventListener("click", () => { if (!el!.classList.contains("off")) this.send(toCmd(bv.id), el!); });
+        el.addEventListener("click", () => { if (!el!.classList.contains("off")) this.send(bv.command, el!); });
       }
       el.querySelector(".label")!.textContent = bv.label;
       const tip = el.querySelector(".tip")!;

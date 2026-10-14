@@ -5,6 +5,14 @@ export const SAVE_VERSION = 1;
 
 export interface LogEntry { at: number; text: string }
 
+export interface RegionState {
+  unlocked: boolean;
+  visited: boolean;
+  /** how many times the region was explored ("look around") */
+  explored: number;
+  discoveries: string[];
+}
+
 export interface QuestState { status: "active" | "done"; startedAt: number; doneAt?: number }
 
 /** The whole game state. Plain JSON data: no classes, no Maps. */
@@ -27,7 +35,7 @@ export interface GameState {
   quests: Record<string, QuestState>;
   /** minutes left per timer */
   timers: Record<string, number>;
-  regions: Record<string, { unlocked: boolean; visited: boolean }>;
+  regions: Record<string, RegionState>;
   /** stats before the last command, for trend arrows */
   prevStats: Record<string, number>;
   log: LogEntry[];
@@ -39,7 +47,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
   const regions: GameState["regions"] = {};
   for (const id of reg.regionOrder) {
     const r = reg.regions.get(id)!;
-    regions[id] = { unlocked: !r.unlockWhen || id === start.region, visited: id === start.region };
+    regions[id] = { unlocked: !r.unlockWhen || id === start.region, visited: id === start.region, explored: 0, discoveries: [] };
   }
   const timers: Record<string, number> = {};
   for (const t of reg.timers.keys()) timers[t] = 0;

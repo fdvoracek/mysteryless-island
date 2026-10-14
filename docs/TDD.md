@@ -232,7 +232,7 @@ type Condition =
   | { building: BuildingId; level?: number; count?: number }
   | { region: RegionId }                                // unlocked
   | { at: RegionId }                                    // player is there now
-  | { discovery: DiscoveryId }
+  | { discovered: DiscoveryId }
   | { explored: RegionId; gte: number }
   | { stat: StatId; gte?: number; lte?: number }
   | { warmth: BodyBandId[] }
@@ -289,17 +289,18 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "description": ["tall trunks, close together.", "the sea is only a sound now."],
   "climate": { "baseC": 20, "daySwing": true },
   "travelHours": 1,
-  "unlockWhen": { "discovery": "trail_into_trees" },
+  "unlockWhen": { "discovered": "trail_into_trees" },
   "firstVisit": { "log": "the trees close in behind you.", "image": "forest_first" },
 
   "explore": {
-    "hours": 2, "effort": "work", "eventChance": 0.25,
+    "name": "look around", "hours": 2, "effort": "work",
     "requires": { "any": [ { "phase": ["dawn", "day", "dusk"] }, { "item": "torch" } ] },
-    "finds": [ { "item": "resin", "min": 1, "max": 2, "chance": 0.3 } ],
+    "nothingLog": ["the trees all look the same now. nothing new."],
     "discoveries": [
-      { "id": "game_trail", "at": 2, "log": "hoof prints in the mud. a trail used often." },
-      { "id": "tall_pines", "at": 4, "log": "a stand of pines, straight as masts." },
-      { "id": "running_water", "at": 6, "log": "somewhere ahead, the sound of running water." }
+      { "id": "game_trail", "at": 2, "text": ["hoof prints in the mud. a trail used often."] },
+      { "id": "tall_pines", "at": 4, "text": ["a stand of pines, straight as masts."] },
+      { "id": "running_water", "at": 6, "text": ["somewhere ahead, the sound of running water."],
+        "effects": [ { "startQuest": "follow_the_water" } ] }
     ]
   },
 
@@ -314,7 +315,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
     {
       "id": "hunt", "name": "hunt",
       "hours": 3, "effort": "heavy",
-      "visibleWhen": { "discovery": "game_trail" },
+      "visibleWhen": { "discovered": "game_trail" },
       "requires": { "all": [ { "item": "spear" }, { "not": { "phase": ["night"] } } ] },
       "outcomes": [
         { "weight": 5, "text": "the spear finds its mark.",
@@ -402,7 +403,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 | `eventChance?`, `eventTags?` | number, string[] | Event roll after the action |
 | `log?` | Text or Text[] | One line picked at random |
 
-Region exploration (`explore`) is a special activity: each use adds 1 to the region's explore counter and checks `discoveries[].at` (plus an optional `when`).
+**Region exploration** (`explore`) is the region's "look around" button **[implemented]**. Each use takes `hours`, adds 1 to the region's `explored` counter, and makes every discovery whose `at` ≤ counter (and whose optional `when` holds). A discovery prints all its `text` lines in order and applies its `effects`. Buttons and regions are revealed by `{ "discovered": id }` in `visibleWhen` / `unlockWhen`; `{ "explored": region, "gte": n }` is also available. When everything is found the button disappears (`hideWhenDone`, default true); a step that finds nothing logs `nothingLog`. The button tooltip shows *unexplored / partly explored*.
 
 ### 6.8 Buildings and upgrades
 

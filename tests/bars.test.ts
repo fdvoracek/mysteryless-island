@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Engine } from "../src/core/engine";
 import { clampPct, view } from "../src/core/selectors";
-import { loadRegistry } from "./helpers";
+import { loadRegistry, revealAll } from "./helpers";
 
 const reg = loadRegistry();
 const line = (e: Engine, id: string) => view(e).status.lines.find((l) => l.id === id)!;
@@ -64,7 +64,7 @@ describe("ink bars", () => {
   });
 
   it("reports the trend for the hover text", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = revealAll(Engine.newGame(reg, 1));
     e.dispatch({ type: "travel", region: "forest" });
     expect(line(e, "thirst").trend).toBe("worse");
     e.dispatch({ type: "activity", id: "drink_stream" });

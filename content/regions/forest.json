@@ -6,24 +6,45 @@
   "description": ["tall trunks, close together.", "the sea is only a sound now."],
   "climate": { "baseC": 18 },
   "travelHours": 1,
+  "unlockWhen": { "discovered": "forest_edge" },
   "firstVisit": { "log": "somewhere ahead, water runs over stones." },
+  "explore": {
+    "name": "look around",
+    "hours": 1,
+    "effort": "work",
+    "nothingLog": ["the trees all look the same now. nothing new."],
+    "discoveries": [
+      {
+        "id": "dry_wood",
+        "at": 1,
+        "text": ["dead branches lie everywhere under the trees, dry enough to burn. you could collect some."]
+      },
+      {
+        "id": "spring",
+        "at": 2,
+        "text": ["between mossy stones, a small spring. the water is clear and cold."]
+      }
+    ]
+  },
   "activities": [
     {
       "id": "gather_wood",
-      "name": "gather wood",
+      "name": "collect wood",
       "hours": 1,
       "effort": "work",
-      "yields": [ { "item": "firewood", "min": 3, "max": 5 } ],
+      "visibleWhen": { "discovered": "dry_wood" },
+      "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
       "log": ["dry branches snap underfoot.", "an armful of deadwood.", "bark and twigs, dry enough to burn."]
     },
     {
       "id": "drink_stream",
-      "name": "drink from stream",
+      "name": "drink water",
       "hours": 0.5,
       "effort": "light",
-      "effects": [ { "stat": { "thirst": -40 } } ],
+      "visibleWhen": { "discovered": "spring" },
+      "effects": [{ "stat": { "thirst": -40 } }],
       "tags": ["drink"],
-      "log": ["cold water, tasting of stone.", "you drink until your teeth ache."]
+      "log": ["cold water from the spring, tasting of stone.", "you drink until your teeth ache."]
     }
   ]
 }

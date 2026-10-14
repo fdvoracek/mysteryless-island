@@ -2,16 +2,23 @@ import { describe, expect, it } from "vitest";
 import { Engine } from "../src/core/engine";
 import { clockText } from "../src/core/clock";
 import { view } from "../src/core/selectors";
-import { loadRegistry } from "./helpers";
+import { loadRegistry, revealAll } from "./helpers";
 
 const reg = loadRegistry();
-const fresh = (seed = 1) => Engine.newGame(reg, seed);
+/** a game with the beach and forest fully explored (exploration is tested separately) */
+const fresh = (seed = 1) => revealAll(Engine.newGame(reg, seed));
 
 describe("engine: the prototype loop", () => {
-  it("starts at dawn on the beach with an unlit fire", () => {
-    const e = fresh();
+  it("starts at dawn on the beach with only 'look around'", () => {
+    const e = Engine.newGame(reg, 1);
     expect(e.state.location).toBe("beach");
     expect(clockText(e.state.time)).toBe("06:00");
+    expect(view(e).actions.map((a) => a.label)).toEqual(["look around"]);
+    expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
+  });
+
+  it("once the beach is explored: light fire (needs wood), catch fish, sleep (needs fire)", () => {
+    const e = fresh();
     const v = view(e);
     expect(v.actions.map((a) => a.id)).toEqual(["light_fire", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);

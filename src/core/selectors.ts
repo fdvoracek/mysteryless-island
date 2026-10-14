@@ -1,10 +1,11 @@
 import { clockText, day, phaseAt } from "./clock";
-import type { Engine } from "./engine";
+import type { Command, Engine } from "./engine";
 
 /** View models: everything the UI (or a simulator bot) needs, with no game logic left to do. */
 
 export interface ButtonView {
   id: string;
+  command: Command;
   label: string;
   enabled: boolean;
   reason?: string;
@@ -52,12 +53,21 @@ export function view(engine: Engine): View {
     });
 
   const actions: ButtonView[] = [];
+  const ex = engine.checkExplore();
+  if (ex.visible && region.explore) {
+    const progress = ex.found === 0 ? "unexplored" : ex.found < ex.total ? "partly explored" : "fully explored";
+    actions.push({
+      id: `explore:${region.id}`, command: { type: "explore" }, label: region.explore.name,
+      enabled: ex.enabled, reason: ex.reason,
+      tooltip: [`${fmtHours(region.explore.hours)} · ${region.explore.effort}`, progress],
+    });
+  }
   for (const a of region.activities) {
     const c = engine.check(a);
     if (!c.visible) continue;
     const tooltip = [`${fmtHours(a.hours)} · ${a.effort}`];
     for (const [k, n] of Object.entries(a.cost ?? {})) tooltip.push(`${reg.items.get(k)?.name ?? k}: ${n}`);
-    actions.push({ id: a.id, label: a.name, enabled: c.enabled, reason: c.reason, tooltip });
+    actions.push({ id: a.id, command: { type: "activity", id: a.id }, label: a.name, enabled: c.enabled, reason: c.reason, tooltip });
   }
 
   const danger = reg.stats.dangerAtOrBelow ?? 20;

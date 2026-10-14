@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, readContentFiles } from "./helpers";
+import { loadRegistry, readContentFiles, revealAll } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
@@ -25,7 +25,7 @@ function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) 
 
 const shipped = loadRegistry();
 const reg = registryWith(EXTRA);
-const fresh = () => Engine.newGame(reg, 3);
+const fresh = () => revealAll(Engine.newGame(reg, 3));
 const active = (e: Engine) => view(e).quests.map((q) => q.id);
 
 describe("quests", () => {
@@ -118,7 +118,7 @@ describe("quests", () => {
         files["content/regions/forest.json"] = forest;
       },
     );
-    const e = Engine.newGame(r, 1);
+    const e = revealAll(Engine.newGame(r, 1));
     expect(active(e)).not.toContain("q_manual");
 
     e.dispatch({ type: "travel", region: "forest" });

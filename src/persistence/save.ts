@@ -38,7 +38,11 @@ export function clearSave() {
 function isCompatible(s: GameState, reg: Registry): boolean {
   if (!s || !reg.regions.has(s.location)) return false;
   for (const id of Object.keys(s.items)) if (!reg.items.has(id)) delete s.items[id];
-  for (const id of reg.regionOrder) s.regions[id] ??= { unlocked: !reg.regions.get(id)!.unlockWhen, visited: false };
+  for (const id of reg.regionOrder) {
+    s.regions[id] ??= { unlocked: !reg.regions.get(id)!.unlockWhen, visited: false, explored: 0, discoveries: [] };
+    s.regions[id].explored ??= 0;
+    s.regions[id].discoveries ??= [];
+  }
   for (const id of reg.timers.keys()) s.timers[id] ??= 0;
   for (const st of reg.stats.stats) s.stats[st.id] ??= reg.game.start.stats[st.id];
   s.counters ??= {};

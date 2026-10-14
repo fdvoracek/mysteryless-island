@@ -33,7 +33,11 @@ export type Condition =
   | { did: string; gte?: number; lte?: number }
   /** the clock has reached this day (and hour) */
   | { reached: { day: number; hour?: number } }
-  | { quest: string; is: "active" | "done" };
+  | { quest: string; is: "active" | "done" }
+  /** a discovery made by exploring a region */
+  | { discovered: string }
+  /** how many times a region was explored */
+  | { explored: string; gte?: number; lte?: number };
 
 const range = { gte: z.number().optional(), lte: z.number().optional() };
 
@@ -56,6 +60,8 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ did: Id, ...range }).strict(),
     z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
     z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
+    z.object({ discovered: Id }).strict(),
+    z.object({ explored: Id, ...range }).strict(),
   ]),
 );
 
@@ -143,6 +149,36 @@ export const Region = z
     travelHours: z.number().nonnegative(),
     unlockWhen: Condition.optional(),
     firstVisit: z.object({ log: Text.optional() }).strict().optional(),
+    /** the "look around" action: each use explores the region one step further */
+    explore: z
+      .object({
+        name: z.string(),
+        hours: z.number().positive(),
+        effort: Effort,
+        requires: Condition.optional(),
+        requiresText: z.string().optional(),
+        /** logged when a step finds nothing new */
+        nothingLog: Text.optional(),
+        /** hide the button once every discovery is made (default true) */
+        hideWhenDone: z.boolean().optional(),
+        discoveries: z
+          .array(
+            z
+              .object({
+                id: Id,
+                /** found on this exploration step (1 = first look around) */
+                at: z.number().int().positive(),
+                when: Condition.optional(),
+                /** all lines are shown, in order */
+                text: z.array(z.string()).min(1),
+                effects: z.array(Effect).optional(),
+              })
+              .strict(),
+          )
+          .min(1),
+      })
+      .strict()
+      .optional(),
     activities: z.array(Activity),
   })
   .strict();
