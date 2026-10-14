@@ -135,7 +135,7 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
     await expect(page.locator("#layoutMenu")).toBeVisible();
     await page.locator(`#layoutMenu [data-layout="${id}"]`).click();
     await expect(page.locator("#layoutMenu")).toBeHidden();
-    await expect(page.locator("#layoutBtn")).toHaveText(`layout: ${id === "bujo" ? "bullet journal" : id}.`);
+    await expect(page.locator("#layoutBtn")).toHaveText(`layout: ${id === "bujo" ? "old journal" : id}.`);
     await expect(page.locator("#app")).toHaveClass(new RegExp(`layout-${id}`));
     // the same panels in every layout
     await expect(page.locator("#log")).toContainText("awake. salt in the mouth.");

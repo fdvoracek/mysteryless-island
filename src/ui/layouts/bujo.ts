@@ -3,18 +3,18 @@ import { panel } from "./panels";
 import type { Layout } from "./types";
 
 /**
- * 5. Bullet journal, in black and white. The left page is only what happened: the daily log,
- * one bullet per action with its time and a lettered heading per day. The right page is
- * everything you act on or check: places and actions, the tracker (survival bars), tasks,
- * stores and inventory.
+ * 5. A 19th-century castaway's journal: clean paper, ink, handwriting. The left page is only
+ * what happened: the log, entries with the hour in the margin and a heading per day. The right
+ * page is everything you act on or check: places and actions, survival bars, tasks, stores and
+ * inventory. (The id stays "bujo" so saved layout choices keep working.)
  */
 export const bujo: Layout = {
   id: "bujo",
-  name: "bullet journal",
+  name: "old journal",
   skeleton: () => `
     <div class="wrap" id="wrap">
       <section class="bj-page bj-log">
-        <h2 class="bj-title">daily log</h2>
+        <h2 class="bj-title">journal</h2>
         ${panel.story()}
       </section>
       <section class="bj-page bj-side">
@@ -31,6 +31,9 @@ export const bujo: Layout = {
       </section>
     </div>`,
   story: { order: "oldest-first", unit: "turn", older: "muted", latestLarge: true, timestamps: true, limit: 24 },
-  // hand lettering for headings only; falls back to system handwriting fonts
-  stylesheets: ["https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&display=swap"],
+  // Pinyon Script: copperplate headings; Meddon: an 18th/19th-century quill hand for the log;
+  // IM Fell English: period print for controls. Fall back to the macOS script fonts.
+  stylesheets: [
+    "https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Meddon&family=IM+Fell+English:ital@0;1&display=swap",
+  ],
 };

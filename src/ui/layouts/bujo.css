@@ -1,92 +1,109 @@
 /*
- * 5. bullet journal, black and white: faint dot-grid paper, ink only, lettered headings,
- * bullets and signifiers. The story is on the left page, everything else on the right.
- * Red is kept only for danger (a survival bar at or below 20%), as in the rest of the game.
+ * 5. 19th-century journal: clean laid paper, iron-gall ink, a copperplate hand for headings and a
+ * quill hand for the log. No grid, no texture. The story is on the left page, everything else on
+ * the right. Red is kept only for danger (a survival bar at or below 20%), as in the rest of the game.
  */
 .layout-bujo {
-  --dots: #d9d9d9;
-  /* lettering for headings; the log stays in the game's serif for reading (set --log-font to var(--hand) for all-handwritten) */
-  --hand: "Caveat", "Bradley Hand", "Segoe Print", cursive;
-  --log-font: var(--font);
+  --paper: #f7f3ea;            /* clean, slightly warm paper; set to #fff for pure black and white */
+  --ink: #1d1a16;              /* iron-gall black */
+  --ink-faded: #6f675c;        /* older entries: ink that has dried */
+  --rule: #cfc6b6;
+  --script: "Pinyon Script", "Snell Roundhand", "Apple Chancery", "Savoye LET", cursive;   /* headings */
+  --quill: "Meddon", "Apple Chancery", "Snell Roundhand", cursive;                         /* the log */
+  --print: "IM Fell English", "Iowan Old Style", Georgia, var(--font);                     /* controls, labels */
+  /* the log is handwritten; set to var(--print) if long sessions get tiring to read */
+  --log-font: var(--quill);
+  --bg: var(--paper); --fg: var(--ink); --muted: var(--ink-faded); --line: var(--rule); --bar: var(--rule);
 }
+/* lights off: the same journal by lamplight */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .layout-bujo { --dots: #2c2c2c; }
+  :root:not([data-theme="light"]) .layout-bujo { --paper: #1c1a17; --ink: #e9e2d3; --ink-faded: #958c7d; --rule: #3a3530; }
 }
-:root[data-theme="dark"] .layout-bujo { --dots: #2c2c2c; }
+:root[data-theme="dark"] .layout-bujo { --paper: #1c1a17; --ink: #e9e2d3; --ink-faded: #958c7d; --rule: #3a3530; }
 
-#app.layout-bujo {
-  min-height: 100vh;
-  background-color: var(--bg);
-  background-image: radial-gradient(circle, var(--dots) 1px, transparent 1.2px);
-  background-size: 22px 22px;
-}
+#app.layout-bujo { min-height: 100vh; background: var(--paper); color: var(--ink); font-family: var(--print); }
+/* the paper also under the page edges (overscroll); values repeat --paper since body is outside #app */
+body:has(#app.layout-bujo) { background: #f7f3ea; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body:has(#app.layout-bujo) { background: #1c1a17; } }
+:root[data-theme="dark"] body:has(#app.layout-bujo) { background: #1c1a17; }
+/* only the first letter is capitalised ("Day 1 · 10:30 · day", not "Day 1 · 10:30 · Day") */
+.layout-bujo .bj-title::first-letter, .layout-bujo .log .day::first-letter,
+.layout-bujo .box legend::first-letter { text-transform: uppercase; }
 
-/* a two-page spread: the story is the wider page */
+/* a two-page spread: the story is the wider page; a single fine fold between the pages */
 .layout-bujo .wrap {
-  max-width: 1060px; margin: 0 auto; padding: 28px 24px 90px;
-  display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 0;
+  max-width: 1080px; margin: 0 auto; padding: 40px 32px 90px;
+  display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0;
 }
-.layout-bujo .bj-page { display: grid; gap: 22px; align-content: start; min-width: 0; }
-.layout-bujo .bj-log { padding-right: 36px; border-right: 1px solid var(--line); }
-.layout-bujo .bj-side { padding-left: 36px; }
+.layout-bujo .bj-page { display: grid; gap: 26px; align-content: start; min-width: 0; }
+.layout-bujo .bj-log { padding-right: 44px; border-right: 1px solid var(--rule); }
+.layout-bujo .bj-side { padding-left: 44px; }
 
-/* lettered headings with a short ink rule */
-.layout-bujo .bj-title { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 36px; line-height: 1; }
-.layout-bujo .bj-title::after { content: ""; display: block; width: 64px; height: 2px; margin-top: 6px; background: var(--fg); }
+/* copperplate title with a thin double rule, as on a printed journal page */
+.layout-bujo .bj-title {
+  margin: 0; font-family: var(--script); font-weight: 400; font-size: 44px; line-height: 1.1;
+  padding-bottom: 8px; border-bottom: 3px double var(--ink);
+}
 
-/* the daily log: one bullet per action, its time, a heading per day */
+/* the log: entries written one after another, the hour in the margin, a heading per day */
 .layout-bujo .log {
-  height: 72vh; overflow-y: auto; display: grid; gap: 10px; align-content: end; padding-right: 8px;
+  height: 70vh; overflow-y: auto; display: grid; gap: 12px; align-content: end; padding-right: 8px;
   font-family: var(--log-font);
 }
-.layout-bujo .log .day { font-family: var(--hand); font-size: 26px; font-weight: 700; margin-top: 6px; }
-.layout-bujo .log .entry { position: relative; padding-left: 1.5em; font-size: 17px; line-height: 1.5; }
-.layout-bujo .log .entry::before { content: "○"; position: absolute; left: 0; top: 0.05em; font-size: 0.85em; }
-.layout-bujo .log .entry .time { font-size: 13px; color: var(--muted); margin-right: 8px; font-variant-numeric: tabular-nums; }
-.layout-bujo .log .entry.older, .layout-bujo .log .entry.older::before { color: var(--muted); }
-.layout-bujo .log .entry.latest { font-size: 20px; }
-.layout-bujo .log .entry.latest::before { content: "●"; }
+.layout-bujo .log .day {
+  font-family: var(--script); font-size: 32px; margin-top: 10px; line-height: 1.2;
+}
+.layout-bujo .log .entry { position: relative; padding-left: 72px; font-size: 17px; line-height: 1.75; }
+.layout-bujo .log .entry .time {
+  position: absolute; left: 0; top: 0.35em; width: 60px;
+  font-family: var(--print); font-style: italic; font-size: 13px; color: var(--ink-faded); font-variant-numeric: oldstyle-nums;
+}
+.layout-bujo .log .entry.older { color: var(--ink-faded); }
+.layout-bujo .log .entry.latest { font-size: 19px; }
 
 /* right page: places and actions first, since they are used most */
-.layout-bujo .bj-play { display: grid; gap: 12px; }
-.layout-bujo .tabs { margin: 0; font-family: var(--hand); font-size: 24px; font-weight: 600; gap: 2px 14px; }
-.layout-bujo .tab.here { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.layout-bujo .bj-play { display: grid; gap: 14px; }
+.layout-bujo .tabs { margin: 0; font-family: var(--script); font-size: 28px; gap: 2px 18px; }
+.layout-bujo .tab.here { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
 .layout-bujo .buttons { gap: 10px; }
 .layout-bujo .btn {
-  width: calc(50% - 5px); padding: 7px 10px; background: var(--bg);
-  border: 1.5px solid var(--line); border-radius: 255px 12px 225px 12px / 12px 225px 12px 255px;
+  width: calc(50% - 5px); padding: 6px 10px; background: transparent;
+  font-family: var(--print); font-size: 16px; border: 1px solid var(--ink); border-radius: 0;
 }
 
-/* sections: no frames, a lettered heading with an ink rule */
+/* sections: no frames, a script heading over a hairline */
 .layout-bujo .box { border: 0; padding: 10px 0 0; margin: 0; min-width: 0; }
 .layout-bujo .box legend {
-  font-family: var(--hand); font-size: 23px; font-weight: 700; padding: 0 0 2px; margin-bottom: 4px;
-  border-bottom: 2px solid var(--fg);
+  font-family: var(--script); font-size: 28px; font-weight: 400;
+  padding: 0 0 2px; margin-bottom: 6px; border-bottom: 1px solid var(--ink); line-height: 1.2;
 }
-.layout-bujo .bj-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.layout-bujo .bj-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.layout-bujo .row .key { font-style: italic; }
 
-/* tracker: plain ink bars on a dotted line */
-.layout-bujo #status .row { padding: 2px 0; }
-.layout-bujo .bar { width: 110px; height: 8px; border: 0; border-bottom: 1px dotted var(--muted); }
-.layout-bujo .bar i { background: var(--fg); }
+/* survival bars: a thin ink line on a hairline */
+.layout-bujo #status .row { padding: 3px 0; }
+.layout-bujo .bar { width: 110px; height: 6px; border: 0; border-bottom: 1px solid var(--rule); }
+.layout-bujo .bar i { background: var(--ink); }
 .layout-bujo .row.bad .bar { border-color: var(--bad); }
 .layout-bujo .row.bad .bar i { background: var(--bad); }
 
-/* tasks with bullet-journal signifiers: • open, × done */
-.layout-bujo .quest .title::before { content: "•  "; color: var(--fg); font-weight: 700; }
-.layout-bujo .quest.done .title::before { content: "×  "; }
+/* tasks: a dash for open, struck through when done */
+.layout-bujo .quest .title::before { content: "–  "; }
+.layout-bujo .quest.done .title { text-decoration: line-through; text-decoration-thickness: 1px; }
 
 /* tooltips open to the left on the right page, never over the next row */
 .layout-bujo .bj-side .row .tip, .layout-bujo .bj-side .quest .tip { right: calc(100% + 12px); }
+.layout-bujo .tip { font-family: var(--print); }
 
-.layout-bujo .menu { background: transparent; }
-.layout-bujo .fade p { font-family: var(--hand); font-size: 34px; }
+.layout-bujo .menu { font-family: var(--print); font-style: italic; }
+.layout-bujo .fade p { font-family: var(--script); font-size: 42px; }
 
 @media (max-width: 860px) {
-  .layout-bujo .wrap { grid-template-columns: 1fr; }
-  .layout-bujo .bj-log { padding-right: 0; border-right: 0; border-bottom: 1px solid var(--line); padding-bottom: 20px; }
-  .layout-bujo .bj-side { padding-left: 0; padding-top: 20px; }
-  .layout-bujo .log { height: auto; max-height: 50vh; }
+  .layout-bujo .wrap { grid-template-columns: 1fr; padding: 24px 16px 90px; }
+  .layout-bujo .bj-log { padding-right: 0; border-right: 0; border-bottom: 1px solid var(--rule); padding-bottom: 22px; }
+  .layout-bujo .bj-side { padding-left: 0; padding-top: 22px; }
+  .layout-bujo .log { height: auto; max-height: 55vh; }
+  .layout-bujo .log .entry { padding-left: 58px; }
   .layout-bujo .bj-pair { grid-template-columns: 1fr; }
   .layout-bujo .bj-side .row .tip, .layout-bujo .bj-side .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }

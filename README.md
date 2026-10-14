@@ -28,7 +28,7 @@ Six screen layouts, switchable from *layout:* in the bottom menu (the choice is 
 | `scene` | the last result as a large paragraph with the buttons under it, earlier text in one quiet line; panels on a shelf |
 | `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
 | `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
-| `bujo` | bullet journal in black and white: faint dot-grid paper, lettered headings. Left page: only the daily log (a bullet per action with its time, a heading per day). Right page: places and actions, survival bars, tasks (• open, × done), stores and inventory |
+| `bujo` | *old journal*, 19th century: clean paper, black ink, copperplate headings, the log in a quill hand. Left page: only the log (the hour in the margin, a heading per day). Right page: places and actions, survival bars, tasks (struck through when done), stores and inventory |
 
 Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go and how the story reads; `<id>.css`: its styles, scoped to `.layout-<id>`). Panels are shared (`panels.ts`) and keep their ids in every layout. A layout may also list `stylesheets` (e.g. web fonts) that load when it is chosen; `bujo` uses this for its lettering font. To add one, copy a pair of files, change them, and add it to `LAYOUTS` in `index.ts`; to remove one, delete its files and its line there.
 
