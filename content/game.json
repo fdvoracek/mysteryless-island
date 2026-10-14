@@ -1,0 +1,38 @@
+{
+  "_note": "Global game settings, start state and timers. Times are in hours unless a key says minutes.",
+  "title": "Mysteryless Island",
+  "stepMinutes": 30,
+  "start": {
+    "region": "beach",
+    "day": 1,
+    "hour": 6,
+    "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
+    "items": {},
+    "log": [
+      "awake. salt in the mouth.",
+      "the sea is quiet now. the ship is gone.",
+      "behind the dunes, a dark line of trees."
+    ]
+  },
+  "cosmetic": { "msPerHour": 250, "maxMs": 2000 },
+  "deathLog": "the world fades.",
+  "restoreLog": "you wake on the sand. it was only a dream, or a warning.",
+  "timers": [
+    {
+      "id": "fire",
+      "name": "fire",
+      "region": "beach",
+      "maxHours": 12,
+      "modifiers": { "localHeatC": 6 },
+      "states": [
+        { "upToHours": 0, "word": "out" },
+        { "upToHours": 2, "word": "dying" },
+        { "upToHours": 6, "word": "burning" },
+        { "upToHours": 12, "word": "roaring" }
+      ],
+      "warnAtHours": 1,
+      "warnLog": "the fire is dying.",
+      "expireLog": "the fire goes out. only embers now."
+    }
+  ]
+}

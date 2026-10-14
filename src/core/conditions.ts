@@ -1,0 +1,64 @@
+import type { Registry } from "../content/registry";
+import type { Condition, Effort } from "../content/schema";
+import { day, phaseAt } from "./clock";
+import type { GameState } from "./state";
+
+export interface Ctx {
+  reg: Registry;
+  state: GameState;
+  /** effort of the action currently being simulated, if any */
+  effort?: Effort;
+}
+
+const inRange = (v: number, c: { gte?: number; lte?: number }, defaultGte?: number) => {
+  const gte = c.gte ?? (c.lte === undefined ? defaultGte : undefined);
+  return (gte === undefined || v >= gte) && (c.lte === undefined || v <= c.lte);
+};
+
+/** Evaluate a structured condition against the state. */
+export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
+  if (!c) return true;
+  const { state: s, reg } = ctx;
+  if ("all" in c) return c.all.every((x) => evaluate(x, ctx));
+  if ("any" in c) return c.any.some((x) => evaluate(x, ctx));
+  if ("not" in c) return !evaluate(c.not, ctx);
+  if ("item" in c) return inRange(s.items[c.item] ?? 0, c, 1);
+  if ("seen" in c) return s.seen.includes(c.seen);
+  if ("flag" in c) return s.flags.includes(c.flag);
+  // timer values are authored in hours; a bare { "timer": "fire" } means "running"
+  if ("timer" in c) {
+    const hours = (s.timers[c.timer] ?? 0) / 60;
+    return c.gte === undefined && c.lte === undefined ? hours > 0 : inRange(hours, c);
+  }
+  if ("at" in c) return s.location === c.at;
+  if ("region" in c) return !!s.regions[c.region]?.unlocked;
+  if ("stat" in c) return inRange(s.stats[c.stat] ?? 0, c);
+  if ("warmth" in c) return c.warmth.includes(reg.bandIds[s.warmth]);
+  if ("phase" in c) return c.phase.includes(phaseAt(reg, s.time).id);
+  if ("effort" in c) return !!ctx.effort && c.effort.includes(ctx.effort);
+  if ("day" in c) return inRange(day(s.time), c.day);
+  return false;
+}
+
+/**
+ * Explain the first unmet part of a condition as a short phrase, for tooltips.
+ * Authors can override this per activity with "requiresText".
+ */
+export function explain(c: Condition | undefined, ctx: Ctx): string | null {
+  if (!c || evaluate(c, ctx)) return null;
+  const { reg } = ctx;
+  if ("all" in c) {
+    for (const x of c.all) { const e = explain(x, ctx); if (e) return e; }
+    return null;
+  }
+  if ("any" in c) return c.any.map((x) => explain(x, ctx)).filter(Boolean).join(" or ") || "not possible now";
+  if ("item" in c) {
+    const name = reg.items.get(c.item)?.name ?? c.item;
+    return c.lte !== undefined ? `too much ${name}` : `needs ${c.gte ?? 1} ${name}`;
+  }
+  if ("timer" in c) return `the ${reg.timers.get(c.timer)?.name ?? c.timer} is out`;
+  if ("phase" in c) return `only at ${c.phase.join(", ")}`;
+  if ("at" in c) return `only in ${reg.regions.get(c.at)?.name ?? c.at}`;
+  if ("warmth" in c) return `only when ${c.warmth.join(" or ")}`;
+  return "not possible now";
+}

@@ -1,0 +1,33 @@
+[
+  {
+    "id": "firewood",
+    "name": "firewood",
+    "category": "material"
+  },
+  {
+    "id": "raw_fish",
+    "name": "raw fish",
+    "category": "food",
+    "consume": {
+      "verb": "eat raw",
+      "hours": 0.25,
+      "stats": { "hunger": -12 },
+      "log": "cold, slippery, barely food.",
+      "outcomes": [
+        { "weight": 3 },
+        { "weight": 1, "text": "your stomach turns.", "effects": [ { "stat": { "health": -6 } } ] }
+      ]
+    }
+  },
+  {
+    "id": "cooked_fish",
+    "name": "cooked fish",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.5,
+      "stats": { "hunger": -30, "health": 2 },
+      "log": "hot flesh, flaking from the bone."
+    }
+  }
+]

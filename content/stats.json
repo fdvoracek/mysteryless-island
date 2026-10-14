@@ -1,0 +1,73 @@
+{
+  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value.",
+  "stats": [
+    {
+      "id": "health", "name": "health",
+      "words": [
+        { "upTo": 15, "word": "dying" },
+        { "upTo": 35, "word": "badly hurt" },
+        { "upTo": 60, "word": "hurt" },
+        { "upTo": 85, "word": "bruised" },
+        { "upTo": 100, "word": "healthy" }
+      ]
+    },
+    {
+      "id": "energy", "name": "energy",
+      "words": [
+        { "upTo": 10, "word": "exhausted" },
+        { "upTo": 35, "word": "weary" },
+        { "upTo": 65, "word": "tired" },
+        { "upTo": 100, "word": "rested" }
+      ]
+    },
+    {
+      "id": "hunger", "name": "hunger", "highIsBad": true,
+      "words": [
+        { "upTo": 25, "word": "fed" },
+        { "upTo": 50, "word": "peckish" },
+        { "upTo": 80, "word": "hungry" },
+        { "upTo": 100, "word": "starving" }
+      ]
+    },
+    {
+      "id": "thirst", "name": "thirst", "highIsBad": true,
+      "words": [
+        { "upTo": 25, "word": "quenched" },
+        { "upTo": 50, "word": "dry" },
+        { "upTo": 80, "word": "thirsty" },
+        { "upTo": 100, "word": "parched" }
+      ]
+    }
+  ],
+  "ratesPerHour": {
+    "heavy": { "hunger": 4, "thirst": 6, "energy": -8 },
+    "work": { "hunger": 3, "thirst": 5, "energy": -5 },
+    "light": { "hunger": 2, "thirst": 4, "energy": -2 },
+    "rest": { "hunger": 2, "thirst": 3, "energy": 4 },
+    "sleep": { "hunger": 1.5, "thirst": 2, "energy": 11 }
+  },
+  "multipliers": [
+    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 },
+    { "when": { "warmth": ["hot", "overheating"] }, "stat": "thirst", "factor": 1.3 }
+  ],
+  "damage": [
+    { "when": { "stat": "hunger", "gte": 80 }, "healthPerHour": -2, "log": "hunger gnaws at you. your hands shake." },
+    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "your lips crack. the world tilts." },
+    {
+      "when": { "all": [ { "stat": "energy", "lte": 0 }, { "effort": ["heavy", "work"] } ] },
+      "healthPerHour": -2,
+      "log": "you work on, past exhaustion."
+    },
+    { "when": { "warmth": ["freezing"] }, "healthPerHour": -3, "log": "the cold is in your bones." }
+  ],
+  "regen": [
+    {
+      "when": { "all": [ { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }, { "warmth": ["comfortable"] } ] },
+      "healthPerHour": 1
+    },
+    {
+      "when": { "all": [ { "effort": ["sleep"] }, { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 } ] },
+      "healthPerHour": 2
+    }
+  ]
+}

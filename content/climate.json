@@ -1,0 +1,18 @@
+{
+  "_note": "Day phases are hour ranges (an id may repeat to wrap midnight). Body bands are ordered cold -> hot; the last band has no upper limit.",
+  "phases": [
+    { "id": "night", "from": 0, "to": 5, "tempC": -8 },
+    { "id": "dawn", "from": 5, "to": 7, "tempC": -4 },
+    { "id": "day", "from": 7, "to": 18, "tempC": 0 },
+    { "id": "dusk", "from": 18, "to": 20, "tempC": -3 },
+    { "id": "night", "from": 20, "to": 24, "tempC": -8 }
+  ],
+  "bodyBands": [
+    { "id": "freezing", "belowC": 5 },
+    { "id": "cold", "belowC": 15 },
+    { "id": "comfortable", "belowC": 28 },
+    { "id": "hot", "belowC": 34 },
+    { "id": "overheating" }
+  ],
+  "startBand": "comfortable"
+}

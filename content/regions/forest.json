@@ -1,0 +1,28 @@
+{
+  "id": "forest",
+  "name": "the forest",
+  "title": "A Quiet Forest",
+  "order": 2,
+  "description": ["tall trunks, close together.", "the sea is only a sound now."],
+  "climate": { "baseC": 18 },
+  "travelHours": 1,
+  "firstVisit": { "log": "somewhere ahead, water runs over stones." },
+  "activities": [
+    {
+      "id": "gather_wood",
+      "name": "gather wood",
+      "hours": 1,
+      "effort": "work",
+      "yields": [ { "item": "firewood", "min": 3, "max": 5 } ],
+      "log": ["dry branches snap underfoot.", "an armful of deadwood.", "bark and twigs, dry enough to burn."]
+    },
+    {
+      "id": "drink_stream",
+      "name": "drink from stream",
+      "hours": 0.5,
+      "effort": "light",
+      "effects": [ { "stat": { "thirst": -40 } } ],
+      "log": ["cold water, tasting of stone.", "you drink until your teeth ache."]
+    }
+  ]
+}
