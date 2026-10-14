@@ -99,7 +99,7 @@ button { font: inherit; color: inherit; }
 }
 .sbtn:hover { background: var(--fg); color: var(--bg); }
 .sbtn.off, .sbtn:disabled { color: var(--muted); border-color: var(--muted); background: var(--bg); cursor: default; }
-.row .sbtn + .sbtn, .row .val + .sbtn { margin-left: 2px; }
+.row .acts { display: flex; gap: 4px; align-self: center; margin-left: 2px; }
 
 /* tasks: active quests; a finished one is struck through, then fades out */
 .quest { position: relative; padding: 1px 0; cursor: default; }

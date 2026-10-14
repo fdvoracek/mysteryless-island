@@ -292,6 +292,9 @@ export class UI {
         const row = div("", "row");
         row.dataset.id = s.id;
         row.append(div(s.label, "key"), div(String(s.count), "val"));
+        // the item's buttons are grouped so a layout can place them (e.g. outside the box)
+        const acts = document.createElement("span");
+        acts.className = "acts";
         if (s.use) {
           const b = document.createElement("button");
           b.className = "use sbtn";
@@ -299,7 +302,7 @@ export class UI {
           b.title = s.use.tooltip.join(" · ");
           b.disabled = this.isBusy();
           b.addEventListener("click", () => this.send({ type: "consume", item: s.id }, b));
-          row.append(b);
+          acts.append(b);
         }
         for (const a of s.actions) {
           const b = document.createElement("button");
@@ -310,8 +313,9 @@ export class UI {
           b.title = a.reason ? `${label}: ${a.reason}` : label;
           b.setAttribute("aria-label", b.title);
           b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
-          row.append(b);
+          acts.append(b);
         }
+        if (acts.childElementCount) row.append(acts);
         return row;
       }),
     );

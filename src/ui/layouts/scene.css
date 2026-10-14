@@ -3,8 +3,8 @@
  * under the text the places to walk to, then the buttons; a narrow shelf on the right
  */
 .layout-scene .wrap {
-  max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 40px; align-items: start;
+  max-width: 1110px; margin: 0 auto; padding: 24px 20px 80px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 40px;  /* shelf 240px + 130px for the stores' buttons */ align-items: start;
 }
 .layout-scene .s-main { display: grid; gap: 0; max-width: 600px; }
 
@@ -39,9 +39,18 @@
 .layout-scene .s-shelf { display: grid; gap: 14px; font-size: 15px; }
 .layout-scene .s-shelf .box { padding: 6px 10px 8px; }
 .layout-scene .s-shelf .bar { width: 60px; }
+/* the stores' buttons stand outside the box, on its right, level with their item */
+.layout-scene .s-shelf { margin-right: 130px; }  /* keep in step with the shelf column above */
+.layout-scene #stores .row { position: relative; min-height: 25px; align-items: center; }  /* room for a button per row */
+.layout-scene #stores .acts {
+  position: absolute; left: calc(100% + 22px); top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap;
+}
 
 @media (max-width: 760px) {
   .layout-scene .wrap { grid-template-columns: 1fr; gap: 20px; }
   .layout-scene .log { height: 15em; }
+  /* one column: no room beside the box, so the buttons go back into their row */
+  .layout-scene .s-shelf { margin-right: 0; }
+  .layout-scene #stores .acts { position: static; transform: none; margin-left: 2px; }
   .layout-scene .s-shelf .row .tip, .layout-scene .s-shelf .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }
