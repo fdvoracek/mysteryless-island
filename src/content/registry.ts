@@ -180,6 +180,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   }
   for (const r of regions.values()) {
     if (r.unlockWhen) checkCond(r.unlockWhen, `region ${r.id}.unlockWhen`);
+    r.arrive?.forEach((a, i) => { if (a.when) checkCond(a.when, `region ${r.id}.arrive[${i}].when`); });
     if (r.explore) {
       if (r.explore.requires) checkCond(r.explore.requires, `region ${r.id}.explore.requires`);
       for (const d of r.explore.discoveries) {

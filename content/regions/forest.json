@@ -8,6 +8,14 @@
   "travelHours": 1,
   "unlockWhen": { "discovered": "forest_edge" },
   "firstVisit": { "log": "Somewhere ahead, water runs over stones." },
+  "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
+  "arrive": [
+    { "text": ["The trees close in again. The sea fades to a murmur.", "Back under the trees. It is darker here, and still."], "when": { "phase": ["dawn", "day", "dusk"] } },
+    { "text": "Under the trees the dark is total. You feel your way between the trunks.", "when": { "phase": ["night"] } },
+    { "text": "Dry branches everywhere.", "when": { "discovered": "dry_wood" } },
+    { "text": "Somewhere ahead, water runs over stones.", "when": { "not": { "discovered": "spring" } } },
+    { "text": "The spring trickles between mossy stones.", "when": { "discovered": "spring" } }
+  ],
   "explore": {
     "name": "look around",
     "hours": 1,

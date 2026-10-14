@@ -149,6 +149,11 @@ export const Region = z
     travelHours: z.number().nonnegative(),
     unlockWhen: Condition.optional(),
     firstVisit: z.object({ log: Text.optional() }).strict().optional(),
+    /**
+     * What you see when you arrive again (the first visit shows `description` instead):
+     * every line whose `when` holds, in order. A list of strings picks one at random.
+     */
+    arrive: z.array(z.object({ text: Text, when: Condition.optional() }).strict()).optional(),
     /** the "look around" action: each use explores the region one step further */
     explore: z
       .object({

@@ -6,6 +6,15 @@
   "description": ["Wet sand, broken shells, a line of wrack.", "The wind never quite stops."],
   "climate": { "baseC": 20 },
   "travelHours": 0,
+  "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
+  "arrive": [
+    { "text": ["Back on the sand. The wind finds you at once.", "The beach again: wet sand, a line of wrack."], "when": { "phase": ["dawn", "day", "dusk"] } },
+    { "text": "The beach in the dark. Only the surf, and a pale line of foam.", "when": { "phase": ["night"] } },
+    { "text": "Smoke rises from the ring of rocks.", "when": { "all": [{ "discovered": "rock_shelter" }, { "timer": "fire" }] } },
+    { "text": "The ring of rocks waits, cold.", "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] } },
+    { "text": "Shells on the stone under the cliff.", "when": { "discovered": "cliff_shells" } },
+    { "text": "Fish flash in the shallows.", "when": { "discovered": "school_of_fish" } }
+  ],
   "explore": {
     "name": "look around",
     "hours": 1,

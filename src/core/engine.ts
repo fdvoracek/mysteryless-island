@@ -1,5 +1,5 @@
 import type { Registry } from "../content/registry";
-import type { Activity, Effect, Effort, ItemAction, Outcome, Yield } from "../content/schema";
+import type { Activity, Effect, Effort, ItemAction, Outcome, Region, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, pick, weighted } from "./rng";
@@ -240,9 +240,17 @@ export class Engine {
     if (!r.visited) {
       r.visited = true;
       this.logLines([...to.description, textOf(to.firstVisit?.log, this.state)]);
+    } else {
+      this.logLines(this.arrivalView(to));
     }
     this.postCheck();
     return this.ok(hours);
+  }
+
+  /** What you see on arriving again: the region's `arrive` lines whose condition holds now. */
+  arrivalView(region: Region): string[] {
+    const ctx = this.ctx();
+    return (region.arrive ?? []).filter((a) => evaluate(a.when, ctx)).map((a) => textOf(a.text, this.state)!);
   }
 
   private consume(itemId: string): Result {

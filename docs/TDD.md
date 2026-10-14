@@ -457,6 +457,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "log": "A straight shaft, a lashed point. It will do." }
 ```
 
+- **Arrival view [implemented]:** a region can list `arrive` lines, `{ "text": Text, "when"?: Condition }`. On every arrival after the first (which logs `description` and `firstVisit.log`), the engine logs each line whose `when` holds, in order, so the view reflects time of day, discoveries and timers, e.g. `{ "text": "Smoke rises from the ring of rocks.", "when": { "all": [ { "discovered": "rock_shelter" }, { "timer": "fire" } ] } }`. The validator checks the conditions.
 - **Item actions [implemented]:** an item can list `actions` — small buttons labelled with the action's `label`, shown next to it in the stores, e.g. raw fish → `{ "id": "cook", "label": "cook", "hours": 0.5, "visibleWhen": { "all": [ { "timer": "fire" }, { "at": "beach" } ] }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1) plus any `cost`; the `itemAction` command runs it. Eating (`consume`) is a button of the same kind.
 - `station` is `camp` (always available at the beach) or a building id (`workbench`, `forge`, `loom`). The craft menu is shown in the region where the station is.
 - Processes (§6.6) belong to a building. Several processes per building are allowed (the kiln fires pots *or* bricks).
