@@ -32,6 +32,11 @@ export interface GameState {
   flags: string[];
   /** how often things were done: "did:<activity id | item id | tag>" -> count */
   counters: Record<string, number>;
+  /**
+   * What happened since you last slept, for { "today": ... } conditions (memories when you lie down):
+   * the same keys as `did` (activity, item, tag) plus discoveries, places walked to and tasks finished.
+   */
+  today: Record<string, number>;
   /** quests that have started; absent = not started yet */
   quests: Record<string, QuestState>;
   /** minutes left per timer */
@@ -67,6 +72,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     seen: Object.keys(start.items).filter((k) => start.items[k] > 0),
     flags: [],
     counters: {},
+    today: {},
     quests: {},
     timers,
     regions,

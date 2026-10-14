@@ -1,5 +1,5 @@
 import type { Registry } from "../content/registry";
-import type { Activity, Effect, Effort, ItemAction, Outcome, Region, Yield } from "../content/schema";
+import type { Activity, Effect, Effort, ItemAction, Outcome, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, pick, weighted } from "./rng";
@@ -40,6 +40,9 @@ export class Engine {
   constructor(public reg: Registry, state: GameState, checkpoint?: GameState) {
     this.state = state;
     this.checkpoint = checkpoint ?? clone(state);
+    // saves from before `today` existed
+    this.state.today ??= {};
+    this.checkpoint.today ??= {};
   }
 
   static newGame(reg: Registry, seed: number): Engine {
@@ -176,6 +179,7 @@ export class Engine {
     );
     for (const d of found) {
       st.discoveries.push(d.id);
+      this.remember(d.id);
       this.logLines(d.text);
       this.applyEffects(d.effects);
     }
@@ -210,6 +214,8 @@ export class Engine {
     if (!c.visible) return refuse("not available");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
 
+    // thoughts are worked out first: how tired you are as you lie down, not after the night
+    this.logLines(this.thoughts(a.thoughts));
     this.take(a.cost);
     this.log(textOf(a.log, this.state));
     if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
@@ -218,6 +224,8 @@ export class Engine {
     this.applyOutcomes(a.outcomes);
     this.applyEffects(a.effects);
     this.count(a.id, a.tags);
+    // sleeping ends the day: tomorrow's memories start empty
+    if (a.effort === "sleep") this.state.today = {};
     this.postCheck();
     if (a.checkpoint && !this.state.dead) this.checkpoint = clone(this.state);
     return this.ok(a.hours);
@@ -236,6 +244,7 @@ export class Engine {
     if (!this.advance(hours, "work")) return this.died(hours);
 
     this.state.location = regionId;
+    this.remember(regionId);
     const r = this.state.regions[regionId];
     if (!r.visited) {
       r.visited = true;
@@ -245,6 +254,22 @@ export class Engine {
     }
     this.postCheck();
     return this.ok(hours);
+  }
+
+  /** The lines of an activity's thought groups whose conditions hold now (see Thoughts in the schema). */
+  thoughts(groups: Thoughts[] | undefined): string[] {
+    const ctx = this.ctx();
+    const out: string[] = [];
+    for (const g of groups ?? []) {
+      const lines = g.lines.filter((l) => evaluate(l.when, ctx)).slice(0, g.max ?? Infinity);
+      if (lines.length) {
+        if (g.intro) out.push(textOf(g.intro, this.state)!);
+        for (const l of lines) out.push(textOf(l.text, this.state)!);
+      } else if (g.otherwise) {
+        out.push(textOf(g.otherwise, this.state)!);
+      }
+    }
+    return out;
   }
 
   /** What you see on arriving again: the region's `arrive` lines whose condition holds now. */
@@ -427,7 +452,13 @@ export class Engine {
     for (const key of [id, ...(tags ?? [])]) {
       const k = `did:${key}`;
       this.state.counters[k] = (this.state.counters[k] ?? 0) + 1;
+      this.remember(key);
     }
+  }
+
+  /** Note something for today's memories ({ "today": id }); cleared when you sleep. */
+  private remember(key: string) {
+    this.state.today[key] = (this.state.today[key] ?? 0) + 1;
   }
 
   // ---------------------------------------------------------------- quests
@@ -458,6 +489,7 @@ export class Engine {
         } else if (st.status === "active" && evaluate(q.completeWhen, this.ctx())) {
           st.status = "done";
           st.doneAt = this.state.time;
+          this.remember(q.id);
           this.log(textOf(q.doneLog, this.state));
           this.applyEffects(q.effects);
           changed = true;

@@ -31,6 +31,8 @@ export type Condition =
   | { day: { gte?: number; lte?: number } }
   /** how often an activity, item use or tag was done (default gte 1) */
   | { did: string; gte?: number; lte?: number }
+  /** done, found, walked to or finished since you last slept (default gte 1) */
+  | { today: string; gte?: number; lte?: number }
   /** the clock has reached this day (and hour) */
   | { reached: { day: number; hour?: number } }
   | { quest: string; is: "active" | "done" }
@@ -58,6 +60,7 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ effort: z.array(Effort).min(1) }).strict(),
     z.object({ day: z.object(range).strict() }).strict(),
     z.object({ did: Id, ...range }).strict(),
+    z.object({ today: Id, ...range }).strict(),
     z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
     z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
     z.object({ discovered: Id }).strict(),
@@ -118,6 +121,22 @@ export const Yield = z
 
 // ---------- entities ----------
 
+/**
+ * A group of conditional lines, logged when an activity starts (before its own log), e.g. how
+ * tired you are when you lie down, then what you remember of the day. Lines are tried in order;
+ * at most `max` of the ones whose `when` holds are logged. `intro` comes first if any line is
+ * logged; `otherwise` is logged when none is.
+ */
+export const Thoughts = z
+  .object({
+    intro: Text.optional(),
+    max: z.number().int().positive().optional(),
+    lines: z.array(z.object({ text: Text, when: Condition.optional() }).strict()).min(1),
+    otherwise: Text.optional(),
+  })
+  .strict();
+export type Thoughts = z.infer<typeof Thoughts>;
+
 export const Activity = z
   .object({
     id: Id,
@@ -132,6 +151,8 @@ export const Activity = z
     outcomes: z.array(Outcome).optional(),
     effects: z.array(Effect).optional(),
     log: Text.optional(),
+    /** lines logged before the activity, worked out before it changes anything (see Thoughts) */
+    thoughts: z.array(Thoughts).optional(),
     checkpoint: z.boolean().optional(),
     /** counted for { "did": tag } conditions, e.g. "drink" */
     tags: z.array(Id).optional(),

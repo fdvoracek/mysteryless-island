@@ -120,7 +120,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const startedByEffect = new Set<string>();
 
   // ---------- reference checks ----------
-  const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery", id: string, where: string) => {
+  const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery" | "today", id: string, where: string) => {
     const ok =
       kind === "item" ? items.has(id)
       : kind === "region" ? regions.has(id)
@@ -130,6 +130,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       : kind === "quest" ? quests.has(id)
       : kind === "discovery" ? discoveries.has(id)
       : kind === "did" ? activities.has(id) || items.has(id) || tags.has(id)
+      : kind === "today" ? activities.has(id) || items.has(id) || tags.has(id) || discoveries.has(id) || regions.has(id) || quests.has(id)
       : phaseIds.has(id);
     if (!ok) problems.push(`${where}: unknown ${kind} "${id}"`);
   };
@@ -147,6 +148,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else if ("warmth" in c) c.warmth.forEach((b) => ref("band", b, where));
     else if ("phase" in c) c.phase.forEach((p) => ref("phase", p, where));
     else if ("did" in c) ref("did", c.did, where);
+    else if ("today" in c) ref("today", c.today, where);
     else if ("quest" in c) ref("quest", c.quest, where);
     else if ("discovered" in c) ref("discovery", c.discovered, where);
     else if ("explored" in c) ref("region", c.explored, where);
@@ -197,6 +199,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       a.yields?.forEach((y, i) => { ref("item", y.item, `${w}.yields[${i}]`); if (y.when) checkCond(y.when, `${w}.yields[${i}].when`); });
       checkOutcomes(a.outcomes, w);
       checkEffects(a.effects, w);
+      a.thoughts?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.thoughts[${gi}].lines[${li}].when`); }));
     }
   }
   for (const it of items.values()) {

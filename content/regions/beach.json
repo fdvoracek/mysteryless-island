@@ -119,7 +119,39 @@
         }
       ],
       "checkpoint": true,
-      "log": "You curl up by the fire and sleep."
+      "_thoughts": "before sleeping: how tired you are (energy, same bands as the bar), then up to 3 things you remember from today, most memorable first",
+      "thoughts": [
+        {
+          "max": 1,
+          "lines": [
+            { "text": "You drop by the fire, too exhausted to feel the cold sand.", "when": { "stat": "energy", "lte": 20 } },
+            { "text": "You curl up by the fire. Every muscle aches.", "when": { "stat": "energy", "lte": 40 } },
+            { "text": "You curl up by the fire, tired in a slow, heavy way.", "when": { "stat": "energy", "lte": 80 } },
+            { "text": "You lie by the fire, not really tired. Sleep is slow to come." }
+          ]
+        },
+        {
+          "intro": ["The day comes back to you in pieces.", "Lying still, you go over the day."],
+          "max": 3,
+          "lines": [
+            { "text": "The cold sea. Waking alone on the sand.", "when": { "not": { "did": "sleep" } } },
+            { "text": "The spear, straight and sharp, made with your own hands.", "when": { "today": "build_fishing_spear" } },
+            { "text": "Fish flashing in the shallows, just out of reach.", "when": { "today": "school_of_fish" } },
+            { "text": "Standing in the surf with the spear raised.", "when": { "today": "catch_fish" } },
+            { "text": "The first spark catching. Smoke, then warmth.", "when": { "today": "light_fire" } },
+            { "text": "Cold water from a spring between mossy stones.", "when": { "today": "spring" } },
+            { "text": "A ring of rocks, out of the wind.", "when": { "today": "rock_shelter" } },
+            { "text": "The cool dark under the trees.", "when": { "today": "forest" } },
+            { "text": "The smell of food over the fire.", "when": { "today": "cook" } },
+            { "text": "Armful after armful of dry branches.", "when": { "today": "gather_wood" } },
+            { "text": "Shells pried from the wet stone.", "when": { "today": "collect_shells" } },
+            { "text": "The taste of fresh water.", "when": { "today": "drink" } },
+            { "text": "Something in your stomach, at least.", "when": { "today": "eat" } }
+          ],
+          "otherwise": ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."]
+        }
+      ],
+      "log": ["Sleep takes you.", "At last, sleep."]
     }
   ]
 }

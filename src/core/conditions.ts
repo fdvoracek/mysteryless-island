@@ -38,6 +38,7 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if ("effort" in c) return !!ctx.effort && c.effort.includes(ctx.effort);
   if ("day" in c) return inRange(day(s.time), c.day);
   if ("did" in c) return inRange(s.counters[`did:${c.did}`] ?? 0, c, 1);
+  if ("today" in c) return inRange(s.today?.[c.today] ?? 0, c, 1);
   if ("reached" in c) return s.time >= (c.reached.day - 1) * 1440 + Math.round((c.reached.hour ?? 0) * 60);
   if ("quest" in c) return s.quests[c.quest]?.status === c.is;
   if ("discovered" in c) {
