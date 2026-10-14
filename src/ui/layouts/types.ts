@@ -40,23 +40,4 @@ export interface Layout {
   story: StoryStyle;
   /** optional external stylesheets (e.g. web fonts), loaded the first time the layout is used */
   stylesheets?: string[];
-  /**
-   * optional text fonts the player can switch in the bottom menu (font: ...). The first is the
-   * default. The chosen one is set on #app as --layout-font, --layout-font-style,
-   * --layout-font-weight and --layout-font-scale; the layout's CSS decides where to use them.
-   */
-  fonts?: LayoutFont[];
-}
-
-export interface LayoutFont {
-  /** used in storage */
-  id: string;
-  /** shown in the menu */
-  name: string;
-  /** CSS font-family with fallbacks */
-  family: string;
-  style?: "normal" | "italic";
-  weight?: number;
-  /** size factor so fonts with small letters look as large as the others (default 1) */
-  scale?: number;
 }

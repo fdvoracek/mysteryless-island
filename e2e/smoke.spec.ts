@@ -150,15 +150,21 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
   }
   await expect(page.locator("#log")).toContainText("a school of small fish");
 
-  // the font switch shows only for layouts with fonts (old journal); the choice is applied and remembered
-  await expect(page.locator("#fontSwitch")).toBeHidden(); // classic
-  await page.locator("#layoutBtn").click();
-  await page.locator('#layoutMenu [data-layout="bujo"]').click();
-  await expect(page.locator("#fontBtn")).toHaveText("font: old standard.");
+  // one font for all text in every layout; Times is the default; the choice is remembered
+  const fontOf = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontFamily);
+  await expect(page.locator("#fontBtn")).toHaveText("font: times.");
   await page.locator("#fontBtn").click();
   await page.locator('#fontMenu [data-font="garamond_italic"]').click();
   await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
+  for (const sel of ["#log .entry", "#actions .btn", "#status .key", "#fontBtn"]) {
+    expect(await fontOf(sel), sel).toContain("Cormorant Garamond");
+  }
   await expect(page.locator("#log .entry").first()).toHaveCSS("font-style", "italic");
+  await page.locator("#layoutBtn").click();
+  await page.locator('#layoutMenu [data-layout="bujo"]').click();
+  for (const sel of [".bj-title", "#log .day", "#log .entry", "#clock", "#tabs .tab"]) {
+    expect(await fontOf(sel), sel).toContain("Cormorant Garamond");
+  }
   await page.reload();
   await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
 

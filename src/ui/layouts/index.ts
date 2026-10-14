@@ -16,4 +16,4 @@ export function getLayout(id: string | null | undefined): Layout {
   return LAYOUTS.find((l) => l.id === id) ?? LAYOUTS[0];
 }
 
-export type { Layout, LayoutFont, StoryStyle } from "./types";
+export type { Layout, StoryStyle } from "./types";

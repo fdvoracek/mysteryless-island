@@ -22,7 +22,11 @@
 /* the hidden attribute must win over component display rules (e.g. .fade { display: grid }) */
 [hidden] { display: none !important; }
 html, body { margin: 0; background: var(--bg); color: var(--fg); }
-body { font-family: var(--font); font-size: 16px; line-height: 1.35; min-height: 100vh; }
+/* --font, --font-style, --font-weight and --font-adjust are set by the font menu (./fonts.ts) */
+body {
+  font-family: var(--font); font-style: var(--font-style, normal); font-weight: var(--font-weight, 400);
+  font-size-adjust: var(--font-adjust, none); font-size: 16px; line-height: 1.35; min-height: 100vh;
+}
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 1px dashed var(--fg); outline-offset: 2px; }
 
