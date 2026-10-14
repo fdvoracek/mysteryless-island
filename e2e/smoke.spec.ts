@@ -84,10 +84,17 @@ test("explore the beach and forest, collect wood, drink, come back and light the
 
   await tab(page, "the beach").click();
   await expect(tab(page, "the beach")).toHaveClass(/here/);
+  // raw food gets a fire icon only once the fire is lit
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("raw_fish", 1));
+  const cook = page.locator('#stores .row[data-id="raw_fish"] .iaction');
+  await expect(cook).toHaveCount(0);
   await action(page, "light fire").click();
   await expect(page.locator("#log")).toContainText("the fire takes");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).not.toHaveClass(/off/);
+  await expect(cook).toBeVisible();
+  await cook.click();
+  await expect(page.locator('#stores .row[data-id="cooked_fish"]')).toBeVisible();
 });
 
 test("finding the fish starts the spear task; building it puts the spear in the inventory", async ({ page }) => {

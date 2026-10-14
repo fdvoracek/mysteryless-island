@@ -196,6 +196,30 @@ export const Consume = z
   })
   .strict();
 
+/**
+ * An icon button next to an item in the stores (e.g. cook raw fish over the fire).
+ * Each use spends `uses` of the item (default 1) plus any extra `cost`.
+ */
+export const ItemAction = z
+  .object({
+    id: Id,
+    label: z.string(),
+    /** "fire" draws the built-in flame; any other string is shown as a text glyph */
+    icon: z.string(),
+    hours: z.number().positive(),
+    effort: Effort,
+    /** the icon is shown only while this is true (e.g. a fire is burning here) */
+    visibleWhen: Condition.optional(),
+    requires: Condition.optional(),
+    requiresText: z.string().optional(),
+    uses: z.number().int().positive().optional(),
+    cost: Amounts.optional(),
+    effects: z.array(Effect).min(1),
+    log: Text.optional(),
+    tags: z.array(Id).optional(),
+  })
+  .strict();
+
 export const Item = z
   .object({
     id: Id,
@@ -203,6 +227,7 @@ export const Item = z
     plural: z.string().optional(),
     category: z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"]),
     consume: Consume.optional(),
+    actions: z.array(ItemAction).optional(),
   })
   .strict();
 
@@ -334,6 +359,7 @@ export const Quest = z
   .strict();
 
 export type Quest = z.infer<typeof Quest>;
+export type ItemAction = z.infer<typeof ItemAction>;
 export type Activity = z.infer<typeof Activity>;
 export type Region = z.infer<typeof Region>;
 export type Item = z.infer<typeof Item>;

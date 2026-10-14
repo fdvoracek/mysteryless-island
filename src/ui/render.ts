@@ -231,7 +231,20 @@ export class UI {
     this.els.stores.replaceChildren(
       ...v.stores.map((s) => {
         const row = div("", "row");
-        row.append(div(s.label, "key"), div(String(s.count), "val"));
+        row.dataset.id = s.id;
+        row.append(div(s.label, "key"));
+        for (const a of s.actions) {
+          const b = document.createElement("button");
+          b.className = "iaction" + (a.enabled ? "" : " off");
+          b.dataset.action = a.id;
+          b.append(icon(a.icon));
+          const label = `${a.label} ${s.label} (${a.tooltip.join(", ")})`;
+          b.title = a.reason ? `${label}: ${a.reason}` : label;
+          b.setAttribute("aria-label", b.title);
+          b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
+          row.append(b);
+        }
+        row.append(div(String(s.count), "val"));
         if (s.use) {
           const b = document.createElement("button");
           b.className = "link use";
@@ -311,6 +324,20 @@ export class UI {
     box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.els.quests.replaceChildren(); this.render(); });
     box.querySelector("#no")!.addEventListener("click", () => box.remove());
   }
+}
+
+/** Built-in ink icons (stroke follows the text colour); anything else is shown as a text glyph. */
+const ICONS: Record<string, string> = {
+  fire: '<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M8 1.5c.6 2.6 3.8 3.9 3.8 7.6A3.8 3.8 0 0 1 4.2 9.1c0-1.9 1-3 2-3.9.1 1.6.8 2.6 1.8 2.9-.3-2.3-.6-4.2 0-6.6z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 14.4c-1.1 0-1.9-.8-1.9-1.9 0-1 .9-1.6 1.4-2.4.4.9 2.4 1.4 2.4 2.4 0 1.1-.8 1.9-1.9 1.9z" fill="currentColor"/></svg>',
+};
+
+function icon(name: string): Node {
+  if (ICONS[name]) {
+    const t = document.createElement("template");
+    t.innerHTML = ICONS[name];
+    return t.content.firstChild!;
+  }
+  return document.createTextNode(name);
 }
 
 function div(text: string, cls?: string) {

@@ -112,7 +112,10 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const phaseIds = new Set(climate.phases.map((p) => p.id));
   const tags = new Set<string>();
   for (const { activity } of activities.values()) activity.tags?.forEach((t) => tags.add(t));
-  for (const it of items.values()) it.consume?.tags?.forEach((t) => tags.add(t));
+  for (const it of items.values()) {
+    it.consume?.tags?.forEach((t) => tags.add(t));
+    it.actions?.forEach((a) => a.tags?.forEach((t) => tags.add(t)));
+  }
   for (const t of tags) if (allIds.has(t)) problems.push(`tag "${t}" has the same name as an id (${allIds.get(t)}); { "did": "${t}" } would be ambiguous`);
   const startedByEffect = new Set<string>();
 
@@ -196,6 +199,14 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
   for (const it of items.values()) {
+    for (const a of it.actions ?? []) {
+      const w = `item ${it.id}.actions.${a.id}`;
+      if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
+      if (a.requires) checkCond(a.requires, `${w}.requires`);
+      Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
+      checkEffects(a.effects, w);
+    }
+    if (new Set((it.actions ?? []).map((a) => a.id)).size !== (it.actions ?? []).length) problems.push(`item ${it.id}: duplicate action ids`);
     if (!it.consume) continue;
     Object.keys(it.consume.stats ?? {}).forEach((k) => ref("stat", k, `item ${it.id}.consume.stats`));
     checkOutcomes(it.consume.outcomes, `item ${it.id}.consume`);

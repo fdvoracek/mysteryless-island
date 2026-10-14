@@ -42,7 +42,12 @@ export interface View {
   }>;
   /** tools and clothing (categories from game.json) */
   inventory: Array<{ id: string; label: string; count: number }>;
-  stores: Array<{ id: string; label: string; count: number; use?: { verb: string; tooltip: string[] } }>;
+  stores: Array<{
+    id: string; label: string; count: number;
+    use?: { verb: string; tooltip: string[] };
+    /** icon buttons next to the item, e.g. cook over the fire */
+    actions: Array<ButtonView & { icon: string }>;
+  }>;
   log: string[];
   dead: boolean;
 }
@@ -133,7 +138,16 @@ export function view(engine: Engine): View {
     const use = item.consume
       ? { verb: item.consume.verb, tooltip: [`${fmtHours(item.consume.hours)}`] }
       : undefined;
-    stores.push({ id, label: item.name, count, use });
+    const actions: View["stores"][number]["actions"] = [];
+    for (const a of item.actions ?? []) {
+      const c = engine.checkItemAction(id, a);
+      if (!c.visible) continue;
+      actions.push({
+        id: `item:${id}:${a.id}`, command: { type: "itemAction", item: id, action: a.id }, label: a.label, icon: a.icon,
+        enabled: c.enabled, reason: c.reason, tooltip: [`${a.label} · ${fmtHours(a.hours)}`],
+      });
+    }
+    stores.push({ id, label: item.name, count, use, actions });
   }
   stores.sort((a, b) => a.label.localeCompare(b.label));
   inventory.sort((a, b) => a.label.localeCompare(b.label));

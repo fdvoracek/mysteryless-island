@@ -80,18 +80,6 @@
       ]
     },
     {
-      "id": "cook_shells",
-      "name": "cook shells",
-      "hours": 0.25,
-      "effort": "light",
-      "visibleWhen": { "seen": "shells" },
-      "requires": { "timer": "fire" },
-      "requiresText": "the fire is out",
-      "cost": { "shells": 1 },
-      "effects": [{ "give": { "cooked_shells": 1 } }],
-      "log": "the shell pops open in the embers."
-    },
-    {
       "id": "catch_fish",
       "name": "catch fish",
       "hours": 2,
@@ -104,18 +92,6 @@
         { "weight": 2, "text": "nothing. the fish are quicker than you." }
       ],
       "log": "you wade into the shallows, spear raised."
-    },
-    {
-      "id": "cook_fish",
-      "name": "cook fish",
-      "hours": 0.5,
-      "effort": "light",
-      "visibleWhen": { "seen": "raw_fish" },
-      "requires": { "timer": "fire" },
-      "requiresText": "the fire is out",
-      "cost": { "raw_fish": 1 },
-      "effects": [{ "give": { "cooked_fish": 1 } }],
-      "log": "the fish hisses on a flat stone by the fire."
     },
     {
       "id": "sleep",

@@ -1,5 +1,5 @@
 import type { Registry } from "../content/registry";
-import type { Activity, Effect, Effort, Outcome, Yield } from "../content/schema";
+import type { Activity, Effect, Effort, ItemAction, Outcome, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, pick, weighted } from "./rng";
@@ -10,7 +10,8 @@ export type Command =
   | { type: "travel"; region: string }
   | { type: "consume"; item: string }
   | { type: "explore" }
-  | { type: "questAction"; quest: string };
+  | { type: "questAction"; quest: string }
+  | { type: "itemAction"; item: string; action: string };
 
 export interface Result {
   ok: boolean;
@@ -77,6 +78,7 @@ export class Engine {
       case "consume": return this.consume(cmd.item);
       case "explore": return this.explore();
       case "questAction": return this.questAction(cmd.quest);
+      case "itemAction": return this.itemAction(cmd.item, cmd.action);
     }
   }
 
@@ -121,6 +123,38 @@ export class Engine {
     this.log(textOf(a.log, this.state));
     if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
     this.applyEffects(a.effects);
+    this.postCheck();
+    return this.ok(a.hours);
+  }
+
+  /** Is an item's icon action (e.g. cook) shown, and usable now? */
+  checkItemAction(itemId: string, a: ItemAction): { visible: boolean; enabled: boolean; reason?: string } {
+    const ctx = this.ctx();
+    const have = this.state.items[itemId] ?? 0;
+    if (have <= 0 || !evaluate(a.visibleWhen, ctx)) return { visible: false, enabled: false };
+    if (!evaluate(a.requires, ctx)) {
+      return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
+    }
+    const need = { [itemId]: a.uses ?? 1, ...(a.cost ?? {}) };
+    for (const [item, n] of Object.entries(need)) {
+      const got = this.state.items[item] ?? 0;
+      if (got < n) return { visible: true, enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${got})` };
+    }
+    return { visible: true, enabled: true };
+  }
+
+  private itemAction(itemId: string, actionId: string): Result {
+    const a = this.reg.items.get(itemId)?.actions?.find((x) => x.id === actionId);
+    if (!a) return refuse("you can't do that");
+    const c = this.checkItemAction(itemId, a);
+    if (!c.visible) return refuse("not possible here");
+    if (!c.enabled) return refuse(c.reason ?? "not possible now");
+    this.take({ [itemId]: a.uses ?? 1 });
+    this.take(a.cost);
+    this.log(textOf(a.log, this.state));
+    if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
+    this.applyEffects(a.effects);
+    this.count(`${itemId}_${a.id}`, a.tags);
     this.postCheck();
     return this.ok(a.hours);
   }

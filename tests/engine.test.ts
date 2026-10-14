@@ -36,13 +36,15 @@ describe("engine: the prototype loop", () => {
     const e = fresh(5);
     e.dispatch({ type: "activity", id: "collect_shells" });
     expect(e.state.items.shells).toBeGreaterThanOrEqual(2);
-    expect(view(e).actions.find((a) => a.id === "cook_shells")!.reason).toBe("the fire is out");
+    const cookIcon = () => view(e).stores.find((s) => s.id === "shells")?.actions.find((a) => a.label === "cook");
+    expect(cookIcon()).toBeUndefined(); // no fire, no cook icon
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "shells" });
     const rawGain = 60 - e.state.stats.hunger;
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
-    e.dispatch({ type: "activity", id: "cook_shells" });
+    expect(cookIcon()).toMatchObject({ enabled: true, icon: "fire" });
+    e.dispatch({ type: "itemAction", item: "shells", action: "cook" });
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "cooked_shells" });
     const cookedGain = 60 - e.state.stats.hunger;
@@ -82,7 +84,7 @@ describe("engine: the prototype loop", () => {
     e.applyEffects([{ give: { fishing_spear: 1 } }]);
     for (let i = 0; i < 5 && !(e.state.items.raw_fish > 0); i++) e.dispatch({ type: "activity", id: "catch_fish" });
     expect(e.state.items.raw_fish).toBeGreaterThan(0);
-    expect(e.dispatch({ type: "activity", id: "cook_fish" }).ok).toBe(true);
+    expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(true);
     expect(e.state.items.cooked_fish).toBe(1);
     e.dispatch({ type: "consume", item: "cooked_fish" });
     expect(e.state.items.cooked_fish).toBe(0);
@@ -168,5 +170,23 @@ describe("engine: the prototype loop", () => {
     f.applyEffects([{ give: { firewood: 3 } }]);
     f.dispatch({ type: "activity", id: "light_fire" });
     expect(f.dispatch({ type: "activity", id: "sleep" }).cooldownMs).toBe(maxMs); // 8 h is capped
+  });
+
+  it("the cook icon shows only next to raw food, only while a fire burns, and only at the fire", () => {
+    const e = fresh();
+    e.applyEffects([{ give: { raw_fish: 2, shells: 1, firewood: 3 } }]);
+    const icons = () => view(e).stores.filter((s) => s.actions.length).map((s) => s.id);
+    expect(icons()).toEqual([]); // fire out
+    e.dispatch({ type: "activity", id: "light_fire" });
+    expect(icons()).toEqual(["raw_fish", "shells"]); // never on cooked food or firewood
+    expect(view(e).actions.map((a) => a.id)).not.toContain("cook_fish"); // no cook buttons any more
+
+    expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(true);
+    expect(e.state.items).toMatchObject({ raw_fish: 1, cooked_fish: 1 });
+    expect(e.state.counters["did:cook"]).toBe(1);
+
+    e.dispatch({ type: "travel", region: "forest" }); // the fire is still burning, but on the beach
+    expect(icons()).toEqual([]);
+    expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(false);
   });
 });

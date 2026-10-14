@@ -457,6 +457,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "log": "a straight shaft, a lashed point. it will do." }
 ```
 
+- **Item actions [implemented]:** an item can list `actions` — icon buttons shown next to it in the stores, e.g. raw fish → `{ "id": "cook", "icon": "fire", "hours": 0.5, "visibleWhen": { "all": [ { "timer": "fire" }, { "at": "beach" } ] }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1) plus any `cost`; the `itemAction` command runs it. `"fire"` is a built-in ink icon; other strings are shown as text glyphs.
 - `station` is `camp` (always available at the beach) or a building id (`workbench`, `forge`, `loom`). The craft menu is shown in the region where the station is.
 - Processes (§6.6) belong to a building. Several processes per building are allowed (the kiln fires pots *or* bricks).
 - Knowledge: `{ "id": "boiling_water", "name": "boiling water", "learnWhen": { "item": "clay_pot" }, "log": "water boiled in clay will not make you sick." }`. It can also be granted by the `learn` effect.

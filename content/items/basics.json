@@ -14,7 +14,20 @@
         { "weight": 3 },
         { "weight": 1, "text": "your stomach turns.", "effects": [{ "stat": { "health": -6 } }] }
       ]
-    }
+    },
+    "actions": [
+      {
+        "id": "cook",
+        "label": "cook",
+        "icon": "fire",
+        "hours": 0.5,
+        "effort": "light",
+        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "effects": [{ "give": { "cooked_fish": 1 } }],
+        "log": "the fish hisses on a flat stone by the fire.",
+        "tags": ["cook"]
+      }
+    ]
   },
   {
     "id": "cooked_fish",
@@ -38,7 +51,20 @@
       "stats": { "hunger": -6 },
       "tags": ["eat"],
       "log": "salty and chewy. barely a mouthful."
-    }
+    },
+    "actions": [
+      {
+        "id": "cook",
+        "label": "cook",
+        "icon": "fire",
+        "hours": 0.25,
+        "effort": "light",
+        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "effects": [{ "give": { "cooked_shells": 1 } }],
+        "log": "the shell pops open in the embers.",
+        "tags": ["cook"]
+      }
+    ]
   },
   {
     "id": "cooked_shells",
