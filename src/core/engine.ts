@@ -34,6 +34,8 @@ export class Engine {
   state: GameState;
   checkpoint: GameState;
   private damageLogged = new Set<string>();
+  /** while true, nothing is logged (you are asleep); see doActivity */
+  private quiet = false;
   /** characters logged during the current command, for the progress bar duration */
   private loggedChars = 0;
 
@@ -57,7 +59,7 @@ export class Engine {
   }
 
   log(text: string | undefined) {
-    if (!text) return;
+    if (!text || this.quiet) return;
     this.state.log.unshift({ at: this.state.time, text, turn: this.state.turn ?? 0 });
     this.loggedChars += text.length;
     if (this.state.log.length > 100) this.state.log.length = 100;
@@ -218,11 +220,16 @@ export class Engine {
     this.logLines(this.thoughts(a.thoughts));
     this.take(a.cost);
     this.log(textOf(a.log, this.state));
-    if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
+    // asleep you notice nothing (thirst, the fire dying): the morning sums it up in `afterwards`
+    this.quiet = a.effort === "sleep";
+    const alive = this.advance(a.hours, a.effort);
+    this.quiet = false;
+    if (!alive) return this.died(a.hours);
 
     this.applyYields(a.yields);
     this.applyOutcomes(a.outcomes);
     this.applyEffects(a.effects);
+    this.logLines(this.thoughts(a.afterwards));
     this.count(a.id, a.tags);
     // sleeping ends the day: tomorrow's memories start empty
     if (a.effort === "sleep") this.state.today = {};
@@ -348,13 +355,14 @@ export class Engine {
         if (!evaluate(d.when, ctx)) continue;
         s.stats.health = clamp(s.stats.health + d.healthPerHour * stepHours);
         const key = JSON.stringify(d.when);
-        if (d.log && !this.damageLogged.has(key)) { this.damageLogged.add(key); this.log(d.log); }
+        if (d.log && !this.quiet && !this.damageLogged.has(key)) { this.damageLogged.add(key); this.log(d.log); }
       }
       for (const r of sf.regen) {
         if (evaluate(r.when, ctx)) s.stats.health = clamp(s.stats.health + r.healthPerHour * stepHours);
       }
       if (s.stats.health <= 0) {
         s.dead = true;
+        this.quiet = false; // dying is never quiet
         this.log(this.reg.game.deathLog);
         return false;
       }

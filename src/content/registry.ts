@@ -199,7 +199,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       a.yields?.forEach((y, i) => { ref("item", y.item, `${w}.yields[${i}]`); if (y.when) checkCond(y.when, `${w}.yields[${i}].when`); });
       checkOutcomes(a.outcomes, w);
       checkEffects(a.effects, w);
-      a.thoughts?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.thoughts[${gi}].lines[${li}].when`); }));
+      for (const field of ["thoughts", "afterwards"] as const) {
+        a[field]?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.${field}[${gi}].lines[${li}].when`); }));
+      }
     }
   }
   for (const it of items.values()) {

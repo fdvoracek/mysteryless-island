@@ -110,14 +110,6 @@
       "visibleWhen": { "discovered": "rock_shelter" },
       "requires": { "timer": "fire" },
       "requiresText": "Too cold and dark to sleep without a fire",
-      "outcomes": [
-        { "weight": 1, "when": { "phase": ["dawn", "day"] }, "text": "Morning comes, grey and wet." },
-        {
-          "weight": 1,
-          "when": { "phase": ["dusk", "night"] },
-          "text": "You wake in the dark. The surf is loud."
-        }
-      ],
       "checkpoint": true,
       "_thoughts": "before sleeping: how tired you are (energy, same bands as the bar), then up to 3 things you remember from today, most memorable first",
       "thoughts": [
@@ -151,7 +143,36 @@
           "otherwise": ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."]
         }
       ],
-      "log": ["Sleep takes you.", "At last, sleep."]
+      "log": ["Sleep takes you.", "At last, sleep."],
+      "_afterwards": "the night itself is quiet; on waking: the time, then one line on how your body is (worst first), then the fire",
+      "afterwards": [
+        {
+          "max": 1,
+          "lines": [
+            { "text": "Morning comes, grey and wet.", "when": { "phase": ["dawn", "day"] } },
+            { "text": "You wake in the dark. The surf is loud." }
+          ]
+        },
+        {
+          "max": 1,
+          "lines": [
+            { "text": "Your body is weak and shaking. The night took something from you.", "when": { "stat": "health", "lte": 25 } },
+            { "text": "Hunger and thirst, both at once.", "when": { "all": [{ "stat": "hunger", "gte": 41 }, { "stat": "thirst", "gte": 41 }] } },
+            { "text": "Your mouth is dry, your tongue thick.", "when": { "stat": "thirst", "gte": 41 } },
+            { "text": "Your stomach is a hollow ache.", "when": { "stat": "hunger", "gte": 41 } },
+            { "text": "You are stiff with cold.", "when": { "warmth": ["freezing", "cold"] } },
+            { "text": "You feel rested.", "when": { "stat": "energy", "gte": 70 } },
+            { "text": "You are still tired." }
+          ]
+        },
+        {
+          "max": 1,
+          "lines": [
+            { "text": "The fire still smoulders in the ring of rocks.", "when": { "timer": "fire" } },
+            { "text": ["The fire is long out. Only cold ash.", "The fire died in the night."] }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -153,6 +153,8 @@ export const Activity = z
     log: Text.optional(),
     /** lines logged before the activity, worked out before it changes anything (see Thoughts) */
     thoughts: z.array(Thoughts).optional(),
+    /** lines logged after it, worked out from the state it left (e.g. how you wake) */
+    afterwards: z.array(Thoughts).optional(),
     checkpoint: z.boolean().optional(),
     /** counted for { "did": tag } conditions, e.g. "drink" */
     tags: z.array(Id).optional(),

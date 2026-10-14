@@ -120,3 +120,57 @@ describe("going to sleep", () => {
     expect(() => buildRegistry(files)).toThrow(ContentError);
   });
 });
+
+describe("waking up", () => {
+  const FALL_ASLEEP = ["Sleep takes you.", "At last, sleep."];
+  /** the lines after falling asleep: the morning summary (and any task finished on waking) */
+  const morning = (e: Engine) => {
+    const lines = lastTurn(e);
+    return lines.slice(lines.findIndex((l) => FALL_ASLEEP.includes(l)) + 1);
+  };
+
+  it("the night is quiet: no thirst, hunger or fire messages while you sleep", () => {
+    const e = readyToSleep(6, 2);
+    e.state.stats.thirst = 70; // thirst damage would log "Your lips crack…" every night
+    e.state.stats.hunger = 0; // only thirst, so the body line is about thirst
+    e.state.timers.fire = 60; // the fire dies during the night
+    sleep(e);
+    const m = morning(e);
+    for (const quiet of ["Your lips crack. The world tilts.", "The fire is dying.", "The fire goes out. Only embers now."]) {
+      expect(lastTurn(e)).not.toContain(quiet);
+    }
+    // instead: when you wake, how your body is, and the fire
+    expect(m[0]).toMatch(/^Morning comes|^You wake in the dark/);
+    expect(m).toContain("Your mouth is dry, your tongue thick.");
+    expect(m.some((l) => l === "The fire is long out. Only cold ash." || l === "The fire died in the night.")).toBe(true);
+  });
+
+  it("names the worst thing first, one line about the body", () => {
+    const body = (setup: (e: Engine) => void) => {
+      const e = readyToSleep(7, 2);
+      setup(e);
+      sleep(e);
+      return morning(e)[1];
+    };
+    expect(body((e) => { e.state.stats.thirst = 90; e.state.stats.hunger = 90; })).toBe("Hunger and thirst, both at once.");
+    expect(body((e) => { e.state.stats.hunger = 85; e.state.stats.thirst = 0; })).toBe("Your stomach is a hollow ache.");
+    expect(body((e) => { e.state.stats.hunger = 0; e.state.stats.thirst = 0; })).toMatch(/^You feel rested\.|^You are still tired\./);
+  });
+
+  it("says when the fire is still burning", () => {
+    const e = readyToSleep(8, 2);
+    e.state.timers.fire = 11 * 60; // more than the night
+    sleep(e);
+    expect(morning(e)).toContain("The fire still smoulders in the ring of rocks.");
+  });
+
+  it("dying in your sleep is never quiet", () => {
+    const e = readyToSleep(9, 2);
+    e.state.stats.health = 2;
+    e.state.stats.thirst = 100;
+    sleep(e);
+    expect(e.state.dead).toBe(true);
+    expect(lastTurn(e)).toContain(reg.game.deathLog);
+  });
+});
+
