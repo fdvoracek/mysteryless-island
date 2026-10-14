@@ -33,6 +33,14 @@ test("the game is visible and not covered on load", async ({ page }) => {
   await expect(action(page, "catch fish")).toBeVisible();
   await expect(page.locator("#fade")).toBeHidden();
 
+  // survival stats are star ratings with the word on hover
+  const health = page.locator('#status .row[data-id="health"]');
+  await expect(health.locator(".stars .on")).toHaveText("★★★★");
+  await expect(health).toHaveAttribute("aria-label", /health: 4 of 5 stars, bruised/);
+  await health.hover();
+  await expect(health.locator(".tip")).toBeVisible();
+  await expect(health.locator(".tip")).toContainText("bruised");
+
   // nothing may sit on top of the buttons (the bug that blanked the first deploy)
   const box = (await action(page, "catch fish").boundingBox())!;
   const topmost = await page.evaluate(

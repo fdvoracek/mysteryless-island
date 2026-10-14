@@ -9,6 +9,8 @@ export class UI {
   private root: HTMLElement;
   private els: Record<string, HTMLElement> = {};
   private busyUntil = 0;
+  /** star counts from the previous render, to animate a gained or lost star */
+  private lastStars = new Map<string, number>();
   private restoring = false;
 
   constructor(
@@ -107,10 +109,27 @@ export class UI {
 
   private renderStatus(v: View) {
     this.els.clock.textContent = `day ${v.status.day} · ${v.status.clock} · ${v.status.phase}`;
+    const max = v.status.maxStars;
     this.els.status.replaceChildren(
       ...v.status.lines.map((l) => {
         const row = div("", "row" + (l.bad ? " bad" : ""));
-        row.append(div(l.label, "key"), div(l.word + (l.trend === "down" ? " ↓" : l.trend === "up" ? " ↑" : ""), "val"));
+        row.dataset.id = l.id;
+        if (l.stars === null) {
+          // word-only line (the fire)
+          row.append(div(l.label, "key"), div(l.word, "val"));
+          return row;
+        }
+        const trend = l.trend === "worse" ? "getting worse" : l.trend === "better" ? "getting better" : "";
+        const val = div("", "val stars");
+        val.setAttribute("aria-hidden", "true");
+        val.append(span("★".repeat(l.stars), "on"), span("☆".repeat(max - l.stars), "off"));
+        const prev = this.lastStars.get(l.id);
+        if (prev !== undefined && prev !== l.stars) val.classList.add(l.stars < prev ? "lost" : "gained");
+        this.lastStars.set(l.id, l.stars);
+        row.classList.add("stat");
+        row.tabIndex = 0;
+        row.setAttribute("aria-label", `${l.label}: ${l.stars} of ${max} stars, ${l.word}${trend ? ", " + trend : ""}`);
+        row.append(div(l.label, "key"), val, div([l.word, trend].filter(Boolean).join(" · "), "tip"));
         return row;
       }),
     );
@@ -175,6 +194,7 @@ export class UI {
     this.els.fade.classList.add("show");
     window.setTimeout(() => {
       this.onRestore();
+      this.lastStars.clear();
       this.els.fade.classList.remove("show");
       this.restoring = false;
       this.render();
@@ -188,9 +208,16 @@ export class UI {
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);
-    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.render(); });
+    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.lastStars.clear(); this.render(); });
     box.querySelector("#no")!.addEventListener("click", () => box.remove());
   }
+}
+
+function span(text: string, cls: string) {
+  const s = document.createElement("span");
+  s.className = cls;
+  s.textContent = text;
+  return s;
 }
 
 function div(text: string, cls?: string) {

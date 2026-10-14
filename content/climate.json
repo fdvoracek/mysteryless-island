@@ -1,5 +1,5 @@
 {
-  "_note": "Day phases are hour ranges (an id may repeat to wrap midnight). Body bands are ordered cold -> hot; the last band has no upper limit.",
+  "_note": "Day phases are hour ranges (an id may repeat to wrap midnight). Body bands are ordered cold -> hot; the last band has no upper limit. Band stars = comfort shown in the status panel.",
   "phases": [
     { "id": "night", "from": 0, "to": 5, "tempC": -8 },
     { "id": "dawn", "from": 5, "to": 7, "tempC": -4 },
@@ -8,11 +8,12 @@
     { "id": "night", "from": 20, "to": 24, "tempC": -8 }
   ],
   "bodyBands": [
-    { "id": "freezing", "belowC": 5 },
-    { "id": "cold", "belowC": 15 },
-    { "id": "comfortable", "belowC": 28 },
-    { "id": "hot", "belowC": 34 },
-    { "id": "overheating" }
+    { "id": "freezing", "belowC": 5, "stars": 1 },
+    { "id": "cold", "belowC": 15, "stars": 3 },
+    { "id": "comfortable", "belowC": 28, "stars": 5 },
+    { "id": "hot", "belowC": 34, "stars": 3 },
+    { "id": "overheating", "stars": 1 }
   ],
+  "warmthLabel": "warmth",
   "startBand": "comfortable"
 }

@@ -166,6 +166,18 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   stats.damage.forEach((d, i) => checkCond(d.when, `stats.damage[${i}]`));
   stats.regen.forEach((d, i) => checkCond(d.when, `stats.regen[${i}]`));
   for (const e of Object.keys(stats.ratesPerHour)) Object.keys(stats.ratesPerHour[e as keyof typeof stats.ratesPerHour] ?? {}).forEach((k) => ref("stat", k, `stats.ratesPerHour.${e}`));
+  const maxStars = stats.maxStars ?? 5;
+  const step = 100 / maxStars;
+  for (const st of stats.stats) {
+    for (const w of st.words) {
+      // goodness boundary for this threshold (hunger/thirst count down)
+      const g = st.highIsBad ? 100 - w.upTo : w.upTo;
+      if (Math.abs(g / step - Math.round(g / step)) > 1e-9) {
+        problems.push(`stats.${st.id}.words "${w.word}": upTo ${w.upTo} is not on a star boundary (multiples of ${step}); the word would contradict the stars`);
+      }
+    }
+  }
+  climate.bodyBands.forEach((b) => { if (b.stars > maxStars) problems.push(`climate.bodyBands.${b.id}.stars: ${b.stars} is more than maxStars (${maxStars})`); });
   if (!statIds.has("health")) problems.push(`stats.json: a "health" stat is required (death happens at health 0)`);
 
   if (problems.length) throw new ContentError(problems);

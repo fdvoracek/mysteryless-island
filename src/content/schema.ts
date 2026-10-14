@@ -198,12 +198,16 @@ export const StatsFile = z
         .object({
           id: Id,
           name: z.string(),
+          /** label shown in the status panel (defaults to name), e.g. "fullness" for hunger */
+          label: z.string().optional(),
           /** true when a high value is bad (hunger, thirst); drives trend arrows and warnings */
           highIsBad: z.boolean().optional(),
           words: z.array(z.object({ upTo: z.number(), word: z.string() }).strict()).min(1),
         })
         .strict(),
     ),
+    /** stars shown per stat in the status panel; 0 stars only at the very end of the scale */
+    maxStars: z.number().int().min(1).max(10).optional(),
     ratesPerHour: z.record(Effort, z.record(Id, z.number())),
     multipliers: z.array(z.object({ when: Condition, stat: Id, factor: z.number() }).strict()),
     damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: z.string().optional() }).strict()),
@@ -214,7 +218,9 @@ export const StatsFile = z
 export const Climate = z
   .object({
     phases: z.array(z.object({ id: Id, from: z.number(), to: z.number(), tempC: z.number() }).strict()).min(1),
-    bodyBands: z.array(z.object({ id: Id, belowC: z.number().optional() }).strict()).min(2),
+    /** stars = how comfortable this band is (both too cold and too hot cost stars) */
+    bodyBands: z.array(z.object({ id: Id, belowC: z.number().optional(), stars: z.number().int().min(0) }).strict()).min(2),
+    warmthLabel: z.string().optional(),
     startBand: Id,
   })
   .strict();

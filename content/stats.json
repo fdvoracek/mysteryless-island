@@ -1,39 +1,40 @@
 {
-  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value.",
+  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value. The panel shows stars: more is better; 0 stars only at the very end of the scale (health 0 = death). Word thresholds must sit on star boundaries (multiples of 100 / maxStars) so the hover word never contradicts the stars.",
+  "maxStars": 5,
   "stats": [
     {
       "id": "health", "name": "health",
       "words": [
-        { "upTo": 15, "word": "dying" },
-        { "upTo": 35, "word": "badly hurt" },
+        { "upTo": 20, "word": "dying" },
+        { "upTo": 40, "word": "badly hurt" },
         { "upTo": 60, "word": "hurt" },
-        { "upTo": 85, "word": "bruised" },
+        { "upTo": 80, "word": "bruised" },
         { "upTo": 100, "word": "healthy" }
       ]
     },
     {
       "id": "energy", "name": "energy",
       "words": [
-        { "upTo": 10, "word": "exhausted" },
-        { "upTo": 35, "word": "weary" },
-        { "upTo": 65, "word": "tired" },
+        { "upTo": 20, "word": "exhausted" },
+        { "upTo": 40, "word": "weary" },
+        { "upTo": 80, "word": "tired" },
         { "upTo": 100, "word": "rested" }
       ]
     },
     {
-      "id": "hunger", "name": "hunger", "highIsBad": true,
+      "id": "hunger", "name": "hunger", "label": "fullness", "highIsBad": true,
       "words": [
-        { "upTo": 25, "word": "fed" },
-        { "upTo": 50, "word": "peckish" },
+        { "upTo": 20, "word": "fed" },
+        { "upTo": 40, "word": "peckish" },
         { "upTo": 80, "word": "hungry" },
         { "upTo": 100, "word": "starving" }
       ]
     },
     {
-      "id": "thirst", "name": "thirst", "highIsBad": true,
+      "id": "thirst", "name": "thirst", "label": "hydration", "highIsBad": true,
       "words": [
-        { "upTo": 25, "word": "quenched" },
-        { "upTo": 50, "word": "dry" },
+        { "upTo": 20, "word": "quenched" },
+        { "upTo": 40, "word": "dry" },
         { "upTo": 80, "word": "thirsty" },
         { "upTo": 100, "word": "parched" }
       ]

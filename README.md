@@ -19,7 +19,7 @@ npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright i
 
 - **The beach:** light fire (3 firewood), stoke fire, catch fish, cook fish (needs fire), sleep (needs fire; creates the checkpoint).
 - **The forest** (1 h walk): gather wood, drink from the stream.
-- Survival: health, energy, hunger, thirst and body warmth, shown as words. Action-based clock in 30-minute steps; day phases; the fire heats the beach.
+- Survival: health, energy, fullness, hydration and warmth, shown as 0–5 stars (more is better; hover for the word). Only health at 0 stars kills; the others drain health. Action-based clock in 30-minute steps; day phases; the fire heats the beach.
 - Death restores the last checkpoint (last sleep). Saved in `localStorage`.
 
 ## Adding content (no code changes)

@@ -127,9 +127,9 @@ flowchart LR
 
 ## 6. Survival model
 
-### 6.1 Stats **[decided: health is the only life bar; words only]**
+### 6.1 Stats **[decided: health is the only life bar; shown as stars]**
 
-All stats are numbers from 0 to 100 internally. The status panel shows only words.
+All stats are numbers from 0 to 100 internally. The status panel shows each one as **0–5 stars, where more is always better** (hunger is shown as *fullness*, thirst as *hydration*, warmth as *comfort*: both too cold and too hot cost stars). Each star covers 20 points and rounds up, so 0 stars appears only at the very end of a scale. **Only health at 0 stars ends the game**; the other stats at 0 stars drain health. Hovering a row shows the word below and the trend. *(Changed from words-only after the prototype, at your request.)*
 
 | Stat | Meaning | Words (low → high value) | Changes by |
 |---|---|---|---|

@@ -74,6 +74,22 @@ button { font: inherit; color: inherit; }
 .row .key { flex: 1; }
 .row .val { font-variant-numeric: tabular-nums; text-align: right; }
 .row.bad .val { color: var(--bad); }
+
+/* star ratings: more stars is better; the word shows on hover or focus */
+.row.stat { position: relative; cursor: default; }
+.stars { letter-spacing: 2px; white-space: nowrap; font-size: 15px; }
+.stars .off { color: var(--muted); }
+.row.bad .stars .on { color: var(--bad); }
+.stars.lost { animation: lost 0.9s ease-out; }
+.stars.gained { animation: gained 0.9s ease-out; }
+@keyframes lost { 0%, 40% { color: var(--bad); transform: translateX(-2px); } 100% { transform: none; } }
+@keyframes gained { 0%, 40% { opacity: 0.4; } 100% { opacity: 1; } }
+.row .tip {
+  /* to the left of the row, so it never covers the next stat */
+  display: none; position: absolute; right: calc(100% + 18px); top: 50%; transform: translateY(-50%); z-index: 5; white-space: nowrap;
+  padding: 3px 8px; background: var(--bg); border: 1px solid var(--line); box-shadow: 2px 2px 0 var(--bar); font-size: 14px;
+}
+.row.stat:hover .tip, .row.stat:focus-visible .tip { display: block; }
 .link { background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .use { font-size: 14px; color: var(--muted); margin-left: 6px; }
 .use:hover { color: var(--fg); }
@@ -101,4 +117,5 @@ button { font: inherit; color: inherit; }
   .wrap { grid-template-columns: 1fr; gap: 20px; }
   .centre { order: 1; } .side { order: 2; } .log { order: 3; max-height: none; }
   .btn { width: calc(50% - 6px); }
+  .row .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }
