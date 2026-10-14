@@ -1,31 +1,28 @@
 /*
- * 5. 19th-century journal: clean laid paper, iron-gall ink, a copperplate hand for headings and a
- * quill hand for the log. No grid, no texture. The story is on the left page, everything else on
- * the right. Red is kept only for danger (a survival bar at or below 20%), as in the rest of the game.
+ * 5. 19th-century journal: the game's own paper and ink (same colours as the other layouts),
+ * period print for the text (switchable in the bottom menu: font ...) and a copperplate hand for
+ * headings. The story is on the left page, everything else on the right. Red is kept only for
+ * danger (a survival bar at or below 20%), as in the rest of the game.
  */
 .layout-bujo {
-  --paper: #f7f3ea;            /* clean, slightly warm paper; set to #fff for pure black and white */
-  --ink: #1d1a16;              /* iron-gall black */
-  --ink-faded: #6f675c;        /* older entries: ink that has dried */
-  --rule: #cfc6b6;
+  --ink: var(--fg);
+  --ink-faded: var(--muted);
+  --rule: var(--bar);
   --script: "Pinyon Script", "Snell Roundhand", "Apple Chancery", "Savoye LET", cursive;   /* headings */
-  --quill: "Meddon", "Apple Chancery", "Snell Roundhand", cursive;                         /* the log */
-  --print: "IM Fell English", "Iowan Old Style", Georgia, var(--font);                     /* controls, labels */
-  /* the log is handwritten; set to var(--print) if long sessions get tiring to read */
-  --log-font: var(--quill);
-  --bg: var(--paper); --fg: var(--ink); --muted: var(--ink-faded); --line: var(--rule); --bar: var(--rule);
+  /* the text font: set by the font menu (see fonts in bujo.ts); Old Standard if none is set */
+  --print: var(--layout-font, "Old Standard TT", Georgia, var(--font));
+  --log-font: var(--print);
+  --fs: var(--layout-font-scale, 1);
 }
-/* lights off: the same journal by lamplight */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .layout-bujo { --paper: #1c1a17; --ink: #e9e2d3; --ink-faded: #958c7d; --rule: #3a3530; }
-}
-:root[data-theme="dark"] .layout-bujo { --paper: #1c1a17; --ink: #e9e2d3; --ink-faded: #958c7d; --rule: #3a3530; }
 
-#app.layout-bujo { min-height: 100vh; background: var(--paper); color: var(--ink); font-family: var(--print); }
-/* the paper also under the page edges (overscroll); values repeat --paper since body is outside #app */
-body:has(#app.layout-bujo) { background: #f7f3ea; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) body:has(#app.layout-bujo) { background: #1c1a17; } }
-:root[data-theme="dark"] body:has(#app.layout-bujo) { background: #1c1a17; }
+#app.layout-bujo {
+  min-height: 100vh; font-family: var(--print);
+  font-style: var(--layout-font-style, normal); font-weight: var(--layout-font-weight, 400);
+}
+/* the script never takes the text font's italic or weight */
+.layout-bujo .bj-title, .layout-bujo .log .day, .layout-bujo .box legend, .layout-bujo .tabs, .layout-bujo .fade p {
+  font-style: normal; font-weight: 400;
+}
 /* only the first letter is capitalised ("Day 1 · 10:30 · day", not "Day 1 · 10:30 · Day") */
 .layout-bujo .bj-title::first-letter, .layout-bujo .log .day::first-letter,
 .layout-bujo .box legend::first-letter { text-transform: uppercase; }
@@ -53,13 +50,13 @@ body:has(#app.layout-bujo) { background: #f7f3ea; }
 .layout-bujo .log .day {
   font-family: var(--script); font-size: 32px; margin-top: 10px; line-height: 1.2;
 }
-.layout-bujo .log .entry { position: relative; padding-left: 72px; font-size: 17px; line-height: 1.75; }
+.layout-bujo .log .entry { position: relative; padding-left: 72px; font-size: calc(17px * var(--fs)); line-height: 1.7; }
 .layout-bujo .log .entry .time {
   position: absolute; left: 0; top: 0.35em; width: 60px;
-  font-family: var(--print); font-style: italic; font-size: 13px; color: var(--ink-faded); font-variant-numeric: oldstyle-nums;
+  font-family: var(--print); font-style: italic; font-size: calc(13px * var(--fs)); color: var(--ink-faded); font-variant-numeric: oldstyle-nums;
 }
 .layout-bujo .log .entry.older { color: var(--ink-faded); }
-.layout-bujo .log .entry.latest { font-size: 19px; }
+.layout-bujo .log .entry.latest { font-size: calc(19px * var(--fs)); }
 
 /* right page: places and actions first, since they are used most */
 .layout-bujo .bj-play { display: grid; gap: 14px; }
@@ -68,7 +65,7 @@ body:has(#app.layout-bujo) { background: #f7f3ea; }
 .layout-bujo .buttons { gap: 10px; }
 .layout-bujo .btn {
   width: calc(50% - 5px); padding: 6px 10px; background: transparent;
-  font-family: var(--print); font-size: 16px; border: 1px solid var(--ink); border-radius: 0;
+  font-family: var(--print); font-size: calc(16px * var(--fs)); border: 1px solid var(--ink); border-radius: 0;
 }
 
 /* sections: no frames, a script heading over a hairline */

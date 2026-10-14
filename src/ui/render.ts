@@ -1,6 +1,6 @@
 import type { Engine, Command } from "../core/engine";
 import { view, type ButtonView, type View } from "../core/selectors";
-import { getLayout, LAYOUTS, type Layout } from "./layouts";
+import { getLayout, LAYOUTS, type Layout, type LayoutFont } from "./layouts";
 import { REQUIRED_IDS } from "./layouts/panels";
 
 /**
@@ -36,6 +36,10 @@ export class UI {
     this.root.innerHTML = `
       <div id="game"></div>
       <footer class="menu">
+        <div class="layout-switch" id="fontSwitch" hidden>
+          <button class="link" id="fontBtn" aria-haspopup="menu" aria-expanded="false"></button>
+          <div class="layout-menu" id="fontMenu" role="menu" hidden></div>
+        </div>
         <div class="layout-switch">
           <button class="link" id="layoutBtn" aria-haspopup="menu" aria-expanded="false"></button>
           <div class="layout-menu" id="layoutMenu" role="menu" hidden></div>
@@ -44,10 +48,11 @@ export class UI {
         <button class="link" id="restart">restart.</button>
       </footer>
       <div class="fade" id="fade"><p id="fadeText"></p></div>`;
-    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu"]) {
+    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontSwitch", "fontBtn", "fontMenu"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.buildLayoutMenu();
+    popupMenu(this.els.fontBtn, this.els.fontMenu);
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
     const lights = this.root.querySelector<HTMLButtonElement>("#lights")!;
     lights.addEventListener("click", () => {
@@ -79,34 +84,43 @@ export class UI {
     this.els.layoutMenu.querySelectorAll<HTMLElement>("[data-layout]").forEach((b) => {
       b.setAttribute("aria-checked", String(b.dataset.layout === layout.id));
     });
+    this.mountFonts(layout);
   }
 
   private buildLayoutMenu() {
-    const btn = this.els.layoutBtn;
-    const menu = this.els.layoutMenu;
-    const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    const close = popupMenu(this.els.layoutBtn, this.els.layoutMenu);
     for (const l of LAYOUTS) {
-      const item = document.createElement("button");
-      item.className = "link";
-      item.setAttribute("role", "menuitemradio");
-      item.dataset.layout = l.id;
-      item.textContent = l.name;
-      item.addEventListener("click", () => {
+      this.els.layoutMenu.append(menuItem(l.name, { layout: l.id }, () => {
         close();
         if (this.isBusy() || this.restoring || l.id === this.layout.id) return;
         saveLayoutId(l.id);
         this.mountLayout(l);
         this.render();
-      });
-      menu.append(item);
+      }));
     }
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      menu.hidden = !menu.hidden;
-      btn.setAttribute("aria-expanded", String(!menu.hidden));
-    });
-    document.addEventListener("click", (e) => { if (!menu.contains(e.target as Node)) close(); });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  }
+
+  /** The font switch: shown only for layouts that list fonts; the choice is kept per layout. */
+  private mountFonts(layout: Layout) {
+    const fonts = layout.fonts ?? [];
+    const sw = this.els.fontSwitch;
+    sw.hidden = fonts.length < 2;
+    if (!fonts.length) { applyFont(this.root, null); return; }
+    const pick = (f: LayoutFont) => {
+      applyFont(this.root, f);
+      this.els.fontBtn.textContent = `font: ${f.name}.`;
+      this.els.fontMenu.querySelectorAll<HTMLElement>("[data-font]").forEach((b) => {
+        b.setAttribute("aria-checked", String(b.dataset.font === f.id));
+      });
+    };
+    this.els.fontMenu.replaceChildren(...fonts.map((f) => menuItem(f.name, { font: f.id }, () => {
+      this.els.fontMenu.hidden = true;
+      this.els.fontBtn.setAttribute("aria-expanded", "false");
+      saveFontId(layout.id, f.id);
+      pick(f);
+    })));
+    const saved = loadFontId(layout.id);
+    pick(fonts.find((f) => f.id === saved) ?? fonts[0]);
   }
 
   render() {
@@ -467,6 +481,50 @@ export function loadLayoutId(): string | null {
 
 function saveLayoutId(id: string) {
   try { localStorage.setItem(LAYOUT_KEY, id); } catch { /* ignore */ }
+}
+
+const fontKey = (layoutId: string) => `textisland.font.${layoutId}`;
+function loadFontId(layoutId: string): string | null {
+  try { return localStorage.getItem(fontKey(layoutId)); } catch { return null; }
+}
+function saveFontId(layoutId: string, fontId: string) {
+  try { localStorage.setItem(fontKey(layoutId), fontId); } catch { /* ignore */ }
+}
+
+/** Set (or clear, with null) the CSS variables of a layout font on the root element. */
+function applyFont(root: HTMLElement, f: LayoutFont | null) {
+  const vars: Record<string, string | null> = {
+    "--layout-font": f?.family ?? null,
+    "--layout-font-style": f ? f.style ?? "normal" : null,
+    "--layout-font-weight": f ? String(f.weight ?? 400) : null,
+    "--layout-font-scale": f ? String(f.scale ?? 1) : null,
+  };
+  for (const [k, v] of Object.entries(vars)) {
+    if (v === null) root.style.removeProperty(k); else root.style.setProperty(k, v);
+  }
+}
+
+/** Wire a menu button to its popup; returns a function that closes it. */
+function popupMenu(btn: HTMLElement, menu: HTMLElement): () => void {
+  const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    menu.hidden = !menu.hidden;
+    btn.setAttribute("aria-expanded", String(!menu.hidden));
+  });
+  document.addEventListener("click", (e) => { if (!menu.contains(e.target as Node)) close(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  return close;
+}
+
+function menuItem(label: string, data: Record<string, string>, onClick: () => void): HTMLButtonElement {
+  const item = document.createElement("button");
+  item.className = "link";
+  item.setAttribute("role", "menuitemradio");
+  Object.assign(item.dataset, data);
+  item.textContent = label;
+  item.addEventListener("click", onClick);
+  return item;
 }
 
 export function setTheme(dark: boolean) {

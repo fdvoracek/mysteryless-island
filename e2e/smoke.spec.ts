@@ -150,6 +150,18 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
   }
   await expect(page.locator("#log")).toContainText("a school of small fish");
 
+  // the font switch shows only for layouts with fonts (old journal); the choice is applied and remembered
+  await expect(page.locator("#fontSwitch")).toBeHidden(); // classic
+  await page.locator("#layoutBtn").click();
+  await page.locator('#layoutMenu [data-layout="bujo"]').click();
+  await expect(page.locator("#fontBtn")).toHaveText("font: old standard.");
+  await page.locator("#fontBtn").click();
+  await page.locator('#fontMenu [data-font="garamond_italic"]').click();
+  await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
+  await expect(page.locator("#log .entry").first()).toHaveCSS("font-style", "italic");
+  await page.reload();
+  await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
+
   // the choice survives a reload
   await page.locator("#layoutBtn").click();
   await page.locator('#layoutMenu [data-layout="notebook"]').click();
