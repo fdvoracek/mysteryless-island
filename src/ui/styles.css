@@ -91,6 +91,21 @@ button { font: inherit; color: inherit; }
 .use { font-size: 14px; color: var(--muted); margin-left: 6px; }
 .use:hover { color: var(--fg); }
 
+/* tasks: active quests; a finished one is struck through, then fades out */
+.quest { position: relative; padding: 1px 0; cursor: default; }
+.quest::before { content: "– "; color: var(--muted); }
+.quest.appear { animation: fadein 0.8s ease-out; }
+.quest.done .title { text-decoration: line-through; color: var(--muted); }
+.quest.done { animation: questdone 1.8s ease-in forwards; }
+@keyframes questdone { 0%, 60% { opacity: 1; } 100% { opacity: 0; } }
+.quest .tip {
+  display: none; position: absolute; right: calc(100% + 18px); top: 50%; transform: translateY(-50%); z-index: 5;
+  width: max-content; max-width: 260px; padding: 3px 8px; background: var(--bg); border: 1px solid var(--line);
+  box-shadow: 2px 2px 0 var(--bar); font-size: 14px;
+}
+.quest:hover .tip, .quest:focus-visible .tip { display: block; }
+.quest .title { display: inline; }
+
 /* menu */
 .menu { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: flex-end; gap: 16px;
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); font-size: 14px; }
@@ -114,5 +129,5 @@ button { font: inherit; color: inherit; }
   .wrap { grid-template-columns: 1fr; gap: 20px; }
   .centre { order: 1; } .side { order: 2; } .log { order: 3; max-height: none; }
   .btn { width: calc(50% - 6px); }
-  .row .tip { right: 0; top: calc(100% + 2px); transform: none; }
+  .row .tip, .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }

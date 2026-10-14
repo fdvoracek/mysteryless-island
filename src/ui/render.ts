@@ -32,6 +32,7 @@ export class UI {
         </main>
         <aside class="side">
           <fieldset class="box"><legend id="clock"></legend><div id="status"></div></fieldset>
+          <fieldset class="box" id="questsBox"><legend>tasks</legend><div id="quests"></div></fieldset>
           <fieldset class="box" id="storesBox"><legend>stores</legend><div id="stores"></div></fieldset>
         </aside>
       </div>
@@ -40,7 +41,7 @@ export class UI {
         <button class="link" id="restart">restart.</button>
       </footer>
       <div class="fade" id="fade"><p id="fadeText"></p></div>`;
-    for (const id of ["log", "tabs", "actions", "clock", "status", "stores", "storesBox", "fade", "fadeText", "wrap"]) {
+    for (const id of ["log", "tabs", "actions", "clock", "status", "quests", "questsBox", "stores", "storesBox", "fade", "fadeText", "wrap"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
@@ -58,6 +59,7 @@ export class UI {
     this.renderTabs(v);
     this.renderButtons(this.els.actions, v.actions, (id) => ({ type: "activity", id }));
     this.renderStatus(v);
+    this.renderQuests(v);
     this.renderStores(v);
     this.renderLog(v);
     if (v.dead && !this.restoring) this.showDeath(v.log[0]);
@@ -149,6 +151,39 @@ export class UI {
     });
   }
 
+  /**
+   * Active quests only. A quest that leaves the list is shown struck through for a moment,
+   * then removed (quests only leave the list by being completed).
+   */
+  private renderQuests(v: View) {
+    const box = this.els.quests;
+    const active = new Set(v.quests.map((q) => q.id));
+    box.querySelectorAll<HTMLElement>(".quest").forEach((el) => {
+      if (active.has(el.dataset.id!) || el.classList.contains("done")) return;
+      el.classList.add("done");
+      el.setAttribute("aria-label", `${el.dataset.title}: done`);
+      window.setTimeout(() => { el.remove(); this.els.questsBox.hidden = !box.querySelector(".quest"); }, 1800);
+    });
+    // existing rows keep their place (a finished one fades where it was); new ones go after
+    // the previous active quest in content order
+    let prev: HTMLElement | null = null;
+    for (const q of v.quests) {
+      let el = box.querySelector<HTMLElement>(`.quest[data-id="${q.id}"]`);
+      if (!el) {
+        el = div("", "quest appear");
+        el.dataset.id = q.id;
+        el.dataset.title = q.title;
+        el.tabIndex = 0;
+        el.append(div(q.title, "title"));
+        if (q.hint) el.append(div(q.hint, "tip"));
+        if (prev) prev.after(el);
+        else box.prepend(el);
+      }
+      prev = el;
+    }
+    this.els.questsBox.hidden = !box.querySelector(".quest");
+  }
+
   private renderStores(v: View) {
     this.els.storesBox.hidden = v.stores.length === 0;
     this.els.stores.replaceChildren(
@@ -208,6 +243,7 @@ export class UI {
     this.els.fade.classList.add("show");
     window.setTimeout(() => {
       this.onRestore();
+      this.els.quests.replaceChildren();
       this.els.fade.classList.remove("show");
       this.restoring = false;
       this.render();
@@ -221,7 +257,7 @@ export class UI {
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);
-    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.render(); });
+    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.els.quests.replaceChildren(); this.render(); });
     box.querySelector("#no")!.addEventListener("click", () => box.remove());
   }
 }

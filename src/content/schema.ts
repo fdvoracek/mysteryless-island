@@ -28,7 +28,12 @@ export type Condition =
   | { warmth: string[] }
   | { phase: string[] }
   | { effort: Effort[] }
-  | { day: { gte?: number; lte?: number } };
+  | { day: { gte?: number; lte?: number } }
+  /** how often an activity, item use or tag was done (default gte 1) */
+  | { did: string; gte?: number; lte?: number }
+  /** the clock has reached this day (and hour) */
+  | { reached: { day: number; hour?: number } }
+  | { quest: string; is: "active" | "done" };
 
 const range = { gte: z.number().optional(), lte: z.number().optional() };
 
@@ -48,6 +53,9 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ phase: z.array(Id).min(1) }).strict(),
     z.object({ effort: z.array(Effort).min(1) }).strict(),
     z.object({ day: z.object(range).strict() }).strict(),
+    z.object({ did: Id, ...range }).strict(),
+    z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
+    z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
   ]),
 );
 
@@ -61,7 +69,8 @@ export type Effect =
   | { flag: string }
   | { unflag: string }
   | { log: string | string[] }
-  | { roll: Outcome[] };
+  | { roll: Outcome[] }
+  | { startQuest: string };
 
 export type Outcome = { weight: number; when?: Condition; text?: string | string[]; effects?: Effect[] };
 
@@ -75,6 +84,7 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.object({ unflag: Id }).strict(),
     z.object({ log: Text }).strict(),
     z.object({ roll: z.array(Outcome).min(1) }).strict(),
+    z.object({ startQuest: Id }).strict(),
   ]),
 );
 
@@ -117,6 +127,8 @@ export const Activity = z
     effects: z.array(Effect).optional(),
     log: Text.optional(),
     checkpoint: z.boolean().optional(),
+    /** counted for { "did": tag } conditions, e.g. "drink" */
+    tags: z.array(Id).optional(),
   })
   .strict();
 
@@ -143,6 +155,8 @@ export const Consume = z
     stats: z.record(Id, z.number()).optional(),
     log: Text.optional(),
     outcomes: z.array(Outcome).optional(),
+    /** counted for { "did": tag } conditions, e.g. "eat" */
+    tags: z.array(Id).optional(),
   })
   .strict();
 
@@ -227,6 +241,31 @@ export const Climate = z
   })
   .strict();
 
+export const QuestTrigger = z.union([
+  /** active from the first moment of a new game */
+  z.literal("start"),
+  /** only started by a { "startQuest": id } effect (activity outcome, event, another quest) */
+  z.literal("manual"),
+  /** becomes active as soon as the condition is true */
+  z.object({ when: Condition }).strict(),
+]);
+
+export const Quest = z
+  .object({
+    id: Id,
+    title: z.string(),
+    /** shown on hover in the tasks panel */
+    hint: z.string().optional(),
+    trigger: QuestTrigger,
+    completeWhen: Condition,
+    startLog: Text.optional(),
+    doneLog: Text.optional(),
+    /** applied when the quest is done (rewards, follow-up quests) */
+    effects: z.array(Effect).optional(),
+  })
+  .strict();
+
+export type Quest = z.infer<typeof Quest>;
 export type Activity = z.infer<typeof Activity>;
 export type Region = z.infer<typeof Region>;
 export type Item = z.infer<typeof Item>;

@@ -370,6 +370,26 @@ The arc "survive, build, leave" works on its own. A mystery would give explorati
 
 ---
 
+## 11b. Tasks (quests) **[decided]**
+
+Short goals that point the player at the next thing to learn, without explaining mechanics.
+
+- **Only active tasks are shown**, in a *tasks* box under the status panel. Hovering a task shows a one-line hint in the game's voice. A finished task is struck through for a moment, then disappears; the log gets a closing line.
+- **Trigger** (when a task becomes active): at the start of a new game; when a condition becomes true (a time such as "day 1, 16:00", an item seen, a region unlocked, another task done, a flag set by an event); or manually, from an effect in an activity outcome, an event or another task's reward.
+- **Goal** (when it's done): any condition, such as "drank for the first time", "a fire is burning", "it's day 2 after 06:00", "a shelter is built".
+- **Rewards:** a finished task can run effects (give items, start the next task).
+- Tasks never fail in v1. Timed or failable tasks can be added later if the design needs them.
+
+First set:
+
+| Task | Trigger | Done when |
+|---|---|---|
+| find water | start | first drink |
+| find food | start | first time eating |
+| survive the first night | start | day 2, 06:00 |
+| light a fire | day 1, 16:00, if no fire was ever lit | a fire is burning |
+| *build a roof over your head* (later) | e.g. after the first night | shelter built |
+
 ## 12. Weather **[proposal]**
 
 Weather is rolled every 6 in-game hours from a per-season table. Each weather type has a temperature modifier, effects on actions, and its own events.

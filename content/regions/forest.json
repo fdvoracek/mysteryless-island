@@ -22,6 +22,7 @@
       "hours": 0.5,
       "effort": "light",
       "effects": [ { "stat": { "thirst": -40 } } ],
+      "tags": ["drink"],
       "log": ["cold water, tasting of stone.", "you drink until your teeth ache."]
     }
   ]

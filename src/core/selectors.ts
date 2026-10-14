@@ -32,6 +32,8 @@ export interface View {
     phase: string;
     lines: StatusLine[];
   };
+  /** active quests only, in content order */
+  quests: Array<{ id: string; title: string; hint?: string }>;
   stores: Array<{ id: string; label: string; count: number; use?: { verb: string; tooltip: string[] } }>;
   log: string[];
   dead: boolean;
@@ -85,6 +87,11 @@ export function view(engine: Engine): View {
     lines.push({ id: t.id, label: t.name, fill: null, word, trend: "", bad: false });
   }
 
+  const quests: View["quests"] = [];
+  for (const q of reg.quests.values()) {
+    if (s.quests[q.id]?.status === "active") quests.push({ id: q.id, title: q.title, hint: q.hint });
+  }
+
   const stores: View["stores"] = [];
   for (const [id, count] of Object.entries(s.items)) {
     if (count <= 0) continue;
@@ -102,6 +109,7 @@ export function view(engine: Engine): View {
     tabs,
     actions,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
+    quests,
     stores,
     log: s.log.map((l) => l.text),
     dead: s.dead,

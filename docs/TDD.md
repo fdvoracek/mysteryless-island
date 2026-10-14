@@ -477,6 +477,28 @@ Region exploration (`explore`) is a special activity: each use adds 1 to the reg
 
 While an event is active, every command except `choose` is rejected. An event stack is not needed. Queued events wait in `events.queue` and open after the current one closes.
 
+### 6.10b Quests **[decided]**
+
+```json
+{
+  "id": "light_a_fire",
+  "title": "light a fire",
+  "hint": "the light is going. gather wood and make a fire before dark.",
+  "trigger": { "when": { "all": [ { "reached": { "day": 1, "hour": 16 } }, { "not": { "did": "light_fire" } } ] } },
+  "completeWhen": { "timer": "fire" },
+  "startLog": "the sun is low. it will be cold soon.",
+  "doneLog": "warmth, and a little light against the dark.",
+  "effects": []
+}
+```
+
+- Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
+- `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
+- New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.
+- State: `quests: { [id]: { status, startedAt, doneAt? } }` and `counters: { "did:<key>": n }`. Both are part of checkpoints, so dying rolls quests back too.
+- The engine runs `syncQuests()` after every command (and at a new game): start triggered quests, finish active ones whose goal is met, apply their effects. It repeats up to 10 passes, because finishing one quest can start another.
+- Validator: unknown `did` keys, unknown quest ids, and `"manual"` quests that no effect ever starts are errors. A tag may not share its name with an id.
+
 ### 6.11 Climate and stats files (excerpt)
 
 ```json

@@ -21,6 +21,7 @@ npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright i
 - **The forest** (1 h walk): gather wood, drink from the stream.
 - Survival: health, energy, fullness, hydration and comfort (freezing / cold / comfortable), shown as ink bars (fuller is better; hover for the word; red when low). Only an empty health bar kills; the others drain health. Action-based clock in 30-minute steps; day phases; the fire heats the beach.
 - Death restores the last checkpoint (last sleep). Saved in `localStorage`.
+- Tasks (quests): find water, find food, survive the first night; "light a fire" appears in the afternoon if you haven't. Only active tasks are listed; hover for a hint.
 
 ## Adding content (no code changes)
 
@@ -28,6 +29,7 @@ npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright i
 |---|---|
 | A region with its activities | new file in `content/regions/` |
 | Items and food | `content/items/*.json` |
+| Quests (tasks) | `content/quests/*.json` |
 | Survival rules (rates, damage, regen) | `content/stats.json` |
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |
@@ -41,4 +43,5 @@ Open the browser console:
 ```js
 ti.give("firewood", 10)   ti.stat("thirst", 0)   ti.time(5)   ti.fire(6)
 ti.state()                ti.felt()                            ti.reset()
+ti.quests()               ti.quest("light_a_fire")             // list / force-start quests
 ```

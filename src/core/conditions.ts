@@ -37,6 +37,9 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if ("phase" in c) return c.phase.includes(phaseAt(reg, s.time).id);
   if ("effort" in c) return !!ctx.effort && c.effort.includes(ctx.effort);
   if ("day" in c) return inRange(day(s.time), c.day);
+  if ("did" in c) return inRange(s.counters[`did:${c.did}`] ?? 0, c, 1);
+  if ("reached" in c) return s.time >= (c.reached.day - 1) * 1440 + Math.round((c.reached.hour ?? 0) * 60);
+  if ("quest" in c) return s.quests[c.quest]?.status === c.is;
   return false;
 }
 
@@ -60,5 +63,6 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
   if ("phase" in c) return `only at ${c.phase.join(", ")}`;
   if ("at" in c) return `only in ${reg.regions.get(c.at)?.name ?? c.at}`;
   if ("warmth" in c) return `only when ${c.warmth.join(" or ")}`;
+  if ("reached" in c) return `not before day ${c.reached.day}`;
   return "not possible now";
 }

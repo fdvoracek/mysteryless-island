@@ -5,6 +5,8 @@ export const SAVE_VERSION = 1;
 
 export interface LogEntry { at: number; text: string }
 
+export interface QuestState { status: "active" | "done"; startedAt: number; doneAt?: number }
+
 /** The whole game state. Plain JSON data: no classes, no Maps. */
 export interface GameState {
   saveVersion: number;
@@ -19,6 +21,10 @@ export interface GameState {
   items: Record<string, number>;
   seen: string[];
   flags: string[];
+  /** how often things were done: "did:<activity id | item id | tag>" -> count */
+  counters: Record<string, number>;
+  /** quests that have started; absent = not started yet */
+  quests: Record<string, QuestState>;
   /** minutes left per timer */
   timers: Record<string, number>;
   regions: Record<string, { unlocked: boolean; visited: boolean }>;
@@ -49,6 +55,8 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     items: { ...start.items },
     seen: Object.keys(start.items).filter((k) => start.items[k] > 0),
     flags: [],
+    counters: {},
+    quests: {},
     timers,
     regions,
     prevStats: { ...start.stats },

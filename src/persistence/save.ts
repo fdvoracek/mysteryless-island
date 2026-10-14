@@ -41,5 +41,8 @@ function isCompatible(s: GameState, reg: Registry): boolean {
   for (const id of reg.regionOrder) s.regions[id] ??= { unlocked: !reg.regions.get(id)!.unlockWhen, visited: false };
   for (const id of reg.timers.keys()) s.timers[id] ??= 0;
   for (const st of reg.stats.stats) s.stats[st.id] ??= reg.game.start.stats[st.id];
+  s.counters ??= {};
+  s.quests ??= {};
+  for (const id of Object.keys(s.quests)) if (!reg.quests.has(id)) delete s.quests[id];
   return true;
 }

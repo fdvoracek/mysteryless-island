@@ -38,7 +38,10 @@ export class Engine {
   }
 
   static newGame(reg: Registry, seed: number): Engine {
-    return new Engine(reg, createInitialState(reg, seed));
+    const e = new Engine(reg, createInitialState(reg, seed));
+    e.syncQuests(); // "start" quests and anything already true at the first moment
+    e.checkpoint = clone(e.state);
+    return e;
   }
 
   ctx(effort?: Effort): Ctx {
@@ -97,6 +100,7 @@ export class Engine {
     this.applyYields(a.yields);
     this.applyOutcomes(a.outcomes);
     this.applyEffects(a.effects);
+    this.count(a.id, a.tags);
     this.postCheck();
     if (a.checkpoint && !this.state.dead) this.checkpoint = clone(this.state);
     return this.ok(a.hours);
@@ -135,6 +139,7 @@ export class Engine {
     if (!this.advance(c.hours, c.effort ?? "light")) return this.died(c.hours);
     if (c.stats) this.applyEffects([{ stat: c.stats }]);
     this.applyOutcomes(c.outcomes);
+    this.count(itemId, c.tags);
     this.postCheck();
     return this.ok(c.hours);
   }
@@ -280,11 +285,57 @@ export class Engine {
       else if ("unflag" in e) s.flags = s.flags.filter((f) => f !== e.unflag);
       else if ("log" in e) this.log(textOf(e.log, s));
       else if ("roll" in e) this.applyOutcomes(e.roll);
+      else if ("startQuest" in e) this.startQuest(e.startQuest);
     }
     if (s.stats.health <= 0 && !s.dead) { s.dead = true; this.log(this.reg.game.deathLog); }
   }
 
-  /** Runs after every command: unlock regions whose condition became true. */
+  /** Count a finished activity or item use, plus its tags, for { "did": ... } conditions. */
+  private count(id: string, tags?: string[]) {
+    for (const key of [id, ...(tags ?? [])]) {
+      const k = `did:${key}`;
+      this.state.counters[k] = (this.state.counters[k] ?? 0) + 1;
+    }
+  }
+
+  // ---------------------------------------------------------------- quests
+
+  /** Start a quest if it hasn't started yet (from a trigger or a { "startQuest" } effect). */
+  startQuest(id: string) {
+    const q = this.reg.quests.get(id);
+    if (!q || this.state.quests[id]) return;
+    this.state.quests[id] = { status: "active", startedAt: this.state.time };
+    this.log(textOf(q.startLog, this.state));
+  }
+
+  /**
+   * Start quests whose trigger is met, finish active quests whose goal is met.
+   * Repeats because finishing one quest can start the next (chains via effects or { "quest": ... }).
+   */
+  syncQuests() {
+    for (let pass = 0; pass < 10; pass++) {
+      let changed = false;
+      for (const q of this.reg.quests.values()) {
+        const st = this.state.quests[q.id];
+        if (!st) {
+          const t = q.trigger;
+          if (t === "start" || (typeof t === "object" && evaluate(t.when, this.ctx()))) {
+            this.startQuest(q.id);
+            changed = true;
+          }
+        } else if (st.status === "active" && evaluate(q.completeWhen, this.ctx())) {
+          st.status = "done";
+          st.doneAt = this.state.time;
+          this.log(textOf(q.doneLog, this.state));
+          this.applyEffects(q.effects);
+          changed = true;
+        }
+      }
+      if (!changed) return;
+    }
+  }
+
+  /** Runs after every command: unlock regions, then update quests. */
   private postCheck() {
     const ctx = this.ctx();
     for (const id of this.reg.regionOrder) {
@@ -295,6 +346,7 @@ export class Engine {
         this.log(`a way to ${r.name} opens.`);
       }
     }
+    this.syncQuests();
   }
 }
 

@@ -12,6 +12,7 @@
       "verb": "eat raw",
       "hours": 0.25,
       "stats": { "hunger": -12 },
+      "tags": ["eat"],
       "log": "cold, slippery, barely food.",
       "outcomes": [
         { "weight": 3 },
@@ -27,6 +28,7 @@
       "verb": "eat",
       "hours": 0.5,
       "stats": { "hunger": -30, "health": 2 },
+      "tags": ["eat"],
       "log": "hot flesh, flaking from the bone."
     }
   }
