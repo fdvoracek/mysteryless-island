@@ -12,6 +12,7 @@ npm run dev          # http://localhost:5173
 npm test             # engine + content tests
 npm run content:check
 npm run build        # static build in dist/
+npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright install chromium)
 ```
 
 ## Prototype scope

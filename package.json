@@ -10,12 +10,14 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "content:check": "vitest run tests/content.test.ts"
+    "content:check": "vitest run tests/content.test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.48.2",
     "@types/node": "^22.9.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
