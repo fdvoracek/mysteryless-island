@@ -2,8 +2,9 @@ import type { Registry } from "../content/registry";
 import type { Activity, Effect, Effort, ItemAction, Outcome, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
-import { int, pick, weighted } from "./rng";
+import { int, weighted } from "./rng";
 import { clone, createInitialState, type GameState } from "./state";
+import { chooseText } from "./text";
 
 export type Command =
   | { type: "activity"; id: string }
@@ -23,8 +24,6 @@ export interface Result {
 }
 
 const refuse = (reason: string): Result => ({ ok: false, reason, cooldownMs: 0 });
-const textOf = (t: string | string[] | undefined, s: GameState) =>
-  t === undefined ? undefined : Array.isArray(t) ? pick(s.rng, t) : t;
 
 /**
  * The engine interprets content. It owns the current state and the checkpoint.
@@ -45,6 +44,8 @@ export class Engine {
     // saves from before `today` existed
     this.state.today ??= {};
     this.checkpoint.today ??= {};
+    this.state.lastText ??= {};
+    this.checkpoint.lastText ??= {};
   }
 
   static newGame(reg: Registry, seed: number): Engine {
@@ -63,6 +64,11 @@ export class Engine {
     this.state.log.unshift({ at: this.state.time, text, turn: this.state.turn ?? 0 });
     this.loggedChars += text.length;
     if (this.state.log.length > 100) this.state.log.length = 100;
+  }
+
+  /** One variant of a content text (see chooseText); `{place}` etc. are filled from `vars`. */
+  say(t: string | readonly string[] | undefined, vars?: Record<string, string>): string | undefined {
+    return t === undefined ? undefined : chooseText(t, this.state, vars);
   }
 
   /** Log several lines in reading order (the view groups them into one paragraph per action). */
@@ -126,7 +132,7 @@ export class Engine {
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
     const a = this.reg.quests.get(id)!.action!;
     this.take(a.cost);
-    this.log(textOf(a.log, this.state));
+    this.log(this.say(a.log));
     if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
     this.applyEffects(a.effects);
     this.postCheck();
@@ -157,7 +163,7 @@ export class Engine {
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
     this.take({ [itemId]: a.uses ?? 1 });
     this.take(a.cost);
-    this.log(textOf(a.log, this.state));
+    this.log(this.say(a.log));
     if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
     this.applyEffects(a.effects);
     this.count(`${itemId}_${a.id}`, a.tags);
@@ -182,10 +188,10 @@ export class Engine {
     for (const d of found) {
       st.discoveries.push(d.id);
       this.remember(d.id);
-      this.logLines(d.text);
+      this.log(this.say(d.text));
       this.applyEffects(d.effects);
     }
-    if (!found.length) this.log(textOf(ex.nothingLog, this.state) ?? "Nothing new.");
+    if (!found.length) this.log(this.say(ex.nothingLog ?? this.reg.game.journal.nothingNew));
     this.postCheck();
     return this.ok(ex.hours);
   }
@@ -219,7 +225,7 @@ export class Engine {
     // thoughts are worked out first: how tired you are as you lie down, not after the night
     this.logLines(this.thoughts(a.thoughts));
     this.take(a.cost);
-    this.log(textOf(a.log, this.state));
+    this.log(this.say(a.log));
     // asleep you notice nothing (thirst, the fire dying): the morning sums it up in `afterwards`
     this.quiet = a.effort === "sleep";
     const alive = this.advance(a.hours, a.effort);
@@ -247,7 +253,7 @@ export class Engine {
 
     // travel goes via camp: time from here to camp plus camp to there
     const hours = from.travelHours + to.travelHours;
-    this.log(`You walk to ${to.name}.`);
+    this.log(this.say(this.reg.game.journal.walkTo, { place: to.name }));
     if (!this.advance(hours, "work")) return this.died(hours);
 
     this.state.location = regionId;
@@ -255,7 +261,7 @@ export class Engine {
     const r = this.state.regions[regionId];
     if (!r.visited) {
       r.visited = true;
-      this.logLines([...to.description, textOf(to.firstVisit?.log, this.state)]);
+      this.logLines([this.say(to.description), this.say(to.firstVisit?.log)]);
     } else {
       this.logLines(this.arrivalView(to));
     }
@@ -270,10 +276,10 @@ export class Engine {
     for (const g of groups ?? []) {
       const lines = g.lines.filter((l) => evaluate(l.when, ctx)).slice(0, g.max ?? Infinity);
       if (lines.length) {
-        if (g.intro) out.push(textOf(g.intro, this.state)!);
-        for (const l of lines) out.push(textOf(l.text, this.state)!);
+        if (g.intro) out.push(this.say(g.intro)!);
+        for (const l of lines) out.push(this.say(l.text)!);
       } else if (g.otherwise) {
-        out.push(textOf(g.otherwise, this.state)!);
+        out.push(this.say(g.otherwise)!);
       }
     }
     return out;
@@ -282,7 +288,7 @@ export class Engine {
   /** What you see on arriving again: the region's `arrive` lines whose condition holds now. */
   arrivalView(region: Region): string[] {
     const ctx = this.ctx();
-    return (region.arrive ?? []).filter((a) => evaluate(a.when, ctx)).map((a) => textOf(a.text, this.state)!);
+    return (region.arrive ?? []).filter((a) => evaluate(a.when, ctx)).map((a) => this.say(a.text)!);
   }
 
   private consume(itemId: string): Result {
@@ -291,7 +297,7 @@ export class Engine {
     if ((this.state.items[itemId] ?? 0) < 1) return refuse(`no ${item.name} left`);
     const c = item.consume;
     this.take({ [itemId]: 1 });
-    this.log(textOf(c.log, this.state));
+    this.log(this.say(c.log));
     if (!this.advance(c.hours, c.effort ?? "light")) return this.died(c.hours);
     if (c.stats) this.applyEffects([{ stat: c.stats }]);
     this.applyOutcomes(c.outcomes);
@@ -322,7 +328,7 @@ export class Engine {
     // keep turns increasing past the death, so the wake-up line starts a new paragraph
     const lastTurn = Math.max(this.checkpoint.turn ?? 0, ...this.checkpoint.log.map((l) => l.turn ?? 0));
     this.state.turn = lastTurn + 1;
-    this.log(this.reg.game.restoreLog);
+    this.log(this.say(this.reg.game.restoreLog));
   }
 
   // ---------------------------------------------------------------- simulation
@@ -355,7 +361,7 @@ export class Engine {
         if (!evaluate(d.when, ctx)) continue;
         s.stats.health = clamp(s.stats.health + d.healthPerHour * stepHours);
         const key = JSON.stringify(d.when);
-        if (d.log && !this.quiet && !this.damageLogged.has(key)) { this.damageLogged.add(key); this.log(d.log); }
+        if (d.log && !this.quiet && !this.damageLogged.has(key)) { this.damageLogged.add(key); this.log(this.say(d.log)); }
       }
       for (const r of sf.regen) {
         if (evaluate(r.when, ctx)) s.stats.health = clamp(s.stats.health + r.healthPerHour * stepHours);
@@ -363,7 +369,7 @@ export class Engine {
       if (s.stats.health <= 0) {
         s.dead = true;
         this.quiet = false; // dying is never quiet
-        this.log(this.reg.game.deathLog);
+        this.log(this.say(this.reg.game.deathLog));
         return false;
       }
     }
@@ -378,8 +384,8 @@ export class Engine {
       const after = Math.max(0, before - minutes);
       s.timers[t.id] = after;
       const warn = (t.warnAtHours ?? -1) * 60;
-      if (t.warnLog && before > warn && after <= warn && after > 0) this.log(t.warnLog);
-      if (after === 0) this.log(t.expireLog);
+      if (t.warnLog && before > warn && after <= warn && after > 0) this.log(this.say(t.warnLog));
+      if (after === 0) this.log(this.say(t.expireLog));
     }
   }
 
@@ -433,7 +439,7 @@ export class Engine {
     const ctx = this.ctx();
     const o = weighted(this.state.rng, os.filter((x) => evaluate(x.when, ctx)));
     if (!o) return;
-    this.log(textOf(o.text, this.state));
+    this.log(this.say(o.text));
     this.applyEffects(o.effects);
   }
 
@@ -448,11 +454,11 @@ export class Engine {
         s.timers[t.id] = Math.min(t.maxHours * 60, (s.timers[t.id] ?? 0) + e.addHours * 60);
       } else if ("flag" in e) { if (!s.flags.includes(e.flag)) s.flags.push(e.flag); }
       else if ("unflag" in e) s.flags = s.flags.filter((f) => f !== e.unflag);
-      else if ("log" in e) this.log(textOf(e.log, s));
+      else if ("log" in e) this.log(this.say(e.log));
       else if ("roll" in e) this.applyOutcomes(e.roll);
       else if ("startQuest" in e) this.startQuest(e.startQuest);
     }
-    if (s.stats.health <= 0 && !s.dead) { s.dead = true; this.log(this.reg.game.deathLog); }
+    if (s.stats.health <= 0 && !s.dead) { s.dead = true; this.log(this.say(this.reg.game.deathLog)); }
   }
 
   /** Count a finished activity or item use, plus its tags, for { "did": ... } conditions. */
@@ -476,7 +482,7 @@ export class Engine {
     const q = this.reg.quests.get(id);
     if (!q || this.state.quests[id]) return;
     this.state.quests[id] = { status: "active", startedAt: this.state.time };
-    this.log(textOf(q.startLog, this.state));
+    this.log(this.say(q.startLog));
   }
 
   /**
@@ -498,7 +504,7 @@ export class Engine {
           st.status = "done";
           st.doneAt = this.state.time;
           this.remember(q.id);
-          this.log(textOf(q.doneLog, this.state));
+          this.log(this.say(q.doneLog));
           this.applyEffects(q.effects);
           changed = true;
         }
@@ -515,7 +521,7 @@ export class Engine {
       const st = this.state.regions[id];
       if (!st.unlocked && r.unlockWhen && evaluate(r.unlockWhen, ctx)) {
         st.unlocked = true;
-        this.log(`A way to ${r.name} opens.`);
+        this.log(this.say(this.reg.game.journal.wayOpens, { place: r.name }));
       }
     }
     this.syncQuests();

@@ -170,7 +170,7 @@ describe("waking up", () => {
     e.state.stats.thirst = 100;
     sleep(e);
     expect(e.state.dead).toBe(true);
-    expect(lastTurn(e)).toContain(reg.game.deathLog);
+    expect(lastTurn(e)).toContain([reg.game.deathLog].flat()[0]);
   });
 });
 

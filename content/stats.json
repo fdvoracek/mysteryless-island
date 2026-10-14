@@ -3,7 +3,8 @@
   "dangerAtOrBelow": 20,
   "stats": [
     {
-      "id": "health", "name": "health",
+      "id": "health",
+      "name": "health",
       "words": [
         { "upTo": 20, "word": "dying" },
         { "upTo": 40, "word": "badly hurt" },
@@ -13,7 +14,8 @@
       ]
     },
     {
-      "id": "energy", "name": "energy",
+      "id": "energy",
+      "name": "energy",
       "words": [
         { "upTo": 20, "word": "exhausted" },
         { "upTo": 40, "word": "weary" },
@@ -22,7 +24,10 @@
       ]
     },
     {
-      "id": "hunger", "name": "hunger", "label": "fullness", "highIsBad": true,
+      "id": "hunger",
+      "name": "hunger",
+      "label": "fullness",
+      "highIsBad": true,
       "words": [
         { "upTo": 20, "word": "fed" },
         { "upTo": 40, "word": "peckish" },
@@ -31,7 +36,10 @@
       ]
     },
     {
-      "id": "thirst", "name": "thirst", "label": "hydration", "highIsBad": true,
+      "id": "thirst",
+      "name": "thirst",
+      "label": "hydration",
+      "highIsBad": true,
       "words": [
         { "upTo": 20, "word": "quenched" },
         { "upTo": 40, "word": "dry" },
@@ -47,26 +55,52 @@
     "rest": { "hunger": 2, "thirst": 3, "energy": 4 },
     "sleep": { "hunger": 1.5, "thirst": 2, "energy": 11 }
   },
-  "multipliers": [
-    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 }
-  ],
+  "multipliers": [{ "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 }],
   "damage": [
-    { "when": { "stat": "hunger", "gte": 80 }, "healthPerHour": -2, "log": "Hunger gnaws at you. Your hands shake." },
-    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "Your lips crack. The world tilts." },
     {
-      "when": { "all": [ { "stat": "energy", "lte": 0 }, { "effort": ["heavy", "work"] } ] },
+      "when": { "stat": "hunger", "gte": 80 },
       "healthPerHour": -2,
-      "log": "You work on, past exhaustion."
+      "log": [
+        "Hunger gnaws at you. Your hands shake.",
+        "Your stomach cramps with hunger.",
+        "Hunger makes you dizzy."
+      ]
     },
-    { "when": { "warmth": ["freezing"] }, "healthPerHour": -3, "log": "The cold is in your bones." }
+    {
+      "when": { "stat": "thirst", "gte": 80 },
+      "healthPerHour": -2,
+      "log": [
+        "Your lips crack. The world tilts.",
+        "Your throat burns with thirst.",
+        "Thirst blurs your sight."
+      ]
+    },
+    {
+      "when": { "all": [{ "stat": "energy", "lte": 0 }, { "effort": ["heavy", "work"] }] },
+      "healthPerHour": -2,
+      "log": ["You work on, past exhaustion.", "Your body begs for rest.", "Every movement is an effort now."]
+    },
+    {
+      "when": { "warmth": ["freezing"] },
+      "healthPerHour": -3,
+      "log": ["The cold is in your bones.", "You can't stop shivering.", "The cold numbs your fingers."]
+    }
   ],
   "regen": [
     {
-      "when": { "all": [ { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }, { "warmth": ["comfortable"] } ] },
+      "when": {
+        "all": [
+          { "stat": "hunger", "lte": 50 },
+          { "stat": "thirst", "lte": 50 },
+          { "warmth": ["comfortable"] }
+        ]
+      },
       "healthPerHour": 1
     },
     {
-      "when": { "all": [ { "effort": ["sleep"] }, { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 } ] },
+      "when": {
+        "all": [{ "effort": ["sleep"] }, { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }]
+      },
       "healthPerHour": 2
     }
   ]

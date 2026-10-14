@@ -6,7 +6,11 @@
     "hint": "The dark comes early here, and cold with it.",
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
-    "doneLog": "Grey light over the water. You made it through the night."
+    "doneLog": [
+      "Grey light over the water. You made it through the night.",
+      "The sky pales over the sea. You are still here.",
+      "Dawn, thin and cold. You lived through the first night."
+    ]
   },
   {
     "id": "build_fishing_spear",
@@ -19,10 +23,22 @@
       "effort": "light",
       "cost": { "firewood": 10 },
       "effects": [{ "give": { "fishing_spear": 1 } }],
-      "log": "You choose the straightest branch and carve it to a point with the knife."
+      "log": [
+        "You choose the straightest branch and carve it to a point with the knife.",
+        "You pick the straightest branch and whittle the tip sharp.",
+        "Shaving by shaving, the knife turns a branch into a point."
+      ]
     },
     "completeWhen": { "item": "fishing_spear" },
-    "startLog": "A spear would reach them. You will need wood to choose from.",
-    "doneLog": "The spear is light and true. The fish will not be so quick now."
+    "startLog": [
+      "A spear would reach them. You will need wood to choose from.",
+      "With a spear you could reach them. Gather wood, and pick the best branch.",
+      "A sharp stick would do it. You need branches to choose from."
+    ],
+    "doneLog": [
+      "The spear is light and true. The fish will not be so quick now.",
+      "Light, straight, sharp. The fish will have to be quicker.",
+      "You test the point with your thumb. Good enough for fish."
+    ]
   }
 ]

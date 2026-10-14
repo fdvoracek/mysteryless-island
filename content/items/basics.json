@@ -9,10 +9,18 @@
       "hours": 0.25,
       "stats": { "hunger": -12 },
       "tags": ["eat"],
-      "log": "Cold, slippery, barely food.",
+      "log": [
+        "Cold, slippery, barely food.",
+        "Raw and cold. You chew and swallow.",
+        "Slippery and bland. Better than nothing."
+      ],
       "outcomes": [
         { "weight": 3 },
-        { "weight": 1, "text": "Your stomach turns.", "effects": [{ "stat": { "health": -6 } }] }
+        {
+          "weight": 1,
+          "text": ["Your stomach turns.", "Your stomach cramps.", "Something in it disagrees with you."],
+          "effects": [{ "stat": { "health": -6 } }]
+        }
       ]
     },
     "actions": [
@@ -23,7 +31,11 @@
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
         "effects": [{ "give": { "cooked_fish": 1 } }],
-        "log": "The fish hisses on a flat stone by the fire.",
+        "log": [
+          "The fish hisses on a flat stone by the fire.",
+          "The fish spits and curls on a hot stone.",
+          "Fat drips into the embers. The fish browns."
+        ],
         "tags": ["cook"]
       }
     ]
@@ -37,7 +49,11 @@
       "hours": 0.5,
       "stats": { "hunger": -30, "health": 2 },
       "tags": ["eat"],
-      "log": "Hot flesh, flaking from the bone."
+      "log": [
+        "Hot flesh, flaking from the bone.",
+        "Hot and soft. You eat it down to the bones.",
+        "It burns your fingers. You eat it anyway."
+      ]
     }
   },
   {
@@ -49,7 +65,11 @@
       "hours": 0.25,
       "stats": { "hunger": -6 },
       "tags": ["eat"],
-      "log": "Salty and chewy. Barely a mouthful."
+      "log": [
+        "Salty and chewy. Barely a mouthful.",
+        "You suck the meat from the shells. Salt, mostly.",
+        "Chewy, salty, gone in a moment."
+      ]
     },
     "actions": [
       {
@@ -59,7 +79,11 @@
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
         "effects": [{ "give": { "cooked_shells": 1 } }],
-        "log": "The shell pops open in the embers.",
+        "log": [
+          "The shell pops open in the embers.",
+          "The shells hiss and crack open in the heat.",
+          "Steam, a snap, and the shells open."
+        ],
         "tags": ["cook"]
       }
     ]
@@ -73,7 +97,11 @@
       "hours": 0.25,
       "stats": { "hunger": -15 },
       "tags": ["eat"],
-      "log": "Tender and hot. The smell of the sea."
+      "log": [
+        "Tender and hot. The smell of the sea.",
+        "Hot and tender, tasting of the sea.",
+        "Soft meat from hot shells. Better cooked."
+      ]
     }
   },
   { "id": "fishing_spear", "name": "fishing spear", "category": "tool" },

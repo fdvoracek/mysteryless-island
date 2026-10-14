@@ -3,54 +3,114 @@
   "name": "the beach",
   "title": "A Grey Beach",
   "order": 1,
-  "description": ["Wet sand, broken shells, a line of wrack.", "The wind never quite stops."],
+  "description": [
+    "Wet sand, broken shells, a line of wrack. The wind never quite stops.",
+    "Wet sand and broken shells, and a line of wrack. The wind does not stop.",
+    "Grey sand, grey sea, a line of wrack. The wind is always here."
+  ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
   "arrive": [
-    { "text": ["Back on the sand. The wind finds you at once.", "The beach again: wet sand, a line of wrack."], "when": { "phase": ["dawn", "day", "dusk"] } },
-    { "text": "The beach in the dark. Only the surf, and a pale line of foam.", "when": { "phase": ["night"] } },
-    { "text": "Smoke rises from the ring of rocks.", "when": { "all": [{ "discovered": "rock_shelter" }, { "timer": "fire" }] } },
-    { "text": "The ring of rocks waits, cold.", "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] } },
-    { "text": "Shells on the stone under the cliff.", "when": { "discovered": "cliff_shells" } },
-    { "text": "Fish flash in the shallows.", "when": { "discovered": "school_of_fish" } }
+    {
+      "text": [
+        "Back on the sand. The wind finds you at once.",
+        "The sand again, and the wind with it.",
+        "You come out onto the beach. The wind is waiting.",
+        "The beach again: wet sand, a line of wrack.",
+        "The beach: the same wet sand, the same wrack.",
+        "Wet sand underfoot again. Wrack along the tide line."
+      ],
+      "when": { "phase": ["dawn", "day", "dusk"] }
+    },
+    {
+      "text": [
+        "The beach in the dark. Only the surf, and a pale line of foam.",
+        "In the dark the beach is only sound: the surf, the wind.",
+        "Night on the beach. The foam glows faintly at the water's edge."
+      ],
+      "when": { "phase": ["night"] }
+    },
+    {
+      "text": [
+        "Smoke rises from the ring of rocks.",
+        "A thread of smoke above the ring of rocks.",
+        "The fire is still alive in the rocks."
+      ],
+      "when": { "all": [{ "discovered": "rock_shelter" }, { "timer": "fire" }] }
+    },
+    {
+      "text": [
+        "The ring of rocks waits, cold.",
+        "The ring of rocks, and cold ash inside it.",
+        "No smoke from the rocks. The fire is out."
+      ],
+      "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] }
+    },
+    {
+      "text": [
+        "Shells on the stone under the cliff.",
+        "The shells still cling under the cliff.",
+        "Under the cliff, the shells wait for the tide."
+      ],
+      "when": { "discovered": "cliff_shells" }
+    },
+    {
+      "text": [
+        "Fish flash in the shallows.",
+        "Something silver turns in the shallows.",
+        "The fish are still in the shallows."
+      ],
+      "when": { "discovered": "school_of_fish" }
+    }
   ],
   "explore": {
     "name": "look around",
     "hours": 1,
     "effort": "work",
-    "nothingLog": ["You walk the shore again. Nothing new.", "Only sand, and the sea."],
+    "nothingLog": [
+      "You walk the shore again. Nothing new.",
+      "Up and down the shore. Nothing you haven't seen.",
+      "The same sand, the same sea. Nothing new.",
+      "Only sand, and the sea.",
+      "Only wrack and gulls.",
+      "Sand, sea, wind. Nothing else."
+    ],
     "discoveries": [
       {
         "id": "forest_edge",
         "at": 1,
         "text": [
-          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line.",
-          "Behind the dunes the trees begin. A forest, close and hard to miss."
+          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line. Behind the dunes the trees begin. A forest, close and hard to miss.",
+          "You walk the tide line: sand, wrack and broken shells as far as you can see. Inland, over the dunes, a forest. You could walk there.",
+          "The shore curves away both ways, empty. Behind the dunes stand trees: a forest, close enough to reach."
         ]
       },
       {
         "id": "rock_shelter",
         "at": 2,
         "text": [
-          "At the far end of the beach, a ring of rocks breaks the sea wind.",
-          "You could light a fire here, if you find some wood."
+          "At the far end of the beach, a ring of rocks breaks the sea wind. You could light a fire here, if you find some wood.",
+          "At the end of the beach, rocks stand in a ring, out of the wind. A fire would keep here, with some wood.",
+          "A ring of rocks at the far end of the sand. The wind can't reach inside. A good place for a fire, if you had wood."
         ]
       },
       {
         "id": "cliff_shells",
         "at": 3,
         "text": [
-          "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it.",
-          "You could pick them and eat them as they are. Cooked, they would go further."
+          "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it. You could pick them and eat them as they are. Cooked, they would go further.",
+          "Beyond the rocks, a low cliff meets the sea. Shells crowd the wet stone at its foot. You could eat them raw, or cook them for more.",
+          "Under a low cliff past the rocks, shells cover the wet stone. Food, of a kind: raw, or better cooked."
         ]
       },
       {
         "id": "school_of_fish",
         "at": 4,
         "text": [
-          "In the shallows, a school of small fish turns and flashes.",
-          "Too quick for bare hands. With a sharp stick you might spear one."
+          "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
+          "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",
+          "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them."
         ]
       }
     ]
@@ -64,7 +124,11 @@
       "visibleWhen": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] },
       "cost": { "firewood": 3 },
       "effects": [{ "timer": "fire", "addHours": 6 }],
-      "log": "A spark, a curl of smoke. The fire takes."
+      "log": [
+        "A spark, a curl of smoke. The fire takes.",
+        "You strike and blow. Smoke, then a flame.",
+        "The kindling smokes, catches, crackles. A fire."
+      ]
     },
     {
       "id": "stoke_fire",
@@ -74,7 +138,14 @@
       "visibleWhen": { "timer": "fire" },
       "cost": { "firewood": 2 },
       "effects": [{ "timer": "fire", "addHours": 4 }],
-      "log": ["The fire crackles.", "Sparks climb into the dark."]
+      "log": [
+        "The fire crackles.",
+        "The flames climb higher.",
+        "You feed the fire. It answers.",
+        "Sparks climb into the dark.",
+        "Sparks drift up on the wind.",
+        "The new wood catches with a hiss."
+      ]
     },
     {
       "id": "collect_shells",
@@ -85,7 +156,11 @@
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
         "You prise shells off the wet stone. The surf soaks your legs.",
-        "A handful of shells, cold and heavy."
+        "You work the shells loose with your fingers. The surf breaks over your knees.",
+        "Shell by shell, off the wet stone. Your hands go numb.",
+        "A handful of shells, cold and heavy.",
+        "A pocketful of shells, cold and wet.",
+        "Shells, heavy and dripping."
       ]
     },
     {
@@ -96,11 +171,38 @@
       "visibleWhen": { "discovered": "school_of_fish" },
       "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [
-        { "weight": 4, "text": "Two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
-        { "weight": 4, "text": "One fish. It will do.", "effects": [{ "give": { "raw_fish": 1 } }] },
-        { "weight": 2, "text": "Nothing. The fish are quicker than you." }
+        {
+          "weight": 4,
+          "text": [
+            "Two fish, flapping on the sand.",
+            "Two fish, one on each strike.",
+            "Two fish thrash on the sand."
+          ],
+          "effects": [{ "give": { "raw_fish": 2 } }]
+        },
+        {
+          "weight": 4,
+          "text": [
+            "One fish. It will do.",
+            "One fish, wriggling on the point.",
+            "A single fish. Enough for now."
+          ],
+          "effects": [{ "give": { "raw_fish": 1 } }]
+        },
+        {
+          "weight": 2,
+          "text": [
+            "Nothing. The fish are quicker than you.",
+            "Nothing. They scatter every time.",
+            "The water swirls. The spear comes up empty."
+          ]
+        }
       ],
-      "log": "You wade into the shallows, spear raised."
+      "log": [
+        "You wade into the shallows, spear raised.",
+        "You stand knee-deep in the cold water and wait.",
+        "Spear ready, you wade out slowly."
+      ]
     },
     {
       "id": "sleep",
@@ -116,60 +218,262 @@
         {
           "max": 1,
           "lines": [
-            { "text": "You drop by the fire, too exhausted to feel the cold sand.", "when": { "stat": "energy", "lte": 20 } },
-            { "text": "You curl up by the fire. Every muscle aches.", "when": { "stat": "energy", "lte": 40 } },
-            { "text": "You curl up by the fire, tired in a slow, heavy way.", "when": { "stat": "energy", "lte": 80 } },
-            { "text": "You lie by the fire, not really tired. Sleep is slow to come." }
+            {
+              "text": [
+                "You drop by the fire, too exhausted to feel the cold sand.",
+                "You fall down by the fire. You can't keep your eyes open.",
+                "Your legs give way by the fire. Too tired to care."
+              ],
+              "when": { "stat": "energy", "lte": 20 }
+            },
+            {
+              "text": [
+                "You curl up by the fire. Every muscle aches.",
+                "You lie down by the fire. Everything hurts.",
+                "You curl up by the warmth, aching all over."
+              ],
+              "when": { "stat": "energy", "lte": 40 }
+            },
+            {
+              "text": [
+                "You curl up by the fire, tired in a slow, heavy way.",
+                "You stretch out by the fire. A slow tiredness comes over you.",
+                "You lie by the fire, heavy and tired."
+              ],
+              "when": { "stat": "energy", "lte": 80 }
+            },
+            {
+              "text": [
+                "You lie by the fire, not really tired. Sleep is slow to come.",
+                "You lie by the fire and stare at the sky. Sleep takes its time.",
+                "You are not tired. You lie by the fire and wait for sleep."
+              ]
+            }
           ]
         },
         {
-          "intro": ["The day comes back to you in pieces.", "Lying still, you go over the day."],
+          "intro": [
+            "The day comes back to you in pieces.",
+            "Pieces of the day drift back.",
+            "You think back over the day.",
+            "Lying still, you go over the day.",
+            "In the quiet, the day replays.",
+            "Before sleep, the day returns to you."
+          ],
           "max": 3,
           "lines": [
-            { "text": "The cold sea. Waking alone on the sand.", "when": { "not": { "did": "sleep" } } },
-            { "text": "The spear, straight and sharp, made with your own hands.", "when": { "today": "build_fishing_spear" } },
-            { "text": "Fish flashing in the shallows, just out of reach.", "when": { "today": "school_of_fish" } },
-            { "text": "Standing in the surf with the spear raised.", "when": { "today": "catch_fish" } },
-            { "text": "The first spark catching. Smoke, then warmth.", "when": { "today": "light_fire" } },
-            { "text": "Cold water from a spring between mossy stones.", "when": { "today": "spring" } },
-            { "text": "A ring of rocks, out of the wind.", "when": { "today": "rock_shelter" } },
-            { "text": "The cool dark under the trees.", "when": { "today": "forest" } },
-            { "text": "The smell of food over the fire.", "when": { "today": "cook" } },
-            { "text": "Armful after armful of dry branches.", "when": { "today": "gather_wood" } },
-            { "text": "Shells pried from the wet stone.", "when": { "today": "collect_shells" } },
-            { "text": "The taste of fresh water.", "when": { "today": "drink" } },
-            { "text": "Something in your stomach, at least.", "when": { "today": "eat" } }
+            {
+              "text": [
+                "The cold sea. Waking alone on the sand.",
+                "The shock of waking on the beach, alone.",
+                "Salt, cold, and no ship on the horizon."
+              ],
+              "when": { "not": { "did": "sleep" } }
+            },
+            {
+              "text": [
+                "The spear, straight and sharp, made with your own hands.",
+                "The spear you made, its point sharp under your thumb.",
+                "Carving the spear, shaving by shaving."
+              ],
+              "when": { "today": "build_fishing_spear" }
+            },
+            {
+              "text": [
+                "Fish flashing in the shallows, just out of reach.",
+                "Silver fish in the shallows, too quick to catch.",
+                "The fish in the shallows, so close."
+              ],
+              "when": { "today": "school_of_fish" }
+            },
+            {
+              "text": [
+                "Standing in the surf with the spear raised.",
+                "Cold water to your knees, the spear ready.",
+                "Waiting in the surf for the fish to come close."
+              ],
+              "when": { "today": "catch_fish" }
+            },
+            {
+              "text": [
+                "The first spark catching. Smoke, then warmth.",
+                "The moment the fire took.",
+                "Smoke in your eyes, then warmth."
+              ],
+              "when": { "today": "light_fire" }
+            },
+            {
+              "text": [
+                "Cold water from a spring between mossy stones.",
+                "The spring, and how cold the water was.",
+                "Drinking from the spring until your teeth ached."
+              ],
+              "when": { "today": "spring" }
+            },
+            {
+              "text": [
+                "A ring of rocks, out of the wind.",
+                "The ring of rocks where the wind can't reach.",
+                "Shelter among the rocks."
+              ],
+              "when": { "today": "rock_shelter" }
+            },
+            {
+              "text": [
+                "The cool dark under the trees.",
+                "The forest, quiet and dim.",
+                "Tall trunks and the smell of moss."
+              ],
+              "when": { "today": "forest" }
+            },
+            {
+              "text": [
+                "The smell of food over the fire.",
+                "Food cooking on the hot stones.",
+                "The smell of something cooking."
+              ],
+              "when": { "today": "cook" }
+            },
+            {
+              "text": [
+                "Armful after armful of dry branches.",
+                "Dragging dry branches out of the forest.",
+                "Bark and twigs, scratching your arms."
+              ],
+              "when": { "today": "gather_wood" }
+            },
+            {
+              "text": [
+                "Shells pried from the wet stone.",
+                "Cold fingers on wet shells.",
+                "Shells, and the surf soaking your legs."
+              ],
+              "when": { "today": "collect_shells" }
+            },
+            {
+              "text": ["The taste of fresh water.", "Water, at last.", "Cold, clean water."],
+              "when": { "today": "drink" }
+            },
+            {
+              "text": [
+                "Something in your stomach, at least.",
+                "Food, of a kind.",
+                "You ate. That is something."
+              ],
+              "when": { "today": "eat" }
+            }
           ],
-          "otherwise": ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."]
+          "otherwise": [
+            "A day of small things. You hardly remember it.",
+            "The day blurs. Nothing stands out.",
+            "Little to remember. Sand, waiting, more sand.",
+            "Nothing much. Sand, wind, waiting.",
+            "An empty sort of day.",
+            "Hours of wind and waiting."
+          ]
         }
       ],
-      "log": ["Sleep takes you.", "At last, sleep."],
+      "log": [
+        "Sleep takes you.",
+        "Your eyes close.",
+        "Darkness, and then nothing.",
+        "At last, sleep.",
+        "Sleep comes quickly.",
+        "You drift off."
+      ],
       "_afterwards": "the night itself is quiet; on waking: the time, then one line on how your body is (worst first), then the fire",
       "afterwards": [
         {
           "max": 1,
           "lines": [
-            { "text": "Morning comes, grey and wet.", "when": { "phase": ["dawn", "day"] } },
-            { "text": "You wake in the dark. The surf is loud." }
+            {
+              "text": [
+                "Morning comes, grey and wet.",
+                "Grey dawn, damp and cold.",
+                "The light comes back, thin and grey."
+              ],
+              "when": { "phase": ["dawn", "day"] }
+            },
+            {
+              "text": [
+                "You wake in the dark. The surf is loud.",
+                "You wake. It is still dark, and the surf roars.",
+                "Darkness still. Only the sound of the sea."
+              ]
+            }
           ]
         },
         {
           "max": 1,
           "lines": [
-            { "text": "Your body is weak and shaking. The night took something from you.", "when": { "stat": "health", "lte": 25 } },
-            { "text": "Hunger and thirst, both at once.", "when": { "all": [{ "stat": "hunger", "gte": 41 }, { "stat": "thirst", "gte": 41 }] } },
-            { "text": "Your mouth is dry, your tongue thick.", "when": { "stat": "thirst", "gte": 41 } },
-            { "text": "Your stomach is a hollow ache.", "when": { "stat": "hunger", "gte": 41 } },
-            { "text": "You are stiff with cold.", "when": { "warmth": ["freezing", "cold"] } },
-            { "text": "You feel rested.", "when": { "stat": "energy", "gte": 70 } },
-            { "text": "You are still tired." }
+            {
+              "text": [
+                "Your body is weak and shaking. The night took something from you.",
+                "You are weak. Your hands won't stop shaking.",
+                "You can barely sit up. The night was hard on you."
+              ],
+              "when": { "stat": "health", "lte": 25 }
+            },
+            {
+              "text": [
+                "Hunger and thirst, both at once.",
+                "Your stomach aches and your mouth is dry.",
+                "Hungry, thirsty, both."
+              ],
+              "when": { "all": [{ "stat": "hunger", "gte": 41 }, { "stat": "thirst", "gte": 41 }] }
+            },
+            {
+              "text": [
+                "Your mouth is dry, your tongue thick.",
+                "Your throat is dry as sand.",
+                "Thirst wakes you before the light does."
+              ],
+              "when": { "stat": "thirst", "gte": 41 }
+            },
+            {
+              "text": [
+                "Your stomach is a hollow ache.",
+                "Hunger, first thing.",
+                "Your belly is empty and loud."
+              ],
+              "when": { "stat": "hunger", "gte": 41 }
+            },
+            {
+              "text": [
+                "You are stiff with cold.",
+                "The cold has got into your joints.",
+                "You wake shivering."
+              ],
+              "when": { "warmth": ["freezing", "cold"] }
+            },
+            {
+              "text": ["You feel rested.", "You feel stronger.", "Rested, for once."],
+              "when": { "stat": "energy", "gte": 70 }
+            },
+            { "text": ["You are still tired.", "Tired still, though you slept.", "The sleep did little."] }
           ]
         },
         {
           "max": 1,
           "lines": [
-            { "text": "The fire still smoulders in the ring of rocks.", "when": { "timer": "fire" } },
-            { "text": ["The fire is long out. Only cold ash.", "The fire died in the night."] }
+            {
+              "text": [
+                "The fire still smoulders in the ring of rocks.",
+                "Embers still glow in the rocks.",
+                "A little smoke still rises from the fire."
+              ],
+              "when": { "timer": "fire" }
+            },
+            {
+              "text": [
+                "The fire is long out. Only cold ash.",
+                "Cold ash where the fire was.",
+                "The fire is gone. Not even smoke.",
+                "The fire died in the night.",
+                "Sometime in the night, the fire went out.",
+                "The fire did not last the night."
+              ]
+            }
           ]
         }
       ]

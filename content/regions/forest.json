@@ -3,34 +3,90 @@
   "name": "the forest",
   "title": "A Quiet Forest",
   "order": 2,
-  "description": ["Tall trunks, close together.", "The sea is only a sound now."],
+  "description": [
+    "Tall trunks, close together. The sea is only a sound now.",
+    "Trunks stand close and the light thins. Behind you, the sea is only a sound.",
+    "Among tall trees the air goes still. You can barely hear the sea."
+  ],
   "climate": { "baseC": 18 },
   "travelHours": 1,
   "unlockWhen": { "discovered": "forest_edge" },
-  "firstVisit": { "log": "Somewhere ahead, water runs over stones." },
+  "firstVisit": {
+    "log": [
+      "Somewhere ahead, water runs over stones.",
+      "From somewhere ahead comes the sound of running water.",
+      "You hear water trickling, somewhere deeper in."
+    ]
+  },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
   "arrive": [
-    { "text": ["The trees close in again. The sea fades to a murmur.", "Back under the trees. It is darker here, and still."], "when": { "phase": ["dawn", "day", "dusk"] } },
-    { "text": "Under the trees the dark is total. You feel your way between the trunks.", "when": { "phase": ["night"] } },
-    { "text": "Dry branches everywhere.", "when": { "discovered": "dry_wood" } },
-    { "text": "Somewhere ahead, water runs over stones.", "when": { "not": { "discovered": "spring" } } },
-    { "text": "The spring trickles between mossy stones.", "when": { "discovered": "spring" } }
+    {
+      "text": [
+        "The trees close in again. The sea fades to a murmur.",
+        "The forest takes you in again.",
+        "Under the trees, the sea goes quiet.",
+        "Back under the trees. It is darker here, and still.",
+        "The forest again, dim and still.",
+        "Back in the green half-dark."
+      ],
+      "when": { "phase": ["dawn", "day", "dusk"] }
+    },
+    {
+      "text": [
+        "Under the trees the dark is total. You feel your way between the trunks.",
+        "In the forest at night you can't see your hands.",
+        "Pitch dark under the trees. You go slowly, hands out."
+      ],
+      "when": { "phase": ["night"] }
+    },
+    {
+      "text": ["Dry branches everywhere.", "Deadwood all around.", "Plenty of dry branches still."],
+      "when": { "discovered": "dry_wood" }
+    },
+    {
+      "text": [
+        "Somewhere ahead, water runs over stones.",
+        "From somewhere ahead comes the sound of running water.",
+        "You hear water trickling, somewhere deeper in."
+      ],
+      "when": { "not": { "discovered": "spring" } }
+    },
+    {
+      "text": [
+        "The spring trickles between mossy stones.",
+        "The spring is still running over the stones.",
+        "You hear the spring before you see it."
+      ],
+      "when": { "discovered": "spring" }
+    }
   ],
   "explore": {
     "name": "look around",
     "hours": 1,
     "effort": "work",
-    "nothingLog": ["The trees all look the same now. Nothing new."],
+    "nothingLog": [
+      "The trees all look the same now. Nothing new.",
+      "Trunk after trunk. Nothing you haven't seen.",
+      "Only more trees. Nothing new."
+    ],
     "discoveries": [
       {
         "id": "dry_wood",
         "at": 1,
-        "text": ["Dead branches lie everywhere under the trees, dry enough to burn. You could collect some."]
+        "text": [
+          "Dead branches lie everywhere under the trees, dry enough to burn. You could collect some.",
+          "The ground is covered in fallen branches, dry and light. Good for burning, if you gather them.",
+          "Deadwood everywhere: branches, twigs, bark, all dry. You could carry some back."
+        ]
       },
       {
         "id": "spring",
         "at": 2,
-        "text": ["Between mossy stones, a small spring. The water is clear and cold."]
+        "text": [
+          "Between mossy stones, a small spring. The water is clear and cold.",
+          "Water wells up between mossy stones: a spring, clear and cold.",
+          "You find where the sound comes from: a small spring among the stones. The water is clean."
+        ]
       }
     ]
   },
@@ -42,7 +98,17 @@
       "effort": "work",
       "visibleWhen": { "discovered": "dry_wood" },
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
-      "log": ["Dry branches snap underfoot.", "An armful of deadwood.", "Bark and twigs, dry enough to burn."]
+      "log": [
+        "Dry branches snap underfoot.",
+        "Twigs crack under your feet.",
+        "You snap dead branches off a fallen tree.",
+        "An armful of deadwood.",
+        "You gather an armful of dry wood.",
+        "Deadwood, as much as you can carry.",
+        "Bark and twigs, dry enough to burn.",
+        "Dry bark peels off in strips.",
+        "Twigs and branches, light and dry."
+      ]
     },
     {
       "id": "drink_stream",
@@ -52,7 +118,14 @@
       "visibleWhen": { "discovered": "spring" },
       "effects": [{ "stat": { "thirst": -40 } }],
       "tags": ["drink"],
-      "log": ["Cold water from the spring, tasting of stone.", "You drink until your teeth ache."]
+      "log": [
+        "Cold water from the spring, tasting of stone.",
+        "You cup your hands and drink. Cold, clean.",
+        "The water tastes of stone and moss.",
+        "You drink until your teeth ache.",
+        "You drink long and slow.",
+        "Cold water, as much as you want."
+      ]
     }
   ]
 }

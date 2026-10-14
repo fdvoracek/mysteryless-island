@@ -12,8 +12,9 @@ test.beforeEach(async ({ page }) => {
   errors.length = 0;
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-  // ?speed=0.2 runs progress bars 5x faster so the flows finish quickly; the pacing test below uses normal speed
-  await page.goto("./?speed=0.2");
+  // ?speed=0.2 runs progress bars 5x faster so the flows finish quickly; the pacing test below uses normal speed.
+  // ?variants=first always shows the first wording of each text, so the checks below can name it.
+  await page.goto("./?speed=0.2&variants=first");
   // start every test from a fresh game
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -112,7 +113,7 @@ test("finding the fish starts the spear task; building it puts the spear in the 
 });
 
 test("while an action runs, the controls are locked and greyed out", async ({ page }) => {
-  await page.goto("./"); // normal speed
+  await page.goto("./?variants=first"); // normal speed
   await action(page, "look around").click();
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
@@ -184,7 +185,7 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
 test("on a phone screen every layout fits the width, and its buttons are on screen and usable", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 }); // a small phone (iPhone SE)
   for (const id of ["classic", "journal", "scene", "notebook", "stage", "bujo"]) {
-    await page.goto(`./?speed=0.2&layout=${id}`);
+    await page.goto(`./?speed=0.2&variants=first&layout=${id}`);
     const look = action(page, "look around");
     await expect(look, id).toBeVisible();
     // no sideways scrolling

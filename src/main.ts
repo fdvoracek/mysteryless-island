@@ -2,6 +2,7 @@ import "./ui/styles.css";
 import { loadContent } from "./content/loader";
 import { ContentError, type Registry } from "./content/registry";
 import { Engine } from "./core/engine";
+import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
 import { clearSave, readSave, writeSave } from "./persistence/save";
 import { initTheme, loadLayoutId, UI } from "./ui/render";
@@ -19,6 +20,9 @@ try {
   app.querySelector("pre")!.textContent = msg;
   throw e;
 }
+
+// ?variants=first always shows the first wording of each text (used by the browser tests)
+if (new URLSearchParams(location.search).get("variants") === "first") setVariantMode("first");
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31); // the only Math.random: picks a seed
 const saved = readSave(reg);

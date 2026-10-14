@@ -69,14 +69,16 @@ describe("exploration", () => {
     look(e);
     look(e);
     const v = view(e);
-    expect(v.log[0]).toMatch(/^At the far end of the beach/);
-    expect(v.log[1]).toMatch(/You could light a fire here/);
-    expect(v.turns[0].lines).toEqual([v.log[0], v.log[1]]);
-    // the first look: description, discovery, then the unlock line, in that order
+    // the newest action first; a discovery is one passage
+    expect(v.log[0]).toMatch(/^At the far end of the beach.*You could light a fire here/);
+    expect(v.turns[0].lines).toEqual([v.log[0]]);
+    // the first look: the discovery, then the unlock line, in that order
+    expect(v.turns[1].lines).toHaveLength(2);
     expect(v.turns[1].lines[0]).toMatch(/^Grey sand runs both ways/);
-    expect(v.turns[1].lines.at(-1)).toBe("A way to the forest opens.");
-    // the intro reads top-down too
-    expect(v.turns.at(-1)!.lines[0]).toBe("Awake. Salt in the mouth.");
+    expect(v.turns[1].lines[1]).toBe("A way to the forest opens.");
+    expect(v.log.slice(1, 3)).toEqual(v.turns[1].lines);
+    // the intro is the oldest
+    expect(v.turns.at(-1)!.lines[0]).toMatch(/^Awake\. Salt in the mouth\./);
   });
 
   it("dying rolls exploration back to the checkpoint", () => {

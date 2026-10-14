@@ -63,7 +63,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |
 
-Sentences (story, hints, reasons) start with a capital letter; labels (buttons, places, items, tasks) stay lowercase. Keys starting with `_` are comments. Errors (unknown ids, typos in keys) are listed on screen and by `npm run content:check`.
+Sentences (story, hints, reasons) start with a capital letter; labels (buttons, places, items, tasks) stay lowercase. **Text variants:** every text shown in the journal is a string or a list of variants: `"log": ["You wade into the shallows, spear raised.", "You stand knee-deep in the cold water and wait.", …]`. One is picked each time, never the same twice in a row. Lines the engine writes itself (walking, a new way opening, nothing found) are in `game.json` → `journal`, with `{place}`. Add `?variants=first` to the URL to always see the first wording (the browser tests use it). Keys starting with `_` are comments. Errors (unknown ids, typos in keys) are listed on screen and by `npm run content:check`.
 
 ## Debug console
 

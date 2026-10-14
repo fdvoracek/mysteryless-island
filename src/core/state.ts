@@ -1,5 +1,6 @@
 import type { Registry } from "../content/registry";
 import { seedRng, type RngState } from "./rng";
+import { chooseText } from "./text";
 
 export const SAVE_VERSION = 1;
 
@@ -37,6 +38,8 @@ export interface GameState {
    * the same keys as `did` (activity, item, tag) plus discoveries, places walked to and tasks finished.
    */
   today: Record<string, number>;
+  /** the variant shown last per text (keyed by its first variant), so it isn't shown twice in a row */
+  lastText: Record<string, number>;
   /** quests that have started; absent = not started yet */
   quests: Record<string, QuestState>;
   /** minutes left per timer */
@@ -60,7 +63,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
   const timers: Record<string, number> = {};
   for (const t of reg.timers.keys()) timers[t] = 0;
   const time = (start.day - 1) * 1440 + Math.round(start.hour * 60);
-  return {
+  const state: GameState = {
     saveVersion: SAVE_VERSION,
     seed,
     rng: seedRng(seed),
@@ -73,15 +76,18 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     flags: [],
     counters: {},
     today: {},
+    lastText: {},
     quests: {},
     timers,
     regions,
     prevStats: { ...start.stats },
     // the log array is newest-first in time order; the views put each action's lines back in reading order
-    log: start.log.slice().reverse().map((text) => ({ at: time, text, turn: 0 })),
+    log: [],
     turn: 0,
     dead: false,
   };
+  state.log.push({ at: time, text: chooseText(start.log, state), turn: 0 });
+  return state;
 }
 
 export const clone = (s: GameState): GameState => JSON.parse(JSON.stringify(s));

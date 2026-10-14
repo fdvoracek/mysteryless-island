@@ -15,7 +15,7 @@ describe("arriving in a region", () => {
     look(e); // finds the forest
     go(e, "forest");
     expect(lastTurn(e)).toEqual([
-      "You walk to the forest.", "Tall trunks, close together.", "The sea is only a sound now.",
+      "You walk to the forest.", "Tall trunks, close together. The sea is only a sound now.",
       "Somewhere ahead, water runs over stones.",
     ]);
     go(e, "beach");

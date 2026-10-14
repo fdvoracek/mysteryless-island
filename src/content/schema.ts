@@ -7,6 +7,10 @@ import { z } from "zod";
  */
 
 export const Id = z.string().regex(/^[a-z][a-z0-9_]*$/, "ids are lowercase snake_case");
+/**
+ * Every text shown in the journal: one passage, or a list of variants of it. One variant is
+ * shown each time, never the same one twice in a row (see chooseText in src/core/text.ts).
+ */
 export const Text = z.union([z.string(), z.array(z.string()).min(1)]);
 export const Amounts = z.record(Id, z.number().int().positive());
 export const Effort = z.enum(["heavy", "work", "light", "rest", "sleep"]);
@@ -167,7 +171,8 @@ export const Region = z
     name: z.string(),
     title: z.string(),
     order: z.number().optional(),
-    description: z.array(z.string()),
+    /** shown on the first visit */
+    description: Text,
     climate: z.object({ baseC: z.number() }).strict(),
     travelHours: z.number().nonnegative(),
     unlockWhen: Condition.optional(),
@@ -197,8 +202,7 @@ export const Region = z
                 /** found on this exploration step (1 = first look around) */
                 at: z.number().int().positive(),
                 when: Condition.optional(),
-                /** all lines are shown, in order */
-                text: z.array(z.string()).min(1),
+                text: Text,
                 effects: z.array(Effect).optional(),
               })
               .strict(),
@@ -266,8 +270,8 @@ export const Timer = z
     modifiers: z.object({ localHeatC: z.number().optional() }).strict().optional(),
     states: z.array(z.object({ upToHours: z.number(), word: z.string() }).strict()).min(1),
     warnAtHours: z.number().optional(),
-    warnLog: z.string().optional(),
-    expireLog: z.string().optional(),
+    warnLog: Text.optional(),
+    expireLog: Text.optional(),
     /** show this timer as a line in the status panel (default true) */
     showInStatus: z.boolean().optional(),
   })
@@ -284,7 +288,8 @@ export const Game = z
         hour: z.number().min(0).max(23.5),
         stats: z.record(Id, z.number().min(0).max(100)),
         items: z.record(Id, z.number().int().nonnegative()),
-        log: z.array(z.string()),
+        /** the opening of the story */
+        log: Text,
       })
       .strict(),
     /**
@@ -299,8 +304,17 @@ export const Game = z
         maxMs: z.number().nonnegative(),
       })
       .strict(),
-    deathLog: z.string(),
-    restoreLog: z.string(),
+    deathLog: Text,
+    restoreLog: Text,
+    /** journal lines the engine writes itself; {place} is the name of the place */
+    journal: z
+      .object({
+        walkTo: Text,
+        wayOpens: Text,
+        /** when looking around finds nothing (a region can set its own nothingLog) */
+        nothingNew: Text,
+      })
+      .strict(),
     timers: z.array(Timer),
     /** item categories listed in the inventory box; everything else is listed under stores */
     inventoryCategories: z.array(z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"])),
@@ -326,7 +340,7 @@ export const StatsFile = z
     dangerAtOrBelow: z.number().min(0).max(100).optional(),
     ratesPerHour: z.record(Effort, z.record(Id, z.number())),
     multipliers: z.array(z.object({ when: Condition, stat: Id, factor: z.number() }).strict()),
-    damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: z.string().optional() }).strict()),
+    damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: Text.optional() }).strict()),
     regen: z.array(z.object({ when: Condition, healthPerHour: z.number() }).strict()),
   })
   .strict();
