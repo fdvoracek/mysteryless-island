@@ -151,4 +151,22 @@ describe("engine: the prototype loop", () => {
     e.advance(2, "rest"); // 20 - 8 + 6 = 18 °C -> comfortable
     expect(reg.bandIds[e.state.warmth]).toBe("comfortable");
   });
+
+  it("the progress bar runs longer for longer actions and for more text, within min/max", () => {
+    const { minMs, maxMs } = reg.game.cosmetic;
+    const e = Engine.newGame(reg, 1);
+    const look = e.dispatch({ type: "explore" }); // 1 h and a two-line discovery
+    expect(look.cooldownMs).toBeGreaterThanOrEqual(2500);
+    expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
+
+    const f = fresh();
+    f.applyEffects([{ give: { shells: 1 } }]);
+    const eat = f.dispatch({ type: "consume", item: "shells" }); // 15 min, one short line
+    expect(eat.cooldownMs).toBeGreaterThanOrEqual(minMs);
+    expect(eat.cooldownMs).toBeLessThan(look.cooldownMs);
+
+    f.applyEffects([{ give: { firewood: 3 } }]);
+    f.dispatch({ type: "activity", id: "light_fire" });
+    expect(f.dispatch({ type: "activity", id: "sleep" }).cooldownMs).toBe(maxMs); // 8 h is capped
+  });
 });

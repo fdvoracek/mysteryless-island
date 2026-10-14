@@ -33,6 +33,8 @@ export class Engine {
   state: GameState;
   checkpoint: GameState;
   private damageLogged = new Set<string>();
+  /** characters logged during the current command, for the progress bar duration */
+  private loggedChars = 0;
 
   constructor(public reg: Registry, state: GameState, checkpoint?: GameState) {
     this.state = state;
@@ -53,6 +55,7 @@ export class Engine {
   log(text: string | undefined) {
     if (!text) return;
     this.state.log.unshift({ at: this.state.time, text });
+    this.loggedChars += text.length;
     if (this.state.log.length > 100) this.state.log.length = 100;
   }
 
@@ -67,6 +70,7 @@ export class Engine {
     if (this.state.dead) return refuse("you are dead");
     this.state.prevStats = { ...this.state.stats };
     this.damageLogged.clear();
+    this.loggedChars = 0;
     switch (cmd.type) {
       case "activity": return this.doActivity(cmd.id);
       case "travel": return this.travel(cmd.region);
@@ -223,13 +227,18 @@ export class Engine {
 
   private ok(hours: number): Result {
     if (this.state.dead) return this.died(hours);
-    const { msPerHour, maxMs } = this.reg.game.cosmetic;
-    return { ok: true, cooldownMs: Math.min(maxMs, hours * msPerHour) };
+    return { ok: true, cooldownMs: this.progressMs(hours) };
   }
 
   private died(hours: number): Result {
-    const { msPerHour, maxMs } = this.reg.game.cosmetic;
-    return { ok: true, died: true, cooldownMs: Math.min(maxMs, hours * msPerHour) };
+    return { ok: true, died: true, cooldownMs: this.progressMs(hours) };
+  }
+
+  /** Real-time length of the progress bar: longer actions and more text to read take longer. */
+  progressMs(hours: number): number {
+    const { msPerHour, msPerChar, minMs, maxMs } = this.reg.game.cosmetic;
+    const ms = hours * msPerHour + this.loggedChars * msPerChar;
+    return Math.round(Math.max(minMs, Math.min(maxMs, ms)));
   }
 
   /** After death: go back to the last checkpoint. */

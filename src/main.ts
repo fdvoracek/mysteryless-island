@@ -27,12 +27,17 @@ document.title = reg.game.title;
 
 const save = () => writeSave(engine.state, engine.checkpoint);
 
+// ?speed=0.2 makes progress bars 5x faster (used by the browser tests)
+const speedParam = Number(new URLSearchParams(location.search).get("speed"));
+const speed = speedParam > 0 ? speedParam : 1;
+
 const ui = new UI(
   app,
   () => engine,
   (cmd) => { const r = engine.dispatch(cmd); save(); return r; },
   () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
   () => { engine.restoreCheckpoint(); save(); },
+  speed,
 );
 
 installDebug(() => engine, () => { save(); ui.render(); }, () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });

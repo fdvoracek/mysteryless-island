@@ -12,7 +12,8 @@ test.beforeEach(async ({ page }) => {
   errors.length = 0;
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
-  await page.goto("./");
+  // ?speed=0.2 runs progress bars 5x faster so the flows finish quickly; the pacing test below uses normal speed
+  await page.goto("./?speed=0.2");
   // start every test from a fresh game
   await page.evaluate(() => localStorage.clear());
   await page.reload();
@@ -101,6 +102,23 @@ test("finding the fish starts the spear task; building it puts the spear in the 
   await expect(page.locator("#inventory")).toContainText("fishing spear");
   await expect(quest).toHaveCount(0, { timeout: 5_000 });
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
+});
+
+test("while an action runs, the controls are locked and greyed out", async ({ page }) => {
+  await page.goto("./"); // normal speed
+  await action(page, "look around").click();
+  await expect(page.locator("#wrap")).toHaveClass(/busy/);
+  await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
+  // the new tab is visible but greyed out and does nothing
+  await expect(tab(page, "the forest")).toBeDisabled();
+  // a second click on look around is ignored
+  await action(page, "look around").dispatchEvent("click");
+  await page.waitForTimeout(1500);
+  await expect(page.locator("#wrap")).toHaveClass(/busy/); // still running: the bar takes a few seconds
+  await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 6_000 });
+  const explored = await page.evaluate(() =>
+    (window as unknown as { ti: { state(): { regions: { beach: { explored: number } } } } }).ti.state().regions.beach.explored);
+  expect(explored).toBe(1);
 });
 
 test("dying fades out and restores the checkpoint", async ({ page }) => {

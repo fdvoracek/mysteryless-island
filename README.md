@@ -15,6 +15,8 @@ npm run build        # static build in dist/
 npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright install chromium)
 ```
 
+Pacing: after each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
+
 ## Prototype scope
 
 - **Exploration:** the game starts with one button, *look around* (1 h). Each look explores the region one step further and reveals new buttons; when nothing is left to find, the button disappears.

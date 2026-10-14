@@ -17,6 +17,8 @@ export class UI {
     private onCommand: (cmd: Command) => ReturnType<Engine["dispatch"]>,
     private onRestart: () => void,
     private onRestore: () => void,
+    /** multiplies progress bar durations (?speed=0.2 in tests); 1 = normal */
+    private speed = 1,
   ) {
     this.root = root;
     this.build();
@@ -263,18 +265,27 @@ export class UI {
     if (this.isBusy() || this.restoring) return;
     const res = this.onCommand(cmd);
     if (!res.ok) { this.render(); return; }
-    this.busyUntil = performance.now() + res.cooldownMs;
+    const ms = Math.round(res.cooldownMs * this.speed);
+    // while the bar runs, every control is locked and greyed out; only the running one keeps its look
+    this.busyUntil = performance.now() + ms;
     this.els.wrap.classList.add("busy");
+    this.els.wrap.setAttribute("aria-busy", "true");
+    source.classList.add("running");
     const bar = source.querySelector<HTMLElement>(".cd");
-    if (bar && res.cooldownMs > 0) {
+    if (bar && ms > 0) {
       bar.style.transition = "none";
       bar.style.width = "100%";
       void bar.offsetWidth; // restart the transition
-      bar.style.transition = `width ${res.cooldownMs}ms linear`;
+      bar.style.transition = `width ${ms}ms linear`;
       bar.style.width = "0%";
     }
     this.render();
-    window.setTimeout(() => { this.els.wrap.classList.remove("busy"); this.render(); }, res.cooldownMs);
+    window.setTimeout(() => {
+      this.els.wrap.classList.remove("busy");
+      this.els.wrap.removeAttribute("aria-busy");
+      source.classList.remove("running");
+      this.render();
+    }, ms);
   }
 
   private showDeath(text: string) {

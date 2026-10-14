@@ -236,7 +236,18 @@ export const Game = z
         log: z.array(z.string()),
       })
       .strict(),
-    cosmetic: z.object({ msPerHour: z.number().nonnegative(), maxMs: z.number().nonnegative() }).strict(),
+    /**
+     * How long the progress bar runs after an action (real time; the game clock does not depend on it):
+     * hours * msPerHour + printed characters * msPerChar, clamped to [minMs, maxMs].
+     */
+    cosmetic: z
+      .object({
+        msPerHour: z.number().nonnegative(),
+        msPerChar: z.number().nonnegative(),
+        minMs: z.number().nonnegative(),
+        maxMs: z.number().nonnegative(),
+      })
+      .strict(),
     deathLog: z.string(),
     restoreLog: z.string(),
     timers: z.array(Timer),

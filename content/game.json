@@ -14,7 +14,7 @@
       "behind the dunes, a dark line of trees."
     ]
   },
-  "cosmetic": { "msPerHour": 250, "maxMs": 2000 },
+  "cosmetic": { "msPerHour": 800, "msPerChar": 15, "minMs": 700, "maxMs": 4500 },
   "deathLog": "the world fades.",
   "restoreLog": "you wake on the sand. it was only a dream, or a warning.",
   "timers": [
