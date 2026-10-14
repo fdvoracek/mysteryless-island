@@ -667,6 +667,10 @@ interface SaveFile {
 
 ---
 
+### 12b. Layouts **[implemented]**
+
+The screen arrangement is pluggable. `src/ui/layouts/` holds one `.ts` + `.css` pair per layout (`classic`, `journal`, `scene`, `notebook`, `stage`) and `index.ts` lists them. A layout provides a skeleton built from the shared panels in `panels.ts` (story, places, actions, status, tasks, stores, inventory, optional older-story area; ids fixed) and a `StoryStyle`: order (newest first / oldest first), unit (lines / one paragraph per action), how older text looks (fade / muted / inline), a large latest paragraph, timestamps with day headings, and a limit. Its CSS is scoped under `.layout-<id>`; shared component styles stay in `styles.css`. The renderer mounts the skeleton, fills the panels the same way for every layout and switches layouts from the bottom menu (saved in localStorage, `?layout=<id>` overrides). To support paragraphs, every log line carries the `turn` of the command that wrote it, and the view model groups lines into `turns` in reading order.
+
 ## 13. Tooling
 
 ### 13.1 Content validator: `npm run content:check`

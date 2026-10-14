@@ -4,7 +4,7 @@ import { ContentError, type Registry } from "./content/registry";
 import { Engine } from "./core/engine";
 import { installDebug } from "./debug/console";
 import { clearSave, readSave, writeSave } from "./persistence/save";
-import { initTheme, UI } from "./ui/render";
+import { initTheme, loadLayoutId, UI } from "./ui/render";
 
 initTheme();
 const app = document.getElementById("app")!;
@@ -38,6 +38,7 @@ const ui = new UI(
   () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
   () => { engine.restoreCheckpoint(); save(); },
   speed,
+  loadLayoutId(),
 );
 
 installDebug(() => engine, () => { save(); ui.render(); }, () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });

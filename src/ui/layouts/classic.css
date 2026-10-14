@@ -1,0 +1,18 @@
+/* classic: three columns, like A Dark Room */
+.layout-classic .wrap {
+  max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
+  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 32px; align-items: start;
+}
+.layout-classic .log {
+  display: grid; gap: 10px; max-height: 80vh; overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent);
+}
+.layout-classic .log .entry { font-size: 15px; }
+.layout-classic .side { display: grid; gap: 18px; }
+
+@media (max-width: 760px) {
+  .layout-classic .wrap { grid-template-columns: 1fr; gap: 20px; }
+  .layout-classic .centre { order: 1; }
+  .layout-classic .side { order: 2; }
+  .layout-classic .log { order: 3; max-height: none; }
+}

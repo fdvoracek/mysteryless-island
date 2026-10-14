@@ -1,5 +1,6 @@
 import { clockText, day, phaseAt } from "./clock";
 import type { Command, Engine } from "./engine";
+import type { GameState } from "./state";
 
 /** View models: everything the UI (or a simulator bot) needs, with no game logic left to do. */
 
@@ -48,7 +49,12 @@ export interface View {
     /** icon buttons next to the item, e.g. cook over the fire */
     actions: Array<ButtonView & { icon: string }>;
   }>;
+  /** story lines for a line-by-line log: newest action first, each action's lines in reading order */
   log: string[];
+  /** the very last line written (e.g. "the world fades.") */
+  lastLine: string;
+  /** the same story grouped into one paragraph per action, newest first; lines in reading order */
+  turns: Array<{ turn: number; day: number; clock: string; lines: string[] }>;
   dead: boolean;
 }
 
@@ -152,6 +158,8 @@ export function view(engine: Engine): View {
   stores.sort((a, b) => a.label.localeCompare(b.label));
   inventory.sort((a, b) => a.label.localeCompare(b.label));
 
+  const turns = groupTurns(s.log);
+
   return {
     title: region.title,
     tabs,
@@ -160,9 +168,28 @@ export function view(engine: Engine): View {
     quests,
     inventory,
     stores,
-    log: s.log.map((l) => l.text),
+    log: turns.flatMap((t) => t.lines),
+    lastLine: s.log[0]?.text ?? "",
+    turns,
     dead: s.dead,
   };
+}
+
+/** Group the newest-first log into turns (one per command); lines inside a turn read top-down. */
+export function groupTurns(log: GameState["log"]): View["turns"] {
+  const out: View["turns"] = [];
+  for (const entry of log) {
+    // old saves have no turn numbers: fall back to grouping by time
+    const key = entry.turn ?? -entry.at - 1;
+    const last = out[out.length - 1];
+    if (last && last.turn === key) {
+      // older line of the same action: the paragraph's time becomes the earliest (when the action started)
+      last.lines.unshift(entry.text);
+      last.day = day(entry.at);
+      last.clock = clockText(entry.at);
+    } else out.push({ turn: key, day: day(entry.at), clock: clockText(entry.at), lines: [entry.text] });
+  }
+  return out;
 }
 
 /** Clamp to 0..100 and round to one decimal so the bar width is stable. */

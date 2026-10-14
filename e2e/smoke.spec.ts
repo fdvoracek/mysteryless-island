@@ -128,6 +128,36 @@ test("while an action runs, the controls are locked and greyed out", async ({ pa
   expect(explored).toBe(1);
 });
 
+test("every layout can be chosen from the menu, shows all panels, plays, and is remembered", async ({ page }) => {
+  const layouts = ["journal", "scene", "notebook", "stage", "classic"];
+  for (const [i, id] of layouts.entries()) {
+    await page.locator("#layoutBtn").click();
+    await expect(page.locator("#layoutMenu")).toBeVisible();
+    await page.locator(`#layoutMenu [data-layout="${id}"]`).click();
+    await expect(page.locator("#layoutMenu")).toBeHidden();
+    await expect(page.locator("#layoutBtn")).toHaveText(`layout: ${id}.`);
+    await expect(page.locator("#app")).toHaveClass(new RegExp(`layout-${id}`));
+    // the same panels in every layout
+    await expect(page.locator("#log")).toContainText("awake. salt in the mouth.");
+    await expect(page.locator("#status .row")).toHaveCount(5);
+    await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
+    await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
+    // and the game plays: one more look around per layout (4 beach finds, then the button is gone)
+    if (i < 4) {
+      await action(page, "look around").click();
+      await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 5_000 });
+    }
+  }
+  await expect(page.locator("#log")).toContainText("a school of small fish");
+
+  // the choice survives a reload
+  await page.locator("#layoutBtn").click();
+  await page.locator('#layoutMenu [data-layout="notebook"]').click();
+  await page.reload();
+  await expect(page.locator("#layoutBtn")).toHaveText("layout: notebook.");
+  await expect(page.locator("#log .entry.latest")).toBeVisible();
+});
+
 test("dying fades out and restores the checkpoint", async ({ page }) => {
   await page.evaluate(() => {
     const ti = (window as unknown as { ti: { stat(s: string, v: number): void } }).ti;

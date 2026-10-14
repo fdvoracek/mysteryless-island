@@ -55,20 +55,21 @@ export class Engine {
 
   log(text: string | undefined) {
     if (!text) return;
-    this.state.log.unshift({ at: this.state.time, text });
+    this.state.log.unshift({ at: this.state.time, text, turn: this.state.turn ?? 0 });
     this.loggedChars += text.length;
     if (this.state.log.length > 100) this.state.log.length = 100;
   }
 
-  /** Log a paragraph. The log is newest-first, so lines go in reverse to read top-down. */
+  /** Log several lines in reading order (the view groups them into one paragraph per action). */
   logLines(lines: Array<string | undefined>) {
-    for (let i = lines.length - 1; i >= 0; i--) this.log(lines[i]);
+    for (const line of lines) this.log(line);
   }
 
   // ---------------------------------------------------------------- commands
 
   dispatch(cmd: Command): Result {
     if (this.state.dead) return refuse("you are dead");
+    this.state.turn = (this.state.turn ?? 0) + 1;
     this.state.prevStats = { ...this.state.stats };
     this.damageLogged.clear();
     this.loggedChars = 0;
@@ -278,6 +279,9 @@ export class Engine {
   /** After death: go back to the last checkpoint. */
   restoreCheckpoint() {
     this.state = clone(this.checkpoint);
+    // keep turns increasing past the death, so the wake-up line starts a new paragraph
+    const lastTurn = Math.max(this.checkpoint.turn ?? 0, ...this.checkpoint.log.map((l) => l.turn ?? 0));
+    this.state.turn = lastTurn + 1;
     this.log(this.reg.game.restoreLog);
   }
 

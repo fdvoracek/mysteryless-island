@@ -1,0 +1,24 @@
+/* 2. scene: a big current paragraph, buttons under it, a narrow shelf on the right */
+.layout-scene .wrap {
+  max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
+  display: grid; grid-template-columns: minmax(0, 1fr) 230px; gap: 40px; align-items: start;
+}
+.layout-scene .s-main { display: grid; gap: 18px; max-width: 600px; }
+.layout-scene .tabs { margin: 0; }
+.layout-scene .log { min-height: 7.5em; padding-bottom: 16px; border-bottom: 1px solid var(--line); display: grid; align-content: end; }
+.layout-scene .log .entry { margin: 0; }
+.layout-scene .log .entry.latest { font-size: 21px; line-height: 1.5; }
+/* earlier actions: the first line of each, at most two lines in total */
+.layout-scene .log-older .older-line {
+  font-size: 14px; line-height: 1.5; color: var(--muted);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.layout-scene .s-shelf { display: grid; gap: 14px; font-size: 15px; }
+.layout-scene .s-shelf .box { padding: 6px 10px 8px; }
+.layout-scene .s-shelf .bar { width: 60px; }
+
+@media (max-width: 760px) {
+  .layout-scene .wrap { grid-template-columns: 1fr; gap: 20px; }
+  .layout-scene .s-shelf .row .tip, .layout-scene .s-shelf .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
+}

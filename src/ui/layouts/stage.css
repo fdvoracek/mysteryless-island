@@ -1,0 +1,26 @@
+/* 4. stage: story fills the top, centred; the camp is a strip along the bottom */
+.layout-stage .wrap { max-width: 1040px; margin: 0 auto; padding: 16px 20px 70px; display: grid; gap: 16px; }
+.layout-stage .st-story { min-height: 52vh; display: grid; align-content: end; }
+.layout-stage .log { display: grid; gap: 14px; max-width: 640px; margin: 0 auto; text-align: center; }
+.layout-stage .log .entry { margin: 0; font-size: 17px; line-height: 1.55; }
+.layout-stage .log .entry.older { color: var(--muted); font-size: 15px; }
+.layout-stage .log .entry.latest { font-size: 22px; line-height: 1.5; }
+
+.layout-stage .st-camp {
+  border-top: 1px solid var(--line); padding-top: 14px;
+  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 24px; align-items: start;
+}
+.layout-stage .st-play { display: grid; gap: 12px; justify-items: center; }
+.layout-stage .tabs { margin: 0; justify-content: center; }
+.layout-stage .buttons { justify-content: center; }
+.layout-stage .st-goods { display: grid; gap: 12px; }
+.layout-stage .box { padding: 6px 10px 8px; font-size: 15px; }
+.layout-stage .bar { width: 60px; }
+/* the status strip is on the left: open tooltips to the right */
+.layout-stage .st-status .row .tip { right: auto; left: calc(100% + 12px); }
+
+@media (max-width: 860px) {
+  .layout-stage .st-story { min-height: 40vh; }
+  .layout-stage .st-camp { grid-template-columns: 1fr; }
+  .layout-stage .st-status .row .tip, .layout-stage .st-goods .quest .tip { left: 0; right: auto; top: calc(100% + 2px); transform: none; }
+}

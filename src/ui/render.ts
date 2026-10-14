@@ -1,5 +1,7 @@
 import type { Engine, Command } from "../core/engine";
 import { view, type ButtonView, type View } from "../core/selectors";
+import { getLayout, LAYOUTS, type Layout } from "./layouts";
+import { REQUIRED_IDS } from "./layouts/panels";
 
 /**
  * Minimal DOM renderer. It renders view models and sends commands; it holds no game state.
@@ -9,6 +11,7 @@ export class UI {
   private root: HTMLElement;
   private els: Record<string, HTMLElement> = {};
   private busyUntil = 0;
+  private layout: Layout;
   private restoring = false;
 
   constructor(
@@ -19,34 +22,32 @@ export class UI {
     private onRestore: () => void,
     /** multiplies progress bar durations (?speed=0.2 in tests); 1 = normal */
     private speed = 1,
+    /** id of the layout to start with (see ./layouts) */
+    layoutId?: string | null,
   ) {
     this.root = root;
+    this.layout = getLayout(layoutId);
     this.build();
+    this.mountLayout(this.layout);
   }
 
+  /** The frame that never changes: the game area, the menu and the death fade. */
   private build() {
     this.root.innerHTML = `
-      <div class="wrap" id="wrap">
-        <section class="log" id="log" aria-live="polite" aria-label="story"></section>
-        <main class="centre">
-          <nav class="tabs" id="tabs" aria-label="regions"></nav>
-          <div class="buttons" id="actions"></div>
-        </main>
-        <aside class="side">
-          <fieldset class="box"><legend id="clock"></legend><div id="status"></div></fieldset>
-          <fieldset class="box" id="questsBox"><legend>tasks</legend><div id="quests"></div></fieldset>
-          <fieldset class="box" id="storesBox"><legend>stores</legend><div id="stores"></div></fieldset>
-          <fieldset class="box" id="inventoryBox"><legend>inventory</legend><div id="inventory"></div></fieldset>
-        </aside>
-      </div>
+      <div id="game"></div>
       <footer class="menu">
+        <div class="layout-switch">
+          <button class="link" id="layoutBtn" aria-haspopup="menu" aria-expanded="false"></button>
+          <div class="layout-menu" id="layoutMenu" role="menu" hidden></div>
+        </div>
         <button class="link" id="lights">lights off.</button>
         <button class="link" id="restart">restart.</button>
       </footer>
       <div class="fade" id="fade"><p id="fadeText"></p></div>`;
-    for (const id of ["log", "tabs", "actions", "clock", "status", "quests", "questsBox", "stores", "storesBox", "inventory", "inventoryBox", "fade", "fadeText", "wrap"]) {
+    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
+    this.buildLayoutMenu();
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
     const lights = this.root.querySelector<HTMLButtonElement>("#lights")!;
     lights.addEventListener("click", () => {
@@ -55,6 +56,56 @@ export class UI {
       lights.textContent = dark ? "lights on." : "lights off.";
     });
     if (document.documentElement.dataset.theme === "dark") lights.textContent = "lights on.";
+  }
+
+  // ---------------------------------------------------------------- layouts
+
+  /** Put a layout's skeleton into the game area and look up its panels. */
+  private mountLayout(layout: Layout) {
+    this.layout = layout;
+    for (const l of LAYOUTS) this.root.classList.remove(`layout-${l.id}`);
+    this.root.classList.add(`layout-${layout.id}`);
+    this.els.game.innerHTML = layout.skeleton();
+    for (const id of REQUIRED_IDS) {
+      const el = this.els.game.querySelector<HTMLElement>(`#${id}`);
+      if (!el) throw new Error(`layout "${layout.id}" has no #${id} panel (see src/ui/layouts/panels.ts)`);
+      this.els[id] = el;
+    }
+    const older = this.els.game.querySelector<HTMLElement>("#logOlder");
+    if (older) this.els.logOlder = older;
+    else delete this.els.logOlder;
+    this.els.layoutBtn.textContent = `layout: ${layout.name}.`;
+    this.els.layoutMenu.querySelectorAll<HTMLElement>("[data-layout]").forEach((b) => {
+      b.setAttribute("aria-checked", String(b.dataset.layout === layout.id));
+    });
+  }
+
+  private buildLayoutMenu() {
+    const btn = this.els.layoutBtn;
+    const menu = this.els.layoutMenu;
+    const close = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+    for (const l of LAYOUTS) {
+      const item = document.createElement("button");
+      item.className = "link";
+      item.setAttribute("role", "menuitemradio");
+      item.dataset.layout = l.id;
+      item.textContent = l.name;
+      item.addEventListener("click", () => {
+        close();
+        if (this.isBusy() || this.restoring || l.id === this.layout.id) return;
+        saveLayoutId(l.id);
+        this.mountLayout(l);
+        this.render();
+      });
+      menu.append(item);
+    }
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      menu.hidden = !menu.hidden;
+      btn.setAttribute("aria-expanded", String(!menu.hidden));
+    });
+    document.addEventListener("click", (e) => { if (!menu.contains(e.target as Node)) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   }
 
   render() {
@@ -66,7 +117,7 @@ export class UI {
     this.renderStores(v);
     this.renderInventory(v);
     this.renderLog(v);
-    if (v.dead && !this.restoring) this.showDeath(v.log[0]);
+    if (v.dead && !this.restoring) this.showDeath(v.lastLine);
   }
 
   // ---------------------------------------------------------------- panels
@@ -259,15 +310,63 @@ export class UI {
     );
   }
 
+  /** Draw the story the way the current layout asks for (see StoryStyle in ./layouts/types.ts). */
   private renderLog(v: View) {
-    const lines = v.log.slice(0, 30);
-    this.els.log.replaceChildren(
-      ...lines.map((t, i) => {
-        const p = div(t, "line");
-        p.style.opacity = String(Math.max(0.12, 1 - i * 0.07));
-        return p;
-      }),
-    );
+    const st = this.layout.story;
+    // blocks, newest first: one per line, or one per action (a paragraph)
+    const blocks = (st.unit === "line"
+      ? v.log.map((text) => ({ text, first: text, day: 0, clock: "" }))
+      : v.turns.map((t) => ({ text: t.lines.join(" "), first: t.lines[0], day: t.day, clock: t.clock }))
+    ).slice(0, st.limit);
+
+    const make = (b: (typeof blocks)[number], age: number) => {
+      const p = document.createElement("p");
+      p.className = "entry" + (age === 0 ? (st.latestLarge ? " latest" : "") : st.older === "muted" ? " older" : "");
+      if (st.timestamps && b.clock) {
+        const t = document.createElement("span");
+        t.className = "time";
+        t.textContent = b.clock;
+        p.append(t);
+      }
+      p.append(b.text);
+      if (st.older === "fade") p.style.opacity = String(Math.max(0.12, 1 - age * 0.07));
+      return p;
+    };
+
+    let shown = blocks;
+    const olderLine: string[] = [];
+    if (st.older === "inline") {
+      // only the newest block stays a paragraph; the rest becomes one quiet line
+      shown = blocks.slice(0, 1);
+      olderLine.push(...blocks.slice(1).map((b) => b.first));
+    }
+
+    const nodes: HTMLElement[] = shown.map((b, age) => make(b, age));
+    if (st.order === "oldest-first") nodes.reverse();
+
+    // day headings between paragraphs of different days (in reading order)
+    if (st.timestamps) {
+      const ordered = st.order === "oldest-first" ? [...shown].reverse() : shown;
+      const withDays: HTMLElement[] = [];
+      let lastDay = -1;
+      ordered.forEach((b, i) => {
+        if (b.day && b.day !== lastDay) { withDays.push(div(`day ${b.day}`, "day")); lastDay = b.day; }
+        withDays.push(nodes[i]);
+      });
+      this.els.log.replaceChildren(...withDays);
+    } else {
+      this.els.log.replaceChildren(...nodes);
+    }
+
+    if (st.older === "inline") {
+      const target = this.els.logOlder ?? this.els.log;
+      const line = div(olderLine.join(" · "), "older-line");
+      if (target === this.els.log) this.els.log.append(line);
+      else target.replaceChildren(line);
+    }
+
+    // book order: keep the newest paragraph in view
+    if (st.order === "oldest-first") this.els.log.scrollTop = this.els.log.scrollHeight;
   }
 
   // ---------------------------------------------------------------- interaction
@@ -345,6 +444,19 @@ function div(text: string, cls?: string) {
   if (cls) d.className = cls;
   d.textContent = text;
   return d;
+}
+
+const LAYOUT_KEY = "textisland.layout";
+
+/** The layout to start with: ?layout=<id> in the URL, else the last one chosen. */
+export function loadLayoutId(): string | null {
+  const fromUrl = new URLSearchParams(location.search).get("layout");
+  if (fromUrl) return fromUrl;
+  try { return localStorage.getItem(LAYOUT_KEY); } catch { return null; }
+}
+
+function saveLayoutId(id: string) {
+  try { localStorage.setItem(LAYOUT_KEY, id); } catch { /* ignore */ }
 }
 
 export function setTheme(dark: boolean) {

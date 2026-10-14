@@ -26,17 +26,13 @@ body { font-family: var(--font); font-size: 16px; line-height: 1.35; min-height:
 button { font: inherit; color: inherit; }
 :focus-visible { outline: 1px dashed var(--fg); outline-offset: 2px; }
 
-.wrap {
-  max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 32px; align-items: start;
-}
+/* layout-specific rules (where panels go, story sizes) live in ./layouts/<name>.css */
 .wrap > * { min-width: 0; }
 
-/* story log */
-.log { display: grid; gap: 10px; max-height: 80vh; overflow: hidden;
-  -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
-.log .line { font-size: 15px; }
-.log .line:first-child { animation: fadein 0.6s ease-out; }
+/* story: shared basics; layouts set sizes and spacing */
+.log .entry { margin: 0; }
+.log .entry:first-child, .log .entry.latest { animation: fadein 0.6s ease-out; }
+.log .older-line { font-size: 14px; color: var(--muted); }
 
 /* tabs */
 .tabs { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 22px; font-size: 17px; }
@@ -72,7 +68,6 @@ button { font: inherit; color: inherit; }
 .btn .tip .reason { color: var(--bad); margin-top: 2px; }
 
 /* status and stores */
-.side { display: grid; gap: 18px; }
 .box { margin: 0; border: 1px solid var(--line); padding: 8px 12px 10px; min-width: 0; }
 .box legend { padding: 0 4px; font-size: 15px; }
 .row { display: flex; gap: 8px; align-items: baseline; padding: 1px 0; }
@@ -133,6 +128,13 @@ button { font: inherit; color: inherit; }
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); font-size: 14px; }
 .menu .link { color: var(--muted); text-decoration: none; }
 .menu .link:hover { color: var(--fg); }
+.layout-switch { position: relative; }
+.layout-menu {
+  position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 25; display: grid; gap: 4px; min-width: 120px;
+  padding: 8px 12px; background: var(--bg); border: 1px solid var(--line); box-shadow: 2px 2px 0 var(--bar);
+}
+.layout-menu .link { text-align: left; }
+.layout-menu .link[aria-checked="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
 
 /* death fade and modal */
 .fade { position: fixed; inset: 0; background: var(--bg); display: none; place-items: center; z-index: 20; }
@@ -146,10 +148,8 @@ button { font: inherit; color: inherit; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-/* narrow screens: actions first, then status, then the log */
+/* narrow screens: shared bits (each layout stacks its own panels) */
 @media (max-width: 760px) {
-  .wrap { grid-template-columns: 1fr; gap: 20px; }
-  .centre { order: 1; } .side { order: 2; } .log { order: 3; max-height: none; }
   .btn { width: calc(50% - 6px); }
   .row .tip, .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }

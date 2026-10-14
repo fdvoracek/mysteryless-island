@@ -17,6 +17,20 @@ npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright i
 
 Pacing: after each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
 
+## Layouts
+
+Five screen layouts, switchable from *layout:* in the bottom menu (the choice is remembered; `?layout=<id>` in the URL also works):
+
+| id | Layout |
+|---|---|
+| `classic` | three columns like A Dark Room: story (newest on top), actions, panels |
+| `journal` | a book page: story in reading order, newest paragraph large, actions as underlined words; status strip on top, notes in the margin |
+| `scene` | the last result as a large paragraph with the buttons under it, earlier text in one quiet line; panels on a shelf |
+| `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
+| `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
+
+Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go and how the story reads; `<id>.css`: its styles, scoped to `.layout-<id>`). Panels are shared (`panels.ts`) and keep their ids in every layout. To add one, copy a pair of files, change them, and add it to `LAYOUTS` in `index.ts`; to remove one, delete its files and its line there.
+
 ## Prototype scope
 
 - **Exploration:** the game starts with one button, *look around* (1 h). Each look explores the region one step further and reveals new buttons; when nothing is left to find, the button disappears.

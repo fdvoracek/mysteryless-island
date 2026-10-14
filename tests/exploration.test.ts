@@ -64,13 +64,19 @@ describe("exploration", () => {
     expect(view(e).actions[0].tooltip).toContain("partly explored");
   });
 
-  it("paragraphs read top-down in the log (newest-first log)", () => {
+  it("each action's lines read top-down, newest action first (classic) or as one paragraph (turns)", () => {
     const e = Engine.newGame(reg, 1);
     look(e);
-    look(e); // step 2 makes no region unlock, so its paragraph is on top
-    const top = e.state.log.slice(0, 2).map((l) => l.text);
-    expect(top[0]).toMatch(/^at the far end of the beach/);
-    expect(top[1]).toMatch(/you could light a fire here/);
+    look(e);
+    const v = view(e);
+    expect(v.log[0]).toMatch(/^at the far end of the beach/);
+    expect(v.log[1]).toMatch(/you could light a fire here/);
+    expect(v.turns[0].lines).toEqual([v.log[0], v.log[1]]);
+    // the first look: description, discovery, then the unlock line, in that order
+    expect(v.turns[1].lines[0]).toMatch(/^grey sand runs both ways/);
+    expect(v.turns[1].lines.at(-1)).toBe("a way to the forest opens.");
+    // the intro reads top-down too
+    expect(v.turns.at(-1)!.lines[0]).toBe("awake. salt in the mouth.");
   });
 
   it("dying rolls exploration back to the checkpoint", () => {

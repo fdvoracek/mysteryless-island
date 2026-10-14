@@ -3,7 +3,8 @@ import { seedRng, type RngState } from "./rng";
 
 export const SAVE_VERSION = 1;
 
-export interface LogEntry { at: number; text: string }
+/** One line of story. `turn` groups the lines one command produced (0 = the intro). */
+export interface LogEntry { at: number; text: string; turn?: number }
 
 export interface RegionState {
   unlocked: boolean;
@@ -39,6 +40,8 @@ export interface GameState {
   /** stats before the last command, for trend arrows */
   prevStats: Record<string, number>;
   log: LogEntry[];
+  /** increases with every command; log lines remember it so the UI can show one paragraph per action */
+  turn?: number;
   dead: boolean;
 }
 
@@ -68,8 +71,9 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     timers,
     regions,
     prevStats: { ...start.stats },
-    // the log is newest-first; the intro is stored in reading order so it reads top-down
-    log: start.log.map((text) => ({ at: time, text })),
+    // the log array is newest-first in time order; the views put each action's lines back in reading order
+    log: start.log.slice().reverse().map((text) => ({ at: time, text, turn: 0 })),
+    turn: 0,
     dead: false,
   };
 }
