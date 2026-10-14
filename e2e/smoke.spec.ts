@@ -137,8 +137,11 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
     await expect(page.locator("#layoutMenu")).toBeHidden();
     await expect(page.locator("#layoutBtn")).toHaveText(`layout: ${id === "bujo" ? "old journal" : id}.`);
     await expect(page.locator("#app")).toHaveClass(new RegExp(`layout-${id}`));
-    // the same panels in every layout
-    await expect(page.locator("#log")).toContainText("awake. salt in the mouth.");
+    // the same panels in every layout; the story shows the newest line (older text may have
+    // scrolled out: layouts keep a different number of paragraphs)
+    const newest = await page.evaluate(() =>
+      (window as unknown as { ti: { state(): { log: Array<{ text: string }> } } }).ti.state().log[0].text);
+    await expect(page.locator("#log")).toContainText(newest);
     await expect(page.locator("#status .row")).toHaveCount(5);
     await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
     await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
