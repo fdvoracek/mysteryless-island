@@ -22,5 +22,16 @@
 @media (max-width: 860px) {
   .layout-stage .st-story { min-height: 40vh; }
   .layout-stage .st-camp { grid-template-columns: 1fr; }
+  .layout-stage .st-play { order: -1; }  /* the buttons right under the story, the status below them */
   .layout-stage .st-status .row .tip, .layout-stage .st-goods .quest .tip { left: 0; right: auto; top: calc(100% + 2px); transform: none; }
+}
+@media (max-width: 600px) {
+  .layout-stage .wrap { padding: 12px 14px 0; gap: 12px; }
+  /* a capped story window, newest at the bottom, older text fading out at the top, so the buttons stay on screen */
+  .layout-stage .st-story { min-height: 0; max-height: 44vh; overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 30%); mask-image: linear-gradient(to bottom, transparent 0, #000 30%); }
+  .layout-stage .log .entry { font-size: 16px; }
+  .layout-stage .log .entry.latest { font-size: 19px; }
+  .layout-stage .box { font-size: 16px; }
+  .layout-stage .bar { width: 96px; }
 }

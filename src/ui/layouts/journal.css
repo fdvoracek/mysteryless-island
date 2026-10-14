@@ -41,3 +41,14 @@
   .layout-journal .wrap { grid-template-columns: 1fr; grid-template-areas: "top" "page" "margin"; }
   .layout-journal .j-margin .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }
+@media (max-width: 600px) {
+  .layout-journal .wrap { padding: 10px 14px 0; gap: 14px; }
+  .layout-journal #status { gap: 2px 16px; }
+  .layout-journal #status .bar { width: 44px; }
+  .layout-journal .log { max-height: 46vh; }
+  .layout-journal .log .entry { font-size: 16px; }
+  .layout-journal .log .entry.latest { font-size: 19px; }
+  .layout-journal .buttons { gap: 2px 20px; }
+  .layout-journal .btn { width: auto; min-height: 40px; }
+  .layout-journal .j-margin { font-size: 15px; }
+}

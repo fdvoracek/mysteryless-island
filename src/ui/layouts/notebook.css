@@ -24,3 +24,10 @@
   .layout-notebook .log { height: auto; max-height: 50vh; }
   .layout-notebook .n-goods { grid-template-columns: 1fr; }
 }
+@media (max-width: 600px) {
+  /* a single page, edge to edge: no book frame */
+  .layout-notebook .wrap { margin: 0; border: 0; box-shadow: none; }
+  .layout-notebook .n-diary, .layout-notebook .n-camp { padding: 14px; }
+  .layout-notebook .log { max-height: 46vh; }
+  .layout-notebook .btn { width: calc(50% - 4px); }
+}

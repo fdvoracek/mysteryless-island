@@ -85,3 +85,13 @@
   .layout-bujo .bj-pair { grid-template-columns: 1fr; }
   .layout-bujo .bj-side .row .tip, .layout-bujo .bj-side .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }
+@media (max-width: 600px) {
+  .layout-bujo .wrap { padding: 16px 14px 0; }
+  .layout-bujo .bj-title { font-size: 28px; }
+  .layout-bujo .bj-page { gap: 18px; }
+  .layout-bujo .log { max-height: 46vh; }
+  .layout-bujo .log .entry { padding-left: 50px; font-size: 16px; }
+  .layout-bujo .log .entry.latest { font-size: 18px; }
+  .layout-bujo .log .entry .time { width: 44px; }
+  .layout-bujo .btn { width: calc(50% - 5px); }
+}

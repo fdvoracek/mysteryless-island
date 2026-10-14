@@ -13,6 +13,11 @@
 @media (max-width: 760px) {
   .layout-classic .wrap { grid-template-columns: 1fr; gap: 20px; }
   .layout-classic .centre { order: 1; }
-  .layout-classic .side { order: 2; }
-  .layout-classic .log { order: 3; max-height: none; }
+  .layout-classic .log { order: 2; max-height: 42vh; }
+  .layout-classic .side { order: 3; }
+}
+@media (max-width: 600px) {
+  .layout-classic .wrap { padding: 14px 14px 0; gap: 16px; }
+  .layout-classic .tabs { margin-bottom: 12px; }
+  .layout-classic .log .entry { font-size: 16px; }
 }

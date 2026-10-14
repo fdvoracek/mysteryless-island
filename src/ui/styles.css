@@ -25,9 +25,10 @@ html, body { margin: 0; background: var(--bg); color: var(--fg); }
 /* --font, --font-style, --font-weight and --font-adjust are set by the font menu (./fonts.ts) */
 body {
   font-family: var(--font); font-style: var(--font-style, normal); font-weight: var(--font-weight, 400);
-  font-size-adjust: var(--font-adjust, none); font-size: 16px; line-height: 1.35; min-height: 100vh;
+  font-size-adjust: var(--font-adjust, none); font-size: 16px; line-height: 1.35; min-height: 100vh; min-height: 100dvh;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
 }
-button { font: inherit; color: inherit; }
+button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 1px dashed var(--fg); outline-offset: 2px; }
 
 /* layout-specific rules (where panels go, story sizes) live in ./layouts/<name>.css */
@@ -42,7 +43,7 @@ button { font: inherit; color: inherit; }
 .tabs { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 22px; font-size: 17px; }
 .tab { background: none; border: 0; padding: 0; cursor: pointer; }
 .tab.here { text-decoration: underline; text-underline-offset: 4px; cursor: default; }
-.tab:not(.here):hover { text-decoration: underline; }
+@media (hover: hover) { .tab:not(.here):hover { text-decoration: underline; } }
 .tab:disabled:not(.here) { cursor: wait; }
 .sep { color: var(--fg); }
 
@@ -97,7 +98,8 @@ button { font: inherit; color: inherit; }
   flex: none; align-self: center; padding: 1px 8px; font-size: 14px; line-height: 1.35; cursor: pointer;
   background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 0;
 }
-.sbtn:hover { background: var(--fg); color: var(--bg); }
+@media (hover: hover) { .sbtn:hover { background: var(--fg); color: var(--bg); } }
+.sbtn:active, .btn:active { background: var(--bar); }
 .sbtn.off, .sbtn:disabled { color: var(--muted); border-color: var(--muted); background: var(--bg); cursor: default; }
 .row .acts { display: flex; gap: 4px; align-self: center; margin-left: 2px; }
 
@@ -149,4 +151,42 @@ button { font: inherit; color: inherit; }
 @media (max-width: 760px) {
   .btn { width: calc(50% - 6px); }
   .row .tip, .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
+}
+
+/*
+ * Touch screens: a tap is not a hover. Tapping a button runs it, so its tooltip would only
+ * cover the buttons below; it is shown only for a disabled button, to say why it is off.
+ */
+@media (hover: none) {
+  .btn:hover .tip { display: none; }
+  .btn.off:hover .tip, .btn.off:focus .tip { display: grid; gap: 2px; }
+}
+
+/*
+ * Phones. Every layout puts the story, the places and the buttons first and the panels
+ * below (see the phone block in each layouts/<id>.css); these rules are shared.
+ */
+@media (max-width: 600px) {
+  /* room for the fixed menu, which may take two lines */
+  #game { padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)); }
+  #game .wrap { padding-bottom: 0; }
+  /* fingers, not a mouse: at least 44px for buttons, 36px for small ones */
+  .buttons { gap: 8px; }
+  .btn { width: calc(50% - 4px); min-height: 44px; padding: 8px 6px; }
+  .sbtn { min-height: 34px; padding: 4px 12px; font-size: 15px; }
+  .tabs { gap: 6px 14px; font-size: 17px; }
+  .tab { padding: 8px 0; }
+  .row { padding: 3px 0; }
+  .row.stat { padding: 5px 0; }
+  .bar { width: 96px; }
+  .quest { padding: 4px 0; }
+  /* the bottom menu wraps and centres; its popups open as a sheet above it */
+  .menu { flex-wrap: wrap; justify-content: center; gap: 0 18px; padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--bar); }
+  .menu .link { padding: 9px 2px; }
+  .layout-switch { position: static; }
+  .layout-menu { position: fixed; left: 12px; right: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+    grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 6px 14px; }
+  .layout-menu .link { padding: 10px 0; font-size: 16px; }
+  .modal .panel { width: calc(100vw - 32px); }
 }

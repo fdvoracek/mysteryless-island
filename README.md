@@ -17,6 +17,10 @@ npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright i
 
 Pacing: after each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
 
+## Phones
+
+Every layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. On touch screens a button's tooltip shows only when the button is disabled (to say why). The e2e test checks each layout at 375×667.
+
 ## Layouts and fonts
 
 *font:* in the bottom menu sets one font for all text in every layout: *times* (Times New Roman, the original look), *old standard* (Old Standard TT), *fell* (IM Fell English), *garamond italic* (Cormorant Garamond). The choice is remembered; `?font=<id>` works too. Fonts are listed in `src/ui/fonts.ts`; web fonts load only when chosen, and get Times' x-height so layouts keep their sizes.
@@ -28,7 +32,7 @@ Six screen layouts, switchable from *layout:* in the bottom menu (the choice is 
 |---|---|
 | `classic` | three columns like A Dark Room: story (newest on top), actions, panels |
 | `journal` | a book page: story in reading order, newest paragraph large, actions as underlined words; status strip on top, notes in the margin |
-| `scene` | the last result as a large paragraph, the few before it above it fading upwards; under the text the places as signposts (*go to the forest →*), then the buttons; panels on a shelf |
+| `scene` | the last result as a large paragraph, the few before it above it fading upwards; under the text the places as signposts (*go to the forest →*), then the buttons; panels on a shelf, with the stores' and tasks' buttons (*eat*, *cook*, *build*) beside the boxes |
 | `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
 | `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
 | `bujo` | *old journal*, 19th century: a two-page spread, double rule under the title, the hour in the margin. Left page: only the log (the hour in the margin, a heading per day). Right page: places and actions, survival bars, tasks (struck through when done), stores and inventory |

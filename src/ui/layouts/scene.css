@@ -4,7 +4,8 @@
  */
 .layout-scene .wrap {
   max-width: 1110px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 40px;  /* shelf 240px + 130px for the stores' buttons */ align-items: start;
+  display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 40px; align-items: start;
+  /* the shelf column: 240px of boxes + 130px for the buttons beside them */
 }
 .layout-scene .s-main { display: grid; gap: 0; max-width: 600px; }
 
@@ -29,8 +30,10 @@
 .layout-scene .tab:not(.here) { border: 1px solid var(--line); padding: 4px 12px; }
 .layout-scene .tab:not(.here)::before { content: "go to "; color: var(--muted); }
 .layout-scene .tab:not(.here)::after { content: "  →"; }
-.layout-scene .tab:not(.here):hover { text-decoration: none; background: var(--fg); color: var(--bg); }
-.layout-scene .tab:not(.here):hover::before { color: inherit; }
+@media (hover: hover) {
+  .layout-scene .tab:not(.here):hover { text-decoration: none; background: var(--fg); color: var(--bg); }
+  .layout-scene .tab:not(.here):hover::before { color: inherit; }
+}
 .layout-scene .busy .tab:not(.here) { border-color: var(--muted); }
 
 /* the buttons: a little lower, away from the text */
@@ -39,12 +42,14 @@
 .layout-scene .s-shelf { display: grid; gap: 14px; font-size: 15px; }
 .layout-scene .s-shelf .box { padding: 6px 10px 8px; }
 .layout-scene .s-shelf .bar { width: 60px; }
-/* the stores' buttons stand outside the box, on its right, level with their item */
+/* the buttons of the stores and of tasks (cook, eat, build) stand outside their box, on its right, level with their row */
 .layout-scene .s-shelf { margin-right: 130px; }  /* keep in step with the shelf column above */
 .layout-scene #stores .row { position: relative; min-height: 25px; align-items: center; }  /* room for a button per row */
 .layout-scene #stores .acts {
   position: absolute; left: calc(100% + 22px); top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap;
 }
+.layout-scene #quests .quest .head { min-height: 25px; align-items: center; }
+.layout-scene #quests .qaction { position: absolute; left: calc(100% + 22px); top: 1px; margin: 0; white-space: nowrap; }
 
 @media (max-width: 760px) {
   .layout-scene .wrap { grid-template-columns: 1fr; gap: 20px; }
@@ -52,5 +57,16 @@
   /* one column: no room beside the box, so the buttons go back into their row */
   .layout-scene .s-shelf { margin-right: 0; }
   .layout-scene #stores .acts { position: static; transform: none; margin-left: 2px; }
+  .layout-scene #quests .qaction { position: static; }
+  .layout-scene .s-main { max-width: none; }
   .layout-scene .s-shelf .row .tip, .layout-scene .s-shelf .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
+}
+@media (max-width: 600px) {
+  .layout-scene .wrap { padding: 12px 14px 0; }
+  .layout-scene .log { height: 13.5em; }
+  .layout-scene .log .entry.latest { font-size: 19px; }
+  .layout-scene .tabs { margin-top: 12px; padding-top: 12px; }
+  .layout-scene .tab:not(.here) { padding: 8px 12px; }
+  .layout-scene .buttons { margin-top: 14px; }
+  .layout-scene .s-shelf .bar { width: 96px; }
 }

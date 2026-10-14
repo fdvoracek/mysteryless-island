@@ -176,6 +176,37 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
   await expect(page.locator("#log .entry.latest")).toBeVisible();
 });
 
+test("on a phone screen every layout fits the width, and its buttons are on screen and usable", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 }); // a small phone (iPhone SE)
+  for (const id of ["classic", "journal", "scene", "notebook", "stage", "bujo"]) {
+    await page.goto(`./?speed=0.2&layout=${id}`);
+    const look = action(page, "look around");
+    await expect(look, id).toBeVisible();
+    // no sideways scrolling
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `${id}: page wider than the screen`).toBeLessThanOrEqual(0);
+    // the first button is on the first screen, big enough for a finger, and nothing covers it
+    const box = (await look.boundingBox())!;
+    expect(box.y + box.height, `${id}: button below the first screen`).toBeLessThanOrEqual(667);
+    expect(box.height, `${id}: button too small to tap`).toBeGreaterThanOrEqual(40);
+    const topmost = await page.evaluate(
+      ({ x, y }) => document.elementFromPoint(x, y)?.closest(".btn")?.textContent ?? null,
+      { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+    );
+    expect(topmost, `${id}: something covers the button`).toContain("look around");
+    await look.click();
+    await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 5_000 });
+    await expect(tab(page, "the forest"), id).toBeVisible();
+    // the layout menu opens as a sheet inside the screen
+    await page.locator("#layoutBtn").click();
+    const sheet = (await page.locator("#layoutMenu").boundingBox())!;
+    expect(sheet.x, id).toBeGreaterThanOrEqual(0);
+    expect(sheet.x + sheet.width, id).toBeLessThanOrEqual(375);
+    await page.keyboard.press("Escape");
+    await page.evaluate(() => localStorage.clear());
+  }
+});
+
 test("dying fades out and restores the checkpoint", async ({ page }) => {
   await page.evaluate(() => {
     const ti = (window as unknown as { ti: { stat(s: string, v: number): void } }).ti;
