@@ -143,7 +143,9 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
       (window as unknown as { ti: { state(): { log: Array<{ text: string }> } } }).ti.state().log[0].text);
     await expect(page.locator("#log")).toContainText(newest);
     await expect(page.locator("#status .row")).toHaveCount(5);
-    await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
+    // the game moves on between layouts: the 4th look finds the fish, which starts the spear task
+    const tasks = i < 4 ? ["survive the first night"] : ["survive the first night", "build a fishing spear"];
+    await expect(page.locator("#quests .quest .title")).toHaveText(tasks);
     await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
     // and the game plays: one more look around per layout (4 beach finds, then the button is gone)
     if (i < 4) {
