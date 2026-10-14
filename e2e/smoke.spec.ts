@@ -24,8 +24,6 @@ test.afterEach(() => {
 
 const action = (page: Page, name: string) => page.locator("#actions .btn", { hasText: name });
 const tab = (page: Page, name: string) => page.locator("#tabs .tab", { hasText: name });
-const status = (page: Page, label: string) =>
-  page.locator("#status .row", { has: page.locator(".key", { hasText: label }) }).locator(".val");
 
 test("the game is visible and not covered on load", async ({ page }) => {
   await expect(page).toHaveTitle("Mysteryless Island");
@@ -51,7 +49,8 @@ test("the game is visible and not covered on load", async ({ page }) => {
 });
 
 test("walk to the forest, gather wood, come back and light the fire", async ({ page }) => {
-  await expect(status(page, "fire")).toHaveText("out");
+  await expect(page.locator('#status .row[data-id="fire"]')).toHaveCount(0);
+  await expect(page.locator('#status .row[data-id="comfort"] .key')).toHaveText("comfort");
 
   await tab(page, "the forest").click();
   await expect(tab(page, "the forest")).toHaveClass(/here/);
@@ -63,7 +62,7 @@ test("walk to the forest, gather wood, come back and light the fire", async ({ p
   await tab(page, "the beach").click();
   await expect(tab(page, "the beach")).toHaveClass(/here/);
   await action(page, "light fire").click();
-  await expect(status(page, "fire")).toHaveText(/burning|roaring/);
+  await expect(page.locator("#log")).toContainText("the fire takes");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).not.toHaveClass(/off/);
 });

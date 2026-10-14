@@ -76,10 +76,11 @@ export function view(engine: Engine): View {
   }
   const band = reg.climate.bodyBands[s.warmth];
   lines.push({
-    id: "warmth", label: reg.climate.warmthLabel ?? "warmth", stars: Math.min(band.stars, maxStars), word: band.id,
+    id: "comfort", label: reg.climate.warmthLabel ?? "comfort", stars: Math.min(band.stars, maxStars), word: band.id,
     trend: "", bad: band.stars <= 1,
   });
   for (const t of reg.timers.values()) {
+    if (t.showInStatus === false) continue;
     const hours = (s.timers[t.id] ?? 0) / 60;
     const word = t.states.find((x) => hours <= x.upToHours)?.word ?? t.states[t.states.length - 1].word;
     lines.push({ id: t.id, label: t.name, stars: null, word, trend: "", bad: false });

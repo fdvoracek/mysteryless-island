@@ -23,18 +23,22 @@ describe("star ratings", () => {
   it("starts with the expected stars", () => {
     const v = view(Engine.newGame(reg, 1));
     const stars = Object.fromEntries(v.status.lines.map((l) => [l.id, l.stars]));
-    // health 80, energy 75, hunger 35, thirst 45, comfortable, fire as a word
-    expect(stars).toEqual({ health: 4, energy: 4, hunger: 4, thirst: 3, warmth: 5, fire: null });
+    // health 80, energy 75, hunger 35, thirst 45, comfortable; the fire is not shown
+    expect(stars).toEqual({ health: 4, energy: 4, hunger: 4, thirst: 3, comfort: 5 });
   });
 
-  it("warmth stars show comfort: both too cold and too hot cost stars", () => {
+  it("comfort has three values: freezing, cold, comfortable", () => {
     const e = Engine.newGame(reg, 1);
-    const at = (band: string) => { e.state.warmth = reg.bandIds.indexOf(band); return line(e, "warmth"); };
-    expect(at("comfortable").stars).toBe(5);
-    expect(at("cold").stars).toBe(3);
-    expect(at("hot").stars).toBe(3);
-    expect(at("freezing")).toMatchObject({ stars: 1, bad: true });
-    expect(at("overheating")).toMatchObject({ stars: 1, bad: true });
+    expect(reg.bandIds).toEqual(["freezing", "cold", "comfortable"]);
+    const at = (band: string) => { e.state.warmth = reg.bandIds.indexOf(band); return line(e, "comfort"); };
+    expect(at("comfortable")).toMatchObject({ label: "comfort", stars: 5, word: "comfortable", bad: false });
+    expect(at("cold")).toMatchObject({ stars: 3, word: "cold", bad: false });
+    expect(at("freezing")).toMatchObject({ stars: 1, word: "freezing", bad: true });
+  });
+
+  it("the fire is not listed in the status panel", () => {
+    const v = view(Engine.newGame(reg, 1));
+    expect(v.status.lines.map((l) => l.id)).not.toContain("fire");
   });
 
   it("health at 0 stars is death; other stats at 0 stars drain health instead", () => {

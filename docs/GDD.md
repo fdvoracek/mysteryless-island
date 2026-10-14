@@ -129,7 +129,7 @@ flowchart LR
 
 ### 6.1 Stats **[decided: health is the only life bar; shown as stars]**
 
-All stats are numbers from 0 to 100 internally. The status panel shows each one as **0–5 stars, where more is always better** (hunger is shown as *fullness*, thirst as *hydration*, warmth as *comfort*: both too cold and too hot cost stars). Each star covers 20 points and rounds up, so 0 stars appears only at the very end of a scale. **Only health at 0 stars ends the game**; the other stats at 0 stars drain health. Hovering a row shows the word below and the trend. *(Changed from words-only after the prototype, at your request.)*
+All stats are numbers from 0 to 100 internally. The status panel shows each one as **0–5 stars, where more is always better** (hunger is shown as *fullness*, thirst as *hydration*, warmth as *comfort*: freezing 1 star, cold 3, comfortable 5). Each star covers 20 points and rounds up, so 0 stars appears only at the very end of a scale. **Only health at 0 stars ends the game**; the other stats at 0 stars drain health. Hovering a row shows the word below and the trend. *(Changed from words-only after the prototype, at your request.)*
 
 | Stat | Meaning | Words (low → high value) | Changes by |
 |---|---|---|---|
@@ -137,7 +137,7 @@ All stats are numbers from 0 to 100 internally. The status panel shows each one 
 | Energy | Ability to work | exhausted · weary · tired · rested | −per hour of work; + sleep, rest, food |
 | Hunger | 0 = full, 100 = starving | fed · peckish · hungry · starving | + per hour; − eating |
 | Thirst | 0 = quenched, 100 = parched | quenched · dry · thirsty · parched | + per hour (more when hot); − drinking |
-| Warmth | Body temperature state | freezing · cold · comfortable · hot · overheating | Moves toward the environment (§6.2) |
+| Comfort | Body temperature state | freezing · cold · comfortable | Moves toward the environment (§6.2) |
 
 **Initial rates [proposal; all values live in data]:**
 
@@ -145,9 +145,9 @@ All stats are numbers from 0 to 100 internally. The status panel shows each one 
 |---|---|
 | Effort levels | Every action is *heavy* (felling, hunting), *work* (gathering, exploring), *light* (crafting, eating) or *rest*. The rates below are for *work*; heavy and light scale up and down (TDD §6.11). |
 | Hunger | +3 / h working, +1.5 / h asleep |
-| Thirst | +5 / h working, +2 / h asleep; ×1.3 when hot, ×1.6 when overheating |
+| Thirst | +5 / h working, +2 / h asleep |
 | Energy | −8 / h heavy, −5 / h work, −2 / h light, +4 / h rest; +11 / h sleeping by a fire, +12 / h in a shelter, +7 / h sleeping rough. (Prototype playtest: −8 / h for work left the player exhausted by mid-afternoon of day 1.) |
-| Health loss | −2 / h while *starving* or *parched*; −3 / h while *freezing*; −1 / h while *overheating*; −2 / h when working while *exhausted* |
+| Health loss | −2 / h while *starving* or *parched*; −3 / h while *freezing*; −2 / h when working while *exhausted* |
 | Health regeneration | +1 / h when fed, quenched and comfortable; +3 / h while sleeping in a shelter under the same conditions |
 
 With these rates a player with no water goes from *quenched* to *parched* in about 20 hours. That's urgent but survivable.
@@ -172,9 +172,9 @@ felt °C        = environment °C + clothing insulation
 |---|---|
 | < 5 | freezing |
 | 5–14 | cold |
-| 15–27 | comfortable |
-| 28–33 | hot |
-| > 33 | overheating |
+| ≥ 15 | comfortable |
+
+**[decided]** Comfort has three values; there are no heat bands. Being too warm isn't a danger in this game. If summer heat should matter later, *hot* and *overheating* can be added back as data in `climate.json`, with a thirst multiplier in `stats.json`.
 
 Body warmth moves **one band per hour** toward the target (like the room temperature in *A Dark Room*). That gives the player time to react.
 

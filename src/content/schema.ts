@@ -167,6 +167,8 @@ export const Timer = z
     warnAtHours: z.number().optional(),
     warnLog: z.string().optional(),
     expireLog: z.string().optional(),
+    /** show this timer as a line in the status panel (default true) */
+    showInStatus: z.boolean().optional(),
   })
   .strict();
 

@@ -32,7 +32,8 @@
       ],
       "warnAtHours": 1,
       "warnLog": "the fire is dying.",
-      "expireLog": "the fire goes out. only embers now."
+      "expireLog": "the fire goes out. only embers now.",
+      "showInStatus": false
     }
   ]
 }

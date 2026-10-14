@@ -48,8 +48,7 @@
     "sleep": { "hunger": 1.5, "thirst": 2, "energy": 11 }
   },
   "multipliers": [
-    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 },
-    { "when": { "warmth": ["hot", "overheating"] }, "stat": "thirst", "factor": 1.3 }
+    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 }
   ],
   "damage": [
     { "when": { "stat": "hunger", "gte": 80 }, "healthPerHour": -2, "log": "hunger gnaws at you. your hands shake." },
