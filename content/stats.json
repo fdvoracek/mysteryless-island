@@ -51,14 +51,14 @@
     { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 }
   ],
   "damage": [
-    { "when": { "stat": "hunger", "gte": 80 }, "healthPerHour": -2, "log": "hunger gnaws at you. your hands shake." },
-    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "your lips crack. the world tilts." },
+    { "when": { "stat": "hunger", "gte": 80 }, "healthPerHour": -2, "log": "Hunger gnaws at you. Your hands shake." },
+    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "Your lips crack. The world tilts." },
     {
       "when": { "all": [ { "stat": "energy", "lte": 0 }, { "effort": ["heavy", "work"] } ] },
       "healthPerHour": -2,
-      "log": "you work on, past exhaustion."
+      "log": "You work on, past exhaustion."
     },
-    { "when": { "warmth": ["freezing"] }, "healthPerHour": -3, "log": "the cold is in your bones." }
+    { "when": { "warmth": ["freezing"] }, "healthPerHour": -3, "log": "The cold is in your bones." }
   ],
   "regen": [
     {

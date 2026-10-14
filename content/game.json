@@ -9,14 +9,14 @@
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
     "items": { "knife": 1, "summer_clothes": 1 },
     "log": [
-      "awake. salt in the mouth.",
-      "the sea is quiet now. the ship is gone.",
-      "behind the dunes, a dark line of trees."
+      "Awake. Salt in the mouth.",
+      "The sea is quiet now. The ship is gone.",
+      "Behind the dunes, a dark line of trees."
     ]
   },
   "cosmetic": { "msPerHour": 800, "msPerChar": 15, "minMs": 700, "maxMs": 4500 },
-  "deathLog": "the world fades.",
-  "restoreLog": "you wake on the sand. it was only a dream, or a warning.",
+  "deathLog": "The world fades.",
+  "restoreLog": "You wake on the sand. It was only a dream, or a warning.",
   "timers": [
     {
       "id": "fire",
@@ -31,8 +31,8 @@
         { "upToHours": 12, "word": "roaring" }
       ],
       "warnAtHours": 1,
-      "warnLog": "the fire is dying.",
-      "expireLog": "the fire goes out. only embers now.",
+      "warnLog": "The fire is dying.",
+      "expireLog": "The fire goes out. Only embers now.",
       "showInStatus": false
     }
   ],

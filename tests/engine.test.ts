@@ -22,7 +22,7 @@ describe("engine: the prototype loop", () => {
     const v = view(e);
     expect(v.actions.map((a) => a.id)).toEqual(["light_fire", "collect_shells", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
-    expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("needs 1 fishing spear");
+    expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
     expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire");
   });
 

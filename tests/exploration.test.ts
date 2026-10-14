@@ -15,7 +15,7 @@ describe("exploration", () => {
     const t0 = e.state.time;
     expect(look(e).ok).toBe(true);
     expect(e.state.time - t0).toBe(60); // takes an hour
-    expect(logHas(e, "a forest, close and hard to miss")).toBe(true);
+    expect(logHas(e, "A forest, close and hard to miss")).toBe(true);
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach", "forest"]);
     expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);
   });
@@ -30,14 +30,14 @@ describe("exploration", () => {
   it("beach step 3: the cliff with shells reveals collect shells", () => {
     const e = Engine.newGame(reg, 1);
     look(e); look(e); look(e);
-    expect(logHas(e, "shells cling to the wet stone")).toBe(true);
+    expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
     expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
   });
 
   it("beach step 4: the fish need a spear; then 'look around' is gone", () => {
     const e = Engine.newGame(reg, 1);
     look(e); look(e); look(e); look(e);
-    expect(logHas(e, "with a sharp stick you might spear one")).toBe(true);
+    expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
     expect(labels(e)).toEqual(["light fire", "collect shells", "catch fish", "sleep"]);
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
     expect(look(e).ok).toBe(false); // nothing left to find
@@ -69,14 +69,14 @@ describe("exploration", () => {
     look(e);
     look(e);
     const v = view(e);
-    expect(v.log[0]).toMatch(/^at the far end of the beach/);
-    expect(v.log[1]).toMatch(/you could light a fire here/);
+    expect(v.log[0]).toMatch(/^At the far end of the beach/);
+    expect(v.log[1]).toMatch(/You could light a fire here/);
     expect(v.turns[0].lines).toEqual([v.log[0], v.log[1]]);
     // the first look: description, discovery, then the unlock line, in that order
-    expect(v.turns[1].lines[0]).toMatch(/^grey sand runs both ways/);
-    expect(v.turns[1].lines.at(-1)).toBe("a way to the forest opens.");
+    expect(v.turns[1].lines[0]).toMatch(/^Grey sand runs both ways/);
+    expect(v.turns[1].lines.at(-1)).toBe("A way to the forest opens.");
     // the intro reads top-down too
-    expect(v.turns.at(-1)!.lines[0]).toBe("awake. salt in the mouth.");
+    expect(v.turns.at(-1)!.lines[0]).toBe("Awake. Salt in the mouth.");
   });
 
   it("dying rolls exploration back to the checkpoint", () => {

@@ -3,15 +3,15 @@
     "_note": "Quests are listed in the tasks panel while active, in this order. trigger: \"start\" (new game), \"manual\" (only via a { \"startQuest\": id } effect) or { \"when\": condition }.",
     "id": "survive_first_night",
     "title": "survive the first night",
-    "hint": "the dark comes early here, and cold with it.",
+    "hint": "The dark comes early here, and cold with it.",
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
-    "doneLog": "grey light over the water. you made it through the night."
+    "doneLog": "Grey light over the water. You made it through the night."
   },
   {
     "id": "build_fishing_spear",
     "title": "build a fishing spear",
-    "hint": "a long, straight shaft and a sharp point. gather branches enough to choose a good one.",
+    "hint": "A long, straight shaft and a sharp point. Gather branches enough to choose a good one.",
     "trigger": { "when": { "discovered": "school_of_fish" } },
     "action": {
       "label": "build",
@@ -19,10 +19,10 @@
       "effort": "light",
       "cost": { "firewood": 10 },
       "effects": [{ "give": { "fishing_spear": 1 } }],
-      "log": "you choose the straightest branch and carve it to a point with the knife."
+      "log": "You choose the straightest branch and carve it to a point with the knife."
     },
     "completeWhen": { "item": "fishing_spear" },
-    "startLog": "a spear would reach them. you will need wood to choose from.",
-    "doneLog": "the spear is light and true. the fish will not be so quick now."
+    "startLog": "A spear would reach them. You will need wood to choose from.",
+    "doneLog": "The spear is light and true. The fish will not be so quick now."
   }
 ]

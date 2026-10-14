@@ -8,12 +8,12 @@ const QUESTS = "content/quests/first-days.json";
 
 /** Test-only quests (the shipped content has just "survive the first night"). */
 const EXTRA = [
-  { id: "find_water", title: "find water", trigger: "start", completeWhen: { did: "drink" }, doneLog: "fresh water. you will last a while longer." },
+  { id: "find_water", title: "find water", trigger: "start", completeWhen: { did: "drink" }, doneLog: "Fresh water. You will last a while longer." },
   { id: "find_food", title: "find food", trigger: "start", completeWhen: { did: "eat" } },
   {
     id: "light_a_fire", title: "light a fire",
     trigger: { when: { all: [ { reached: { day: 1, hour: 16 } }, { not: { did: "light_fire" } } ] } },
-    completeWhen: { timer: "fire" }, startLog: "the sun is low. it will be cold soon.",
+    completeWhen: { timer: "fire" }, startLog: "The sun is low. It will be cold soon.",
   },
 ];
 function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) => void) {
@@ -54,7 +54,7 @@ describe("quests", () => {
     e.dispatch({ type: "activity", id: "drink_stream" });
     expect(e.state.quests.find_water).toMatchObject({ status: "done" });
     expect(active(e)).not.toContain("find_water");
-    expect(e.state.log.some((l) => l.text.includes("fresh water. you will last"))).toBe(true);
+    expect(e.state.log.some((l) => l.text.includes("Fresh water. You will last"))).toBe(true);
   });
 
   it("find food completes when eating raw or cooked food (the eat tag)", () => {
@@ -84,7 +84,7 @@ describe("quests", () => {
     e.advance(9.5, "rest"); // 15:30
     e.dispatch({ type: "activity", id: "catch_fish" }); // ends 17:30
     expect(active(e)).toContain("light_a_fire");
-    expect(e.state.log.some((l) => l.text === "the sun is low. it will be cold soon.")).toBe(true);
+    expect(e.state.log.some((l) => l.text === "The sun is low. It will be cold soon.")).toBe(true);
     e.dispatch({ type: "activity", id: "light_fire" });
     expect(e.state.quests.light_a_fire.status).toBe("done");
   });
@@ -159,7 +159,7 @@ describe("quest actions: build a fishing spear", () => {
     for (let i = 0; i < 4; i++) e.dispatch({ type: "explore" });
     const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;
     expect(q.progress).toEqual([{ label: "firewood", have: 0, need: 10 }]);
-    expect(q.action).toMatchObject({ label: "build", enabled: false, reason: "needs 10 firewood (have 0)" });
+    expect(q.action).toMatchObject({ label: "build", enabled: false, reason: "Needs 10 firewood (have 0)" });
   });
 
   it("building spends the wood, takes time, puts the spear in the inventory and finishes the quest", () => {

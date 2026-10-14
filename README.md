@@ -61,7 +61,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |
 
-Keys starting with `_` are comments. Errors (unknown ids, typos in keys) are listed on screen and by `npm run content:check`.
+Sentences (story, hints, reasons) start with a capital letter; labels (buttons, places, items, tasks) stay lowercase. Keys starting with `_` are comments. Errors (unknown ids, typos in keys) are listed on screen and by `npm run content:check`.
 
 ## Debug console
 

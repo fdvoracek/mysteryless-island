@@ -9,10 +9,10 @@
       "hours": 0.25,
       "stats": { "hunger": -12 },
       "tags": ["eat"],
-      "log": "cold, slippery, barely food.",
+      "log": "Cold, slippery, barely food.",
       "outcomes": [
         { "weight": 3 },
-        { "weight": 1, "text": "your stomach turns.", "effects": [{ "stat": { "health": -6 } }] }
+        { "weight": 1, "text": "Your stomach turns.", "effects": [{ "stat": { "health": -6 } }] }
       ]
     },
     "actions": [
@@ -23,7 +23,7 @@
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
         "effects": [{ "give": { "cooked_fish": 1 } }],
-        "log": "the fish hisses on a flat stone by the fire.",
+        "log": "The fish hisses on a flat stone by the fire.",
         "tags": ["cook"]
       }
     ]
@@ -37,7 +37,7 @@
       "hours": 0.5,
       "stats": { "hunger": -30, "health": 2 },
       "tags": ["eat"],
-      "log": "hot flesh, flaking from the bone."
+      "log": "Hot flesh, flaking from the bone."
     }
   },
   {
@@ -49,7 +49,7 @@
       "hours": 0.25,
       "stats": { "hunger": -6 },
       "tags": ["eat"],
-      "log": "salty and chewy. barely a mouthful."
+      "log": "Salty and chewy. Barely a mouthful."
     },
     "actions": [
       {
@@ -59,7 +59,7 @@
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
         "effects": [{ "give": { "cooked_shells": 1 } }],
-        "log": "the shell pops open in the embers.",
+        "log": "The shell pops open in the embers.",
         "tags": ["cook"]
       }
     ]
@@ -73,7 +73,7 @@
       "hours": 0.25,
       "stats": { "hunger": -15 },
       "tags": ["eat"],
-      "log": "tender and hot. the smell of the sea."
+      "log": "Tender and hot. The smell of the sea."
     }
   },
   { "id": "fishing_spear", "name": "fishing spear", "category": "tool" },

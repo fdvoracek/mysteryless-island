@@ -3,45 +3,45 @@
   "name": "the beach",
   "title": "A Grey Beach",
   "order": 1,
-  "description": ["wet sand, broken shells, a line of wrack.", "the wind never quite stops."],
+  "description": ["Wet sand, broken shells, a line of wrack.", "The wind never quite stops."],
   "climate": { "baseC": 20 },
   "travelHours": 0,
   "explore": {
     "name": "look around",
     "hours": 1,
     "effort": "work",
-    "nothingLog": ["you walk the shore again. nothing new.", "only sand, and the sea."],
+    "nothingLog": ["You walk the shore again. Nothing new.", "Only sand, and the sea."],
     "discoveries": [
       {
         "id": "forest_edge",
         "at": 1,
         "text": [
-          "grey sand runs both ways until it bends out of sight. wrack and broken shells mark the tide line.",
-          "behind the dunes the trees begin. a forest, close and hard to miss."
+          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line.",
+          "Behind the dunes the trees begin. A forest, close and hard to miss."
         ]
       },
       {
         "id": "rock_shelter",
         "at": 2,
         "text": [
-          "at the far end of the beach, a ring of rocks breaks the sea wind.",
-          "you could light a fire here, if you find some wood."
+          "At the far end of the beach, a ring of rocks breaks the sea wind.",
+          "You could light a fire here, if you find some wood."
         ]
       },
       {
         "id": "cliff_shells",
         "at": 3,
         "text": [
-          "past the rocks, a low cliff drops into the surf. shells cling to the wet stone below it.",
-          "you could pick them and eat them as they are. cooked, they would go further."
+          "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it.",
+          "You could pick them and eat them as they are. Cooked, they would go further."
         ]
       },
       {
         "id": "school_of_fish",
         "at": 4,
         "text": [
-          "in the shallows, a school of small fish turns and flashes.",
-          "too quick for bare hands. with a sharp stick you might spear one."
+          "In the shallows, a school of small fish turns and flashes.",
+          "Too quick for bare hands. With a sharp stick you might spear one."
         ]
       }
     ]
@@ -55,7 +55,7 @@
       "visibleWhen": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] },
       "cost": { "firewood": 3 },
       "effects": [{ "timer": "fire", "addHours": 6 }],
-      "log": "a spark, a curl of smoke. the fire takes."
+      "log": "A spark, a curl of smoke. The fire takes."
     },
     {
       "id": "stoke_fire",
@@ -65,7 +65,7 @@
       "visibleWhen": { "timer": "fire" },
       "cost": { "firewood": 2 },
       "effects": [{ "timer": "fire", "addHours": 4 }],
-      "log": ["the fire crackles.", "sparks climb into the dark."]
+      "log": ["The fire crackles.", "Sparks climb into the dark."]
     },
     {
       "id": "collect_shells",
@@ -75,8 +75,8 @@
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
-        "you prise shells off the wet stone. the surf soaks your legs.",
-        "a handful of shells, cold and heavy."
+        "You prise shells off the wet stone. The surf soaks your legs.",
+        "A handful of shells, cold and heavy."
       ]
     },
     {
@@ -87,11 +87,11 @@
       "visibleWhen": { "discovered": "school_of_fish" },
       "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [
-        { "weight": 4, "text": "two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
-        { "weight": 4, "text": "one fish. it will do.", "effects": [{ "give": { "raw_fish": 1 } }] },
-        { "weight": 2, "text": "nothing. the fish are quicker than you." }
+        { "weight": 4, "text": "Two fish, flapping on the sand.", "effects": [{ "give": { "raw_fish": 2 } }] },
+        { "weight": 4, "text": "One fish. It will do.", "effects": [{ "give": { "raw_fish": 1 } }] },
+        { "weight": 2, "text": "Nothing. The fish are quicker than you." }
       ],
-      "log": "you wade into the shallows, spear raised."
+      "log": "You wade into the shallows, spear raised."
     },
     {
       "id": "sleep",
@@ -100,17 +100,17 @@
       "effort": "sleep",
       "visibleWhen": { "discovered": "rock_shelter" },
       "requires": { "timer": "fire" },
-      "requiresText": "too cold and dark to sleep without a fire",
+      "requiresText": "Too cold and dark to sleep without a fire",
       "outcomes": [
-        { "weight": 1, "when": { "phase": ["dawn", "day"] }, "text": "morning comes, grey and wet." },
+        { "weight": 1, "when": { "phase": ["dawn", "day"] }, "text": "Morning comes, grey and wet." },
         {
           "weight": 1,
           "when": { "phase": ["dusk", "night"] },
-          "text": "you wake in the dark. the surf is loud."
+          "text": "You wake in the dark. The surf is loud."
         }
       ],
       "checkpoint": true,
-      "log": "you curl up by the fire and sleep."
+      "log": "You curl up by the fire and sleep."
     }
   ]
 }

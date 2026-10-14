@@ -28,7 +28,7 @@ const tab = (page: Page, name: string) => page.locator("#tabs .tab", { hasText: 
 
 test("the game is visible and not covered on load", async ({ page }) => {
   await expect(page).toHaveTitle("Mysteryless Island");
-  await expect(page.locator("#log")).toContainText("awake. salt in the mouth.");
+  await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
   // the game starts with a single button
   await expect(page.locator("#actions .btn")).toHaveCount(1);
   await expect(action(page, "look around")).toBeVisible();
@@ -89,7 +89,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   const cook = page.locator('#stores .row[data-id="raw_fish"] .iaction');
   await expect(cook).toHaveCount(0);
   await action(page, "light fire").click();
-  await expect(page.locator("#log")).toContainText("the fire takes");
+  await expect(page.locator("#log")).toContainText("The fire takes");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).not.toHaveClass(/off/);
   await expect(cook).toBeVisible();
@@ -221,9 +221,9 @@ test("dying fades out and restores the checkpoint", async ({ page }) => {
   await action(page, "look around").click();
 
   await expect(page.locator("#fade")).toBeVisible();
-  await expect(page.locator("#fadeText")).toHaveText("the world fades.");
+  await expect(page.locator("#fadeText")).toHaveText("The world fades.");
 
   await expect(page.locator("#fade")).toBeHidden({ timeout: 6_000 });
-  await expect(page.locator("#log")).toContainText("you wake on the sand");
+  await expect(page.locator("#log")).toContainText("You wake on the sand");
   await expect(action(page, "look around")).toBeVisible();
 });

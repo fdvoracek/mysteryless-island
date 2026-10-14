@@ -1,4 +1,5 @@
 import { clockText, day, phaseAt } from "./clock";
+import { sentence } from "./text";
 import type { Command, Engine } from "./engine";
 import type { GameState } from "./state";
 
@@ -76,7 +77,7 @@ export function view(engine: Engine): View {
     const progress = ex.found === 0 ? "unexplored" : ex.found < ex.total ? "partly explored" : "fully explored";
     actions.push({
       id: `explore:${region.id}`, command: { type: "explore" }, label: region.explore.name,
-      enabled: ex.enabled, reason: ex.reason,
+      enabled: ex.enabled, reason: sentence(ex.reason),
       tooltip: [`${fmtHours(region.explore.hours)} · ${region.explore.effort}`, progress],
     });
   }
@@ -85,7 +86,7 @@ export function view(engine: Engine): View {
     if (!c.visible) continue;
     const tooltip = [`${fmtHours(a.hours)} · ${a.effort}`];
     for (const [k, n] of Object.entries(a.cost ?? {})) tooltip.push(`${reg.items.get(k)?.name ?? k}: ${n}`);
-    actions.push({ id: a.id, command: { type: "activity", id: a.id }, label: a.name, enabled: c.enabled, reason: c.reason, tooltip });
+    actions.push({ id: a.id, command: { type: "activity", id: a.id }, label: a.name, enabled: c.enabled, reason: sentence(c.reason), tooltip });
   }
 
   const danger = reg.stats.dangerAtOrBelow ?? 20;
@@ -127,7 +128,7 @@ export function view(engine: Engine): View {
       const tooltip = [`${q.action.label} · ${fmtHours(q.action.hours)}`];
       action = {
         id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: q.action.label,
-        enabled: c.enabled, reason: c.reason, tooltip,
+        enabled: c.enabled, reason: sentence(c.reason), tooltip,
       };
     }
     quests.push({ id: q.id, title: q.title, hint: q.hint, progress, action });
@@ -150,7 +151,7 @@ export function view(engine: Engine): View {
       if (!c.visible) continue;
       actions.push({
         id: `item:${id}:${a.id}`, command: { type: "itemAction", item: id, action: a.id }, label: a.label,
-        enabled: c.enabled, reason: c.reason, tooltip: [`${a.label} · ${fmtHours(a.hours)}`],
+        enabled: c.enabled, reason: sentence(c.reason), tooltip: [`${a.label} · ${fmtHours(a.hours)}`],
       });
     }
     stores.push({ id, label: item.name, count, use, actions });

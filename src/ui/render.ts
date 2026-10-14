@@ -428,7 +428,7 @@ export class UI {
   private confirmRestart() {
     const box = document.createElement("div");
     box.className = "modal";
-    box.innerHTML = `<div class="panel"><div class="title">restart?</div><p>start again from the first morning on the beach.</p>
+    box.innerHTML = `<div class="panel"><div class="title">Restart?</div><p>Start again from the first morning on the beach.</p>
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);

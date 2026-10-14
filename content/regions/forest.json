@@ -3,26 +3,26 @@
   "name": "the forest",
   "title": "A Quiet Forest",
   "order": 2,
-  "description": ["tall trunks, close together.", "the sea is only a sound now."],
+  "description": ["Tall trunks, close together.", "The sea is only a sound now."],
   "climate": { "baseC": 18 },
   "travelHours": 1,
   "unlockWhen": { "discovered": "forest_edge" },
-  "firstVisit": { "log": "somewhere ahead, water runs over stones." },
+  "firstVisit": { "log": "Somewhere ahead, water runs over stones." },
   "explore": {
     "name": "look around",
     "hours": 1,
     "effort": "work",
-    "nothingLog": ["the trees all look the same now. nothing new."],
+    "nothingLog": ["The trees all look the same now. Nothing new."],
     "discoveries": [
       {
         "id": "dry_wood",
         "at": 1,
-        "text": ["dead branches lie everywhere under the trees, dry enough to burn. you could collect some."]
+        "text": ["Dead branches lie everywhere under the trees, dry enough to burn. You could collect some."]
       },
       {
         "id": "spring",
         "at": 2,
-        "text": ["between mossy stones, a small spring. the water is clear and cold."]
+        "text": ["Between mossy stones, a small spring. The water is clear and cold."]
       }
     ]
   },
@@ -34,7 +34,7 @@
       "effort": "work",
       "visibleWhen": { "discovered": "dry_wood" },
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
-      "log": ["dry branches snap underfoot.", "an armful of deadwood.", "bark and twigs, dry enough to burn."]
+      "log": ["Dry branches snap underfoot.", "An armful of deadwood.", "Bark and twigs, dry enough to burn."]
     },
     {
       "id": "drink_stream",
@@ -44,7 +44,7 @@
       "visibleWhen": { "discovered": "spring" },
       "effects": [{ "stat": { "thirst": -40 } }],
       "tags": ["drink"],
-      "log": ["cold water from the spring, tasting of stone.", "you drink until your teeth ache."]
+      "log": ["Cold water from the spring, tasting of stone.", "You drink until your teeth ache."]
     }
   ]
 }

@@ -179,7 +179,7 @@ export class Engine {
       this.logLines(d.text);
       this.applyEffects(d.effects);
     }
-    if (!found.length) this.log(textOf(ex.nothingLog, this.state) ?? "nothing new.");
+    if (!found.length) this.log(textOf(ex.nothingLog, this.state) ?? "Nothing new.");
     this.postCheck();
     return this.ok(ex.hours);
   }
@@ -232,7 +232,7 @@ export class Engine {
 
     // travel goes via camp: time from here to camp plus camp to there
     const hours = from.travelHours + to.travelHours;
-    this.log(`you walk to ${to.name}.`);
+    this.log(`You walk to ${to.name}.`);
     if (!this.advance(hours, "work")) return this.died(hours);
 
     this.state.location = regionId;
@@ -467,7 +467,7 @@ export class Engine {
       const st = this.state.regions[id];
       if (!st.unlocked && r.unlockWhen && evaluate(r.unlockWhen, ctx)) {
         st.unlocked = true;
-        this.log(`a way to ${r.name} opens.`);
+        this.log(`A way to ${r.name} opens.`);
       }
     }
     this.syncQuests();

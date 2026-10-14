@@ -286,20 +286,20 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "id": "forest",
   "name": "the forest",
   "title": "A Quiet Forest",
-  "description": ["tall trunks, close together.", "the sea is only a sound now."],
+  "description": ["Tall trunks, close together.", "The sea is only a sound now."],
   "climate": { "baseC": 20, "daySwing": true },
   "travelHours": 1,
   "unlockWhen": { "discovered": "trail_into_trees" },
-  "firstVisit": { "log": "the trees close in behind you.", "image": "forest_first" },
+  "firstVisit": { "log": "The trees close in behind you.", "image": "forest_first" },
 
   "explore": {
     "name": "look around", "hours": 2, "effort": "work",
     "requires": { "any": [ { "phase": ["dawn", "day", "dusk"] }, { "item": "torch" } ] },
-    "nothingLog": ["the trees all look the same now. nothing new."],
+    "nothingLog": ["The trees all look the same now. Nothing new."],
     "discoveries": [
-      { "id": "game_trail", "at": 2, "text": ["hoof prints in the mud. a trail used often."] },
-      { "id": "tall_pines", "at": 4, "text": ["a stand of pines, straight as masts."] },
-      { "id": "running_water", "at": 6, "text": ["somewhere ahead, the sound of running water."],
+      { "id": "game_trail", "at": 2, "text": ["Hoof prints in the mud. A trail used often."] },
+      { "id": "tall_pines", "at": 4, "text": ["A stand of pines, straight as masts."] },
+      { "id": "running_water", "at": 6, "text": ["Somewhere ahead, the sound of running water."],
         "effects": [ { "startQuest": "follow_the_water" } ] }
     ]
   },
@@ -310,7 +310,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
       "hours": 1, "effort": "work",
       "yields": [ { "item": "firewood", "min": 4, "max": 6 } ],
       "eventChance": 0.05,
-      "log": ["dry branches snap underfoot.", "an armful of deadwood."]
+      "log": ["Dry branches snap underfoot.", "An armful of deadwood."]
     },
     {
       "id": "hunt", "name": "hunt",
@@ -318,10 +318,10 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
       "visibleWhen": { "discovered": "game_trail" },
       "requires": { "all": [ { "item": "spear" }, { "not": { "phase": ["night"] } } ] },
       "outcomes": [
-        { "weight": 5, "text": "the spear finds its mark.",
+        { "weight": 5, "text": "The spear finds its mark.",
           "effects": [ { "give": { "raw_meat": 3, "hide": 1 } } ] },
-        { "weight": 4, "text": "nothing. the forest went quiet when you arrived." },
-        { "weight": 1, "text": "a tusk catches your leg.",
+        { "weight": 4, "text": "Nothing. The forest went quiet when you arrived." },
+        { "weight": 1, "text": "A tusk catches your leg.",
           "effects": [ { "stat": { "health": -15 } } ] }
       ],
       "eventChance": 0.15, "eventTags": ["hunt"]
@@ -340,12 +340,12 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
   "buildings": [
     {
       "id": "charcoal_clamp", "name": "charcoal clamp",
-      "description": "a mound of wood under turf, smouldering for a day.",
+      "description": "A mound of wood under turf, smouldering for a day.",
       "visibleWhen": { "seen": "clay" },
       "max": 3,
       "levels": [
         { "cost": { "firewood": 20, "clay": 5 }, "hours": 4, "effort": "heavy",
-          "log": "you pile the wood and seal it with turf and clay." }
+          "log": "You pile the wood and seal it with turf and clay." }
       ]
     }
   ],
@@ -355,8 +355,8 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
       "id": "burn_charcoal", "name": "burn charcoal", "building": "charcoal_clamp",
       "inputs": { "firewood": 15 }, "hours": 24,
       "outputs": [ { "item": "charcoal", "min": 5, "max": 7 } ],
-      "startLog": "smoke leaks from the mound.",
-      "doneLog": "the clamp has burned down. charcoal, black and light."
+      "startLog": "Smoke leaks from the mound.",
+      "doneLog": "The clamp has burned down. Charcoal, black and light."
     }
   ],
 
@@ -368,20 +368,20 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
       "image": "boar",
       "scenes": {
         "start": {
-          "text": ["the undergrowth bursts open.", "a boar, head low, tusks yellow."],
+          "text": ["The undergrowth bursts open.", "A boar, head low, tusks yellow."],
           "choices": [
-            { "id": "fight", "text": "stand with the spear",
+            { "id": "fight", "text": "Stand with the spear",
               "requires": { "item": "spear" },
               "next": [ { "weight": 6, "scene": "won" }, { "weight": 4, "scene": "gored" } ] },
-            { "id": "climb", "text": "climb a tree", "next": "climbed" }
+            { "id": "climb", "text": "Climb a tree", "next": "climbed" }
           ]
         },
-        "won":     { "text": ["it goes still."], "effects": [ { "give": { "raw_meat": 6, "hide": 2 } } ],
-                     "choices": [ { "id": "leave", "text": "carry it home", "next": "end" } ] },
-        "gored":   { "text": ["the tusk opens your thigh. it runs."], "effects": [ { "stat": { "health": -25 } } ],
-                     "choices": [ { "id": "leave", "text": "limp away", "next": "end" } ] },
-        "climbed": { "text": ["it circles for an hour, then loses interest."], "effects": [ { "wait": 1 } ],
-                     "choices": [ { "id": "leave", "text": "climb down", "next": "end" } ] }
+        "won":     { "text": ["It goes still."], "effects": [ { "give": { "raw_meat": 6, "hide": 2 } } ],
+                     "choices": [ { "id": "leave", "text": "Carry it home", "next": "end" } ] },
+        "gored":   { "text": ["The tusk opens your thigh. It runs."], "effects": [ { "stat": { "health": -25 } } ],
+                     "choices": [ { "id": "leave", "text": "Limp away", "next": "end" } ] },
+        "climbed": { "text": ["It circles for an hour, then loses interest."], "effects": [ { "wait": 1 } ],
+                     "choices": [ { "id": "leave", "text": "Climb down", "next": "end" } ] }
       }
     }
   ]
@@ -454,13 +454,13 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 ```json
 { "id": "craft_spear", "makes": { "spear": 1 }, "station": "camp",
   "cost": { "driftwood": 2, "sharp_stone": 1, "cordage": 1 }, "hours": 1, "effort": "light",
-  "log": "a straight shaft, a lashed point. it will do." }
+  "log": "A straight shaft, a lashed point. It will do." }
 ```
 
 - **Item actions [implemented]:** an item can list `actions` — small buttons labelled with the action's `label`, shown next to it in the stores, e.g. raw fish → `{ "id": "cook", "label": "cook", "hours": 0.5, "visibleWhen": { "all": [ { "timer": "fire" }, { "at": "beach" } ] }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1) plus any `cost`; the `itemAction` command runs it. Eating (`consume`) is a button of the same kind.
 - `station` is `camp` (always available at the beach) or a building id (`workbench`, `forge`, `loom`). The craft menu is shown in the region where the station is.
 - Processes (§6.6) belong to a building. Several processes per building are allowed (the kiln fires pots *or* bricks).
-- Knowledge: `{ "id": "boiling_water", "name": "boiling water", "learnWhen": { "item": "clay_pot" }, "log": "water boiled in clay will not make you sick." }`. It can also be granted by the `learn` effect.
+- Knowledge: `{ "id": "boiling_water", "name": "boiling water", "learnWhen": { "item": "clay_pot" }, "log": "Water boiled in clay will not make you sick." }`. It can also be granted by the `learn` effect.
 
 ### 6.10 Events
 
@@ -487,11 +487,11 @@ Example (not shipped; the current content has only *survive the first night*):
 {
   "id": "light_a_fire",
   "title": "light a fire",
-  "hint": "the light is going. gather wood and make a fire before dark.",
+  "hint": "The light is going. Gather wood and make a fire before dark.",
   "trigger": { "when": { "all": [ { "reached": { "day": 1, "hour": 16 } }, { "not": { "did": "light_fire" } } ] } },
   "completeWhen": { "timer": "fire" },
-  "startLog": "the sun is low. it will be cold soon.",
-  "doneLog": "warmth, and a little light against the dark.",
+  "startLog": "The sun is low. It will be cold soon.",
+  "doneLog": "Warmth, and a little light against the dark.",
   "effects": []
 }
 ```
@@ -545,7 +545,7 @@ Example (not shipped; the current content has only *survive the first night*):
   },
   "multipliers": [ { "when": { "warmth": ["hot"] }, "stat": "thirst", "factor": 1.3 } ],
   "damage": [
-    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "your lips crack. the world tilts." },
+    { "when": { "stat": "thirst", "gte": 80 }, "healthPerHour": -2, "log": "Your lips crack. The world tilts." },
     { "when": { "warmth": ["freezing"] }, "healthPerHour": -3 }
   ],
   "regen": [ { "when": { "all": [ { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }, { "warmth": ["comfortable"] } ] }, "healthPerHour": 1 } ]

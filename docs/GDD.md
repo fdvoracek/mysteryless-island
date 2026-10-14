@@ -32,7 +32,7 @@ The screen is a few buttons, a scrolling story log, and a status panel. Occasion
 1. **Every hour counts.** Each action trades in-game time and energy for progress. Hunger, thirst and temperature keep moving while you work. The core decision is always "what is this hour worth?"
 2. **The island reveals itself.** The interface starts with almost nothing. New buttons, new tabs (regions) and new status lines appear as you learn and explore. Discovering what the game contains is part of the reward.
 3. **From hands to iron.** Each technology is a believable step from the previous one (stone → fire → clay → charcoal → iron → machines → ship). The player should feel clever, like Verne's engineer.
-4. **A quiet voice.** Lowercase, short sentences, no explanations. Mechanics carry the story.
+4. **A quiet voice.** Short sentences, no explanations. Mechanics carry the story.
 
 ### Non-goals
 
@@ -346,7 +346,7 @@ The arc "survive, build, leave" works on its own. A mystery would give explorati
 
 **Recommendation:** A as the base (it also solves onboarding through journal hints), with C as optional late-game tension. Decide before content milestone M5.
 
-**Voice guide [proposal]:** lowercase except names; present tense; second person is avoided ("awake. salt in the mouth. the sea is quiet now."); one concrete sensory detail per line; never explain mechanics in the log, only in tooltips.
+**Voice guide:** sentences start with a capital letter (checked by `npm run content:check`); labels (buttons, places, items, tasks) stay lowercase; present tense; second person is avoided ("Awake. Salt in the mouth. The sea is quiet now."); one concrete sensory detail per line; never explain mechanics in the log, only in tooltips.
 
 ---
 
