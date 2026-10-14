@@ -14,9 +14,9 @@ export interface ButtonView {
 export interface StatusLine {
   id: string;
   label: string;
-  /** null for lines shown as a word only (timers such as the fire) */
-  stars: number | null;
-  /** the descriptive word, shown on hover for star lines */
+  /** bar fill 0..100 (more is better); null for lines shown as a word only */
+  fill: number | null;
+  /** the descriptive word, shown on hover for bar lines */
   word: string;
   trend: "better" | "worse" | "";
   bad: boolean;
@@ -30,7 +30,6 @@ export interface View {
     day: number;
     clock: string;
     phase: string;
-    maxStars: number;
     lines: StatusLine[];
   };
   stores: Array<{ id: string; label: string; count: number; use?: { verb: string; tooltip: string[] } }>;
@@ -59,31 +58,31 @@ export function view(engine: Engine): View {
     actions.push({ id: a.id, label: a.name, enabled: c.enabled, reason: c.reason, tooltip });
   }
 
-  const maxStars = reg.stats.maxStars ?? 5;
+  const danger = reg.stats.dangerAtOrBelow ?? 20;
   const lines: StatusLine[] = [];
   for (const st of reg.stats.stats) {
     const v = s.stats[st.id] ?? 0;
     const word = st.words.find((w) => v <= w.upTo)?.word ?? st.words[st.words.length - 1].word;
     const delta = v - (s.prevStats[st.id] ?? v);
     const highIsBad = !!st.highIsBad;
-    const stars = toStars(highIsBad ? 100 - v : v, maxStars);
+    const fill = clampPct(highIsBad ? 100 - v : v);
     const worse = highIsBad ? delta > 0.5 : delta < -0.5;
     const better = highIsBad ? delta < -0.5 : delta > 0.5;
     lines.push({
-      id: st.id, label: st.label ?? st.name, stars, word,
-      trend: worse ? "worse" : better ? "better" : "", bad: stars <= 1,
+      id: st.id, label: st.label ?? st.name, fill, word,
+      trend: worse ? "worse" : better ? "better" : "", bad: fill <= danger,
     });
   }
   const band = reg.climate.bodyBands[s.warmth];
   lines.push({
-    id: "comfort", label: reg.climate.warmthLabel ?? "comfort", stars: Math.min(band.stars, maxStars), word: band.id,
-    trend: "", bad: band.stars <= 1,
+    id: "comfort", label: reg.climate.warmthLabel ?? "comfort", fill: band.fill, word: band.id,
+    trend: "", bad: band.fill <= danger,
   });
   for (const t of reg.timers.values()) {
     if (t.showInStatus === false) continue;
     const hours = (s.timers[t.id] ?? 0) / 60;
     const word = t.states.find((x) => hours <= x.upToHours)?.word ?? t.states[t.states.length - 1].word;
-    lines.push({ id: t.id, label: t.name, stars: null, word, trend: "", bad: false });
+    lines.push({ id: t.id, label: t.name, fill: null, word, trend: "", bad: false });
   }
 
   const stores: View["stores"] = [];
@@ -102,21 +101,16 @@ export function view(engine: Engine): View {
     title: region.title,
     tabs,
     actions,
-    status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, maxStars, lines },
+    status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     stores,
     log: s.log.map((l) => l.text),
     dead: s.dead,
   };
 }
 
-/**
- * Map a 0..100 "goodness" value to stars. Each star covers an equal slice and rounds up,
- * so 0 stars appears only at exactly 0 (for health: death).
- */
-export function toStars(goodness: number, maxStars: number): number {
-  const g = Math.max(0, Math.min(100, goodness));
-  // Math.max(0, …) also turns Math.ceil(-1e-9) = -0 into a plain 0
-  return Math.max(0, Math.min(maxStars, Math.ceil((g / 100) * maxStars - 1e-9)));
+/** Clamp to 0..100 and round to one decimal so the bar width is stable. */
+export function clampPct(v: number): number {
+  return Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
 }
 
 export function fmtHours(h: number): string {

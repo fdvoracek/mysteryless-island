@@ -34,14 +34,6 @@ describe("content", () => {
     expect(() => buildRegistry(files)).toThrow(ContentError);
   });
 
-  it("rejects stat words that don't sit on star boundaries", () => {
-    const files = readContentFiles();
-    const stats = structuredClone(files["content/stats.json"]) as { stats: Array<{ words: Array<{ upTo: number }> }> };
-    stats.stats[0].words[3].upTo = 85;
-    files["content/stats.json"] = stats;
-    expect(() => buildRegistry(files)).toThrow(/not on a star boundary/);
-  });
-
   it("ignores _note comment keys", () => {
     const files = readContentFiles();
     const forest = structuredClone(files["content/regions/forest.json"]) as Record<string, unknown>;

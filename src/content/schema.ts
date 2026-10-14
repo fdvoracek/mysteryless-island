@@ -208,8 +208,8 @@ export const StatsFile = z
         })
         .strict(),
     ),
-    /** stars shown per stat in the status panel; 0 stars only at the very end of the scale */
-    maxStars: z.number().int().min(1).max(10).optional(),
+    /** an ink bar at or below this fill (0..100, more is better) is drawn in the danger colour */
+    dangerAtOrBelow: z.number().min(0).max(100).optional(),
     ratesPerHour: z.record(Effort, z.record(Id, z.number())),
     multipliers: z.array(z.object({ when: Condition, stat: Id, factor: z.number() }).strict()),
     damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: z.string().optional() }).strict()),
@@ -220,8 +220,8 @@ export const StatsFile = z
 export const Climate = z
   .object({
     phases: z.array(z.object({ id: Id, from: z.number(), to: z.number(), tempC: z.number() }).strict()).min(1),
-    /** stars = how comfortable this band is (both too cold and too hot cost stars) */
-    bodyBands: z.array(z.object({ id: Id, belowC: z.number().optional(), stars: z.number().int().min(0) }).strict()).min(2),
+    /** fill = how full the comfort bar is in this band (0..100) */
+    bodyBands: z.array(z.object({ id: Id, belowC: z.number().optional(), fill: z.number().min(0).max(100) }).strict()).min(2),
     warmthLabel: z.string().optional(),
     startBand: Id,
   })

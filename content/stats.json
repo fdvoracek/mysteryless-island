@@ -1,6 +1,6 @@
 {
-  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value. The panel shows stars: more is better; 0 stars only at the very end of the scale (health 0 = death). Word thresholds must sit on star boundaries (multiples of 100 / maxStars) so the hover word never contradicts the stars.",
-  "maxStars": 5,
+  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value. The panel shows each stat as an ink bar (fuller is better; hunger and thirst are drawn inverted as fullness and hydration). Health at 0 = death.",
+  "dangerAtOrBelow": 20,
   "stats": [
     {
       "id": "health", "name": "health",

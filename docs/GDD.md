@@ -127,9 +127,9 @@ flowchart LR
 
 ## 6. Survival model
 
-### 6.1 Stats **[decided: health is the only life bar; shown as stars]**
+### 6.1 Stats **[decided: health is the only life bar; shown as ink bars]**
 
-All stats are numbers from 0 to 100 internally. The status panel shows each one as **0–5 stars, where more is always better** (hunger is shown as *fullness*, thirst as *hydration*, warmth as *comfort*: freezing 1 star, cold 3, comfortable 5). Each star covers 20 points and rounds up, so 0 stars appears only at the very end of a scale. **Only health at 0 stars ends the game**; the other stats at 0 stars drain health. Hovering a row shows the word below and the trend. *(Changed from words-only after the prototype, at your request.)*
+All stats are numbers from 0 to 100 internally. The status panel shows each one as a thin **ink bar**, the same line as the button cooldown bars, where **fuller is always better** (hunger is drawn as *fullness*, thirst as *hydration*, warmth as *comfort*: freezing 20%, cold 60%, comfortable 100%). A bar at or below 20% turns red, which is also where hunger and thirst start to hurt. **Only an empty health bar ends the game**; the other stats at empty drain health. Hovering a row shows the word below and the trend. *(Prototype iterations: words → stars → ink bars, at your request; stars read as a review score.)*
 
 | Stat | Meaning | Words (low → high value) | Changes by |
 |---|---|---|---|
