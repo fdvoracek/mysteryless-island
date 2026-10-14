@@ -1,0 +1,99 @@
+/* 5. bullet journal: dot-grid paper, hand lettering, bullets and signifiers, highlighter, washi tape */
+
+/* paper and pens (the shared tokens are redefined so every component follows) */
+.layout-bujo {
+  --bg: #fbf8f1; --fg: #26283b; --line: #26283b; --muted: #8b8579; --bar: #e7e0d2; --bad: #c8463d;
+  --dots: #d6cfc1; --marker: rgba(255, 207, 64, 0.65); --marker-bad: rgba(232, 92, 80, 0.45);
+  --tape-a: rgba(240, 180, 170, 0.75); --tape-b: rgba(160, 205, 190, 0.75); --tape-c: rgba(190, 185, 230, 0.75);
+  --hand: "Caveat", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  --pen: "Patrick Hand", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .layout-bujo {
+    --bg: #1e1d1b; --fg: #ebe5d8; --line: #ebe5d8; --muted: #8f897d; --bar: #34322e; --bad: #f08a7e;
+    --dots: #3b3934; --marker: rgba(255, 207, 64, 0.35); --marker-bad: rgba(240, 110, 95, 0.4);
+    --tape-a: rgba(200, 120, 110, 0.55); --tape-b: rgba(100, 160, 145, 0.55); --tape-c: rgba(130, 125, 190, 0.55);
+  }
+}
+:root[data-theme="dark"] .layout-bujo {
+  --bg: #1e1d1b; --fg: #ebe5d8; --line: #ebe5d8; --muted: #8f897d; --bar: #34322e; --bad: #f08a7e;
+  --dots: #3b3934; --marker: rgba(255, 207, 64, 0.35); --marker-bad: rgba(240, 110, 95, 0.4);
+  --tape-a: rgba(200, 120, 110, 0.55); --tape-b: rgba(100, 160, 145, 0.55); --tape-c: rgba(130, 125, 190, 0.55);
+}
+
+#app.layout-bujo {
+  min-height: 100vh; color: var(--fg); font-family: var(--pen); font-size: 17px;
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, var(--dots) 1.1px, transparent 1.3px);
+  background-size: 22px 22px;
+}
+
+/* a two-page spread */
+.layout-bujo .wrap {
+  max-width: 1040px; margin: 0 auto; padding: 28px 24px 90px;
+  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 56px;
+}
+.layout-bujo .bj-page { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.layout-bujo .bj-title { margin: 0; font-family: var(--hand); font-weight: 700; font-size: 38px; line-height: 1; }
+.layout-bujo .bj-title::after {
+  content: ""; display: block; width: 120px; height: 9px; margin-top: 2px; background: var(--marker);
+  border-radius: 40% 60% 50% 50% / 60% 40% 60% 40%; transform: rotate(-1.5deg);
+}
+
+/* the daily log: one bullet per action, the time in front, a lettered heading per day */
+.layout-bujo .log { max-height: 56vh; overflow-y: auto; display: grid; gap: 8px; align-content: end; padding-right: 8px; }
+.layout-bujo .log .day { font-family: var(--hand); font-size: 26px; font-weight: 700; margin-top: 4px; }
+.layout-bujo .log .entry { position: relative; padding-left: 1.4em; line-height: 1.45; }
+.layout-bujo .log .entry::before { content: "○"; position: absolute; left: 0; top: 0; color: var(--fg); }
+.layout-bujo .log .entry .time { font-size: 14px; color: var(--muted); margin-right: 8px; font-variant-numeric: tabular-nums; }
+.layout-bujo .log .entry.older { color: var(--muted); }
+.layout-bujo .log .entry.older::before { color: var(--muted); }
+.layout-bujo .log .entry.latest { font-size: 19px; }
+.layout-bujo .log .entry.latest::before { content: "●"; }
+
+/* places as tabs written in the margin, actions as hand-drawn boxes */
+.layout-bujo .tabs { margin: 0; font-family: var(--hand); font-size: 24px; gap: 4px 16px; }
+.layout-bujo .tabs .sep { color: var(--muted); }
+.layout-bujo .tab.here { text-decoration: none; background: linear-gradient(transparent 55%, var(--marker) 55%); }
+.layout-bujo .buttons { gap: 14px; }
+.layout-bujo .btn {
+  width: auto; min-width: 120px; padding: 6px 14px; background: var(--bg); font-family: var(--pen); font-size: 17px;
+  border: 2px solid var(--line); border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+}
+.layout-bujo .btn:nth-child(odd) { transform: rotate(-0.8deg); }
+.layout-bujo .btn:nth-child(even) { transform: rotate(0.6deg); }
+.layout-bujo .btn .cd { background: var(--marker); border-radius: inherit; }
+.layout-bujo .btn .tip, .layout-bujo .row .tip, .layout-bujo .quest .tip { font-family: var(--pen); border-radius: 4px; }
+
+/* collections: no frames, a strip of washi tape as the heading */
+.layout-bujo .box { border: 0; padding: 12px 4px 4px; position: relative; }
+.layout-bujo .box legend {
+  font-family: var(--hand); font-size: 22px; font-weight: 700; padding: 0 14px; margin-left: -6px;
+  background: var(--tape-a); transform: rotate(-2deg);
+  clip-path: polygon(2% 0, 98% 4%, 100% 50%, 97% 100%, 1% 96%, 0 50%);
+}
+.layout-bujo #questsBox legend { background: var(--tape-b); transform: rotate(1.5deg); }
+.layout-bujo #storesBox legend, .layout-bujo #inventoryBox legend { background: var(--tape-c); transform: rotate(-1deg); }
+.layout-bujo .bj-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+/* tracker: survival bars drawn with a highlighter */
+.layout-bujo #status .row { padding: 3px 0; }
+.layout-bujo .bar { width: 110px; height: 12px; border: 0; border-bottom: 1.5px dotted var(--muted); }
+.layout-bujo .bar i { background: var(--marker); border-radius: 30% 60% 40% 70% / 60% 30% 70% 40%; }
+.layout-bujo .row.bad .bar { border-color: var(--bad); }
+.layout-bujo .row.bad .bar i { background: var(--marker-bad); }
+
+/* tasks with bullet-journal signifiers: • open, × done */
+.layout-bujo .quest .title::before { content: "•  "; color: var(--fg); font-weight: 700; }
+.layout-bujo .quest.done .title::before { content: "×  "; }
+.layout-bujo .qaction, .layout-bujo .iaction { border-radius: 6px 3px 7px 3px; border-width: 1.5px; }
+
+/* menu and overlays on the same paper */
+.layout-bujo .menu { background: transparent; font-family: var(--pen); }
+.layout-bujo .fade p { font-family: var(--hand); font-size: 34px; }
+
+@media (max-width: 860px) {
+  .layout-bujo .wrap { grid-template-columns: 1fr; gap: 28px; }
+  .layout-bujo .log { max-height: 50vh; }
+  .layout-bujo .bj-pair { grid-template-columns: 1fr; }
+}

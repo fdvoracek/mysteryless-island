@@ -38,4 +38,6 @@ export interface Layout {
    */
   skeleton: () => string;
   story: StoryStyle;
+  /** optional external stylesheets (e.g. web fonts), loaded the first time the layout is used */
+  stylesheets?: string[];
 }

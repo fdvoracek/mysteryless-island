@@ -65,6 +65,7 @@ export class UI {
     this.layout = layout;
     for (const l of LAYOUTS) this.root.classList.remove(`layout-${l.id}`);
     this.root.classList.add(`layout-${layout.id}`);
+    for (const href of layout.stylesheets ?? []) loadStylesheet(href);
     this.els.game.innerHTML = layout.skeleton();
     for (const id of REQUIRED_IDS) {
       const el = this.els.game.querySelector<HTMLElement>(`#${id}`);
@@ -444,6 +445,15 @@ function div(text: string, cls?: string) {
   if (cls) d.className = cls;
   d.textContent = text;
   return d;
+}
+
+/** Add a <link rel="stylesheet"> once (layouts can bring their own web fonts). */
+function loadStylesheet(href: string) {
+  if (document.head.querySelector(`link[href="${href}"]`)) return;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = href;
+  document.head.append(link);
 }
 
 const LAYOUT_KEY = "textisland.layout";

@@ -19,7 +19,7 @@ Pacing: after each action a progress bar runs (in-game hours and the amount of n
 
 ## Layouts
 
-Five screen layouts, switchable from *layout:* in the bottom menu (the choice is remembered; `?layout=<id>` in the URL also works):
+Six screen layouts, switchable from *layout:* in the bottom menu (the choice is remembered; `?layout=<id>` in the URL also works):
 
 | id | Layout |
 |---|---|
@@ -28,8 +28,9 @@ Five screen layouts, switchable from *layout:* in the bottom menu (the choice is
 | `scene` | the last result as a large paragraph with the buttons under it, earlier text in one quiet line; panels on a shelf |
 | `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
 | `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
+| `bujo` | bullet journal: dot-grid paper and hand lettering; the daily log as bullets with times, tasks with • / × signifiers, survival bars as highlighter strokes, stores and inventory as collections under washi tape |
 
-Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go and how the story reads; `<id>.css`: its styles, scoped to `.layout-<id>`). Panels are shared (`panels.ts`) and keep their ids in every layout. To add one, copy a pair of files, change them, and add it to `LAYOUTS` in `index.ts`; to remove one, delete its files and its line there.
+Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go and how the story reads; `<id>.css`: its styles, scoped to `.layout-<id>`). Panels are shared (`panels.ts`) and keep their ids in every layout. A layout may also list `stylesheets` (e.g. web fonts) that load when it is chosen; `bujo` uses this for its handwriting fonts. To add one, copy a pair of files, change them, and add it to `LAYOUTS` in `index.ts`; to remove one, delete its files and its line there.
 
 ## Prototype scope
 
