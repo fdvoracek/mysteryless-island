@@ -322,9 +322,9 @@ export const Game = z
       .strict(),
     deathLog: Text,
     /**
-     * The end screen when you die (death is permanent): how long you lasted ({time}, {day}), why
-     * ({cause}: the damage rule's cause, an event's title, or defaultCause), and a recap of your
-     * story (groups of lines with conditions, like activity thoughts). `restart` labels the button.
+     * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why
+     * ({cause}: the damage rule's cause, an event's title, or defaultCause). `load` and `restart`
+     * label its buttons.
      */
     ending: z
       .object({
@@ -332,7 +332,6 @@ export const Game = z
         survived: Text,
         cause: Text,
         defaultCause: z.string(),
-        recap: z.array(Thoughts),
         restart: z.string(),
         /** the button that loads the saved game (shown only when there is one) */
         load: z.string(),

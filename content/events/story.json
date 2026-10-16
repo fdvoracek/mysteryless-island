@@ -11,25 +11,25 @@
           {
             "id": "knife",
             "label": "the knife",
-            "effects": [{ "give": { "knife": 1 } }, { "flag": "took_knife" }],
+            "effects": [{ "give": { "knife": 1 } }],
             "next": "swim_knife"
           },
           {
             "id": "matches",
             "label": "the matches",
-            "effects": [{ "give": { "matches": 10 } }, { "flag": "took_matches" }],
+            "effects": [{ "give": { "matches": 10 } }],
             "next": "swim_matches"
           },
           {
             "id": "water",
             "label": "the water can",
-            "effects": [{ "give": { "water_can": 1, "can_water": 4 } }, { "flag": "took_water" }],
+            "effects": [{ "give": { "water_can": 1, "can_water": 4 } }],
             "next": "swim_water"
           },
           {
             "id": "rations",
             "label": "the rations",
-            "effects": [{ "give": { "rations": 6 } }, { "flag": "took_rations" }],
+            "effects": [{ "give": { "rations": 6 } }],
             "next": "swim_rations"
           }
         ]

@@ -318,7 +318,7 @@ test("death is permanent: the end screen tells your story; load the saved game o
   await expect(end).toBeVisible({ timeout: 6_000 });
   await expect(page.locator("#endTitle")).toHaveText("The journal ends");
   await expect(page.locator("#endText")).toContainText("Cause of death: thirst.");
-  await expect(page.locator("#endText")).toContainText("You swam ashore with the knife in your fist.");
+  await expect(page.locator("#endText p")).toHaveCount(2); // how long, and why: nothing more
   await expect(page.locator("#endText")).toContainText(/You lasted .* on the island, until day 1\./);
   await expect(page.locator("#game")).toBeHidden();
 

@@ -659,7 +659,7 @@ export class Engine {
 
   /**
    * Death is permanent: record when and why, and write the end screen's lines once (so a reload
-   * shows the same words): how long you lasted, the cause, and the recap of your story.
+   * shows the same words): how long you lasted, and the cause.
    */
   private die(cause?: string) {
     const s = this.state;
@@ -675,7 +675,6 @@ export class Engine {
       lines: [
         this.say(ending.survived, { time: duration(lasted), day: String(Math.floor(s.time / 1440) + 1) })!,
         this.say(ending.cause, { cause: why })!,
-        ...this.thoughts(ending.recap),
       ],
     };
   }
