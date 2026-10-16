@@ -12,8 +12,6 @@
   "travelHours": 1,
   "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
   "map": { "x": -1, "y": 0 },
-  "_hintWhen": "the ? appears once you have seen the cliff; the way opens when you climb it",
-  "hintWhen": { "discovered": "cliff_shells" },
   "unlockWhen": { "discovered": "cliff_top" },
   "firstVisit": {
     "log": [
@@ -109,6 +107,7 @@
       "name": "pick berries",
       "hours": 0.5,
       "effort": "work",
+      "icon": "berries",
       "visibleWhen": { "discovered": "berry_bushes" },
       "yields": [{ "item": "berries", "min": 3, "max": 6 }],
       "log": [
@@ -124,6 +123,7 @@
       "name": "drink water",
       "hours": 0.25,
       "effort": "light",
+      "icon": "water",
       "visibleWhen": { "discovered": "river" },
       "effects": [{ "stat": { "thirst": -40 } }],
       "tags": ["drink"],
@@ -139,6 +139,7 @@
       "name": "catch fish",
       "hours": 1.0,
       "effort": "work",
+      "icon": "fish",
       "visibleWhen": { "discovered": "river" },
       "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [

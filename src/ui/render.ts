@@ -3,6 +3,8 @@ import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
 import { getLayout, LAYOUTS, type Layout } from "./layouts";
 import { REQUIRED_IDS } from "./layouts/panels";
+import type { Icon } from "../content/schema";
+import { iconSvg } from "./icons";
 
 /**
  * Minimal DOM renderer. It renders view models and sends commands; it holds no game state.
@@ -217,7 +219,18 @@ export class UI {
   private renderTabs(v: View) {
     const m = v.map;
     let view = this.els.tabs.querySelector<HTMLElement>(":scope > .map-view");
-    if (!view) { view = div("", "map-view"); view.append(div("", "map")); this.els.tabs.replaceChildren(view); }
+    if (!view) {
+      view = div("", "map-view");
+      view.append(div("", "map"));
+      // the hover card lives outside the faded view, so the fog does not hide it
+      const tip = div("", "map-tip");
+      tip.hidden = true;
+      tip.setAttribute("role", "tooltip");
+      tip.id = "mapTip";
+      this.els.tabs.replaceChildren(view, tip);
+    }
+    const tip = this.els.tabs.querySelector<HTMLElement>(":scope > .map-tip")!;
+    tip.hidden = true; // its node is redrawn below
     const grid = view.firstElementChild as HTMLElement;
     const here = v.tabs.find((t) => t.here) ?? { col: 0, row: 0 };
     const cells = [...v.tabs, ...m.unknown];
@@ -256,26 +269,57 @@ export class UI {
     const known = new Set(v.tabs.map((t) => t.id));
     if (!first) for (const id of known) if (!this.knownPlaces!.has(id)) this.pulse.add(id);
     this.knownPlaces = known;
+    // the fog: places three or more cells away are faded out completely, so they can't be clicked either
+    const far = (c: { col: number; row: number }) => Math.abs(c.col - here.col) >= 3 || Math.abs(c.row - here.row) >= 3;
     const nodes = v.tabs.map((t) => {
       const b = document.createElement("button");
-      b.className = "tab" + (t.here ? " here" : "") + (this.pulse.has(t.id) && !t.here && !v.event ? " new" : "");
+      b.className = "tab" + (t.here ? " here" : "") + (far(t) ? " far" : "") + (this.pulse.has(t.id) && !t.here && !v.event ? " new" : "");
       b.dataset.id = t.id;
       b.innerHTML = `<span class="dot" aria-hidden="true"></span><span class="name"></span>`;
       b.querySelector(".name")!.textContent = t.label;
-      b.title = t.here ? "you are here" : `walk there · ${fmtHours(t.hours)}`;
-      if (t.here) b.setAttribute("aria-current", "location");
-      b.disabled = t.here || this.isBusy();
+      b.setAttribute("aria-label", t.here ? `${t.label}, you are here` : `${t.label}, walk there, ${fmtHours(t.hours)}`);
+      if (t.here) { b.setAttribute("aria-current", "location"); b.setAttribute("aria-disabled", "true"); }
+      // the place you are in stays enabled, so it can be hovered for its icons; clicking it does nothing
+      b.disabled = !t.here && this.isBusy();
+      if (far(t)) { b.tabIndex = -1; b.setAttribute("aria-hidden", "true"); }
       if (!t.here) b.addEventListener("click", () => this.send({ type: "travel", region: t.id }, b));
+      if (t.icons.length) {
+        b.setAttribute("aria-describedby", "mapTip");
+        const show = () => this.showMapTip(tip, b, t.icons);
+        b.addEventListener("mouseenter", show);
+        b.addEventListener("focus", show);
+        b.addEventListener("mouseleave", () => { tip.hidden = true; });
+        b.addEventListener("blur", () => { tip.hidden = true; });
+      }
       place(b, t);
       return b;
     });
-    const unknown = m.unknown.map((u) => { const q = div("?", "map-unknown"); q.setAttribute("aria-label", "somewhere not found yet"); place(q, u); return q; });
+    const unknown = m.unknown.map((u) => {
+      const q = div("?", "map-unknown" + (far(u) ? " far" : ""));
+      q.setAttribute("aria-label", "somewhere not found yet");
+      place(q, u);
+      return q;
+    });
     grid.replaceChildren(svg, ...labels, ...nodes, ...unknown);
     // the first drawing (and a restart or load) puts the map in place without sliding
     if (first) { grid.classList.add("still"); void grid.offsetWidth; grid.classList.remove("still"); }
   }
 
 
+
+  /** The hover card under a place on the map: an icon (and its word) for each thing found there. */
+  private showMapTip(tip: HTMLElement, node: HTMLElement, icons: Icon[]) {
+    tip.replaceChildren(...icons.map((i) => {
+      const el = div("", "map-icon");
+      el.innerHTML = iconSvg(i);
+      el.append(div(i, "map-icon-name"));
+      return el;
+    }));
+    const box = this.els.tabs.getBoundingClientRect(), r = node.getBoundingClientRect();
+    tip.style.left = `${r.left - box.left + r.width / 2}px`;
+    tip.style.top = `${r.bottom - box.top + 4}px`;
+    tip.hidden = false;
+  }
 
   private renderButtons(container: HTMLElement, buttons: ButtonView[]) {
     const existing = new Map<string, HTMLButtonElement>();

@@ -101,6 +101,7 @@
       "name": "collect wood",
       "hours": 0.5,
       "effort": "work",
+      "icon": "wood",
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
       "log": [
         "Dry branches snap underfoot.",
@@ -120,6 +121,7 @@
       "name": "drink water",
       "hours": 0.25,
       "effort": "light",
+      "icon": "water",
       "visibleWhen": { "discovered": "spring" },
       "effects": [{ "stat": { "thirst": -40 } }],
       "tags": ["drink"],

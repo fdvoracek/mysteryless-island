@@ -144,12 +144,17 @@ export const Thoughts = z
   .strict();
 export type Thoughts = z.infer<typeof Thoughts>;
 
+/** small pictures for the map: hovering a place shows one per activity found there (src/ui/icons.ts) */
+export const Icon = z.enum(["fire", "water", "wood", "fish", "berries", "shells", "sleep"]);
+
 export const Activity = z
   .object({
     id: Id,
     name: z.string(),
     hours: z.number().positive(),
     effort: Effort,
+    /** shown on the map when you hover the place, once the activity is visible (found) */
+    icon: Icon.optional(),
     visibleWhen: Condition.optional(),
     requires: Condition.optional(),
     requiresText: z.string().optional(),
@@ -509,6 +514,7 @@ export type EventScene = z.infer<typeof EventScene>;
 export type QuestAction = z.infer<typeof QuestAction>;
 export type ItemAction = z.infer<typeof ItemAction>;
 export type Activity = z.infer<typeof Activity>;
+export type Icon = z.infer<typeof Icon>;
 export type Region = z.infer<typeof Region>;
 export type Item = z.infer<typeof Item>;
 export type Timer = z.infer<typeof Timer>;

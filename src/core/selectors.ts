@@ -3,6 +3,7 @@ import { evaluate } from "./conditions";
 import { sentence } from "./text";
 import type { Command, Engine } from "./engine";
 import type { GameState } from "./state";
+import { Icon } from "../content/schema";
 
 /** View models: everything the UI (or a simulator bot) needs, with no game logic left to do. */
 
@@ -31,7 +32,8 @@ export interface StatusLine {
 export interface View {
   title: string;
   /** the places you know (the nodes of the route map) */
-  tabs: Array<{ id: string; label: string; here: boolean; hours: number; col: number; row: number }>;
+  /** `icons`: one per kind of activity found there (fire, water, wood…), shown when you hover the place */
+  tabs: Array<{ id: string; label: string; here: boolean; hours: number; col: number; row: number; icons: Icon[] }>;
   /**
    * The route map: a grid of cols x rows; paths from the camp to each place, labelled with the
    * walking time; places not found yet are "?" at the end of a dashed path.
@@ -273,6 +275,14 @@ function goChoices(engine: Engine) {
   });
 }
 
+/** What you have found to do at a place, as map icons: the activities shown there now (each kind once, in a fixed order). */
+function placeIcons(engine: Engine, regionId: string): Icon[] {
+  const ctx = engine.ctx();
+  const found = new Set(engine.reg.regions.get(regionId)!.activities
+    .filter((a) => a.icon && evaluate(a.visibleWhen, ctx)).map((a) => a.icon!));
+  return Icon.options.filter((i) => found.has(i));
+}
+
 /** The places you know and the route map between them (see View["map"]). */
 function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
   const { reg, state: s } = engine;
@@ -289,7 +299,7 @@ function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
   const here = reg.regions.get(s.location)!;
   const tabs = known.map((id) => {
     const r = reg.regions.get(id)!;
-    return { id, label: r.name, here: id === s.location, hours: id === s.location ? 0 : here.travelHours + r.travelHours, ...cell(id) };
+    return { id, label: r.name, here: id === s.location, hours: id === s.location ? 0 : here.travelHours + r.travelHours, ...cell(id), icons: placeIcons(engine, id) };
   });
   const paths = [...known, ...unknown].filter((id) => id !== hub).map((id) => ({
     from: cell(hub), to: cell(id), unknown: !s.regions[id]?.unlocked,

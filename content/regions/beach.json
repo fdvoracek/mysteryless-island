@@ -175,6 +175,7 @@
       "name": "light fire",
       "hours": 0.25,
       "effort": "light",
+      "icon": "fire",
       "visibleWhen": {
         "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }, { "item": "matches" }]
       },
@@ -193,6 +194,7 @@
       "_note": "without matches: friction, 2 h, catches 2 times in 3; the wood is only used when it catches",
       "hours": 1.0,
       "effort": "work",
+      "icon": "fire",
       "visibleWhen": {
         "all": [
           { "discovered": "rock_shelter" },
@@ -232,6 +234,7 @@
       "name": "stoke fire",
       "hours": 0.25,
       "effort": "light",
+      "icon": "fire",
       "visibleWhen": { "timer": "fire" },
       "cost": { "firewood": 2 },
       "effects": [{ "timer": "fire", "addHours": 4 }],
@@ -249,6 +252,7 @@
       "name": "collect shells",
       "hours": 0.5,
       "effort": "work",
+      "icon": "shells",
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
@@ -265,6 +269,7 @@
       "name": "catch fish",
       "hours": 1.0,
       "effort": "work",
+      "icon": "fish",
       "visibleWhen": { "discovered": "school_of_fish" },
       "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
       "outcomes": [
@@ -306,6 +311,7 @@
       "name": "sleep",
       "hours": 8,
       "effort": "sleep",
+      "icon": "sleep",
       "visibleWhen": { "discovered": "rock_shelter" },
       "requires": { "timer": "fire" },
       "requiresText": "Too cold and dark to sleep without a fire",

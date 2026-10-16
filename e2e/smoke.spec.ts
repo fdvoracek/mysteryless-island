@@ -66,7 +66,7 @@ test("a finding that opens a place: 'go to the forest' walks there", async ({ pa
 });
 
 test("the meadows: a ? to the west once the cliff is seen; climbing it opens them, an hour away", async ({ page }) => {
-  await expect(page.locator("#tabs .map-unknown")).toHaveCount(1); // the forest
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(2); // the forest and the meadows, from the start
   await explore(page, "rock_shelter");
   await explore(page, "cliff_shells");
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(2);
@@ -156,9 +156,9 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#event")).toBeHidden();
 
   // beach: the dunes (the forest), then the ring of rocks (fire and sleep)
-  // the route map: only the beach, and a ? where something is still to be found
+  // the route map: only the beach, and a ? on each side where something is still to be found
   await expect(tab(page, "the forest")).toHaveCount(0);
-  await expect(page.locator("#tabs .map-unknown")).toHaveCount(1);
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(2);
   await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
   await expect(page.locator("#tabs .map-time")).toHaveText(["30m"]);
@@ -170,9 +170,17 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   };
   await expect(tab(page, "the beach")).toHaveClass(/here/);
   await centred("the beach");
-  await expect(page.locator("#tabs .map-unknown")).toHaveCount(0);
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(1); // the meadows
   await expect(action(page, "light fire")).toHaveCount(0);
   await explore(page, "rock_shelter");
+  // hovering a place: icons for what you have found there
+  await tab(page, "the beach").hover();
+  await expect(page.locator("#mapTip")).toBeVisible();
+  await expect(page.locator("#mapTip .map-icon-name")).toHaveText(["fire", "sleep"]);
+  await tab(page, "the forest").hover();
+  await expect(page.locator("#mapTip .map-icon-name")).toHaveText(["wood"]);
+  await page.mouse.move(0, 0);
+  await expect(page.locator("#mapTip")).toBeHidden();
   await expect(action(page, "light fire")).toBeVisible();
   // an explored landmark is not offered again
   await action(page, "look around").click();

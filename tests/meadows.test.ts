@@ -18,15 +18,14 @@ function toCliffTop(seed: number, choice: "knife" | "water" = "knife") {
 }
 
 describe("the meadows: seen from the cliff top, west of the beach, an hour away", () => {
-  it("are not on the map at first; the cliff shows a ? to the west; climbing it opens them", () => {
+  it("are a ? to the west from the start; the climb is offered once the cliff is found, and opens them", () => {
     const e = startGame(reg, 1);
-    expect(unknownCells(e)).toEqual([{ col: 1, row: 0 }]); // only the forest's ?
+    expect(unknownCells(e)).toEqual([{ col: 2, row: 0 }, { col: 0, row: 0 }]); // forest (right), meadows (left)
     explore(e, "rock_shelter");
     e.dispatch({ type: "explore" });
     expect(view(e).event!.choices.map((c) => c.id)).not.toContain("cliff_top"); // not before the cliff is found
     choose(e, "close");
     explore(e, "cliff_shells");
-    expect(unknownCells(e)).toEqual([{ col: 2, row: 0 }, { col: 0, row: 0 }]); // forest (right), meadows (left)
     expect(view(e).tabs.find((t) => t.here)).toMatchObject({ id: "beach", col: 1 });
     e.dispatch({ type: "explore" });
     expect(view(e).event!.text).toContain("The cliff above them looks climbable.");

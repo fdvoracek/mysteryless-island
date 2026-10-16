@@ -42,8 +42,24 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 /* places: a small route map (see renderTabs): nodes on a grid, paths from the camp with walking times.
    Centred on the place you are in: the view is as wide as its panel, the grid hangs from its middle
    and is shifted by the current cell (--hc, --hr); walking slides it. */
-.tabs { display: block; width: 100%; margin-bottom: 22px; font-size: 17px; --map-cell: 10em; --map-row: 2.4em; }
-.map-view { position: relative; width: 100%; height: calc((2 * var(--dy, 0) + 1) * var(--map-row)); overflow-x: clip; transition: height 0.5s ease; }
+.tabs { position: relative; display: block; width: 100%; margin-bottom: 22px; font-size: 17px; --map-cell: 10em; --map-row: 2.4em; }
+/* the fog: what is next to you is clear, the cell after that fades out (like the log), the rest is gone */
+.map-view {
+  position: relative; width: 100%; height: calc((2 * min(var(--dy, 0), 2) + 1) * var(--map-row)); overflow-x: clip; transition: height 0.5s ease;
+  --fog-x: linear-gradient(to right, transparent calc(50% - 2.6 * var(--map-cell)), #000 calc(50% - 1.6 * var(--map-cell)), #000 calc(50% + 1.6 * var(--map-cell)), transparent calc(50% + 2.6 * var(--map-cell)));
+  --fog-y: linear-gradient(to bottom, transparent calc(50% - 2.6 * var(--map-row)), #000 calc(50% - 1.6 * var(--map-row)), #000 calc(50% + 1.6 * var(--map-row)), transparent calc(50% + 2.6 * var(--map-row)));
+  -webkit-mask-image: var(--fog-x), var(--fog-y); -webkit-mask-composite: source-in;
+  mask-image: var(--fog-x), var(--fog-y); mask-composite: intersect;
+}
+.map .far { pointer-events: none; }
+/* hovering a place: what you have found there */
+.map-tip {
+  position: absolute; z-index: 5; transform: translateX(-50%); display: flex; gap: 12px; padding: 6px 10px;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--line); font-size: 12px; white-space: nowrap; pointer-events: none;
+}
+.map-icon { display: grid; justify-items: center; gap: 2px; }
+.map-icon .icon { width: 20px; height: 20px; }
+.map-icon-name { color: var(--muted); }
 .map {
   position: absolute; left: 50%; top: 50%; display: grid; align-items: center; justify-items: center;
   grid-template-columns: repeat(var(--cols, 1), var(--map-cell)); grid-template-rows: repeat(var(--rows, 1), var(--map-row));
@@ -223,6 +239,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .sbtn { min-height: 34px; padding: 4px 12px; font-size: 15px; }
   /* the map: one size in every layout, cells narrow enough to keep the next place on screen */
   #tabs.tabs { font-size: 16px; --map-cell: min(8em, 32vw); }
+  /* a phone shows less than three cells: the fog is simply the screen's edges */
+  .map-view { --fog-x: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent); }
   .tab { padding: 8px 6px; }
   .row { padding: 3px 0; }
   .row.stat { padding: 5px 0; }
