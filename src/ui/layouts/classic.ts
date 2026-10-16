@@ -8,9 +8,9 @@ export const classic: Layout = {
   name: "classic",
   skeleton: () => `
     <div class="wrap" id="wrap">
+      ${panel.places()}
       ${panel.story()}
       <main class="centre">
-        ${panel.places()}
         ${panel.actions()}
       </main>
       <aside class="side">

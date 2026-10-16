@@ -1,8 +1,16 @@
-/* classic: three columns, like A Dark Room */
+/* classic: like A Dark Room: the places on their own row on top, then three columns */
 .layout-classic .wrap {
   max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 32px; align-items: start;
+  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 28px 32px; align-items: start;
+  grid-template-areas: "places places places" "log centre side";
 }
+.layout-classic .tabs {
+  grid-area: places; margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  font-size: 19px; gap: 4px 14px;
+}
+.layout-classic .log { grid-area: log; }
+.layout-classic .centre { grid-area: centre; }
+.layout-classic .side { grid-area: side; }
 .layout-classic .log {
   display: grid; gap: 10px; max-height: 80vh; overflow: hidden;
   -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent);
@@ -11,13 +19,15 @@
 .layout-classic .side { display: grid; gap: 18px; }
 
 @media (max-width: 760px) {
-  .layout-classic .wrap { grid-template-columns: 1fr; gap: 20px; }
+  .layout-classic .wrap { grid-template-columns: 1fr; grid-template-areas: none; gap: 20px; }
+  .layout-classic .tabs, .layout-classic .log, .layout-classic .centre, .layout-classic .side { grid-area: auto; }
+  .layout-classic .tabs { order: 0; }
   .layout-classic .centre { order: 1; }
   .layout-classic .log { order: 2; max-height: 42vh; }
   .layout-classic .side { order: 3; }
 }
 @media (max-width: 600px) {
   .layout-classic .wrap { padding: 14px 14px 0; gap: 16px; }
-  .layout-classic .tabs { margin-bottom: 12px; }
+  .layout-classic .tabs { padding-bottom: 10px; }
   .layout-classic .log .entry { font-size: 16px; }
 }

@@ -30,7 +30,7 @@ Six screen layouts, switchable from *layout:* in the bottom menu (the choice is 
 
 | id | Layout |
 |---|---|
-| `classic` | three columns like A Dark Room: story (newest on top), actions, panels |
+| `classic` | like A Dark Room: the places on their own row on top, then three columns: story (newest on top), actions, panels |
 | `journal` | a book page: story in reading order, newest paragraph large, actions as underlined words; status strip on top, notes in the margin |
 | `scene` | the last result as a large paragraph, the few before it above it fading upwards; under the text the places as signposts (*go to the forest →*), then the buttons; panels on a shelf, with the stores' and tasks' buttons (*eat*, *cook*, *build*) beside the boxes |
 | `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
