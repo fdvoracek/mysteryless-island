@@ -69,6 +69,8 @@ export interface View {
   /** the same story grouped into one paragraph per action, newest first; lines in reading order */
   turns: Array<{ turn: number; day: number; clock: string; lines: string[] }>;
   dead: boolean;
+  /** after death (permanent): the end screen's title, lines (how long, why, the story) and button */
+  end: { title: string; lines: string[]; restart: string; load: string } | null;
   /** the open event (a modal), if any: title, the scene's text and its buttons */
   event: {
     id: string; title: string; text: string;
@@ -191,6 +193,7 @@ export function view(engine: Engine): View {
     lastLine: s.log[0]?.text ?? "",
     turns,
     dead: s.dead,
+    end: s.dead && s.death ? { title: reg.game.ending.title, lines: s.death.lines, restart: reg.game.ending.restart, load: reg.game.ending.load } : null,
     event: eventView(engine),
   };
 }

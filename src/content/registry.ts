@@ -260,6 +260,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   stats.stats.forEach((s) => { if (!(s.id in game.start.stats)) problems.push(`game.start.stats: missing start value for "${s.id}"`); });
   stats.multipliers.forEach((m, i) => { checkCond(m.when, `stats.multipliers[${i}]`); ref("stat", m.stat, `stats.multipliers[${i}]`); });
   stats.damage.forEach((d, i) => checkCond(d.when, `stats.damage[${i}]`));
+  game.ending.recap.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `game.ending.recap[${gi}].lines[${li}].when`); }));
   stats.regen.forEach((d, i) => checkCond(d.when, `stats.regen[${i}]`));
   for (const e of Object.keys(stats.ratesPerHour)) Object.keys(stats.ratesPerHour[e as keyof typeof stats.ratesPerHour] ?? {}).forEach((k) => ref("stat", k, `stats.ratesPerHour.${e}`));
   for (const q of quests.values()) {

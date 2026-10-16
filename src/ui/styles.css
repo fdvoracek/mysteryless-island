@@ -173,6 +173,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 /* an event before the story starts: nothing of the island behind it yet */
 #app.prologue #game, #app.prologue .menu { visibility: hidden; }
 #app.prologue .modal.event { background: var(--bg); }
+/* death is permanent: the end screen alone, until "start again" */
+#app.ended #game, #app.ended .menu { visibility: hidden; }
+#app.ended .modal.end { background: var(--bg); }
+.modal.end .buttons { margin-top: 4px; }
 .error { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; white-space: pre-wrap; color: var(--bad); }
 
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }

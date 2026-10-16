@@ -296,20 +296,47 @@ test("on a phone screen every layout fits the width, and its buttons are on scre
   }
 });
 
-test("dying fades out and restores the checkpoint", async ({ page }) => {
-  await page.evaluate(() => {
-    const ti = (window as unknown as { ti: { stat(s: string, v: number): void } }).ti;
-    ti.stat("health", 1);
-    ti.stat("thirst", 100);
+test("death is permanent: the end screen tells your story; load the saved game or start again", async ({ page }) => {
+  const ti = () => page.evaluate(() => {
+    const t = (window as unknown as { ti: { stat(s: string, v: number): void } }).ti;
+    t.stat("health", 1);
+    t.stat("thirst", 100);
   });
-  // exploring takes time: an hour of thirst kills
-  await action(page, "look around").click();
-  await page.locator('#eventChoices [data-choice="forest_edge"]').click();
+  const dieExploring = async () => {
+    await ti();
+    await action(page, "look around").click();
+    await page.locator('#eventChoices .btn:not([data-choice="close"])').first().click(); // an hour of thirst kills
+  };
+  // save first
+  await page.locator("#saveBtn").click();
+  await expect(page.locator("#saveBtn")).toHaveText("saved.");
 
+  await dieExploring();
   await expect(page.locator("#fade")).toBeVisible();
   await expect(page.locator("#fadeText")).toHaveText("The world fades.");
+  const end = page.locator("#end");
+  await expect(end).toBeVisible({ timeout: 6_000 });
+  await expect(page.locator("#endTitle")).toHaveText("The journal ends");
+  await expect(page.locator("#endText")).toContainText("Cause of death: thirst.");
+  await expect(page.locator("#endText")).toContainText("You swam ashore with the knife in your fist.");
+  await expect(page.locator("#endText")).toContainText(/You lasted .* on the island, until day 1\./);
+  await expect(page.locator("#game")).toBeHidden();
 
-  await expect(page.locator("#fade")).toBeHidden({ timeout: 6_000 });
-  await expect(page.locator("#log")).toContainText("You wake on the sand");
+  // a reload keeps the end: death is permanent
+  await page.reload();
+  await expect(end).toBeVisible();
+
+  // load the saved game: back to before the death
+  await page.locator("#endLoad").click();
+  await expect(end).toBeHidden();
   await expect(action(page, "look around")).toBeVisible();
+  await expect(tab(page, "the forest")).toHaveCount(0); // nothing explored yet in the saved game
+
+  // die again, and start a new game this time
+  await dieExploring();
+  await expect(end).toBeVisible({ timeout: 6_000 });
+  await page.locator("#endRestart").click();
+  await expect(end).toBeHidden();
+  await expect(page.locator("#eventTitle")).toHaveText("The storm");
 });
+

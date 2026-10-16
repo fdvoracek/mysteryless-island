@@ -3,7 +3,7 @@ import type { Activity, Condition, Effect, Effort, GameEvent, Landmark, ItemActi
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
-import { clone, createInitialState, type GameState } from "./state";
+import { createInitialState, type GameState } from "./state";
 import { chooseText } from "./text";
 
 export type Command =
@@ -28,28 +28,25 @@ export interface Result {
 const refuse = (reason: string): Result => ({ ok: false, reason, cooldownMs: 0 });
 
 /**
- * The engine interprets content. It owns the current state and the checkpoint.
+ * The engine interprets content. It owns the current state (saving and loading are outside it).
  * It never touches the DOM, Date or Math.random, so tests and tools can run it in Node.
  */
 export class Engine {
   state: GameState;
-  checkpoint: GameState;
   private damageLogged = new Set<string>();
   /** while true, nothing is logged (you are asleep); see doActivity */
   private quiet = false;
+  /** what is happening, named as the cause if it kills you without a damage rule (an event, food) */
+  private causeHint: string | undefined;
   /** characters logged during the current command, for the progress bar duration */
   private loggedChars = 0;
 
-  constructor(public reg: Registry, state: GameState, checkpoint?: GameState) {
+  constructor(public reg: Registry, state: GameState) {
     this.state = state;
-    this.checkpoint = checkpoint ?? clone(state);
-    // saves from before `today` existed
+    // saves from before these existed
     this.state.today ??= {};
-    this.checkpoint.today ??= {};
     this.state.lastText ??= {};
-    this.checkpoint.lastText ??= {};
     this.state.events ??= { active: null, queue: [], seen: {} };
-    this.checkpoint.events ??= { active: null, queue: [], seen: {} };
   }
 
   static newGame(reg: Registry, seed: number): Engine {
@@ -58,7 +55,6 @@ export class Engine {
     // "start" events open before anything else (the story before the beach)
     e.state.events.queue = [...reg.events.values()].filter((ev) => ev.trigger === "start").map((ev) => ev.id);
     e.openNextEvent();
-    e.checkpoint = clone(e.state);
     return e;
   }
 
@@ -94,6 +90,7 @@ export class Engine {
     this.state.prevStats = { ...this.state.stats };
     this.damageLogged.clear();
     this.loggedChars = 0;
+    this.causeHint = undefined;
     const res = this.run(cmd);
     if (res.ok && !this.state.dead && cmd.type !== "choose" && cmd.type !== "explore") this.checkEvents(this.actionKeys(cmd));
     return res;
@@ -144,6 +141,7 @@ export class Engine {
     if (!check.visible) return refuse("unknown choice");
     if (!check.enabled) return refuse(check.reason ?? "not possible now");
     this.remember(`${event.id}_${c.id}`);
+    this.causeHint = event.title.toLowerCase();
     this.applyEffects(c.effects);
     if (this.state.dead) { this.state.events.active = null; this.state.events.queue = []; return this.died(0); }
     if (c.next) this.enterScene(event, c.next);
@@ -195,7 +193,6 @@ export class Engine {
       this.log(this.say(this.reg.game.start.log));
     }
     this.postCheck();
-    if (event.checkpoint && !this.state.dead) this.checkpoint = clone(this.state);
     this.openNextEvent();
   }
 
@@ -239,6 +236,18 @@ export class Engine {
   }
 
   /** The "look around" action of the current region: visible until everything is discovered. */
+  /**
+   * Is this command a sleep that will happen now (an activity with effort "sleep", allowed here)?
+   * The game is saved just before it, so after a death you can load and do the evening differently.
+   */
+  willSleep(cmd: Command): boolean {
+    if (cmd.type !== "activity" || this.state.dead || this.state.events.active) return false;
+    const entry = this.reg.activities.get(cmd.id);
+    if (!entry || entry.activity.effort !== "sleep" || entry.region !== this.state.location) return false;
+    const c = this.check(entry.activity);
+    return c.visible && c.enabled;
+  }
+
   /** The "look around" button: there if the region can be explored; `open` = landmarks offered now. */
   checkExplore(): { visible: boolean; open: number; found: number; total: number } {
     const region = this.reg.regions.get(this.state.location)!;
@@ -415,7 +424,6 @@ export class Engine {
     // sleeping ends the day: tomorrow's memories start empty
     if (a.effort === "sleep") this.state.today = {};
     this.postCheck();
-    if (a.checkpoint && !this.state.dead) this.checkpoint = clone(this.state);
     return this.ok(a.hours);
   }
 
@@ -472,6 +480,7 @@ export class Engine {
     if (!item?.consume) return refuse("you can't use that");
     if ((this.state.items[itemId] ?? 0) < 1) return refuse(`no ${item.name} left`);
     const c = item.consume;
+    this.causeHint = `bad ${item.name}`;
     this.take({ [itemId]: 1 });
     this.log(this.say(c.log));
     if (!this.advance(c.hours, c.effort ?? "light")) return this.died(c.hours);
@@ -498,14 +507,7 @@ export class Engine {
     return Math.round(Math.max(minMs, Math.min(maxMs, ms)));
   }
 
-  /** After death: go back to the last checkpoint. */
-  restoreCheckpoint() {
-    this.state = clone(this.checkpoint);
-    // keep turns increasing past the death, so the wake-up line starts a new paragraph
-    const lastTurn = Math.max(this.checkpoint.turn ?? 0, ...this.checkpoint.log.map((l) => l.turn ?? 0));
-    this.state.turn = lastTurn + 1;
-    this.log(this.say(this.reg.game.restoreLog));
-  }
+
 
   // ---------------------------------------------------------------- simulation
 
@@ -543,9 +545,13 @@ export class Engine {
         if (evaluate(r.when, ctx)) s.stats.health = clamp(s.stats.health + r.healthPerHour * stepHours);
       }
       if (s.stats.health <= 0) {
-        s.dead = true;
+        // the cause: the rule hurting most at this moment (all of them if they tie), or what the
+        // action was (an event, food)
+        const hurting = sf.damage.filter((d) => d.healthPerHour < 0 && d.cause && evaluate(d.when, ctx));
+        const worst = Math.min(...hurting.map((d) => d.healthPerHour));
+        const causes = hurting.filter((d) => d.healthPerHour === worst).map((d) => d.cause!);
         this.quiet = false; // dying is never quiet
-        this.log(this.say(this.reg.game.deathLog));
+        this.die(causes.length ? causes.join(" and ") : this.causeHint);
         return false;
       }
     }
@@ -639,7 +645,7 @@ export class Engine {
         if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); }
       }
     }
-    if (s.stats.health <= 0 && !s.dead) { s.dead = true; this.log(this.say(this.reg.game.deathLog)); }
+    if (s.stats.health <= 0 && !s.dead) this.die(this.causeHint);
   }
 
   /** Count a finished activity or item use, plus its tags, for { "did": ... } conditions. */
@@ -649,6 +655,29 @@ export class Engine {
       this.state.counters[k] = (this.state.counters[k] ?? 0) + 1;
       this.remember(key);
     }
+  }
+
+  /**
+   * Death is permanent: record when and why, and write the end screen's lines once (so a reload
+   * shows the same words): how long you lasted, the cause, and the recap of your story.
+   */
+  private die(cause?: string) {
+    const s = this.state;
+    const ending = this.reg.game.ending;
+    s.dead = true;
+    this.log(this.say(this.reg.game.deathLog));
+    const { start } = this.reg.game;
+    const lasted = s.time - ((start.day - 1) * 1440 + Math.round(start.hour * 60));
+    const why = cause ?? ending.defaultCause;
+    s.death = {
+      time: s.time,
+      cause: why,
+      lines: [
+        this.say(ending.survived, { time: duration(lasted), day: String(Math.floor(s.time / 1440) + 1) })!,
+        this.say(ending.cause, { cause: why })!,
+        ...this.thoughts(ending.recap),
+      ],
+    };
   }
 
   /** Note something for today's memories ({ "today": id }); cleared when you sleep. */
@@ -711,3 +740,12 @@ export class Engine {
 
 const clamp = (v: number) => Math.max(0, Math.min(100, v));
 const pickChance = (s: GameState, chance: number) => int(s.rng, 0, 9999) < chance * 10000;
+
+/** 1500 minutes -> "1 day and 1 hour"; 45 -> "45 minutes" (for the end screen) */
+function duration(minutes: number): string {
+  const d = Math.floor(minutes / 1440), h = Math.floor((minutes % 1440) / 60), m = minutes % 60;
+  const unit = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  const parts = [d ? unit(d, "day") : "", h ? unit(h, "hour") : "", !d && !h ? unit(m, "minute") : ""].filter(Boolean);
+  return parts.join(" and ");
+}
+

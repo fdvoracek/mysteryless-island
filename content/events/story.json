@@ -3,7 +3,6 @@
     "id": "shipwreck",
     "title": "The storm",
     "trigger": "start",
-    "checkpoint": true,
     "_note": "opens before the first journal line; the opening journal text (game.json start.log) follows when it ends",
     "scenes": {
       "start": {
@@ -12,25 +11,25 @@
           {
             "id": "knife",
             "label": "the knife",
-            "effects": [{ "give": { "knife": 1 } }],
+            "effects": [{ "give": { "knife": 1 } }, { "flag": "took_knife" }],
             "next": "swim_knife"
           },
           {
             "id": "matches",
             "label": "the matches",
-            "effects": [{ "give": { "matches": 10 } }],
+            "effects": [{ "give": { "matches": 10 } }, { "flag": "took_matches" }],
             "next": "swim_matches"
           },
           {
             "id": "water",
             "label": "the water can",
-            "effects": [{ "give": { "water_can": 1, "can_water": 4 } }],
+            "effects": [{ "give": { "water_can": 1, "can_water": 4 } }, { "flag": "took_water" }],
             "next": "swim_water"
           },
           {
             "id": "rations",
             "label": "the rations",
-            "effects": [{ "give": { "rations": 6 } }],
+            "effects": [{ "give": { "rations": 6 } }, { "flag": "took_rations" }],
             "next": "swim_rations"
           }
         ]

@@ -75,13 +75,20 @@ describe("text variants in the content", () => {
     expect(e.state.log[0].text).toMatch(/^Awake\. Salt in the mouth\./);
   });
 
-  it("uses {placeholders} only where the engine fills them ({place} in the journal lines)", () => {
+  it("uses {placeholders} only where the engine fills them (journal lines, the end screen)", () => {
     const bad: string[] = [];
     const walk = (o: unknown, path: string) => {
       if (Array.isArray(o)) o.forEach((v, i) => walk(v, `${path}[${i}]`));
       else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (!k.startsWith("_")) walk(v, `${path}.${k}`); }
       else if (typeof o === "string" && /\{\w+\}/.test(o)) {
-        const ok = /\.journal\.(walkTo|wayOpens)/.test(path) && o.match(/\{\w+\}/g)!.every((m) => m === "{place}");
+        // which fields the engine fills, and with what
+        const allowed: Array<[RegExp, string[]]> = [
+          [/\.journal\.(walkTo|wayOpens)/, ["{place}"]],
+          [/\.ending\.survived/, ["{time}", "{day}"]],
+          [/\.ending\.cause/, ["{cause}"]],
+        ];
+        const rule = allowed.find(([re]) => re.test(path));
+        const ok = !!rule && o.match(/\{\w+\}/g)!.every((m) => rule[1].includes(m));
         if (!ok) bad.push(`${path}: "${o}"`);
       }
     };

@@ -93,7 +93,6 @@ describe("engine: the prototype loop", () => {
     const sleep = e.dispatch({ type: "activity", id: "sleep" });
     expect(sleep.ok).toBe(true);
     expect(e.state.stats.energy).toBeGreaterThan(energyBefore);
-    expect(e.checkpoint.time).toBe(e.state.time); // sleeping creates a checkpoint
   });
 
   it("stoke fire appears only while the fire burns, and the fire is capped", () => {
@@ -124,21 +123,6 @@ describe("engine: the prototype loop", () => {
       return e.state.items.raw_fish ?? 0;
     };
     expect(run()).toBe(run());
-  });
-
-  it("dying restores the last checkpoint", () => {
-    const e = fresh();
-    const checkpointTime = e.checkpoint.time;
-    e.state.stats.thirst = 100;
-    e.state.stats.hunger = 100;
-    e.state.stats.health = 3;
-    const r = e.dispatch({ type: "activity", id: "collect_shells" });
-    expect(r.died).toBe(true);
-    expect(e.state.dead).toBe(true);
-    expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(false);
-    e.restoreCheckpoint();
-    expect(e.state.dead).toBe(false);
-    expect(e.state.time).toBe(checkpointTime);
   });
 
   it("body warmth drops at night away from the fire and recovers by the fire", () => {

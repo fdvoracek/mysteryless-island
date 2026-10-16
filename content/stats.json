@@ -64,7 +64,8 @@
         "Hunger gnaws at you. Your hands shake.",
         "Your stomach cramps with hunger.",
         "Hunger makes you dizzy."
-      ]
+      ],
+      "cause": "hunger"
     },
     {
       "when": { "stat": "thirst", "gte": 80 },
@@ -73,17 +74,20 @@
         "Your lips crack. The world tilts.",
         "Your throat burns with thirst.",
         "Thirst blurs your sight."
-      ]
+      ],
+      "cause": "thirst"
     },
     {
       "when": { "all": [{ "stat": "energy", "lte": 0 }, { "effort": ["heavy", "work"] }] },
       "healthPerHour": -2,
-      "log": ["You work on, past exhaustion.", "Your body begs for rest.", "Every movement is an effort now."]
+      "log": ["You work on, past exhaustion.", "Your body begs for rest.", "Every movement is an effort now."],
+      "cause": "exhaustion"
     },
     {
       "when": { "warmth": ["freezing"] },
       "healthPerHour": -3,
-      "log": ["The cold is in your bones.", "You can't stop shivering.", "The cold numbs your fingers."]
+      "log": ["The cold is in your bones.", "You can't stop shivering.", "The cold numbs your fingers."],
+      "cause": "cold"
     }
   ],
   "regen": [

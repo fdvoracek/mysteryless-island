@@ -51,16 +51,6 @@ describe("the opening event: the shipwreck", () => {
     }
   });
 
-  it("dying later starts again on the beach, not on the sinking ship", () => {
-    const e = startGame(reg, 2, "rations", { matches: false });
-    e.state.stats.health = 1;
-    e.state.stats.thirst = 100;
-    look(e);
-    expect(e.state.dead).toBe(true);
-    e.restoreCheckpoint();
-    expect(e.state.events.active).toBeNull();
-    expect(e.state.items.rations).toBe(6);
-  });
 });
 
 describe("what you grabbed", () => {

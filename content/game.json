@@ -16,11 +16,57 @@
   },
   "cosmetic": { "msPerHour": 800, "msPerChar": 15, "minMs": 700, "maxMs": 4500 },
   "deathLog": ["The world fades.", "Everything goes grey, then dark.", "The world slips away."],
-  "restoreLog": [
-    "You wake on the sand. It was only a dream, or a warning.",
-    "You wake with a start, back on the sand. A dream, or a warning.",
-    "Sand under your hands again. Was it only a dream?"
-  ],
+  "_ending": "the end screen (death is permanent): {time} and {day} in survived, {cause} in cause; recap like activity thoughts",
+  "ending": {
+    "title": "The journal ends",
+    "survived": [
+      "You lasted {time} on the island, until day {day}.",
+      "You survived {time}. The journal stops on day {day}."
+    ],
+    "cause": "Cause of death: {cause}.",
+    "defaultCause": "your injuries",
+    "recap": [
+      {
+        "max": 1,
+        "lines": [
+          { "text": "You swam ashore with the knife in your fist.", "when": { "flag": "took_knife" } },
+          {
+            "text": "You swam ashore with a tin of matches inside your shirt.",
+            "when": { "flag": "took_matches" }
+          },
+          { "text": "You swam ashore clinging to the water can.", "when": { "flag": "took_water" } },
+          {
+            "text": "You swam ashore with three days of rations tied to your wrist.",
+            "when": { "flag": "took_rations" }
+          }
+        ]
+      },
+      {
+        "max": 4,
+        "lines": [
+          { "text": "You found the forest beyond the dunes.", "when": { "discovered": "forest_edge" } },
+          { "text": "You found a spring of clear water.", "when": { "discovered": "spring" } },
+          { "text": "You made fire in the ring of rocks.", "when": { "flag": "made_fire" } },
+          { "text": "You made a fishing spear.", "when": { "quest": "build_fishing_spear", "is": "done" } },
+          { "text": "You fished the shallows.", "when": { "did": "catch_fish" } },
+          { "text": "You found shells under the cliff.", "when": { "discovered": "cliff_shells" } }
+        ],
+        "otherwise": "You never left the sand where the sea put you."
+      },
+      {
+        "max": 1,
+        "lines": [
+          {
+            "text": "You lived through the first night.",
+            "when": { "quest": "survive_first_night", "is": "done" }
+          },
+          { "text": "You did not see a second morning." }
+        ]
+      }
+    ],
+    "restart": "start again",
+    "load": "load the saved game"
+  },
   "_journal": "lines the engine writes itself; {place} is the name of the place",
   "journal": {
     "walkTo": ["You walk to {place}.", "You set off for {place}.", "You make your way to {place}."],

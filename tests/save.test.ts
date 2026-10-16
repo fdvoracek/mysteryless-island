@@ -1,0 +1,68 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { Engine } from "../src/core/engine";
+import { hasSavedGame, loadGame, readSave, saveGame, writeSave } from "../src/persistence/save";
+import { loadRegistry, lookAround, startGame } from "./helpers";
+
+const reg = loadRegistry();
+
+// a browser-like localStorage for Node
+function fakeStorage() {
+  const m = new Map<string, string>();
+  return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); } };
+}
+beforeEach(() => { (globalThis as unknown as { localStorage: unknown }).localStorage = fakeStorage(); });
+
+describe("saving the game", () => {
+  it("save stores the game; load brings exactly that game back, after a death too", () => {
+    const e = startGame(reg, 1);
+    lookAround(e); // the dunes
+    expect(hasSavedGame()).toBe(false);
+    expect(saveGame(e.state)).toBe(true);
+    const savedTime = e.state.time;
+    lookAround(e); // the rocks: after the save
+    e.state.stats.health = 1;
+    e.state.stats.thirst = 100;
+    e.advance(1, "work");
+    expect(e.state.dead).toBe(true);
+    writeSave(e.state); // the autosave keeps the death
+    expect(readSave(reg)!.dead).toBe(true);
+
+    expect(hasSavedGame()).toBe(true);
+    const back = new Engine(reg, loadGame(reg)!);
+    expect(back.state.dead).toBe(false);
+    expect(back.state.time).toBe(savedTime);
+    expect(back.state.regions.beach.discoveries).toEqual(["forest_edge"]); // the rocks are not found yet
+    expect(lookAround(back).ok).toBe(true); // and it plays on
+  });
+
+  it("the autosave and the saved game are separate", () => {
+    const e = startGame(reg, 2);
+    saveGame(e.state);
+    lookAround(e);
+    writeSave(e.state);
+    expect(readSave(reg)!.regions.beach.discoveries).toEqual(["forest_edge"]);
+    expect(loadGame(reg)!.regions.beach.discoveries).toEqual([]);
+  });
+
+  it("going to sleep is saved just before: willSleep says when", () => {
+    const e = startGame(reg, 3);
+    lookAround(e); lookAround(e); // dunes, rocks: sleep is there
+    const sleep = { type: "activity", id: "sleep" } as const;
+    expect(e.willSleep(sleep)).toBe(false); // no fire: you can't sleep, so nothing is saved
+    e.applyEffects([{ give: { firewood: 3 } }]);
+    e.dispatch({ type: "activity", id: "light_fire" });
+    expect(e.willSleep(sleep)).toBe(true);
+    expect(e.willSleep({ type: "activity", id: "collect_shells" })).toBe(false);
+    expect(e.willSleep({ type: "explore" })).toBe(false);
+  });
+
+  it("without browser storage nothing breaks", () => {
+    (globalThis as unknown as { localStorage: unknown }).localStorage = {
+      getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); }, removeItem: () => { throw new Error("blocked"); },
+    };
+    const e = startGame(reg, 4);
+    expect(saveGame(e.state)).toBe(false);
+    expect(hasSavedGame()).toBe(false);
+    expect(loadGame(reg)).toBeNull();
+  });
+});

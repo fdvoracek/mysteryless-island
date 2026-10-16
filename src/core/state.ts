@@ -60,6 +60,8 @@ export interface GameState {
   /** increases with every command; log lines remember it so the UI can show one paragraph per action */
   turn?: number;
   dead: boolean;
+  /** how the game ended (death is permanent): when, why, and the end screen's lines, chosen once */
+  death?: { time: number; cause: string; lines: string[] };
 }
 
 export function createInitialState(reg: Registry, seed: number): GameState {

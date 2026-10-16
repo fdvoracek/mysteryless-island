@@ -4,7 +4,7 @@ import { ContentError, type Registry } from "./content/registry";
 import { Engine } from "./core/engine";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
-import { clearSave, readSave, writeSave } from "./persistence/save";
+import { clearSave, hasSavedGame, loadGame, readSave, saveGame, writeSave } from "./persistence/save";
 import { initTheme, loadLayoutId, UI } from "./ui/render";
 
 initTheme();
@@ -25,11 +25,12 @@ try {
 if (new URLSearchParams(location.search).get("variants") === "first") setVariantMode("first");
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31); // the only Math.random: picks a seed
-const saved = readSave(reg);
-let engine = saved ? new Engine(reg, saved.current, saved.checkpoint) : Engine.newGame(reg, newSeed());
+const resumed = readSave(reg);
+let engine = resumed ? new Engine(reg, resumed) : Engine.newGame(reg, newSeed());
 document.title = reg.game.title;
 
-const save = () => writeSave(engine.state, engine.checkpoint);
+/** the autosave after every action (a reload continues; a death stays a death) */
+const save = () => writeSave(engine.state);
 
 // ?speed=0.2 makes progress bars 5x faster (used by the browser tests)
 const speedParam = Number(new URLSearchParams(location.search).get("speed"));
@@ -38,9 +39,20 @@ const speed = speedParam > 0 ? speedParam : 1;
 const ui = new UI(
   app,
   () => engine,
-  (cmd) => { const r = engine.dispatch(cmd); save(); return r; },
+  (cmd) => {
+    // going to sleep saves the game first (into the saved game), so you can load the evening again
+    if (engine.willSleep(cmd)) saveGame(engine.state);
+    const r = engine.dispatch(cmd);
+    save();
+    return r;
+  },
   () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
-  () => { engine.restoreCheckpoint(); save(); },
+  // the saved game: "save." stores it; after death it can be loaded
+  {
+    save: () => saveGame(engine.state),
+    load: () => { const s = loadGame(reg); if (!s) return false; engine = new Engine(reg, s); save(); return true; },
+    has: () => hasSavedGame(),
+  },
   speed,
   loadLayoutId(),
 );

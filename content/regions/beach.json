@@ -162,7 +162,7 @@
         "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }, { "item": "matches" }]
       },
       "cost": { "firewood": 3, "matches": 1 },
-      "effects": [{ "timer": "fire", "addHours": 6 }],
+      "effects": [{ "timer": "fire", "addHours": 6 }, { "flag": "made_fire" }],
       "log": [
         "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
         "You shield a match in your hands. The flame jumps to the kindling.",
@@ -197,7 +197,11 @@
             "The wisp of smoke becomes an ember, then a flame.",
             "Finally, a flame. You feed it, careful as with a newborn."
           ],
-          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
+          "effects": [
+            { "take": { "firewood": 3 } },
+            { "timer": "fire", "addHours": 6 },
+            { "flag": "made_fire" }
+          ]
         },
         {
           "weight": 1,
@@ -292,7 +296,6 @@
       "visibleWhen": { "discovered": "rock_shelter" },
       "requires": { "timer": "fire" },
       "requiresText": "Too cold and dark to sleep without a fire",
-      "checkpoint": true,
       "_thoughts": "before sleeping: how tired you are (energy, same bands as the bar), then up to 3 things you remember from today, most memorable first",
       "thoughts": [
         {

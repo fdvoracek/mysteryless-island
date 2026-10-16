@@ -37,7 +37,6 @@ describe("quests", () => {
   it("the shipped game starts with one task: survive the first night", () => {
     const e = Engine.newGame(shipped, 3);
     expect(active(e)).toEqual(["survive_first_night"]);
-    expect(e.checkpoint.quests.survive_first_night?.status).toBe("active"); // part of the first checkpoint
   });
 
   it("start quests are active at once; condition quests wait for their trigger", () => {
@@ -96,19 +95,6 @@ describe("quests", () => {
     e.advance(12, "rest");
     e.dispatch({ type: "activity", id: "catch_fish" });
     expect(e.state.quests.light_a_fire).toBeUndefined();
-  });
-
-  it("dying restores quests as they were at the checkpoint", () => {
-    const e = fresh();
-    e.dispatch({ type: "travel", region: "forest" });
-    e.dispatch({ type: "activity", id: "drink_stream" });
-    expect(e.state.quests.find_water.status).toBe("done");
-    e.state.stats.health = 1;
-    e.state.stats.thirst = 100;
-    e.dispatch({ type: "activity", id: "gather_wood" });
-    expect(e.state.dead).toBe(true);
-    e.restoreCheckpoint();
-    expect(e.state.quests.find_water.status).toBe("active");
   });
 
   it("supports manual quests started by an effect, and chains via { quest } conditions", () => {

@@ -80,16 +80,6 @@ describe("exploration", () => {
     expect(v.turns.at(-1)!.lines[0]).toMatch(/^You were three days out/);
   });
 
-  it("dying rolls exploration back to the checkpoint", () => {
-    const e = startGame(reg, 1);
-    e.state.stats.health = 1;
-    e.state.stats.thirst = 100;
-    look(e);
-    expect(e.state.dead).toBe(true);
-    e.restoreCheckpoint();
-    expect(e.state.regions.beach.explored).toBe(0);
-  });
-
   it("the validator rejects unknown discoveries in conditions", () => {
     const files = readContentFiles();
     const forest = structuredClone(files["content/regions/forest.json"]) as { unlockWhen: unknown };

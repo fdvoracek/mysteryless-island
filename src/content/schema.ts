@@ -162,7 +162,6 @@ export const Activity = z
     thoughts: z.array(Thoughts).optional(),
     /** lines logged after it, worked out from the state it left (e.g. how you wake) */
     afterwards: z.array(Thoughts).optional(),
-    checkpoint: z.boolean().optional(),
     /** counted for { "did": tag } conditions, e.g. "drink" */
     tags: z.array(Id).optional(),
   })
@@ -322,7 +321,23 @@ export const Game = z
       })
       .strict(),
     deathLog: Text,
-    restoreLog: Text,
+    /**
+     * The end screen when you die (death is permanent): how long you lasted ({time}, {day}), why
+     * ({cause}: the damage rule's cause, an event's title, or defaultCause), and a recap of your
+     * story (groups of lines with conditions, like activity thoughts). `restart` labels the button.
+     */
+    ending: z
+      .object({
+        title: z.string(),
+        survived: Text,
+        cause: Text,
+        defaultCause: z.string(),
+        recap: z.array(Thoughts),
+        restart: z.string(),
+        /** the button that loads the saved game (shown only when there is one) */
+        load: z.string(),
+      })
+      .strict(),
     /** journal lines the engine writes itself; {place} is the name of the place */
     journal: z
       .object({
@@ -357,7 +372,8 @@ export const StatsFile = z
     dangerAtOrBelow: z.number().min(0).max(100).optional(),
     ratesPerHour: z.record(Effort, z.record(Id, z.number())),
     multipliers: z.array(z.object({ when: Condition, stat: Id, factor: z.number() }).strict()),
-    damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: Text.optional() }).strict()),
+    /** `cause`: named on the end screen when this rule is what kills you, e.g. "thirst" */
+    damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: Text.optional(), cause: z.string().optional() }).strict()),
     regen: z.array(z.object({ when: Condition, healthPerHour: z.number() }).strict()),
   })
   .strict();
@@ -473,8 +489,6 @@ export const GameEvent = z
     when: Condition.optional(),
     /** by default an event happens once; with repeat it can come back after cooldownHours */
     repeat: z.object({ cooldownHours: z.number().nonnegative() }).strict().optional(),
-    /** save a checkpoint when the event ends (dying later starts from here) */
-    checkpoint: z.boolean().optional(),
     /** the event opens on the scene called "start" */
     scenes: z.record(Id, EventScene),
   })

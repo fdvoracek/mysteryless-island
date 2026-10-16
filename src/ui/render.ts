@@ -13,14 +13,18 @@ export class UI {
   private els: Record<string, HTMLElement> = {};
   private busyUntil = 0;
   private layout: Layout;
+  /** true while the death fade runs (nothing can be clicked) */
   private restoring = false;
+  /** whether this page has shown the game alive (then a death gets the fade first) */
+  private wasAlive = false;
 
   constructor(
     root: HTMLElement,
     private getEngine: () => Engine,
     private onCommand: (cmd: Command) => ReturnType<Engine["dispatch"]>,
     private onRestart: () => void,
-    private onRestore: () => void,
+    /** the saved game ("save." in the menu; "load" on the end screen) */
+    private saves: { save(): boolean; load(): boolean; has(): boolean },
     /** multiplies progress bar durations (?speed=0.2 in tests); 1 = normal */
     private speed = 1,
     /** id of the layout to start with (see ./layouts) */
@@ -45,10 +49,21 @@ export class UI {
           <button class="link" id="layoutBtn" aria-haspopup="menu" aria-expanded="false"></button>
           <div class="layout-menu" id="layoutMenu" role="menu" hidden></div>
         </div>
+        <button class="link" id="saveBtn">save.</button>
         <button class="link" id="lights">lights off.</button>
         <button class="link" id="restart">restart.</button>
       </footer>
       <div class="fade" id="fade"><p id="fadeText"></p></div>
+      <div class="modal event end" id="end" hidden>
+        <div class="panel" role="dialog" aria-modal="true" aria-labelledby="endTitle">
+          <h2 class="title" id="endTitle"></h2>
+          <div class="event-text" id="endText"></div>
+          <div class="buttons">
+            <button class="btn" id="endLoad"><span class="label"></span></button>
+            <button class="btn" id="endRestart"><span class="label"></span></button>
+          </div>
+        </div>
+      </div>
       <div class="modal event" id="event" hidden>
         <div class="panel" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
           <h2 class="title" id="eventTitle"></h2>
@@ -56,12 +71,23 @@ export class UI {
           <div class="buttons" id="eventChoices"></div>
         </div>
       </div>`;
-    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventText", "eventChoices"]) {
+    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventText", "eventChoices", "end", "endTitle", "endText", "endLoad", "endRestart", "saveBtn"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.buildLayoutMenu();
     this.buildFontMenu();
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
+    // the end screen's buttons: back to the saved game, or a new game from the storm
+    this.els.endRestart.addEventListener("click", () => { this.onRestart(); this.els.quests.replaceChildren(); this.render(); });
+    this.els.endLoad.addEventListener("click", () => { if (this.saves.load()) { this.els.quests.replaceChildren(); this.render(); } });
+    // save.: store the game as it is now; a short "saved." confirms it
+    this.els.saveBtn.addEventListener("click", () => {
+      const e = this.getEngine();
+      if (e.state.dead || this.restoring || this.isBusy()) return;
+      const ok = this.saves.save();
+      this.els.saveBtn.textContent = ok ? "saved." : "could not save.";
+      window.setTimeout(() => { this.els.saveBtn.textContent = "save."; }, 1600);
+    });
     const lights = this.root.querySelector<HTMLButtonElement>("#lights")!;
     lights.addEventListener("click", () => {
       const dark = document.documentElement.dataset.theme !== "dark";
@@ -133,7 +159,7 @@ export class UI {
     this.renderInventory(v);
     this.renderLog(v);
     this.renderEvent(v);
-    if (v.dead && !this.restoring) this.showDeath(v.lastLine);
+    this.renderEnd(v);
   }
 
   // ---------------------------------------------------------------- events
@@ -515,23 +541,43 @@ export class UI {
     }, ms);
   }
 
-  private showDeath(text: string) {
-    this.restoring = true;
-    this.els.fadeText.textContent = text;
-    this.els.fade.classList.add("show");
-    window.setTimeout(() => {
-      this.onRestore();
-      this.els.quests.replaceChildren();
+  /**
+   * Death is permanent. Dying now: the screen fades on the last line, then the end screen. Opening a
+   * game that already ended: the end screen at once. It stays until "start again".
+   */
+  private renderEnd(v: View) {
+    const end = v.end;
+    if (!end) {
+      this.root.classList.remove("ended");
+      this.els.end.hidden = true;
+      this.wasAlive = true;
+      return;
+    }
+    if (this.restoring || this.root.classList.contains("ended")) return;
+    const show = () => {
+      this.els.endTitle.textContent = end.title;
+      this.els.endText.replaceChildren(...end.lines.map((t) => { const p = document.createElement("p"); p.textContent = t; return p; }));
+      this.els.endRestart.querySelector(".label")!.textContent = end.restart;
+      this.els.endLoad.querySelector(".label")!.textContent = end.load;
+      this.els.endLoad.hidden = !this.saves.has();
       this.els.fade.classList.remove("show");
+      this.root.classList.add("ended");
+      this.els.end.hidden = false;
       this.restoring = false;
-      this.render();
-    }, 3000);
+      window.setTimeout(() => this.els.endRestart.focus(), 0);
+    };
+    if (!this.wasAlive) { show(); return; } // a game that ended before this page was opened
+    this.restoring = true;
+    this.els.fadeText.textContent = v.lastLine;
+    this.els.fade.classList.add("show");
+    window.setTimeout(show, Math.round(2400 * this.speed));
   }
+
 
   private confirmRestart() {
     const box = document.createElement("div");
     box.className = "modal";
-    box.innerHTML = `<div class="panel"><div class="title">Restart?</div><p>Start again from the first morning on the beach.</p>
+    box.innerHTML = `<div class="panel"><div class="title">Restart?</div><p>Start a new game, from the storm.</p>
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);
