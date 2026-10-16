@@ -3,7 +3,7 @@ import { Engine } from "../src/core/engine";
 import { seedRng } from "../src/core/rng";
 import type { GameState } from "../src/core/state";
 import { chooseText, setVariantMode } from "../src/core/text";
-import { loadRegistry, readContentFiles } from "./helpers";
+import { loadRegistry, readContentFiles, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const look = (e: Engine) => e.dispatch({ type: "explore" });
@@ -27,7 +27,7 @@ describe("text variants", () => {
   });
 
   it("in the game, fishing again and again does not repeat the same line twice in a row", () => {
-    const e = Engine.newGame(reg, 3);
+    const e = startGame(reg, 3);
     for (let i = 0; i < 4; i++) look(e);
     e.applyEffects([{ give: { fishing_spear: 1 } }]);
     const wade: string[] = [];
@@ -44,7 +44,7 @@ describe("text variants", () => {
 
   it("the same seed and commands give the same wording (saves replay identically)", () => {
     const play = () => {
-      const e = Engine.newGame(reg, 7);
+      const e = startGame(reg, 7);
       for (let i = 0; i < 4; i++) look(e);
       e.dispatch({ type: "travel", region: "forest" });
       return e.state.log.map((l) => l.text);
@@ -54,12 +54,12 @@ describe("text variants", () => {
 
   it("the opening varies between games", () => {
     const intros = new Set<string>();
-    for (let seed = 1; seed <= 30; seed++) intros.add(Engine.newGame(reg, seed).state.log[0].text);
+    for (let seed = 1; seed <= 30; seed++) intros.add(startGame(reg, seed).state.log[0].text);
     expect(intros.size).toBe(3);
   });
 
   it("loads saves made before variants were remembered", () => {
-    const old = structuredClone(Engine.newGame(reg, 5).state) as Partial<GameState>;
+    const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.lastText;
     const e = new Engine(reg, old as GameState);
     look(e);
@@ -71,7 +71,7 @@ describe("text variants", () => {
 describe("text variants in the content", () => {
   it("the first variant mode shows the original wording", () => {
     setVariantMode("first");
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     expect(e.state.log[0].text).toMatch(/^Awake\. Salt in the mouth\./);
   });
 

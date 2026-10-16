@@ -1,5 +1,5 @@
-import type { Registry } from "../content/registry";
-import type { Activity, Effect, Effort, ItemAction, Outcome, Region, Thoughts, Yield } from "../content/schema";
+import { questActions, type Registry } from "../content/registry";
+import type { Activity, Condition, Effect, Effort, GameEvent, ItemAction, Outcome, Quest, QuestAction, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
@@ -12,7 +12,9 @@ export type Command =
   | { type: "consume"; item: string }
   | { type: "explore" }
   | { type: "questAction"; quest: string }
-  | { type: "itemAction"; item: string; action: string };
+  | { type: "itemAction"; item: string; action: string }
+  /** pick a button in the open event ("close" ends a scene without choices) */
+  | { type: "choose"; choice: string };
 
 export interface Result {
   ok: boolean;
@@ -46,11 +48,16 @@ export class Engine {
     this.checkpoint.today ??= {};
     this.state.lastText ??= {};
     this.checkpoint.lastText ??= {};
+    this.state.events ??= { active: null, queue: [], seen: {} };
+    this.checkpoint.events ??= { active: null, queue: [], seen: {} };
   }
 
   static newGame(reg: Registry, seed: number): Engine {
     const e = new Engine(reg, createInitialState(reg, seed));
     e.syncQuests(); // "start" quests and anything already true at the first moment
+    // "start" events open before anything else (the story before the beach)
+    e.state.events.queue = [...reg.events.values()].filter((ev) => ev.trigger === "start").map((ev) => ev.id);
+    e.openNextEvent();
     e.checkpoint = clone(e.state);
     return e;
   }
@@ -80,10 +87,19 @@ export class Engine {
 
   dispatch(cmd: Command): Result {
     if (this.state.dead) return refuse("you are dead");
+    // while an event is open, only its buttons work
+    if (this.state.events.active && cmd.type !== "choose") return refuse("an event is open");
+    if (!this.state.events.active && cmd.type === "choose") return refuse("no event is open");
     this.state.turn = (this.state.turn ?? 0) + 1;
     this.state.prevStats = { ...this.state.stats };
     this.damageLogged.clear();
     this.loggedChars = 0;
+    const res = this.run(cmd);
+    if (res.ok && !this.state.dead && cmd.type !== "choose") this.checkEvents(cmd);
+    return res;
+  }
+
+  private run(cmd: Command): Result {
     switch (cmd.type) {
       case "activity": return this.doActivity(cmd.id);
       case "travel": return this.travel(cmd.region);
@@ -91,6 +107,114 @@ export class Engine {
       case "explore": return this.explore();
       case "questAction": return this.questAction(cmd.quest);
       case "itemAction": return this.itemAction(cmd.item, cmd.action);
+      case "choose": return this.choose(cmd.choice);
+    }
+  }
+
+  // ---------------------------------------------------------------- events
+
+  /** The open event and its scene, if any. */
+  openEventScene(): { event: GameEvent; scene: GameEvent["scenes"][string]; text: string } | null {
+    const a = this.state.events.active;
+    if (!a) return null;
+    const event = this.reg.events.get(a.id)!;
+    return { event, scene: event.scenes[a.scene], text: a.text };
+  }
+
+  /** Is a choice of the open scene shown, and can it be picked now? */
+  checkChoice(c: { visibleWhen?: Condition; requires?: Condition; requiresText?: string }): { visible: boolean; enabled: boolean; reason?: string } {
+    const ctx = this.ctx();
+    if (!evaluate(c.visibleWhen, ctx)) return { visible: false, enabled: false };
+    if (!evaluate(c.requires, ctx)) return { visible: true, enabled: false, reason: c.requiresText ?? explain(c.requires, ctx) ?? undefined };
+    return { visible: true, enabled: true };
+  }
+
+  private choose(choiceId: string): Result {
+    const open = this.openEventScene()!;
+    const { event, scene } = open;
+    if (!scene.choices) {
+      if (choiceId !== "close") return refuse("unknown choice");
+      this.endEvent(event);
+      return this.ok(0);
+    }
+    const c = scene.choices.find((x) => x.id === choiceId);
+    if (!c) return refuse("unknown choice");
+    const check = this.checkChoice(c);
+    if (!check.visible) return refuse("unknown choice");
+    if (!check.enabled) return refuse(check.reason ?? "not possible now");
+    this.remember(`${event.id}_${c.id}`);
+    this.applyEffects(c.effects);
+    if (this.state.dead) { this.state.events.active = null; this.state.events.queue = []; return this.died(0); }
+    if (c.next) this.enterScene(event, c.next);
+    else this.endEvent(event);
+    return this.ok(0);
+  }
+
+  private openNextEvent() {
+    const id = this.state.events.queue.shift();
+    if (!id) return;
+    const event = this.reg.events.get(id)!;
+    const seen = (this.state.events.seen[id] ??= { count: 0, lastAt: 0 });
+    seen.count += 1;
+    seen.lastAt = this.state.time;
+    this.enterScene(event, "start");
+  }
+
+  private enterScene(event: GameEvent, sceneId: string) {
+    const scene = event.scenes[sceneId];
+    this.state.events.active = { id: event.id, scene: sceneId, text: this.say(scene.text)! };
+    this.applyEffects(scene.effects);
+  }
+
+  private endEvent(event: GameEvent) {
+    this.state.events.active = null;
+    this.remember(event.id);
+    // the story before the beach is over: the journal starts
+    if (event.trigger === "start" && !this.state.events.queue.some((id) => this.reg.events.get(id)!.trigger === "start")) {
+      this.log(this.say(this.reg.game.start.log));
+    }
+    this.postCheck();
+    if (event.checkpoint && !this.state.dead) this.checkpoint = clone(this.state);
+    this.openNextEvent();
+  }
+
+  /** Can this event open now (once only, or after its cooldown; its extra condition)? */
+  private eventCanOpen(ev: GameEvent): boolean {
+    const seen = this.state.events.seen[ev.id];
+    if (seen && (!ev.repeat || this.state.time - seen.lastAt < ev.repeat.cooldownHours * 60)) return false;
+    return evaluate(ev.when, this.ctx());
+  }
+
+  /** After an action: open the first event whose trigger fires (time, condition, or a chance roll). */
+  private checkEvents(cmd: Command) {
+    if (this.state.events.active) return;
+    const keys = this.actionKeys(cmd);
+    const ctx = this.ctx();
+    for (const ev of this.reg.events.values()) {
+      const t = ev.trigger;
+      if (t === "start" || !this.eventCanOpen(ev)) continue;
+      let fires = false;
+      if ("at" in t) fires = evaluate({ reached: { day: t.at.day, hour: t.at.hour } }, ctx);
+      else if ("when" in t) fires = evaluate(t.when, ctx);
+      else if (!t.after || t.after.some((a) => keys.includes(a))) fires = pickChance(this.state, t.chance);
+      if (fires) {
+        this.state.events.queue.push(ev.id);
+        this.openNextEvent();
+        return;
+      }
+    }
+  }
+
+  /** What an action counts as for { after: [...] } triggers. */
+  private actionKeys(cmd: Command): string[] {
+    switch (cmd.type) {
+      case "activity": return [cmd.id, ...(this.reg.activities.get(cmd.id)?.activity.tags ?? [])];
+      case "travel": return ["travel", cmd.region];
+      case "explore": return ["explore"];
+      case "consume": return [cmd.item, ...(this.reg.items.get(cmd.item)?.consume?.tags ?? [])];
+      case "itemAction": return [cmd.item, ...(this.reg.items.get(cmd.item)?.actions?.find((a) => a.id === cmd.action)?.tags ?? [])];
+      case "questAction": return [cmd.quest];
+      case "choose": return [];
     }
   }
 
@@ -111,10 +235,16 @@ export class Engine {
   }
 
   /** Can the action next to an active quest be used now? */
+  /** A quest's action now: the first alternative whose visibleWhen holds. */
+  questActionFor(q: Quest): QuestAction | undefined {
+    const ctx = this.ctx();
+    return questActions(q).find((a) => evaluate(a.visibleWhen, ctx));
+  }
+
   checkQuestAction(id: string): { visible: boolean; enabled: boolean; reason?: string } {
     const q = this.reg.quests.get(id);
-    if (!q?.action || this.state.quests[id]?.status !== "active") return { visible: false, enabled: false };
-    const a = q.action;
+    const a = q && this.questActionFor(q);
+    if (!a || this.state.quests[id]?.status !== "active") return { visible: false, enabled: false };
     const ctx = this.ctx();
     if (!evaluate(a.requires, ctx)) {
       return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
@@ -130,7 +260,7 @@ export class Engine {
     const c = this.checkQuestAction(id);
     if (!c.visible) return refuse("no such task");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
-    const a = this.reg.quests.get(id)!.action!;
+    const a = this.questActionFor(this.reg.quests.get(id)!)!;
     this.take(a.cost);
     this.log(this.say(a.log));
     if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
@@ -457,6 +587,10 @@ export class Engine {
       else if ("log" in e) this.log(this.say(e.log));
       else if ("roll" in e) this.applyOutcomes(e.roll);
       else if ("startQuest" in e) this.startQuest(e.startQuest);
+      else if ("unlock" in e) {
+        const st = s.regions[e.unlock];
+        if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); }
+      }
     }
     if (s.stats.health <= 0 && !s.dead) { s.dead = true; this.log(this.say(this.reg.game.deathLog)); }
   }

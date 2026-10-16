@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, readContentFiles, revealAll } from "./helpers";
+import { loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
@@ -27,7 +27,7 @@ const shipped = loadRegistry();
 const reg = registryWith(EXTRA);
 /** fully explored, with a spear so fishing can be used to pass 2 hours */
 const fresh = () => {
-  const e = revealAll(Engine.newGame(reg, 3));
+  const e = revealAll(startGame(reg, 3));
   e.applyEffects([{ give: { fishing_spear: 1 } }]);
   return e;
 };
@@ -41,7 +41,7 @@ describe("quests", () => {
   });
 
   it("start quests are active at once; condition quests wait for their trigger", () => {
-    const e = revealAll(Engine.newGame(reg, 3));
+    const e = revealAll(startGame(reg, 3));
     // the spear quest is triggered by finding the fish (revealAll found everything)
     expect(active(e)).toEqual(["survive_first_night", "build_fishing_spear", "find_water", "find_food"]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
@@ -124,7 +124,7 @@ describe("quests", () => {
         files["content/regions/forest.json"] = forest;
       },
     );
-    const e = revealAll(Engine.newGame(r, 1));
+    const e = revealAll(startGame(r, 1));
     expect(active(e)).not.toContain("q_manual");
 
     e.dispatch({ type: "travel", region: "forest" });
@@ -151,10 +151,10 @@ describe("quests", () => {
 
 describe("quest actions: build a fishing spear", () => {
   const reg2 = loadRegistry();
-  const explored = () => revealAll(Engine.newGame(reg2, 1));
+  const explored = () => revealAll(startGame(reg2, 1));
 
   it("appears when the school of fish is found, with progress towards 10 firewood", () => {
-    const e = Engine.newGame(reg2, 1);
+    const e = startGame(reg2, 1);
     expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
     for (let i = 0; i < 4; i++) e.dispatch({ type: "explore" });
     const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;

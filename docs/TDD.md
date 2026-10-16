@@ -467,6 +467,8 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 
 ### 6.10 Events
 
+**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, checkpoint?, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. New effect `{ "unlock": regionId }`. Quest `action` may be a list of alternatives with `visibleWhen` (first visible wins). The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
+
 | Field | Meaning |
 |---|---|
 | `trigger` | `activity`, `explore`, `arrive`, `phase` (with `phases`), `sleep`, `condition`, `manual` |

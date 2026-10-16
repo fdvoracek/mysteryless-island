@@ -15,9 +15,10 @@ test.beforeEach(async ({ page }) => {
   // ?speed=0.2 runs progress bars 5x faster so the flows finish quickly; the pacing test below uses normal speed.
   // ?variants=first always shows the first wording of each text, so the checks below can name it.
   await page.goto("./?speed=0.2&variants=first");
-  // start every test from a fresh game
+  // start every test from a fresh game, past the shipwreck with the knife (the "the story starts" test plays it)
   await page.evaluate(() => localStorage.clear());
   await page.reload();
+  await escapeShip(page, "knife");
 });
 
 test.afterEach(() => {
@@ -25,7 +26,40 @@ test.afterEach(() => {
 });
 
 const action = (page: Page, name: string) => page.locator("#actions .btn", { hasText: name });
+
+/** The opening event: grab one thing from the sinking ship, then close the swim to the shore. */
+async function escapeShip(page: Page, choice: "knife" | "matches" | "water" | "rations") {
+  await page.locator(`#eventChoices [data-choice="${choice}"]`).click();
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(page.locator("#event")).toBeHidden();
+}
 const tab = (page: Page, name: string) => page.locator("#tabs .tab", { hasText: name });
+
+test("the story starts with the shipwreck: grab one thing, swim to the shore", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  const event = page.locator("#event");
+  await expect(event).toBeVisible();
+  await expect(page.locator("#eventTitle")).toHaveText("The storm");
+  await expect(page.locator("#eventText")).toContainText("There is a moment, no more, to grab one thing");
+  await expect(page.locator("#eventChoices .btn")).toHaveText(["the knife", "the matches", "the water can", "the rations"]);
+  // the beach is not there yet
+  await expect(page.locator("#log .entry")).toHaveCount(0);
+
+  await page.locator('#eventChoices [data-choice="matches"]').click();
+  await expect(page.locator("#eventText")).toContainText("The tin is still there, still shut.");
+  await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]);
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(event).toBeHidden();
+  await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
+  await expect(page.locator("#stores")).toContainText("matches");
+  await expect(page.locator("#inventory .row .key")).toHaveText(["summer clothes"]);
+
+  // the choice is saved: a reload goes straight to the beach
+  await page.reload();
+  await expect(event).toBeHidden();
+  await expect(action(page, "look around")).toBeVisible();
+});
 
 test("the game is visible and not covered on load", async ({ page }) => {
   await expect(page).toHaveTitle("Mysteryless Island");
@@ -86,7 +120,12 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await tab(page, "the beach").click();
   await expect(tab(page, "the beach")).toHaveClass(/here/);
   // raw food gets a fire icon only once the fire is lit
-  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("raw_fish", 1));
+  // a box of matches, so "light fire" is the quick, sure kind (without them it is 2 h of friction and can fail)
+  await page.evaluate(() => {
+    const ti = (window as unknown as { ti: { give(i: string, n: number): void } }).ti;
+    ti.give("raw_fish", 1);
+    ti.give("matches", 10);
+  });
   const cook = page.locator('#stores .row[data-id="raw_fish"] .iaction');
   await expect(cook).toHaveCount(0);
   await action(page, "light fire").click();
@@ -184,8 +223,16 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
 
 test("on a phone screen every layout fits the width, and its buttons are on screen and usable", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 }); // a small phone (iPhone SE)
+  await page.evaluate(() => localStorage.clear()); // every layout starts a new game, with the shipwreck
   for (const id of ["classic", "journal", "scene", "notebook", "stage", "bujo"]) {
     await page.goto(`./?speed=0.2&variants=first&layout=${id}`);
+    // a new game: the shipwreck fits the phone, every choice is a full-width button on screen
+    const panel = (await page.locator("#event .panel").boundingBox())!;
+    expect(panel.x, `${id}: event panel`).toBeGreaterThanOrEqual(0);
+    expect(panel.x + panel.width, `${id}: event panel`).toBeLessThanOrEqual(375);
+    const last = (await page.locator("#eventChoices .btn").last().boundingBox())!;
+    expect(last.y + last.height, `${id}: event choice below the screen`).toBeLessThanOrEqual(667);
+    await escapeShip(page, "knife");
     const look = action(page, "look around");
     await expect(look, id).toBeVisible();
     // no sideways scrolling

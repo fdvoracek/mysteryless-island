@@ -106,5 +106,49 @@
   },
   { "id": "fishing_spear", "name": "fishing spear", "category": "tool" },
   { "id": "knife", "name": "knife", "category": "tool" },
-  { "id": "summer_clothes", "name": "summer clothes", "category": "clothing" }
+  { "id": "summer_clothes", "name": "summer clothes", "category": "clothing" },
+  {
+    "id": "matches",
+    "name": "matches",
+    "category": "material",
+    "_note": "a box of 10 from the shipwreck; light fire uses one"
+  },
+  {
+    "id": "water_can",
+    "name": "water can",
+    "category": "tool",
+    "_note": "stays when the water is gone (later: refill at the spring)"
+  },
+  {
+    "id": "can_water",
+    "name": "water in the can",
+    "category": "water",
+    "consume": {
+      "verb": "drink",
+      "hours": 0.25,
+      "stats": { "thirst": -35 },
+      "tags": ["drink"],
+      "log": [
+        "You drink from the can. It tastes of tin, but it is water.",
+        "A long swallow from the can.",
+        "You drink, then screw the lid back on tight."
+      ]
+    }
+  },
+  {
+    "id": "rations",
+    "name": "rations",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.5,
+      "stats": { "hunger": -30 },
+      "tags": ["eat"],
+      "log": [
+        "Hard biscuit and salt meat, soaked with sea water. Still food.",
+        "You chew a ration slowly, making it last.",
+        "Salt meat and a damp biscuit. Your stomach is grateful."
+      ]
+    }
+  }
 ]

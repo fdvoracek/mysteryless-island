@@ -41,7 +41,9 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 
 ## Prototype scope
 
-- **Exploration:** the game starts with one button, *look around* (1 h). Each look explores the region one step further and reveals new buttons; when nothing is left to find, the button disappears.
+- **The shipwreck:** a new game opens with an event before the beach: the storm, the ship hits a rock, and you grab one thing before you jump: the knife, the matches (a box of 10), the water can (4 drinks; the empty can stays) or the rations (6 meals). Then the swim to the shore, and the journal starts. You keep your summer clothes.
+- **What you grabbed matters:** with matches, *light fire* takes 30 min and always works (one match each time); without, it is 2 h of friction that catches 2 times in 3 (the wood is used only when it catches). The spear takes 1 h with the knife, 3 h with a sharp stone.
+- **Exploration:** after the shipwreck there is one button, *look around* (1 h). Each look explores the region one step further and reveals new buttons; when nothing is left to find, the button disappears.
 - **The beach:** 1st look: the forest, close and hard to miss → forest tab. 2nd: a ring of rocks out of the wind → *light fire* (3 firewood), *sleep* (needs the fire; creates the checkpoint). 3rd: a cliff with shells → *collect shells*; eat them raw, or cook them for more food. 4th: a school of fish → *catch fish* (needs a fishing spear) and the task *build a fishing spear*. *Stoke fire* appears while the fire burns.
 - **Cooking:** while the fire burns and you are on the beach, raw food in the stores (raw fish, shells) shows a *cook* button next to it; click it to cook one. Defined per item as an `actions` entry in `content/items/`.
 - **Going to sleep:** you say how tired you are (from your energy, the same bands as the bar), then remember up to three things from the day, most memorable first (the first morning, the fish, the first fire, the spring…). The night itself is quiet (no thirst or fire messages); on waking, a short summary: the time, the worst thing about your body (or that you feel rested), and whether the fire survived. The day's memories start over each time you sleep. Defined as `thoughts` on the sleep activity, using `{ "today": … }` conditions.
@@ -50,7 +52,8 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 - Survival: health, energy, fullness, hydration and comfort (freezing / cold / comfortable), shown as ink bars (fuller is better; hover for the word; red when low). Only an empty health bar kills; the others drain health. Action-based clock in 30-minute steps; day phases; the fire heats the beach.
 - Death restores the last checkpoint (last sleep). Saved in `localStorage`.
 - Tasks (quests): "survive the first night" (done at day 2, 06:00); "build a fishing spear" once the fish are found: collect 10 firewood (progress shown under the task), then click *build* next to it. Only active tasks are listed; hover for a hint.
-- Inventory: tools and clothing (knife and summer clothes at the start, then the fishing spear), listed apart from stores.
+- Inventory: tools and clothing (summer clothes, the knife or the water can if you grabbed them, the fishing spear), listed apart from stores.
+- **Events:** a modal over the game (as in A Dark Room) with a title, text and buttons; each choice applies effects (stats, items, open a place) and may lead to another page; a page without choices ends with *close*. Triggers: the start of the game, a time (`{ "at": { "day": 3, "hour": 11 } }`), a condition, or a chance after given actions (`{ "after": ["explore"], "chance": 0.25 }`). Defined in `content/events/`.
 
 ## Adding content (no code changes)
 
@@ -59,6 +62,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 | A region with its activities | new file in `content/regions/` |
 | Items and food | `content/items/*.json` |
 | Quests (tasks) | `content/quests/*.json` |
+| Events (pop-ups with choices) | `content/events/*.json` |
 | Survival rules (rates, damage, regen) | `content/stats.json` |
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |

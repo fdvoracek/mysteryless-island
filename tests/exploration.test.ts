@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, readContentFiles } from "./helpers";
+import { loadRegistry, readContentFiles, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const labels = (e: Engine) => view(e).actions.map((a) => a.label);
@@ -11,7 +11,7 @@ const logHas = (e: Engine, text: string) => e.state.log.some((l) => l.text.inclu
 
 describe("exploration", () => {
   it("beach step 1: the beach is described and the forest is found", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     const t0 = e.state.time;
     expect(look(e).ok).toBe(true);
     expect(e.state.time - t0).toBe(60); // takes an hour
@@ -21,21 +21,21 @@ describe("exploration", () => {
   });
 
   it("beach step 2: the rocks with cover reveal light fire and sleep", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e); look(e);
     expect(logHas(e, "a ring of rocks breaks the sea wind")).toBe(true);
     expect(labels(e)).toEqual(["look around", "light fire", "sleep"]);
   });
 
   it("beach step 3: the cliff with shells reveals collect shells", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e); look(e); look(e);
     expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
     expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
   });
 
   it("beach step 4: the fish need a spear; then 'look around' is gone", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
     expect(labels(e)).toEqual(["light fire", "collect shells", "catch fish", "sleep"]);
@@ -44,7 +44,7 @@ describe("exploration", () => {
   });
 
   it("forest: dry wood on the first look, the spring on the second", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e);
     e.dispatch({ type: "travel", region: "forest" });
     expect(labels(e)).toEqual(["look around"]);
@@ -55,7 +55,7 @@ describe("exploration", () => {
   });
 
   it("each region keeps its own progress", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e); look(e);
     e.dispatch({ type: "travel", region: "forest" });
     look(e);
@@ -65,7 +65,7 @@ describe("exploration", () => {
   });
 
   it("each action's lines read top-down, newest action first (classic) or as one paragraph (turns)", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e);
     look(e);
     const v = view(e);
@@ -82,7 +82,7 @@ describe("exploration", () => {
   });
 
   it("dying rolls exploration back to the checkpoint", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     e.state.stats.health = 1;
     e.state.stats.thirst = 100;
     look(e);

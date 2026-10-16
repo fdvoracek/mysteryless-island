@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  Climate, Condition, Effect, Game, Item, Outcome, Quest, Region, StatsFile,
-  type Activity, type Timer,
+  Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Region, StatsFile,
+  type Activity, type QuestAction, type Timer,
 } from "./schema";
 
 /** Frozen, indexed content. Systems read content only through this object. */
@@ -16,6 +16,8 @@ export interface Registry {
   activities: Map<string, { activity: Activity; region: string }>;
   /** in file order; the tasks panel lists active quests in this order */
   quests: Map<string, Quest>;
+  /** in file order (content/events/*.json) */
+  events: Map<string, GameEvent>;
   /** tags counted by { "did": tag } conditions */
   tags: Set<string>;
   /** discovery id -> region id */
@@ -76,6 +78,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const regions = new Map<string, Region>();
   const activities = new Map<string, { activity: Activity; region: string }>();
   const quests = new Map<string, Quest>();
+  const events = new Map<string, GameEvent>();
   const discoveries = new Map<string, string>();
   const allIds = new Map<string, string>(); // id -> where it was defined
 
@@ -99,6 +102,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     } else if (/content\/quests\/[^/]+\.json$/.test(path)) {
       const list = parse(z.array(Quest), data, path, problems) ?? [];
       for (const q of list) { claim(q.id, path); quests.set(q.id, q); }
+    } else if (/content\/events\/[^/]+\.json$/.test(path)) {
+      const list = parse(z.array(GameEvent), data, path, problems) ?? [];
+      for (const ev of list) { claim(ev.id, path); events.set(ev.id, ev); }
     }
   }
 
@@ -167,6 +173,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       else if ("timer" in e) ref("timer", e.timer, w);
       else if ("roll" in e) checkOutcomes(e.roll, w);
       else if ("startQuest" in e) { ref("quest", e.startQuest, w); startedByEffect.add(e.startQuest); }
+      else if ("unlock" in e) ref("region", e.unlock, w);
     });
 
   for (const q of quests.values()) {
@@ -174,10 +181,39 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof q.trigger === "object") checkCond(q.trigger.when, `${w}.trigger.when`);
     checkCond(q.completeWhen, `${w}.completeWhen`);
     checkEffects(q.effects, w);
-    if (q.action) {
-      if (q.action.requires) checkCond(q.action.requires, `${w}.action.requires`);
-      Object.keys(q.action.cost ?? {}).forEach((k) => ref("item", k, `${w}.action.cost`));
-      checkEffects(q.action.effects, `${w}.action`);
+    questActions(q).forEach((a, i) => {
+      const aw = `${w}.action${Array.isArray(q.action) ? `[${i}]` : ""}`;
+      if (a.visibleWhen) checkCond(a.visibleWhen, `${aw}.visibleWhen`);
+      if (a.requires) checkCond(a.requires, `${aw}.requires`);
+      Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${aw}.cost`));
+      checkEffects(a.effects, aw);
+    });
+  }
+  for (const ev of events.values()) {
+    const w = `event ${ev.id}`;
+    if (!ev.scenes.start) problems.push(`${w}: needs a scene called "start"`);
+    if (ev.when) checkCond(ev.when, `${w}.when`);
+    const t = ev.trigger;
+    if (typeof t === "object" && "when" in t) checkCond(t.when, `${w}.trigger.when`);
+    if (typeof t === "object" && "after" in t) {
+      for (const a of t.after ?? []) {
+        const ok = a === "explore" || a === "travel" || activities.has(a) || tags.has(a) || items.has(a) || quests.has(a);
+        if (!ok) problems.push(`${w}.trigger.after: unknown action "${a}" (use an activity id, a tag, an item id, "explore" or "travel")`);
+      }
+    }
+    for (const [sid, sc] of Object.entries(ev.scenes)) {
+      const sw = `${w}.scenes.${sid}`;
+      checkEffects(sc.effects, sw);
+      const ids = new Set<string>();
+      sc.choices?.forEach((c, i) => {
+        const cw = `${sw}.choices[${i}]`;
+        if (ids.has(c.id)) problems.push(`${cw}: duplicate choice id "${c.id}"`);
+        ids.add(c.id);
+        if (c.visibleWhen) checkCond(c.visibleWhen, `${cw}.visibleWhen`);
+        if (c.requires) checkCond(c.requires, `${cw}.requires`);
+        checkEffects(c.effects, cw);
+        if (c.next && !ev.scenes[c.next]) problems.push(`${cw}.next: unknown scene "${c.next}"`);
+      });
     }
   }
   for (const r of regions.values()) {
@@ -239,6 +275,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     .map((r) => r.id);
 
   return Object.freeze({
-    game, stats, climate, items, regions, regionOrder, timers, activities, quests, tags, discoveries, statIds, bandIds, phaseIds,
+    game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, tags, discoveries, statIds, bandIds, phaseIds,
   });
 }
+
+/** A quest's action alternatives as a list (empty when it has none). */
+export const questActions = (q: Quest): QuestAction[] => (q.action === undefined ? [] : Array.isArray(q.action) ? q.action : [q.action]);

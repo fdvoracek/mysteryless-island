@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
-import { loadRegistry, readContentFiles } from "./helpers";
+import { loadRegistry, readContentFiles, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const look = (e: Engine) => e.dispatch({ type: "explore" });
@@ -11,7 +11,7 @@ const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.tur
 
 describe("arriving in a region", () => {
   it("the first visit shows the full description; coming back shows what you see now", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     look(e); // finds the forest
     go(e, "forest");
     expect(lastTurn(e)).toEqual([
@@ -30,7 +30,7 @@ describe("arriving in a region", () => {
   });
 
   it("the view follows what you found: dry wood, then the spring", () => {
-    const e = Engine.newGame(reg, 2);
+    const e = startGame(reg, 2);
     look(e);
     go(e, "forest");
     look(e); // dry wood
@@ -44,7 +44,7 @@ describe("arriving in a region", () => {
   });
 
   it("the beach shows the rocks with or without the fire, the shells and the fish", () => {
-    const e = Engine.newGame(reg, 3);
+    const e = startGame(reg, 3);
     for (let i = 0; i < 4; i++) look(e); // forest, rocks, cliff, fish
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
@@ -63,7 +63,7 @@ describe("arriving in a region", () => {
   });
 
   it("at night you see less", () => {
-    const e = Engine.newGame(reg, 4);
+    const e = startGame(reg, 4);
     look(e);
     go(e, "forest");
     e.advance(14, "rest"); // into the night

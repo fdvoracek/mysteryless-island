@@ -27,11 +27,13 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 - Ids are lowercase `snake_case` and unique across all kinds. Keys starting with `_` are comments.
 - Every journal text is `Text`: a string or a list of **variants** (one shown, never the same twice in a row). A list never means "lines in order". Lines the engine writes itself are in `game.json` → `journal` (`{place}` is filled in).
 - Sentences start with a capital letter (enforced by `content.test.ts`); labels (buttons, places, items, task titles, stat words, menu) stay lowercase.
+- Events (`content/events/`): pop-ups with scenes and choices; triggers `"start"`, `{ at }`, `{ when }`, `{ after, chance }`. While one is open, only `{ type: "choose" }` works.
 - Prefer content over code: conditions (`all/any/not`, `item`, `did`, `today`, `discovered`, `phase`, `stat`, `timer`…), `arrive` lines, activity `thoughts` / `afterwards`. New condition kinds need schema + `conditions.ts` + registry check + a test.
 - JSON files are formatted with short objects on one line (~110 chars); keep that style.
 
 ## Tests
 
+- A new game opens the shipwreck event first: tests use `startGame(reg, seed, choice?)` from `tests/helpers.ts` (picks the knife, closes the event, adds matches); the e2e test calls `escapeShip(page, choice)`.
 - Unit tests run with `variants: "first"` (`tests/setup.ts`); `tests/variants.test.ts` switches to random to test variety. The e2e test opens every page with `?variants=first`.
 - When a test plays through several steps, expectations must follow the game state as it changes (e.g. the spear task appears after the 4th "look around"; layouts keep different numbers of paragraphs). Both past CI failures came from this.
 - Add a test with every engine feature; check new content with a short playthrough.

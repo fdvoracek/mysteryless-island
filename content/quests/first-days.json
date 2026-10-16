@@ -17,18 +17,33 @@
     "title": "build a fishing spear",
     "hint": "A long, straight shaft and a sharp point. Gather branches enough to choose a good one.",
     "trigger": { "when": { "discovered": "school_of_fish" } },
-    "action": {
-      "label": "build",
-      "hours": 1,
-      "effort": "light",
-      "cost": { "firewood": 10 },
-      "effects": [{ "give": { "fishing_spear": 1 } }],
-      "log": [
-        "You choose the straightest branch and carve it to a point with the knife.",
-        "You pick the straightest branch and whittle the tip sharp.",
-        "Shaving by shaving, the knife turns a branch into a point."
-      ]
-    },
+    "action": [
+      {
+        "label": "build",
+        "visibleWhen": { "item": "knife" },
+        "hours": 1,
+        "effort": "light",
+        "cost": { "firewood": 10 },
+        "effects": [{ "give": { "fishing_spear": 1 } }],
+        "log": [
+          "You choose the straightest branch and carve it to a point with the knife.",
+          "You pick the straightest branch and whittle the tip sharp.",
+          "Shaving by shaving, the knife turns a branch into a point."
+        ]
+      },
+      {
+        "label": "build",
+        "hours": 3,
+        "effort": "work",
+        "cost": { "firewood": 10 },
+        "effects": [{ "give": { "fishing_spear": 1 } }],
+        "log": [
+          "Without a knife, you grind the straightest branch to a point on a sharp stone. It takes hours.",
+          "You scrape a branch against a sharp rock, again and again, until the tip is a point.",
+          "No blade, only a sharp stone and patience. Slowly the branch becomes a spear."
+        ]
+      }
+    ],
     "completeWhen": { "item": "fishing_spear" },
     "startLog": [
       "A spear would reach them. You will need wood to choose from.",
@@ -39,6 +54,7 @@
       "The spear is light and true. The fish will not be so quick now.",
       "Light, straight, sharp. The fish will have to be quicker.",
       "You test the point with your thumb. Good enough for fish."
-    ]
+    ],
+    "_action": "with the knife: 1 h; without it, a sharp stone: 3 h (the first alternative that is visible is used)"
   }
 ]

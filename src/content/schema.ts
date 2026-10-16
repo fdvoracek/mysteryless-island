@@ -83,7 +83,9 @@ export type Effect =
   | { unflag: string }
   | { log: string | string[] }
   | { roll: Outcome[] }
-  | { startQuest: string };
+  | { startQuest: string }
+  /** open a place: its tab appears, as if its unlockWhen had come true */
+  | { unlock: string };
 
 export type Outcome = { weight: number; when?: Condition; text?: string | string[]; effects?: Effect[] };
 
@@ -98,6 +100,7 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.object({ log: Text }).strict(),
     z.object({ roll: z.array(Outcome).min(1) }).strict(),
     z.object({ startQuest: Id }).strict(),
+    z.object({ unlock: Id }).strict(),
   ]),
 );
 
@@ -364,6 +367,24 @@ export const QuestTrigger = z.union([
   z.object({ when: Condition }).strict(),
 ]);
 
+/**
+ * A task's action button. A list gives alternatives: the first one whose `visibleWhen` holds is
+ * used (e.g. carve the spear with the knife in 1 h, or with a sharp stone in 3 h).
+ */
+export const QuestAction = z
+  .object({
+    label: z.string(),
+    visibleWhen: Condition.optional(),
+    hours: z.number().positive(),
+    effort: Effort,
+    requires: Condition.optional(),
+    requiresText: z.string().optional(),
+    cost: Amounts.optional(),
+    effects: z.array(Effect).min(1),
+    log: Text.optional(),
+  })
+  .strict();
+
 export const Quest = z
   .object({
     id: Id,
@@ -380,23 +401,73 @@ export const Quest = z
      * Optional action button next to the quest in the tasks panel (e.g. "build").
      * The panel shows progress towards its cost; clicking spends the cost, takes the time and applies the effects.
      */
-    action: z
-      .object({
-        label: z.string(),
-        hours: z.number().positive(),
-        effort: Effort,
-        requires: Condition.optional(),
-        requiresText: z.string().optional(),
-        cost: Amounts.optional(),
-        effects: z.array(Effect).min(1),
-        log: Text.optional(),
-      })
-      .strict()
-      .optional(),
+    action: z.union([QuestAction, z.array(QuestAction).min(1)]).optional(),
   })
   .strict();
 
 export type Quest = z.infer<typeof Quest>;
+
+// ---------- events ----------
+
+/** A button in an event. Its effects apply when chosen; then the event goes to `next` (or ends). */
+export const EventChoice = z
+  .object({
+    id: Id,
+    label: z.string(),
+    visibleWhen: Condition.optional(),
+    requires: Condition.optional(),
+    requiresText: z.string().optional(),
+    effects: z.array(Effect).optional(),
+    /** the scene to show next; omitted = the event ends */
+    next: Id.optional(),
+  })
+  .strict();
+
+/** One page of an event. Without choices it gets a single button that ends the event (`close`). */
+export const EventScene = z
+  .object({
+    text: Text,
+    /** applied when the scene opens */
+    effects: z.array(Effect).optional(),
+    choices: z.array(EventChoice).min(1).optional(),
+    /** label of the button that ends the event, for a scene without choices */
+    close: z.string().optional(),
+  })
+  .strict();
+
+/**
+ * When an event opens:
+ * - "start": at the very beginning of a new game, before the first journal line
+ * - { at: { day, hour } }: once the clock reaches that moment (checked after each action)
+ * - { when: Condition }: as soon as the condition holds (checked after each action)
+ * - { after: [...], chance }: a roll after one of these actions succeeds: activity ids, tags,
+ *   item ids (eating, cooking), "explore" or "travel"; omit `after` for any action
+ */
+export const EventTrigger = z.union([
+  z.literal("start"),
+  z.object({ at: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
+  z.object({ when: Condition }).strict(),
+  z.object({ after: z.array(Id).min(1).optional(), chance: z.number().gt(0).max(1) }).strict(),
+]);
+
+export const GameEvent = z
+  .object({
+    id: Id,
+    title: z.string(),
+    trigger: EventTrigger,
+    /** an extra condition for any trigger (e.g. only on the beach) */
+    when: Condition.optional(),
+    /** by default an event happens once; with repeat it can come back after cooldownHours */
+    repeat: z.object({ cooldownHours: z.number().nonnegative() }).strict().optional(),
+    /** save a checkpoint when the event ends (dying later starts from here) */
+    checkpoint: z.boolean().optional(),
+    /** the event opens on the scene called "start" */
+    scenes: z.record(Id, EventScene),
+  })
+  .strict();
+export type GameEvent = z.infer<typeof GameEvent>;
+export type EventScene = z.infer<typeof EventScene>;
+export type QuestAction = z.infer<typeof QuestAction>;
 export type ItemAction = z.infer<typeof ItemAction>;
 export type Activity = z.infer<typeof Activity>;
 export type Region = z.infer<typeof Region>;

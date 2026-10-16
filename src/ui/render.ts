@@ -48,8 +48,15 @@ export class UI {
         <button class="link" id="lights">lights off.</button>
         <button class="link" id="restart">restart.</button>
       </footer>
-      <div class="fade" id="fade"><p id="fadeText"></p></div>`;
-    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu"]) {
+      <div class="fade" id="fade"><p id="fadeText"></p></div>
+      <div class="modal event" id="event" hidden>
+        <div class="panel" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
+          <h2 class="title" id="eventTitle"></h2>
+          <div class="event-text" id="eventText" aria-live="polite"></div>
+          <div class="buttons" id="eventChoices"></div>
+        </div>
+      </div>`;
+    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventText", "eventChoices"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.buildLayoutMenu();
@@ -125,7 +132,47 @@ export class UI {
     this.renderStores(v);
     this.renderInventory(v);
     this.renderLog(v);
+    this.renderEvent(v);
     if (v.dead && !this.restoring) this.showDeath(v.lastLine);
+  }
+
+  // ---------------------------------------------------------------- events
+
+  /**
+   * The open event, as a modal over the game (like A Dark Room): title, text, one button per choice.
+   * The game behind it cannot be used until the event ends (the engine refuses other commands).
+   */
+  private renderEvent(v: View) {
+    const box = this.els.event;
+    const ev = v.event;
+    // before the first journal line (the shipwreck) there is no beach yet: show only the event
+    this.root.classList.toggle("prologue", !!ev && v.log.length === 0);
+    if (!ev) { box.hidden = true; delete box.dataset.key; return; }
+    // rebuild only when the scene changes, so a button keeps focus and its cooldown bar
+    const key = `${ev.id}|${ev.text}`;
+    if (box.dataset.key !== key) {
+      box.dataset.key = key;
+      this.els.eventTitle.textContent = ev.title;
+      this.els.eventText.replaceChildren(...ev.text.split(/\n\s*\n/).map((p) => { const el = document.createElement("p"); el.textContent = p; return el; }));
+      this.els.eventChoices.replaceChildren(...ev.choices.map((c) => {
+        const b = document.createElement("button");
+        b.className = "btn";
+        b.dataset.choice = c.id;
+        b.innerHTML = `<span class="label"></span><span class="cd"></span>`;
+        b.querySelector(".label")!.textContent = c.label;
+        b.addEventListener("click", () => { if (!b.classList.contains("off")) this.send({ type: "choose", choice: c.id }, b); });
+        return b;
+      }));
+      box.hidden = false;
+      window.setTimeout(() => this.els.eventChoices.querySelector<HTMLButtonElement>(".btn:not(.off)")?.focus(), 0);
+    }
+    for (const c of ev.choices) {
+      const b = this.els.eventChoices.querySelector<HTMLElement>(`[data-choice="${c.id}"]`);
+      if (!b) continue;
+      b.classList.toggle("off", !c.enabled);
+      b.title = c.reason ?? "";
+      b.setAttribute("aria-disabled", String(!c.enabled));
+    }
   }
 
   // ---------------------------------------------------------------- panels

@@ -2,7 +2,8 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { buildRegistry } from "../src/content/registry";
-import type { Engine } from "../src/core/engine";
+import type { Registry } from "../src/content/registry";
+import { Engine } from "../src/core/engine";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -18,6 +19,19 @@ export function readContentFiles(dir = join(ROOT, "content")): Record<string, un
 }
 
 export const loadRegistry = () => buildRegistry(readContentFiles());
+
+/**
+ * A new game past the opening event (the shipwreck): `choice` is what you grabbed, "knife" by
+ * default, which gives the old start kit (knife and summer clothes). Adds a box of matches unless
+ * `matches: false`, so "light fire" is the quick, sure kind; fire by friction has its own tests.
+ */
+export function startGame(reg: Registry, seed: number, choice = "knife", opts: { matches?: boolean } = {}): Engine {
+  const e = Engine.newGame(reg, seed);
+  e.dispatch({ type: "choose", choice });
+  e.dispatch({ type: "choose", choice: "close" });
+  if (opts.matches !== false && !e.state.items.matches) e.applyEffects([{ give: { matches: 10 } }]);
+  return e;
+}
 
 /**
  * Test shortcut: make every discovery and unlock every region at once, without passing time.

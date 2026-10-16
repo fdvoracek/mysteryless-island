@@ -142,6 +142,17 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .modal { position: fixed; inset: 0; display: grid; place-items: center; z-index: 30; background: color-mix(in srgb, var(--bg) 60%, transparent); }
 .modal .panel { background: var(--bg); border: 1px solid var(--line); box-shadow: 3px 3px 0 var(--bar); padding: 16px 20px; width: min(360px, 90vw); display: grid; gap: 12px; }
 .modal .title { font-weight: bold; }
+/* events: a story page over the game; the title, the text, then the choices */
+.modal.event { background: color-mix(in srgb, var(--bg) 82%, transparent); padding: 16px; }
+.modal.event .panel { width: min(520px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 22px 26px; gap: 16px; }
+.modal.event .title { margin: 0; font-size: 22px; font-weight: 400; }
+.modal.event .event-text p { margin: 0 0 0.7em; font-size: 17px; line-height: 1.55; }
+.modal.event .event-text p:last-child { margin-bottom: 0; }
+.modal.event .buttons { gap: 10px; }
+.modal.event .btn { width: calc(50% - 5px); }
+/* an event before the story starts: nothing of the island behind it yet */
+#app.prologue #game, #app.prologue .menu { visibility: hidden; }
+#app.prologue .modal.event { background: var(--bg); }
 .error { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; white-space: pre-wrap; color: var(--bad); }
 
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
@@ -189,4 +200,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
     grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 6px 14px; }
   .layout-menu .link { padding: 10px 0; font-size: 16px; }
   .modal .panel { width: calc(100vw - 32px); }
+  /* events: the text a little tighter, the choices two per row, so a scene fits one screen */
+  .modal.event .panel { padding: 18px; gap: 14px; }
+  .modal.event .title { font-size: 20px; }
+  .modal.event .event-text p { font-size: 16px; line-height: 1.45; margin-bottom: 0.6em; }
+  .modal.event .buttons { gap: 8px; }
+  .modal.event .btn { width: calc(50% - 4px); }
 }

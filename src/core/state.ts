@@ -17,6 +17,14 @@ export interface RegionState {
 
 export interface QuestState { status: "active" | "done"; startedAt: number; doneAt?: number }
 
+/** Events: the one open now (with the wording chosen for its scene), those waiting, and the history. */
+export interface EventsState {
+  active: { id: string; scene: string; text: string } | null;
+  /** events waiting to open after the current one (e.g. several "start" events) */
+  queue: string[];
+  seen: Record<string, { count: number; lastAt: number }>;
+}
+
 /** The whole game state. Plain JSON data: no classes, no Maps. */
 export interface GameState {
   saveVersion: number;
@@ -40,6 +48,7 @@ export interface GameState {
   today: Record<string, number>;
   /** the variant shown last per text (keyed by its first variant), so it isn't shown twice in a row */
   lastText: Record<string, number>;
+  events: EventsState;
   /** quests that have started; absent = not started yet */
   quests: Record<string, QuestState>;
   /** minutes left per timer */
@@ -77,6 +86,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     counters: {},
     today: {},
     lastText: {},
+    events: { active: null, queue: [], seen: {} },
     quests: {},
     timers,
     regions,
@@ -86,7 +96,9 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     turn: 0,
     dead: false,
   };
-  state.log.push({ at: time, text: chooseText(start.log, state), turn: 0 });
+  // with a "start" event, the opening line is written when that event ends (you reach the beach)
+  const startEvent = [...reg.events.values()].some((e) => e.trigger === "start");
+  if (!startEvent) state.log.push({ at: time, text: chooseText(start.log, state), turn: 0 });
   return state;
 }
 

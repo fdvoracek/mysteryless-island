@@ -121,14 +121,57 @@
       "name": "light fire",
       "hours": 0.5,
       "effort": "light",
-      "visibleWhen": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] },
-      "cost": { "firewood": 3 },
+      "visibleWhen": {
+        "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }, { "item": "matches" }]
+      },
+      "cost": { "firewood": 3, "matches": 1 },
       "effects": [{ "timer": "fire", "addHours": 6 }],
       "log": [
-        "A spark, a curl of smoke. The fire takes.",
-        "You strike and blow. Smoke, then a flame.",
-        "The kindling smokes, catches, crackles. A fire."
-      ]
+        "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
+        "You shield a match in your hands. The flame jumps to the kindling.",
+        "One match, struck carefully. The fire is lit."
+      ],
+      "tags": ["kindle"]
+    },
+    {
+      "id": "make_fire",
+      "name": "light fire",
+      "_note": "without matches: friction, 2 h, catches 2 times in 3; the wood is only used when it catches",
+      "hours": 2,
+      "effort": "work",
+      "visibleWhen": {
+        "all": [
+          { "discovered": "rock_shelter" },
+          { "not": { "timer": "fire" } },
+          { "not": { "item": "matches" } }
+        ]
+      },
+      "requires": { "item": "firewood", "gte": 3 },
+      "log": [
+        "You twist a dry stick against a branch, again and again, until your palms burn.",
+        "No matches. You spin a stick between your hands until your arms ache.",
+        "You rub wood on wood, slow and stubborn, blowing on every wisp of smoke."
+      ],
+      "outcomes": [
+        {
+          "weight": 2,
+          "text": [
+            "A glow, a breath, and at last a flame. The fire takes.",
+            "The wisp of smoke becomes an ember, then a flame.",
+            "Finally, a flame. You feed it, careful as with a newborn."
+          ],
+          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
+        },
+        {
+          "weight": 1,
+          "text": [
+            "Smoke, but no flame. The wood will do for another try.",
+            "The ember dies before it catches. You keep the wood.",
+            "Your hands give out first. No fire, not yet."
+          ]
+        }
+      ],
+      "tags": ["kindle"]
     },
     {
       "id": "stoke_fire",
@@ -300,7 +343,7 @@
                 "The moment the fire took.",
                 "Smoke in your eyes, then warmth."
               ],
-              "when": { "today": "light_fire" }
+              "when": { "today": "kindle" }
             },
             {
               "text": [

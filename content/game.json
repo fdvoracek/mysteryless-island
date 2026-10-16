@@ -7,7 +7,7 @@
     "day": 1,
     "hour": 6,
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
-    "items": { "knife": 1, "summer_clothes": 1 },
+    "items": { "summer_clothes": 1 },
     "log": [
       "Awake. Salt in the mouth. The sea is quiet now. The ship is gone. Behind the dunes, a dark line of trees.",
       "Cold sand under your cheek. Salt on your lips. The sea is flat, grey and empty: no ship. Beyond the dunes, a dark line of trees.",

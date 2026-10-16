@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, readContentFiles } from "./helpers";
+import { loadRegistry, readContentFiles, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const look = (e: Engine) => e.dispatch({ type: "explore" });
@@ -30,7 +30,7 @@ const MEMORIES = [
 
 /** a game where you can sleep: the rocks found and a fire lit */
 function readyToSleep(seed: number, looks = 2): Engine {
-  const e = Engine.newGame(reg, seed);
+  const e = startGame(reg, seed);
   for (let i = 0; i < looks; i++) look(e);
   e.applyEffects([{ give: { firewood: 3 } }]);
   e.dispatch({ type: "activity", id: "light_fire" });
@@ -103,7 +103,7 @@ describe("going to sleep", () => {
   });
 
   it("loads saves made before day memories existed", () => {
-    const old = structuredClone(Engine.newGame(reg, 5).state) as Partial<GameState>;
+    const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.today;
     const e = new Engine(reg, old as GameState);
     look(e);

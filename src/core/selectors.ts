@@ -57,6 +57,8 @@ export interface View {
   /** the same story grouped into one paragraph per action, newest first; lines in reading order */
   turns: Array<{ turn: number; day: number; clock: string; lines: string[] }>;
   dead: boolean;
+  /** the open event (a modal), if any: title, the scene's text and its buttons */
+  event: { id: string; title: string; text: string; choices: Array<{ id: string; label: string; enabled: boolean; reason?: string }> } | null;
 }
 
 export function view(engine: Engine): View {
@@ -119,15 +121,16 @@ export function view(engine: Engine): View {
   const quests: View["quests"] = [];
   for (const q of reg.quests.values()) {
     if (s.quests[q.id]?.status !== "active") continue;
-    const progress = Object.entries(q.action?.cost ?? {}).map(([item, need]) => ({
+    const qa = engine.questActionFor(q);
+    const progress = Object.entries(qa?.cost ?? {}).map(([item, need]) => ({
       label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
     }));
     let action: View["quests"][number]["action"];
-    if (q.action) {
+    if (qa) {
       const c = engine.checkQuestAction(q.id);
-      const tooltip = [`${q.action.label} · ${fmtHours(q.action.hours)}`];
+      const tooltip = [`${qa.label} · ${fmtHours(qa.hours)}`];
       action = {
-        id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: q.action.label,
+        id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: qa.label,
         enabled: c.enabled, reason: sentence(c.reason), tooltip,
       };
     }
@@ -173,6 +176,7 @@ export function view(engine: Engine): View {
     lastLine: s.log[0]?.text ?? "",
     turns,
     dead: s.dead,
+    event: eventView(engine),
   };
 }
 
@@ -201,4 +205,17 @@ export function clampPct(v: number): number {
 export function fmtHours(h: number): string {
   if (h < 1) return `${Math.round(h * 60)}m`;
   return Number.isInteger(h) ? `${h}h` : `${h.toFixed(1)}h`;
+}
+
+function eventView(engine: Engine): View["event"] {
+  const open = engine.openEventScene();
+  if (!open) return null;
+  const { event, scene, text } = open;
+  const choices = scene.choices
+    ? scene.choices.flatMap((c) => {
+      const ch = engine.checkChoice(c);
+      return ch.visible ? [{ id: c.id, label: c.label, enabled: ch.enabled, reason: sentence(ch.reason) }] : [];
+    })
+    : [{ id: "close", label: scene.close ?? "close", enabled: true }];
+  return { id: event.id, title: event.title, text, choices };
 }

@@ -1,16 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { Engine } from "../src/core/engine";
 import { clockText } from "../src/core/clock";
 import { view } from "../src/core/selectors";
-import { loadRegistry, revealAll } from "./helpers";
+import { loadRegistry, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 /** a game with the beach and forest fully explored (exploration is tested separately) */
-const fresh = (seed = 1) => revealAll(Engine.newGame(reg, seed));
+const fresh = (seed = 1) => revealAll(startGame(reg, seed));
 
 describe("engine: the prototype loop", () => {
   it("starts at dawn on the beach with only 'look around'", () => {
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     expect(e.state.location).toBe("beach");
     expect(clockText(e.state.time)).toBe("06:00");
     expect(view(e).actions.map((a) => a.label)).toEqual(["look around"]);
@@ -26,8 +25,8 @@ describe("engine: the prototype loop", () => {
     expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire");
   });
 
-  it("starts with a knife and summer clothes, listed under inventory, not stores", () => {
-    const v = view(Engine.newGame(reg, 1));
+  it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory, not stores", () => {
+    const v = view(startGame(reg, 1, "knife", { matches: false }));
     expect(v.inventory.map((i) => i.id)).toEqual(["knife", "summer_clothes"]);
     expect(v.stores).toEqual([]);
   });
@@ -156,7 +155,7 @@ describe("engine: the prototype loop", () => {
 
   it("the progress bar runs longer for longer actions and for more text, within min/max", () => {
     const { minMs, maxMs } = reg.game.cosmetic;
-    const e = Engine.newGame(reg, 1);
+    const e = startGame(reg, 1);
     const look = e.dispatch({ type: "explore" }); // 1 h and a two-line discovery
     expect(look.cooldownMs).toBeGreaterThanOrEqual(2500);
     expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
