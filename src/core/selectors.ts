@@ -228,6 +228,9 @@ export function fmtHours(h: number): string {
 function eventView(engine: Engine): View["event"] {
   const active = engine.state.events.active;
   if (active?.id.startsWith("explore:")) return exploreView(engine);
+  if (active?.id === "note") {
+    return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [{ id: "close", label: "close", enabled: true }] };
+  }
   const open = engine.openEventScene();
   if (!open) return null;
   const { event, scene, text } = open;

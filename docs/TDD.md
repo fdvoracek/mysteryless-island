@@ -487,6 +487,8 @@ While an event is active, every command except `choose` is rejected. An event st
 
 ### 6.10b Quests **[decided]**
 
+**Task notes [implemented]:** when a quest completes, the engine queues a note (`state.events.notes`) that opens as a pop-up when the command is over (it blocks the game like an event; `close` ends it). Title `game.tasks.title` ({task}); text: the quest's `doneLog` (already in the journal, not logged again) and what changed since the command began: items gained (`tasks.gained`, {item} {where}) and used (`tasks.used`), places opened (`tasks.opened`), and, when a quest action finished it, actions now possible here (`tasks.possible`). Tests: `startGame` closes notes automatically unless `{ keepNotes: true }`.
+
 Example (not shipped; the current content has only *survive the first night*):
 
 ```json

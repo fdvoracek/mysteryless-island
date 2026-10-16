@@ -25,12 +25,26 @@ export const loadRegistry = () => buildRegistry(readContentFiles());
  * default, which gives the old start kit (knife and summer clothes). Adds a box of matches unless
  * `matches: false`, so "light fire" is the quick, sure kind; fire by friction has its own tests.
  */
-export function startGame(reg: Registry, seed: number, choice = "knife", opts: { matches?: boolean } = {}): Engine {
+export function startGame(reg: Registry, seed: number, choice = "knife", opts: { matches?: boolean; keepNotes?: boolean } = {}): Engine {
   const e = Engine.newGame(reg, seed);
   e.dispatch({ type: "choose", choice });
   e.dispatch({ type: "choose", choice: "close" });
   if (opts.matches !== false && !e.state.items.matches) e.applyEffects([{ give: { matches: 10 } }]);
+  if (!opts.keepNotes) closeNotes(e);
   return e;
+}
+
+/**
+ * A finished task opens a note that blocks the game until closed (like an event). Most tests
+ * play on: close notes after every command. Tests about notes pass { keepNotes: true }.
+ */
+function closeNotes(e: Engine) {
+  const dispatch = e.dispatch.bind(e);
+  e.dispatch = (cmd) => {
+    const r = dispatch(cmd);
+    while (e.state.events.active?.id === "note") dispatch({ type: "choose", choice: "close" });
+    return r;
+  };
 }
 
 /**

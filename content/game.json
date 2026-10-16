@@ -38,6 +38,14 @@
     ],
     "nothingNew": ["Nothing new.", "Nothing you haven't seen.", "Nothing more to find."]
   },
+  "_tasks": "the note when a task is done: {task}; what changed: {item} {where} {place} {action}",
+  "tasks": {
+    "title": "Task done: {task}",
+    "gained": "{item} added to your {where}.",
+    "used": "{item} used.",
+    "opened": "A way to {place} opens.",
+    "possible": "You can now {action}."
+  },
   "timers": [
     {
       "id": "fire",

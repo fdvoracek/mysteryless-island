@@ -322,6 +322,11 @@ export const Game = z
       .strict(),
     deathLog: Text,
     /**
+     * The note when a task is done: title ({task}), then the task's doneLog and what changed:
+     * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action})
+     */
+    tasks: z.object({ title: Text, gained: Text, used: Text, opened: Text, possible: Text }).strict(),
+    /**
      * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why
      * ({cause}: the damage rule's cause, an event's title, or defaultCause). `load` and `restart`
      * label its buttons.

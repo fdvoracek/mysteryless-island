@@ -30,6 +30,8 @@ describe("text variants", () => {
     const e = startGame(reg, 3);
     for (let i = 0; i < 4; i++) look(e);
     e.applyEffects([{ give: { fishing_spear: 1 } }]);
+    e.syncQuests(); // the spear finishes its task now; drop its note so every catch below is one paragraph
+    e.state.events.notes = [];
     const wade: string[] = [];
     for (let i = 0; i < 12; i++) {
       e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; // stay alive and keep fishing
@@ -86,6 +88,11 @@ describe("text variants in the content", () => {
           [/\.journal\.(walkTo|wayOpens)/, ["{place}"]],
           [/\.ending\.survived/, ["{time}", "{day}"]],
           [/\.ending\.cause/, ["{cause}"]],
+          [/\.tasks\.title/, ["{task}"]],
+          [/\.tasks\.gained/, ["{item}", "{where}"]],
+          [/\.tasks\.used/, ["{item}"]],
+          [/\.tasks\.opened/, ["{place}"]],
+          [/\.tasks\.possible/, ["{action}"]],
         ];
         const rule = allowed.find(([re]) => re.test(path));
         const ok = !!rule && o.match(/\{\w+\}/g)!.every((m) => rule[1].includes(m));

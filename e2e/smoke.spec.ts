@@ -181,6 +181,12 @@ test("finding the fish starts the spear task; building it puts the spear in the 
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
   await expect(quest.locator(".progress")).toHaveText("firewood 10/10");
   await quest.locator(".qaction").click();
+  // a note: the task is done, and what changed
+  await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fishing spear");
+  await expect(page.locator("#eventText")).toContainText("Fishing spear added to your inventory.");
+  await expect(page.locator("#eventText")).toContainText("10 firewood used.");
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(page.locator("#event")).toBeHidden();
   await expect(page.locator("#inventory")).toContainText("fishing spear");
   await expect(quest).toHaveCount(0, { timeout: 5_000 });
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);

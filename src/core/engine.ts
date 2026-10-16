@@ -4,7 +4,7 @@ import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
 import { createInitialState, type GameState } from "./state";
-import { chooseText } from "./text";
+import { chooseText, sentence } from "./text";
 
 export type Command =
   | { type: "activity"; id: string }
@@ -38,6 +38,8 @@ export class Engine {
   private quiet = false;
   /** what is happening, named as the cause if it kills you without a damage rule (an event, food) */
   private causeHint: string | undefined;
+  /** the game before the current command, to say what a finished task changed */
+  private before?: { items: Record<string, number>; unlocked: string[]; location: string; possible: string[]; cmd: Command["type"] };
   /** characters logged during the current command, for the progress bar duration */
   private loggedChars = 0;
 
@@ -91,9 +93,53 @@ export class Engine {
     this.damageLogged.clear();
     this.loggedChars = 0;
     this.causeHint = undefined;
+    this.before = { ...this.snapshot(), cmd: cmd.type };
     const res = this.run(cmd);
+    // a task finished by this command: its note opens first
+    if (!this.state.events.active && !this.state.dead) this.openNextEvent();
     if (res.ok && !this.state.dead && cmd.type !== "choose" && cmd.type !== "explore") this.checkEvents(this.actionKeys(cmd));
+    this.before = undefined;
     return res;
+  }
+
+  /** What a finished task can be compared against: items, open places, actions possible here. */
+  private snapshot() {
+    const region = this.reg.regions.get(this.state.location)!;
+    return {
+      items: { ...this.state.items },
+      unlocked: this.reg.regionOrder.filter((id) => this.state.regions[id]?.unlocked),
+      location: this.state.location,
+      possible: region.activities.filter((a) => { const c = this.check(a); return c.visible && c.enabled; }).map((a) => a.id),
+    };
+  }
+
+  /**
+   * What changed since the command began, as short sentences (game.json → tasks): items gained,
+   * items used, places opened, and (when the task's own action did it) actions now possible here.
+   */
+  private changes(): string[] {
+    const b = this.before;
+    if (!b) return [];
+    const t = this.reg.game.tasks;
+    const now = this.snapshot();
+    const gained: string[] = [], used: string[] = [], out: string[] = [];
+    const inv = new Set<string>(this.reg.game.inventoryCategories);
+    const named = (id: string, n: number) => {
+      const it = this.reg.items.get(id)!;
+      return n > 1 ? `${n} ${it.plural ?? it.name}` : it.name;
+    };
+    for (const id of new Set([...Object.keys(b.items), ...Object.keys(now.items)])) {
+      const d = (now.items[id] ?? 0) - (b.items[id] ?? 0);
+      if (d > 0) gained.push(sentence(this.say(t.gained, { item: named(id, d), where: inv.has(this.reg.items.get(id)!.category) ? "inventory" : "stores" })!));
+      if (d < 0) used.push(sentence(this.say(t.used, { item: named(id, -d) })!));
+    }
+    out.push(...gained, ...used);
+    for (const id of now.unlocked) if (!b.unlocked.includes(id)) out.push(this.say(t.opened, { place: this.reg.regions.get(id)!.name })!);
+    if (b.cmd === "questAction" && now.location === b.location) {
+      const region = this.reg.regions.get(now.location)!;
+      for (const id of now.possible) if (!b.possible.includes(id)) out.push(this.say(t.possible, { action: region.activities.find((a) => a.id === id)!.name })!);
+    }
+    return out;
   }
 
   private run(cmd: Command): Result {
@@ -113,7 +159,7 @@ export class Engine {
   /** The open event and its scene, if any. */
   openEventScene(): { event: GameEvent; scene: GameEvent["scenes"][string]; text: string } | null {
     const a = this.state.events.active;
-    if (!a || a.id.startsWith("explore:")) return null;
+    if (!a || a.id.startsWith("explore:") || a.id === "note") return null;
     const event = this.reg.events.get(a.id)!;
     return { event, scene: event.scenes[a.scene], text: a.text };
   }
@@ -127,6 +173,12 @@ export class Engine {
   }
 
   private choose(choiceId: string): Result {
+    if (this.state.events.active!.id === "note") {
+      if (choiceId !== "close") return refuse("unknown choice");
+      this.state.events.active = null;
+      this.openNextEvent();
+      return this.chose();
+    }
     if (this.state.events.active!.id.startsWith("explore:")) return this.exploreChoose(choiceId);
     const open = this.openEventScene()!;
     const { event, scene } = open;
@@ -155,6 +207,8 @@ export class Engine {
   }
 
   private openNextEvent() {
+    const note = this.state.events.notes?.shift();
+    if (note) { this.state.events.active = { id: "note", scene: "note", text: note.text, title: note.title }; return; }
     const id = this.state.events.queue.shift();
     if (!id) return;
     const event = this.reg.events.get(id)!;
@@ -713,8 +767,14 @@ export class Engine {
           st.status = "done";
           st.doneAt = this.state.time;
           this.remember(q.id);
-          this.log(this.say(q.doneLog));
+          const story = this.say(q.doneLog);
+          this.log(story);
           this.applyEffects(q.effects);
+          // a note: the task's ending, then what changed (opens when the command is over)
+          (this.state.events.notes ??= []).push({
+            title: this.say(this.reg.game.tasks.title, { task: q.title })!,
+            text: [story, ...this.changes()].filter(Boolean).join("\n\n"),
+          });
           changed = true;
         }
       }
