@@ -198,6 +198,8 @@ export const Region = z
     travelHours: z.number().nonnegative(),
     /** where the place sits on the route map (grid cells; x to the right, y down). Default: in a row by order */
     map: z.object({ x: z.number().int(), y: z.number().int() }).strict().optional(),
+    /** while locked: when its "?" shows on the map (default: from the start; e.g. once you have seen the cliff) */
+    hintWhen: Condition.optional(),
     unlockWhen: Condition.optional(),
     firstVisit: z.object({ log: Text.optional() }).strict().optional(),
     /**

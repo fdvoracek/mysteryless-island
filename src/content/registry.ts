@@ -218,6 +218,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   }
   for (const r of regions.values()) {
     if (r.unlockWhen) checkCond(r.unlockWhen, `region ${r.id}.unlockWhen`);
+    if (r.hintWhen) checkCond(r.hintWhen, `region ${r.id}.hintWhen`);
     r.arrive?.forEach((a, i) => { if (a.when) checkCond(a.when, `region ${r.id}.arrive[${i}].when`); });
     r.explore?.view.forEach((v, i) => { if (v.when) checkCond(v.when, `region ${r.id}.explore.view[${i}].when`); });
     for (const d of r.explore?.landmarks ?? []) {

@@ -38,8 +38,9 @@ async function explore(page: Page, landmark?: string) {
     : page.locator('#eventChoices .btn:not([data-choice="close"])').first();
   const id = await pick.getAttribute("data-choice");
   await pick.click();
-  // what was found; the dunes put the forest on the map, so that finding can also walk there
-  await expect(page.locator("#eventChoices .btn")).toHaveText(id === "forest_edge" ? ["go to the forest30m", "close"] : ["close"]);
+  // what was found; the dunes and the cliff top put a place on the map, so those findings can also walk there
+  const go: Record<string, string> = { forest_edge: "go to the forest30m", cliff_top: "go to the meadows1h" };
+  await expect(page.locator("#eventChoices .btn")).toHaveText(id && go[id] ? [go[id], "close"] : ["close"]);
   await page.locator('#eventChoices [data-choice="close"]').click();
   await expect(page.locator("#event")).toBeHidden();
 }
@@ -62,6 +63,22 @@ test("a finding that opens a place: 'go to the forest' walks there", async ({ pa
   await page.locator('#eventChoices [data-choice="go:forest"]').click();
   await expect(page.locator("#event")).toBeHidden();
   await expect(tab(page, "the forest")).toHaveClass(/here/);
+});
+
+test("the meadows: a ? to the west once the cliff is seen; climbing it opens them, an hour away", async ({ page }) => {
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(1); // the forest
+  await explore(page, "rock_shelter");
+  await explore(page, "cliff_shells");
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(2);
+  await action(page, "look around").click();
+  await page.locator('#eventChoices [data-choice="cliff_top"]').click();
+  await expect(page.locator("#eventText")).toContainText("A new place is on your map: the meadows.");
+  await page.locator('#eventChoices [data-choice="go:meadows"]').click();
+  await expect(tab(page, "the meadows")).toHaveClass(/here/);
+  await explore(page, "berry_bushes");
+  await explore(page, "river");
+  for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
+  await expect(action(page, "look around")).not.toContainText("*");
 });
 
 test("the story starts with the shipwreck: grab one thing, swim to the shore", async ({ page }) => {

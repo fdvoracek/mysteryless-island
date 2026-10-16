@@ -16,7 +16,7 @@
     "id": "build_fishing_spear",
     "title": "build a fishing spear",
     "hint": "A long, straight shaft and a sharp point. Gather branches enough to choose a good one.",
-    "trigger": { "when": { "discovered": "school_of_fish" } },
+    "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
     "action": [
       {
         "label": "build",

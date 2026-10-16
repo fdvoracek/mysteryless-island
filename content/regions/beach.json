@@ -96,6 +96,11 @@
         "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "discovered": "cliff_shells" } }] }
       },
       { "text": "Under the cliff, shells on the wet stone.", "when": { "discovered": "cliff_shells" } },
+      {
+        "text": "The cliff above them looks climbable.",
+        "when": { "all": [{ "discovered": "cliff_shells" }, { "not": { "discovered": "cliff_top" } }] }
+      },
+      { "text": "Beyond the cliff, to the west, the meadows.", "when": { "discovered": "cliff_top" } },
       { "text": "Something flashes in the shallows.", "when": { "not": { "discovered": "school_of_fish" } } },
       { "text": "Fish turn in the shallows.", "when": { "discovered": "school_of_fish" } }
     ],
@@ -148,6 +153,18 @@
           "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
           "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",
           "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them."
+        ]
+      },
+      {
+        "id": "cliff_top",
+        "label": "climb the cliff",
+        "hours": 0.5,
+        "effort": "work",
+        "visibleWhen": { "discovered": "cliff_shells" },
+        "text": [
+          "You climb the cliff, handhold by handhold. From the top the land opens out to the west: long grass in waves, bushes, a line of willows. Meadows, an hour's walk away.",
+          "Up the cliff, slowly, the wind pulling at you. At the top you see what the cliff was hiding: meadows to the west, wide and green, an hour away.",
+          "The climb is short but steep. From the top, inland to the west, grass rolls away under the wind: meadows, maybe an hour's walk."
         ]
       }
     ]
@@ -383,6 +400,30 @@
             },
             {
               "text": [
+                "The view from the cliff top: grass all the way inland.",
+                "The wind at the top of the cliff, and the meadows below.",
+                "Climbing the cliff, and the green land behind it."
+              ],
+              "when": { "today": "cliff_top" }
+            },
+            {
+              "text": [
+                "A clear river under the willows.",
+                "The river, cold and quick over the stones.",
+                "Fish holding still in the river's slow pools."
+              ],
+              "when": { "today": "river" }
+            },
+            {
+              "text": [
+                "Wading in the river with the spear raised.",
+                "The river pulling at your legs while you waited for a fish.",
+                "Fishing in the slow pools under the willows."
+              ],
+              "when": { "today": "catch_river_fish" }
+            },
+            {
+              "text": [
                 "A match flaring in your cupped hands, then warmth.",
                 "One match, and the fire took.",
                 "The smell of a struck match, then woodsmoke."
@@ -420,6 +461,22 @@
                 "Tall trunks and the smell of moss."
               ],
               "when": { "today": "forest" }
+            },
+            {
+              "text": [
+                "Long grass, and the wind moving through it.",
+                "The open meadows under a wide sky.",
+                "Grass to the knee, silver in the wind."
+              ],
+              "when": { "today": "meadows" }
+            },
+            {
+              "text": [
+                "Purple fingers from the berries.",
+                "Picking berries, thorns in your sleeves.",
+                "The sour, sweet taste of the berries."
+              ],
+              "when": { "today": "collect_berries" }
             },
             {
               "text": [

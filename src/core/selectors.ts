@@ -1,4 +1,5 @@
 import { clockText, day, phaseAt } from "./clock";
+import { evaluate } from "./conditions";
 import { sentence } from "./text";
 import type { Command, Engine } from "./engine";
 import type { GameState } from "./state";
@@ -279,7 +280,9 @@ function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
   // the camp: every walk goes through it (travel time = here to camp + camp to there)
   const hub = reg.regionOrder.find((id) => reg.regions.get(id)!.travelHours === 0) ?? reg.game.start.region;
   const known = reg.regionOrder.filter((id) => s.regions[id]?.unlocked);
-  const unknown = reg.regionOrder.filter((id) => !s.regions[id]?.unlocked);
+  // a locked place shows as "?" once its hintWhen holds; until then it is not on the map at all
+  const ctx = engine.ctx();
+  const unknown = reg.regionOrder.filter((id) => !s.regions[id]?.unlocked && evaluate(reg.regions.get(id)!.hintWhen, ctx));
   const all = [...known, ...unknown].map(pos);
   const minX = Math.min(...all.map((p) => p.x)), minY = Math.min(...all.map((p) => p.y));
   const cell = (id: string) => ({ col: pos(id).x - minX, row: pos(id).y - minY });

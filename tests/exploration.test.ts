@@ -34,13 +34,21 @@ describe("exploration", () => {
     expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
   });
 
-  it("beach step 4: the fish need a spear; 'look around' stays, without the *", () => {
+  it("beach step 4: the fish need a spear; the cliff is still left (*)", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
     expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "catch fish", "sleep"]);
-    expect(view(e).actions[0].badge).toBeUndefined();
+    expect(view(e).actions[0].badge).toBe("*");
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
+  });
+
+  it("beach step 5: climbing the cliff shows the meadows; 'look around' stays, without the *", () => {
+    const e = startGame(reg, 1);
+    for (let i = 0; i < 5; i++) look(e);
+    expect(logHas(e, "Meadows, an hour's walk away.")).toBe(true);
+    expect(e.state.regions.meadows.unlocked).toBe(true);
+    expect(view(e).actions[0].badge).toBeUndefined();
   });
 
   it("forest: collect wood from the start; following the sound of water finds the spring", () => {

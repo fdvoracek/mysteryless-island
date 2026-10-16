@@ -35,7 +35,7 @@ describe("content", () => {
 
   it("contains the prototype regions", () => {
     const reg = loadRegistry();
-    expect(reg.regionOrder).toEqual(["beach", "forest"]);
+    expect(reg.regionOrder).toEqual(["beach", "forest", "meadows"]);
   });
 
   it("reports unknown references with the file and path", () => {

@@ -63,7 +63,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     const e = startGame(reg, 4);
     const badge = () => view(e).actions.find((a) => a.id === "explore:beach")!.badge;
     expect(badge()).toBe("*");
-    for (const id of ["forest_edge", "rock_shelter", "cliff_shells", "school_of_fish"]) explore(e, id);
+    for (const id of ["forest_edge", "rock_shelter", "cliff_shells", "school_of_fish", "cliff_top"]) explore(e, id);
     expect(badge()).toBeUndefined();
     open(e);
     expect(choices(e)).toEqual(["close"]);
@@ -77,7 +77,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     beach.explore.landmarks.push({ id: "wreckage", label: "the wreckage", hours: 0.5, effort: "work", visibleWhen: { day: { gte: 2 } }, text: "Planks from the ship." });
     files["content/regions/beach.json"] = beach;
     const e = startGame(buildRegistry(files), 5);
-    for (const id of ["forest_edge", "rock_shelter", "cliff_shells", "school_of_fish"]) explore(e, id);
+    for (const id of ["forest_edge", "rock_shelter", "cliff_shells", "school_of_fish", "cliff_top"]) explore(e, id);
     const badge = () => view(e).actions.find((a) => a.id === "explore:beach")!.badge;
     expect(badge()).toBeUndefined();
     e.advance(24, "rest");
