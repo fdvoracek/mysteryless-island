@@ -651,12 +651,12 @@ interface StatusView {
 ```ts
 interface SaveFile {
   saveVersion: number;
-  current: GameState;       // written after every command (survives closing the tab)
-  checkpoint: GameState;    // written on sleep and milestones (GDD §6.4)
+  current: GameState;       // the autosave: after every command; the saved game: on save. and before sleep
+  savedAt?: string;         // the saved game only
 }
 ```
 
-- Storage: `localStorage["textisland.save"]`. Export and import as base64 JSON text (a menu item, like *A Dark Room*).
+- Storage: `localStorage["textisland.save"]` (autosave) and `localStorage["textisland.saved"]` (the saved game). Export and import as base64 JSON text (a menu item, like *A Dark Room*).
 - **[implemented, replaces checkpoints]** Death is permanent: the engine sets `state.death = { time, cause, lines }` (the end screen's lines, chosen once: `game.ending.survived` with `{time}`/`{day}`, `ending.cause` with `{cause}`, and `ending.recap`, thought groups with conditions). The cause is the damage rule hurting most when health hits 0 (`cause` on `stats.damage`; ties are joined with "and"), else what the command was (an event's title, "bad <food>"), else `ending.defaultCause`. Storage (src/persistence/save.ts): the autosave `textisland.save` after every action (a reload continues; a death stays), and the saved game `textisland.saved`, written by *save.* in the menu and just before every sleep (`engine.willSleep(cmd)`); the end screen offers *load the saved game* and *start again*.
 - **Migrations:** an ordered list `migrations[n](save) → save`. Run on load until `saveVersion` matches.
 - **Content drift:** if `contentHash` changed, the loader drops ids that no longer exist (with a console warning) and fills new stats with their start values. Content changes during development don't break saves.
