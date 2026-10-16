@@ -189,19 +189,23 @@ test("finding the fish starts the spear task; building it puts the spear in the 
 test("while an action runs, the controls are locked and greyed out", async ({ page }) => {
   await page.goto("./?variants=first"); // normal speed
   await explore(page, "forest_edge"); // the way to the forest
-  await tab(page, "the forest").click(); // a 1 h walk, with a progress bar
+  await tab(page, "the forest").click(); // walking: no progress bar, you are there at once
+  await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
+  await expect(tab(page, "the forest")).toHaveClass(/here/);
+  await action(page, "collect wood").click(); // 1 h, with a progress bar
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
-  // the other tab is greyed out and does nothing
+  // the other place is greyed out and does nothing
   await expect(tab(page, "the beach")).toBeDisabled();
-  // a click on collect wood meanwhile is ignored
+  // a second click on collect wood meanwhile is ignored
   await action(page, "collect wood").dispatchEvent("click");
-  await page.waitForTimeout(1500);
-  await expect(page.locator("#wrap")).toHaveClass(/busy/); // still running: the bar takes a few seconds
+  await page.waitForTimeout(300);
+  await expect(page.locator("#wrap")).toHaveClass(/busy/); // still running
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 6_000 });
   const firewood = await page.evaluate(() =>
     (window as unknown as { ti: { state(): { items: Record<string, number> } } }).ti.state().items.firewood ?? 0);
-  expect(firewood).toBe(0);
+  expect(firewood).toBeGreaterThanOrEqual(3);
+  expect(firewood).toBeLessThanOrEqual(5); // one armful (3 to 5), not two
 });
 
 test("every layout can be chosen from the menu, shows all panels, plays, and is remembered", async ({ page }) => {

@@ -15,7 +15,7 @@ npm run build        # static build in dist/
 npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright install chromium)
 ```
 
-Pacing: after each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
+Pacing: after each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Walking to another place, exploring a landmark and choosing in a pop-up take their game time but show no bar, so they never feel like loading. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
 
 ## Phones
 

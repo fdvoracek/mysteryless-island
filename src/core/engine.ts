@@ -441,7 +441,8 @@ export class Engine {
       this.logLines(this.arrivalView(to));
     }
     this.postCheck();
-    return this.ok(hours);
+    // walking takes its game time, but shows no progress bar: you arrive at once (a bar here felt like loading)
+    return this.state.dead ? this.died(hours) : { ok: true, cooldownMs: 0 };
   }
 
   /** The lines of an activity's thought groups whose conditions hold now (see Thoughts in the schema). */

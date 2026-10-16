@@ -170,8 +170,12 @@ describe("engine: the prototype loop", () => {
     const { minMs, maxMs } = reg.game.cosmetic;
     const e = startGame(reg, 1);
     lookAround(e); // finds the forest
-    const look = e.dispatch({ type: "travel", region: "forest" }); // 1 h and a long first description
-    expect(look.cooldownMs).toBeGreaterThanOrEqual(2500);
+    // walking takes its hour but shows no bar: you arrive at once
+    const t0 = e.state.time;
+    expect(e.dispatch({ type: "travel", region: "forest" })).toMatchObject({ ok: true, cooldownMs: 0 });
+    expect(e.state.time - t0).toBe(60);
+    const look = e.dispatch({ type: "activity", id: "gather_wood" }); // 1 h and a line
+    expect(look.cooldownMs).toBeGreaterThan(minMs);
     expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
 
     const f = fresh();
