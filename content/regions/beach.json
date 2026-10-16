@@ -350,11 +350,19 @@
             },
             {
               "text": [
-                "The spear, straight and sharp, made with your own hands.",
-                "The spear you made, its point sharp under your thumb.",
-                "Carving the spear, shaving by shaving."
+                "Carving the spear with the knife, shaving by shaving.",
+                "The knife turning a branch into a spear.",
+                "The spear you carved, its point sharp under your thumb."
               ],
-              "when": { "today": "build_fishing_spear" }
+              "when": { "all": [{ "today": "build_fishing_spear" }, { "item": "knife" }] }
+            },
+            {
+              "text": [
+                "Grinding a branch to a point on a sharp stone, for hours.",
+                "The stone, the branch, and your aching arms: a spear.",
+                "A spear made without a blade, only stone and patience."
+              ],
+              "when": { "all": [{ "today": "build_fishing_spear" }, { "not": { "item": "knife" } }] }
             },
             {
               "text": [
@@ -374,11 +382,19 @@
             },
             {
               "text": [
-                "The first spark catching. Smoke, then warmth.",
-                "The moment the fire took.",
-                "Smoke in your eyes, then warmth."
+                "A match flaring in your cupped hands, then warmth.",
+                "One match, and the fire took.",
+                "The smell of a struck match, then woodsmoke."
               ],
-              "when": { "today": "kindle" }
+              "when": { "today": "light_fire" }
+            },
+            {
+              "text": [
+                "Wood against wood until your palms burned, and at last a flame.",
+                "Hours of rubbing sticks before the fire came.",
+                "Your raw palms, and the first ember."
+              ],
+              "when": { "today": "make_fire" }
             },
             {
               "text": [
@@ -448,7 +464,8 @@
             "Nothing much. Sand, wind, waiting.",
             "An empty sort of day.",
             "Hours of wind and waiting."
-          ]
+          ],
+          "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches or friction, knife or stone)"
         }
       ],
       "log": [

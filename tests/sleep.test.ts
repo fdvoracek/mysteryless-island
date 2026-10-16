@@ -14,10 +14,12 @@ const INTRO = ["The day comes back to you in pieces.", "Lying still, you go over
 const NOTHING = ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."];
 const MEMORIES = [
   "The cold sea. Waking alone on the sand.",
-  "The spear, straight and sharp, made with your own hands.",
+  "Carving the spear with the knife, shaving by shaving.",
+  "Grinding a branch to a point on a sharp stone, for hours.",
   "Fish flashing in the shallows, just out of reach.",
   "Standing in the surf with the spear raised.",
-  "The first spark catching. Smoke, then warmth.",
+  "A match flaring in your cupped hands, then warmth.",
+  "Wood against wood until your palms burned, and at last a flame.",
   "Cold water from a spring between mossy stones.",
   "A ring of rocks, out of the wind.",
   "The cool dark under the trees.",
@@ -64,10 +66,45 @@ describe("going to sleep", () => {
     expect(remembered).toEqual([
       "The cold sea. Waking alone on the sand.",
       "Fish flashing in the shallows, just out of reach.",
-      "The first spark catching. Smoke, then warmth.",
+      "A match flaring in your cupped hands, then warmth.", // the fire was lit with a match
     ]);
     // the order of the paragraph: tired, intro, memories, falling asleep, waking
     expect(lines.indexOf(remembered[2])).toBeLessThan(lines.findIndex((l) => l === "Sleep takes you." || l === "At last, sleep."));
+  });
+
+  it("remembers the fire and the spear the way you did them: match or friction, knife or stone", () => {
+    const memory = (choice: string, matches: boolean) => {
+      const e = startGame(reg, 11, choice, { matches });
+      for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
+      e.applyEffects([{ give: { firewood: 13 } }]);
+      e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
+      for (let i = 0; i < 6 && !e.state.timers.fire; i++) { // friction can fail: keep trying
+        e.state.stats = { health: 100, energy: 50, hunger: 0, thirst: 0 };
+        e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
+      }
+      expect(e.state.timers.fire).toBeGreaterThan(0);
+      sleep(e);
+      return lastTurn(e).filter((l) => MEMORIES.includes(l));
+    };
+    const knifeAndMatches = memory("knife", true);
+    expect(knifeAndMatches).toContain("Carving the spear with the knife, shaving by shaving.");
+    expect(knifeAndMatches).not.toContain("Grinding a branch to a point on a sharp stone, for hours.");
+    const stoneAndFriction = memory("rations", false);
+    expect(stoneAndFriction).toContain("Grinding a branch to a point on a sharp stone, for hours.");
+    expect(stoneAndFriction).not.toContain("Carving the spear with the knife, shaving by shaving.");
+    // the fire on its own (only the dunes and the rocks explored): match or friction
+    const fireMemory = (matches: boolean) => {
+      const e = startGame(reg, 12, "rations", { matches });
+      look(e); look(e); // the dunes, the ring of rocks
+      e.applyEffects([{ give: { firewood: 3 } }]);
+      for (let i = 0; i < 6 && !e.state.timers.fire; i++) e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
+      e.state.stats.energy = 50;
+      sleep(e);
+      return lastTurn(e).filter((l) => MEMORIES.includes(l));
+    };
+    expect(fireMemory(true)).toContain("A match flaring in your cupped hands, then warmth.");
+    expect(fireMemory(false)).toContain("Wood against wood until your palms burned, and at last a flame.");
+    expect(fireMemory(false)).not.toContain("A match flaring in your cupped hands, then warmth.");
   });
 
   it("remembers only today: the next night starts with an empty day", () => {
