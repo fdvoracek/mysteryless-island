@@ -65,6 +65,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   background: var(--bg); border: 1px solid var(--line); border-radius: 0;
 }
 .btn .label { position: relative; z-index: 1; }
+/* look around: on its own line above the other buttons, framed heavier (it stays, and changes with what is left) */
+.buttons .break { flex-basis: 100%; height: 0; }
+.buttons .btn.explore { border-width: 2px; padding-top: 5px; padding-bottom: 5px; }
 /* "look around *": something left to explore */
 .btn .badge { margin-left: 4px; font-weight: 700; }
 /* inline-block: layouts that underline button labels (journal) don't underline the mark or the time */

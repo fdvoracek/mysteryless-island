@@ -234,6 +234,7 @@ export class UI {
     container.querySelectorAll<HTMLButtonElement>("button.btn").forEach((b) => existing.set(b.dataset.id!, b));
     const keep = new Set(buttons.map((b) => b.id));
     existing.forEach((el, id) => { if (!keep.has(id)) el.remove(); });
+    container.querySelectorAll(".break").forEach((b) => b.remove());
 
     buttons.forEach((bv, index) => {
       let el = existing.get(bv.id);
@@ -253,6 +254,12 @@ export class UI {
       el.setAttribute("aria-disabled", String(!bv.enabled || this.isBusy()));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
+    // look around stands on its own line, above the other buttons: it stays, and changes with what is left to find
+    const explore = container.querySelector<HTMLElement>('button.btn[data-id^="explore:"]');
+    if (explore) {
+      explore.classList.add("explore");
+      if (explore.nextElementSibling) explore.after(div("", "break"));
+    }
   }
 
   private renderStatus(v: View) {

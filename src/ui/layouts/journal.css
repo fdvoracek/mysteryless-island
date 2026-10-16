@@ -31,6 +31,7 @@
 }
 .layout-journal .btn .cd { inset: auto auto 0 0; height: 2px; background: var(--fg); }
 .layout-journal .btn.off { text-decoration-style: dotted; }
+.layout-journal .btn.explore { font-weight: 700; }
 
 /* margin notes: no frames, small headings */
 .layout-journal .j-margin .box { border: 0; padding: 0; }
