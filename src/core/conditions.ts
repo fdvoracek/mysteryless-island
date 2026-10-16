@@ -15,6 +15,30 @@ const inRange = (v: number, c: { gte?: number; lte?: number }, defaultGte?: numb
   return (gte === undefined || v >= gte) && (c.lte === undefined || v <= c.lte);
 };
 
+/** The state key of a building in a place (one can stand in each of its places). */
+export const buildingKey = (id: string, region: string) => `${id}@${region}`;
+
+/** Batches a running cycle has ready now (0 while working), up to its `batches`. */
+export function batchesReady(reg: Registry, s: GameState, id: string, region: string): number {
+  const st = s.buildings?.[buildingKey(id, region)];
+  const cycle = reg.buildings.get(id)?.cycle;
+  if (!st || st.startedAt === undefined || !cycle) return 0;
+  return Math.min(cycle.batches ?? 1, Math.floor((s.time - st.startedAt) / Math.round(cycle.hours * 60)));
+}
+
+/**
+ * A building's cycle now: not built, idle, working (nothing to collect yet) or ready. `region`:
+ * the one in that place; default the one where you are, else the first one built.
+ */
+export function buildingState(reg: Registry, s: GameState, id: string, region?: string): "none" | "idle" | "working" | "ready" {
+  const where = region ?? (s.buildings?.[buildingKey(id, s.location)] ? s.location
+    : Object.keys(s.buildings ?? {}).find((k) => k.startsWith(`${id}@`))?.slice(id.length + 1));
+  const st = where ? s.buildings?.[buildingKey(id, where)] : undefined;
+  if (!where || !st) return "none";
+  if (st.startedAt === undefined) return "idle";
+  return batchesReady(reg, s, id, where) > 0 ? "ready" : "working";
+}
+
 /** Evaluate a structured condition against the state. */
 export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if (!c) return true;
@@ -46,6 +70,8 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
     return !!region && !!s.regions[region]?.discoveries.includes(c.discovered);
   }
   if ("explored" in c) return inRange(s.regions[c.explored]?.explored ?? 0, c, 1);
+  if ("built" in c) return Object.keys(s.buildings ?? {}).some((k) => k.startsWith(`${c.built}@`));
+  if ("building" in c) return buildingState(reg, s, c.building) === c.is;
   return false;
 }
 
@@ -70,5 +96,6 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
   if ("at" in c) return `only in ${reg.regions.get(c.at)?.name ?? c.at}`;
   if ("warmth" in c) return `only when ${c.warmth.join(" or ")}`;
   if ("reached" in c) return `not before day ${c.reached.day}`;
+  if ("built" in c) return `needs the ${reg.buildings.get(c.built)?.name ?? c.built}`;
   return "not possible now";
 }

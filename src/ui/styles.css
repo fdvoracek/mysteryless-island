@@ -127,6 +127,11 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .row .key { flex: 1; }
 .row .val { font-variant-numeric: tabular-nums; text-align: right; }
 .row.bad .val { color: var(--bad); }
+/* buildings: name, state, button; the cost still missing on its own line below */
+.row.building { flex-wrap: wrap; }
+.row.building .val { color: var(--muted); font-size: 0.9em; }
+.row.building .progress { flex-basis: 100%; color: var(--muted); font-size: 0.85em; }
+.row.building.unbuilt .key { color: var(--muted); }
 
 /* ink bars: the same thin line as the button cooldown, filled with ink; the word shows on hover or focus */
 .row.stat { position: relative; cursor: default; }

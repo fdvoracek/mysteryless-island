@@ -1,0 +1,473 @@
+[
+  {
+    "id": "shelter",
+    "name": "shelter",
+    "icon": "shelter",
+    "_note": "out of the wind: 3 °C warmer on the beach, and you can sleep there without a fire",
+    "hint": "A lean-to of logs against the rocks. Warmer, and you can sleep without a fire.",
+    "places": [{ "region": "beach", "when": { "discovered": "rock_shelter" } }],
+    "availableWhen": {
+      "any": [{ "quest": "build_shelter", "is": "active" }, { "quest": "build_shelter", "is": "done" }]
+    },
+    "build": {
+      "hours": 2,
+      "effort": "heavy",
+      "cost": { "timber": 4 },
+      "log": [
+        "You lean the logs against the rocks and pack the gaps with sand and wrack.",
+        "Log by log, a lean-to rises against the rocks. You pack the gaps with wet sand.",
+        "You wedge the logs into the rocks, one beside the other, until the wind can't get in."
+      ]
+    },
+    "warmthC": 3,
+    "word": "standing"
+  },
+  {
+    "id": "bed",
+    "name": "bed",
+    "icon": "sleep",
+    "hint": "A frame of logs with a mattress of branches. You sleep deeper in it.",
+    "places": [{ "region": "beach", "when": { "built": "shelter" } }],
+    "availableWhen": {
+      "any": [{ "quest": "make_bed", "is": "active" }, { "quest": "make_bed", "is": "done" }]
+    },
+    "build": {
+      "label": "make",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "timber": 2, "firewood": 4 },
+      "log": [
+        "You lash two logs into a frame and heap it with springy branches.",
+        "A frame of logs, a deep layer of branches on top. It creaks when you test it.",
+        "Two logs, a mattress of branches. Not soft, but off the cold sand."
+      ]
+    },
+    "word": "made"
+  },
+  {
+    "id": "drying_rack",
+    "name": "drying rack",
+    "icon": "fish",
+    "hint": "Fish hung in the wind and the smoke dry in 12 hours, and keep.",
+    "places": [{ "region": "beach", "when": { "discovered": "rock_shelter" } }],
+    "availableWhen": {
+      "any": [
+        { "quest": "build_drying_rack", "is": "active" },
+        { "quest": "build_drying_rack", "is": "done" }
+      ]
+    },
+    "build": {
+      "hours": 1,
+      "effort": "work",
+      "cost": { "timber": 2 },
+      "log": [
+        "You drive two logs into the sand by the fire and lay a third across them.",
+        "Two uprights, a crossbar: a rack beside the fire, where the smoke drifts.",
+        "You build a rack of logs downwind of the fire."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "hang_fish",
+        "label": "hang fish",
+        "hours": 0.25,
+        "effort": "light",
+        "cost": { "raw_fish": 2 },
+        "log": [
+          "You split two fish and hang them over the crossbar.",
+          "Two fish, gutted and split, hang from the rack.",
+          "You hang the fish where the smoke can reach them."
+        ]
+      },
+      "hours": 12,
+      "collect": {
+        "id": "take_dried_fish",
+        "label": "take down",
+        "hours": 0.25,
+        "effort": "light",
+        "yields": [{ "item": "dried_fish", "min": 2, "max": 2 }],
+        "log": [
+          "The fish come off the rack stiff and dark.",
+          "Dry, hard, smelling of smoke. They will keep.",
+          "You take down the fish, dry as bark."
+        ]
+      },
+      "words": { "idle": "empty", "working": "drying", "ready": "dry" },
+      "readyLog": ["The fish on the rack are dry.", "The fish on the rack have dried."]
+    }
+  },
+  {
+    "id": "rain_barrel",
+    "name": "rain barrel",
+    "icon": "water",
+    "hint": "A hollowed log under the shelter's edge. It fills with rain in 12 hours.",
+    "places": [{ "region": "beach", "when": { "built": "shelter" } }],
+    "availableWhen": {
+      "any": [
+        { "quest": "build_rain_barrel", "is": "active" },
+        { "quest": "build_rain_barrel", "is": "done" }
+      ]
+    },
+    "build": {
+      "hours": 1.5,
+      "effort": "heavy",
+      "cost": { "timber": 3 },
+      "log": [
+        "You hollow a log with the axe and set it under the edge of the shelter.",
+        "Hour by hour the axe hollows the log. You stand it where the rain runs off.",
+        "A hollow log, set on end where the shelter drips."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "set_out_barrel",
+        "label": "set out",
+        "hours": 0.25,
+        "effort": "light",
+        "log": [
+          "You tip the barrel upright under the edge of the shelter.",
+          "You set the barrel where the rain will run into it."
+        ]
+      },
+      "hours": 12,
+      "repeat": true,
+      "collect": {
+        "id": "drink_barrel",
+        "label": "drink",
+        "hours": 0.25,
+        "effort": "light",
+        "effects": [{ "stat": { "thirst": -45 } }],
+        "tags": ["drink"],
+        "log": [
+          "Rainwater, soft and cold. You drink your fill.",
+          "You drink from the barrel. It tastes of wood and sky.",
+          "Sweet rainwater, as much as you want."
+        ]
+      },
+      "words": { "idle": "dry", "working": "filling", "ready": "full" }
+    }
+  },
+  {
+    "id": "fish_trap",
+    "name": "fish trap",
+    "icon": "fish",
+    "_note": "anywhere you can fish: the shallows, the river. 1 fish every 2 hours, up to 3; stays set",
+    "hint": "A woven willow trap: 1 fish every 2 hours, up to 3. It stays set.",
+    "places": [
+      { "region": "beach", "when": { "discovered": "school_of_fish" } },
+      { "region": "meadows", "when": { "discovered": "river" } }
+    ],
+    "availableWhen": {
+      "any": [{ "quest": "build_fish_trap", "is": "active" }, { "quest": "build_fish_trap", "is": "done" }]
+    },
+    "build": {
+      "hours": 1,
+      "effort": "work",
+      "cost": { "willow_twigs": 20 },
+      "log": [
+        "You weave the willow into a long basket with a funnel at the mouth.",
+        "Twig over twig, the trap takes shape: a basket the fish can swim into and not out of.",
+        "You bend and weave the willow until you have a trap with a narrow mouth."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "set_trap",
+        "label": "set",
+        "hours": 0.25,
+        "effort": "light",
+        "log": [
+          "You weigh the trap down with stones, mouth to the current.",
+          "You sink the trap where the fish pass.",
+          "The trap goes in, weighted with a stone."
+        ]
+      },
+      "hours": 2,
+      "batches": 3,
+      "repeat": true,
+      "collect": {
+        "id": "empty_trap",
+        "label": "empty",
+        "hours": 0.25,
+        "effort": "light",
+        "yields": [{ "item": "raw_fish", "min": 1, "max": 1 }],
+        "log": [
+          "You haul the trap up, water streaming from the willow.",
+          "You lift the trap. Something heavy shifts inside.",
+          "Up comes the trap, dripping."
+        ]
+      },
+      "words": { "idle": "not set", "working": "set", "ready": "{n} fish" },
+      "readyLog": ["Something thrashes in the trap.", "The trap twitches: a fish."]
+    }
+  },
+  {
+    "id": "snares",
+    "name": "snares",
+    "icon": "meat",
+    "hint": "Cord nooses on the small trails. Check them after 12 hours.",
+    "places": [{ "region": "forest", "when": { "discovered": "rabbit_runs" } }],
+    "availableWhen": {
+      "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }]
+    },
+    "build": {
+      "label": "make",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "cordage": 2, "firewood": 2 },
+      "log": [
+        "You tie running nooses and peg them low over the trails.",
+        "Nooses of cord, pegged a hand above the ground where the trails narrow.",
+        "You knot the cord into snares and peg them along the runs."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "set_snares",
+        "label": "set",
+        "hours": 0.5,
+        "effort": "light",
+        "log": [
+          "You open the nooses and smooth the earth around them.",
+          "You set the snares and back away without a sound.",
+          "Each noose open, each peg firm. Now wait."
+        ]
+      },
+      "hours": 12,
+      "repeat": true,
+      "collect": {
+        "id": "check_snares",
+        "label": "check",
+        "hours": 0.5,
+        "effort": "work",
+        "outcomes": [
+          {
+            "weight": 3,
+            "text": [
+              "A rabbit, cold and still in the noose.",
+              "One snare has caught: a rabbit.",
+              "A rabbit in the last snare."
+            ],
+            "effects": [{ "give": { "raw_meat": 1 } }]
+          },
+          {
+            "weight": 2,
+            "text": [
+              "Nothing. One noose has been pulled loose.",
+              "Empty, every one.",
+              "Nothing but tracks around the nooses."
+            ]
+          }
+        ],
+        "log": [
+          "You walk the trails from snare to snare.",
+          "You follow the runs, checking each noose.",
+          "One by one, you check the snares."
+        ]
+      },
+      "words": { "idle": "not set", "working": "set", "ready": "worth checking" }
+    }
+  },
+  {
+    "id": "mushroom_logs",
+    "name": "mushroom logs",
+    "icon": "mushrooms",
+    "hint": "Oak logs soaked at the spring grow mushrooms in 2 days.",
+    "places": [{ "region": "forest", "when": { "discovered": "fallen_oak" } }],
+    "availableWhen": {
+      "any": [
+        { "quest": "build_mushroom_logs", "is": "active" },
+        { "quest": "build_mushroom_logs", "is": "done" }
+      ]
+    },
+    "build": {
+      "label": "cut",
+      "hours": 1,
+      "effort": "heavy",
+      "cost": { "timber": 2 },
+      "log": [
+        "You cut the oak into lengths and stack them in the shade, where the mushrooms grew.",
+        "The axe bites into the fallen oak. You stack the lengths in the damp shade.",
+        "Short oak logs, stacked in the shade beside the old trunk."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "soak_logs",
+        "label": "soak",
+        "hours": 0.5,
+        "effort": "work",
+        "requires": { "discovered": "spring" },
+        "requiresText": "Needs water close by: the spring",
+        "log": [
+          "You carry water from the spring and soak the logs dark.",
+          "Trip after trip from the spring, until the logs are soaked through."
+        ]
+      },
+      "hours": 48,
+      "collect": {
+        "id": "pick_mushrooms",
+        "label": "pick",
+        "hours": 0.5,
+        "effort": "light",
+        "yields": [{ "item": "mushrooms", "min": 3, "max": 5 }],
+        "log": [
+          "Pale caps have pushed out of the bark. You pick them.",
+          "Mushrooms crowd the logs, soft and pale.",
+          "You twist the mushrooms off the bark."
+        ]
+      },
+      "words": { "idle": "dry", "working": "soaked", "ready": "mushrooms" },
+      "readyLog": "Mushrooms have come up on the logs."
+    }
+  },
+  {
+    "id": "corn_field",
+    "name": "corn field",
+    "icon": "corn",
+    "hint": "Corn sown here is ripe in 3 days.",
+    "places": [{ "region": "meadows", "when": { "discovered": "field_site" } }],
+    "availableWhen": {
+      "any": [{ "quest": "build_corn_field", "is": "active" }, { "quest": "build_corn_field", "is": "done" }]
+    },
+    "build": {
+      "label": "dig",
+      "hours": 3,
+      "effort": "heavy",
+      "requires": { "item": "hoe" },
+      "requiresText": "Needs a hoe to break the ground",
+      "cost": { "corn": 2 },
+      "effects": [{ "startCycle": "corn_field" }],
+      "log": [
+        "You break the ground with the hoe, row by row, and press the kernels in.",
+        "Hours of hacking at the turf. Then rows of dark earth, and the kernels pressed into them.",
+        "The hoe turns the soil over in long rows. You sow the corn and cover it."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "sow_corn",
+        "label": "sow",
+        "hours": 1,
+        "effort": "work",
+        "cost": { "corn": 2 },
+        "log": [
+          "You hoe the rows again and sow them.",
+          "Kernels into the earth, one by one.",
+          "You sow the rows and cover them."
+        ]
+      },
+      "hours": 72,
+      "collect": {
+        "id": "harvest_corn",
+        "label": "harvest",
+        "hours": 1.5,
+        "effort": "work",
+        "yields": [{ "item": "corn", "min": 6, "max": 10 }],
+        "log": [
+          "You snap the ears off the stalks.",
+          "The stalks rustle as you break the ears off.",
+          "Ear after ear into your arms."
+        ]
+      },
+      "words": { "idle": "dug", "working": "growing", "ready": "ripe" },
+      "readyLog": ["The corn is ripe.", "The ears on the corn have filled out."]
+    }
+  },
+  {
+    "id": "bee_hive",
+    "name": "bee hive",
+    "icon": "honey",
+    "hint": "A hollow log for the wild bees. Honey every 3 days; smoke them first.",
+    "places": [{ "region": "meadows", "when": { "discovered": "bees" } }],
+    "availableWhen": {
+      "any": [{ "quest": "build_bee_hive", "is": "active" }, { "quest": "build_bee_hive", "is": "done" }]
+    },
+    "build": {
+      "hours": 1.5,
+      "effort": "heavy",
+      "cost": { "timber": 2 },
+      "log": [
+        "You hollow a log and stand it among the flowers, a hand-width hole near the top.",
+        "A hollow log, capped with bark, set on stones among the flowers."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "lure_bees",
+        "label": "lure bees",
+        "hours": 0.5,
+        "effort": "light",
+        "cost": { "berries": 2 },
+        "log": [
+          "You smear crushed berries around the hole and wait.",
+          "Berry juice on the bark, to bring the bees.",
+          "You rub berries into the log's mouth. The humming comes closer."
+        ]
+      },
+      "hours": 72,
+      "repeat": true,
+      "collect": {
+        "id": "take_honey",
+        "label": "take honey",
+        "hours": 0.5,
+        "effort": "work",
+        "cost": { "firewood": 1 },
+        "yields": [{ "item": "honey", "min": 1, "max": 2 }],
+        "log": [
+          "You smoke the bees drowsy and cut out a slab of comb.",
+          "Smoke, a slow hand, and a piece of dripping comb.",
+          "Under the smoke the bees go quiet. You take the comb."
+        ]
+      },
+      "words": { "idle": "empty", "working": "busy", "ready": "heavy with honey" }
+    }
+  },
+  {
+    "id": "fish_weir",
+    "name": "fish weir",
+    "icon": "fish",
+    "hint": "A fence of stones and stakes across the river. Fish every 12 hours.",
+    "places": [{ "region": "meadows", "when": { "discovered": "river" } }],
+    "availableWhen": {
+      "any": [{ "quest": "build_fish_weir", "is": "active" }, { "quest": "build_fish_weir", "is": "done" }]
+    },
+    "build": {
+      "hours": 2,
+      "effort": "heavy",
+      "cost": { "stone": 6, "timber": 2 },
+      "log": [
+        "You wade in and build a wall of stones across the shallows, stakes between them, a gap at the end.",
+        "Stone by stone, a low wall grows across the river. You drive stakes into the gaps.",
+        "A fence of stones and stakes across the river, with one narrow way through."
+      ]
+    },
+    "cycle": {
+      "start": {
+        "id": "close_weir",
+        "label": "close",
+        "hours": 0.5,
+        "effort": "work",
+        "log": [
+          "You close the gap with a willow mat.",
+          "You block the weir's gap. The fish can come in, not out."
+        ]
+      },
+      "hours": 12,
+      "repeat": true,
+      "collect": {
+        "id": "empty_weir",
+        "label": "empty",
+        "hours": 0.5,
+        "effort": "work",
+        "yields": [{ "item": "raw_fish", "min": 2, "max": 4 }],
+        "log": [
+          "You wade into the pool behind the weir and catch the fish by hand.",
+          "Fish crowd the pool behind the stones. You scoop them out.",
+          "Behind the weir, the fish have nowhere to go."
+        ]
+      },
+      "words": { "idle": "open", "working": "closed", "ready": "full of fish" }
+    }
+  }
+]

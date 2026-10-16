@@ -78,7 +78,20 @@ test("the meadows: a ? to the west once the cliff is seen; climbing it opens the
   await explore(page, "berry_bushes");
   await explore(page, "river");
   for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
-  await expect(action(page, "look around")).not.toContainText("*");
+  // the river starts the fish trap task: 20 willow twigs; its button builds it; then it is in the buildings panel
+  const task = page.locator('#quests .quest[data-id="build_fish_trap"]');
+  await expect(task).toBeVisible();
+  await action(page, "cut willow twigs").click();
+  await action(page, "cut willow twigs").click();
+  await expect(task.locator(".progress")).toHaveText("willow twigs 20/20");
+  await task.locator(".qaction").click();
+  const trap = page.locator('#buildings .row[data-id="fish_trap"]');
+  await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fish trap");
+  await expect(page.locator("#eventText")).toContainText("Fish trap built.");
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(trap.locator(".val")).toHaveText("not set");
+  await trap.locator(".sbtn").click();
+  await expect(trap.locator(".val")).toHaveText("set · 2h");
 });
 
 test("the story starts with the shipwreck: grab one thing, swim to the shore", async ({ page }) => {

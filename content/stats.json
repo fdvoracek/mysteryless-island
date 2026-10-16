@@ -55,7 +55,14 @@
     "rest": { "hunger": 2, "thirst": 3, "energy": 4 },
     "sleep": { "hunger": 1.5, "thirst": 2, "energy": 11 }
   },
-  "multipliers": [{ "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 }],
+  "multipliers": [
+    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 },
+    {
+      "when": { "all": [{ "effort": ["sleep"] }, { "built": "bed" }, { "at": "beach" }] },
+      "stat": "energy",
+      "factor": 1.4
+    }
+  ],
   "damage": [
     {
       "when": { "stat": "hunger", "gte": 80 },
@@ -106,6 +113,18 @@
         "all": [{ "effort": ["sleep"] }, { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }]
       },
       "healthPerHour": 2
+    },
+    {
+      "when": {
+        "all": [
+          { "effort": ["sleep"] },
+          { "built": "bed" },
+          { "at": "beach" },
+          { "stat": "hunger", "lte": 50 },
+          { "stat": "thirst", "lte": 50 }
+        ]
+      },
+      "healthPerHour": 1
     }
   ]
 }

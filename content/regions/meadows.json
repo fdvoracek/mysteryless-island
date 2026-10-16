@@ -54,6 +54,10 @@
         "The river is still there, quick and clear."
       ],
       "when": { "discovered": "river" }
+    },
+    {
+      "text": ["The corn is ripe in the field.", "The corn stands tall and ripe."],
+      "when": { "building": "corn_field", "is": "ready" }
     }
   ],
   "explore": {
@@ -73,7 +77,16 @@
       },
       { "text": "The berry bushes, dark with fruit.", "when": { "discovered": "berry_bushes" } },
       { "text": "Lower down, a line of willows.", "when": { "not": { "discovered": "river" } } },
-      { "text": "Under the willows, the river.", "when": { "discovered": "river" } }
+      { "text": "Under the willows, the river.", "when": { "discovered": "river" } },
+      { "text": "Near the river the ground lies flat.", "when": { "not": { "discovered": "field_site" } } },
+      {
+        "text": "Taller stalks stand out of the grass here and there.",
+        "when": { "not": { "discovered": "wild_corn" } }
+      },
+      {
+        "text": "Past the bushes, a humming in the flowers.",
+        "when": { "all": [{ "discovered": "berry_bushes" }, { "not": { "discovered": "bees" } }] }
+      }
     ],
     "nothingLeft": ["Only grass and wind now.", "You know these meadows.", "Nothing new in the grass."],
     "landmarks": [
@@ -97,6 +110,40 @@
           "Under the willows runs a river, quick and clear over stones. You drink, and it is sweet. In the slow pools, fish hang in the current. With a spear you might take one.",
           "The willows lean over a clear river. The water is cold and good to drink. Where it slows, fish hold still against the current. A spear could reach them.",
           "A river, hidden by the willows: clear, cold, drinkable. In the deep bends, fish turn slowly. Too quick for hands, but not for a spear."
+        ]
+      },
+      {
+        "id": "field_site",
+        "label": "the flat ground",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Near the river the ground is flat and dark, the grass soft. Good earth. With a hoe, a field could grow here.",
+          "A flat stretch by the river, deep soil under the grass. A field would do well here, if you could break the ground.",
+          "Level ground near the water, black soil when you dig your fingers in. A place for a field."
+        ]
+      },
+      {
+        "id": "wild_corn",
+        "label": "the tall seed heads",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Among the grass, taller stalks with thin ears: wild corn. Small, but you could eat it. Or sow it.",
+          "Wild corn grows in a patch of tall stalks, small ears hidden in the leaves. Food, and seed.",
+          "Tall stalks with little ears of corn, gone wild. Enough to eat a little, or to sow."
+        ]
+      },
+      {
+        "id": "bees",
+        "label": "the humming",
+        "hours": 0.5,
+        "effort": "work",
+        "visibleWhen": { "discovered": "berry_bushes" },
+        "text": [
+          "Bees, working the flowers past the bushes. Wild ones, nesting somewhere. A hollow log might bring them to you.",
+          "The humming is bees, hundreds of them, in the flowers. Give them a hollow log and they might stay.",
+          "A swarm of wild bees in the flowers. A hive would keep them, and their honey."
         ]
       }
     ]
@@ -174,6 +221,48 @@
         "You stand on a stone above a slow pool, spear raised.",
         "You wade into the river to your knees and wait.",
         "Under the willows you wait for a fish to hold still."
+      ]
+    },
+    {
+      "id": "cut_willow",
+      "name": "cut willow twigs",
+      "hours": 0.5,
+      "effort": "work",
+      "visibleWhen": { "discovered": "river" },
+      "yields": [{ "item": "willow_twigs", "min": 10, "max": 10 }],
+      "log": [
+        "You cut long, supple twigs from the willows.",
+        "Willow twigs, green and bending, an armful.",
+        "You strip the willows of their long whips."
+      ]
+    },
+    {
+      "id": "gather_corn",
+      "name": "gather corn",
+      "hours": 0.5,
+      "effort": "work",
+      "icon": "corn",
+      "visibleWhen": { "discovered": "wild_corn" },
+      "yields": [{ "item": "corn", "min": 1, "max": 2 }],
+      "log": [
+        "You search the tall grass for the ears of wild corn.",
+        "A few small ears among the grass.",
+        "Wild corn, thin ears, hard kernels."
+      ]
+    },
+    {
+      "id": "twist_cord",
+      "name": "twist cord",
+      "hours": 0.5,
+      "effort": "light",
+      "visibleWhen": {
+        "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }]
+      },
+      "yields": [{ "item": "cordage", "min": 1, "max": 1 }],
+      "log": [
+        "You twist long grass into cord, strand over strand.",
+        "Grass, rolled and twisted on your thigh into cord.",
+        "A length of grass cord, rough but strong."
       ]
     }
   ]

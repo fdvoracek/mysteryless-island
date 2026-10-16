@@ -43,7 +43,11 @@ export type Condition =
   /** a discovery made by exploring a region */
   | { discovered: string }
   /** how many times a region was explored */
-  | { explored: string; gte?: number; lte?: number };
+  | { explored: string; gte?: number; lte?: number }
+  /** a building stands (it was built) */
+  | { built: string }
+  /** a building's cycle: idle (built, nothing running), working (e.g. the corn is growing) or ready (to collect) */
+  | { building: string; is: "idle" | "working" | "ready" };
 
 const range = { gte: z.number().optional(), lte: z.number().optional() };
 
@@ -69,6 +73,8 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
     z.object({ discovered: Id }).strict(),
     z.object({ explored: Id, ...range }).strict(),
+    z.object({ built: Id }).strict(),
+    z.object({ building: Id, is: z.enum(["idle", "working", "ready"]) }).strict(),
   ]),
 );
 
@@ -85,7 +91,11 @@ export type Effect =
   | { roll: Outcome[] }
   | { startQuest: string }
   /** open a place: its tab appears, as if its unlockWhen had come true */
-  | { unlock: string };
+  | { unlock: string }
+  /** put up a building where you are, without its build step (e.g. from an event) */
+  | { build: string }
+  /** start a building's cycle without its start step (e.g. the field is sown as it is dug) */
+  | { startCycle: string };
 
 export type Outcome = { weight: number; when?: Condition; text?: string | string[]; effects?: Effect[] };
 
@@ -101,6 +111,8 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.object({ roll: z.array(Outcome).min(1) }).strict(),
     z.object({ startQuest: Id }).strict(),
     z.object({ unlock: Id }).strict(),
+    z.object({ build: Id }).strict(),
+    z.object({ startCycle: Id }).strict(),
   ]),
 );
 
@@ -145,7 +157,7 @@ export const Thoughts = z
 export type Thoughts = z.infer<typeof Thoughts>;
 
 /** small pictures for the map: hovering a place shows one per activity found there (src/ui/icons.ts) */
-export const Icon = z.enum(["fire", "water", "wood", "fish", "berries", "shells", "sleep"]);
+export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "mushrooms", "honey", "shells", "shelter", "sleep"]);
 
 export const Activity = z
   .object({
@@ -234,6 +246,85 @@ export const Region = z
     activities: z.array(Activity),
   })
   .strict();
+
+/** One step of a building's cycle: start it (sow, set the trap) or collect what it made (harvest). */
+export const BuildingStep = z
+  .object({
+    /** counted like an activity id: { "did": id }, { "today": id }, event `after` */
+    id: Id,
+    label: z.string(),
+    hours: z.number().positive(),
+    effort: Effort,
+    requires: Condition.optional(),
+    requiresText: z.string().optional(),
+    cost: Amounts.optional(),
+    yields: z.array(Yield).optional(),
+    outcomes: z.array(Outcome).optional(),
+    effects: z.array(Effect).optional(),
+    log: Text.optional(),
+    tags: z.array(Id).optional(),
+  })
+  .strict();
+
+/**
+ * Something you build in a place. It is offered (a "build" button in that place's buildings panel,
+ * and on a task with `build`) once `availableWhen` holds, in each of its `places` whose `when`
+ * holds; it can stand once in each of them (a fish trap on the beach and one in the river).
+ * A building can warm its place (`warmthC`) and be named in conditions ({ "built": id }), e.g.
+ * the bed makes sleep better (a stats multiplier). With a `cycle` it produces over time: `start`
+ * begins it; every `hours` one batch is ready, up to `batches` (default 1); `collect` gives the
+ * yield once per batch ready. Then it is idle again, or with `repeat` it goes on by itself.
+ */
+export const Building = z
+  .object({
+    id: Id,
+    name: z.string(),
+    /** shown on hover in the buildings panel */
+    hint: z.string().optional(),
+    /** shown on the map when you hover the place */
+    icon: Icon.optional(),
+    /** where it can be built; `when`: only once this holds there (e.g. the river is found) */
+    places: z.array(z.object({ region: Id, when: Condition.optional() }).strict()).min(1),
+    /** when the build button is offered at all (e.g. once its task has started); default always */
+    availableWhen: Condition.optional(),
+    /** putting it up: label (default "build"), time, cost, extra requirements, what happens */
+    build: z
+      .object({
+        label: z.string().optional(),
+        hours: z.number().positive(),
+        effort: Effort,
+        requires: Condition.optional(),
+        requiresText: z.string().optional(),
+        cost: Amounts.optional(),
+        log: Text.optional(),
+        effects: z.array(Effect).optional(),
+      })
+      .strict(),
+    /** degrees added to the felt temperature in its place (e.g. a shelter out of the wind) */
+    warmthC: z.number().optional(),
+    /** the panel's word for a building without a cycle (default "built") */
+    word: z.string().optional(),
+    cycle: z
+      .object({
+        start: BuildingStep,
+        /** game hours per batch, counted from the end of `start` (or of `collect`, with repeat) */
+        hours: z.number().positive(),
+        /** how many batches can wait to be collected (default 1): a trap holds up to 3 fish */
+        batches: z.number().int().positive().optional(),
+        /** after collecting, it starts again by itself (a trap stays set) */
+        repeat: z.boolean().optional(),
+        collect: BuildingStep,
+        /** the panel's words: nothing running, running (time left is added), ready ({n}: batches ready) */
+        words: z.object({ idle: z.string(), working: z.string(), ready: z.string() }).strict(),
+        /** written to the journal when the first batch is ready while you are there (and awake) */
+        readyLog: Text.optional(),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+export type Building = z.infer<typeof Building>;
+export type BuildingStep = z.infer<typeof BuildingStep>;
 
 export const Consume = z
   .object({
@@ -330,9 +421,10 @@ export const Game = z
     deathLog: Text,
     /**
      * The note when a task is done: title ({task}), then the task's doneLog and what changed:
-     * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action})
+     * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action}),
+     * built ({building})
      */
-    tasks: z.object({ title: Text, gained: Text, used: Text, opened: Text, possible: Text }).strict(),
+    tasks: z.object({ title: Text, gained: Text, used: Text, opened: Text, possible: Text, built: Text }).strict(),
     /**
      * A place new on the map ({place}): `text` under the finding (or in a note titled `title`) and
      * `go`, the label of the button that walks there.
@@ -448,8 +540,11 @@ export const Quest = z
      * The panel shows progress towards its cost; clicking spends the cost, takes the time and applies the effects.
      */
     action: z.union([QuestAction, z.array(QuestAction).min(1)]).optional(),
+    /** instead of `action`: the task's button builds this building where you are (its cost is the progress) */
+    build: Id.optional(),
   })
-  .strict();
+  .strict()
+  .refine((q) => !(q.action && q.build), "a task has either an action or build, not both");
 
 export type Quest = z.infer<typeof Quest>;
 

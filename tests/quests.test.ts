@@ -42,7 +42,10 @@ describe("quests", () => {
   it("start quests are active at once; condition quests wait for their trigger", () => {
     const e = revealAll(startGame(reg, 3));
     // the spear quest is triggered by finding the fish (revealAll found everything)
-    expect(active(e)).toEqual(["survive_first_night", "build_fishing_spear", "find_water", "find_food"]);
+    expect(active(e)).toEqual([
+      "survive_first_night", "build_fishing_spear", "make_axe", "build_fish_trap", "build_snares",
+      "build_mushroom_logs", "make_hoe", "build_corn_field", "build_bee_hive", "find_water", "find_food",
+    ]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
   });
 

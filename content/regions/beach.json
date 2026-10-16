@@ -265,6 +265,35 @@
       ]
     },
     {
+      "id": "collect_stones",
+      "name": "pick up stones",
+      "hours": 0.5,
+      "effort": "work",
+      "icon": "stone",
+      "visibleWhen": {
+        "all": [
+          { "discovered": "cliff_shells" },
+          {
+            "any": [
+              { "any": [{ "quest": "make_axe", "is": "active" }, { "quest": "make_axe", "is": "done" }] },
+              {
+                "any": [
+                  { "quest": "build_fish_weir", "is": "active" },
+                  { "quest": "build_fish_weir", "is": "done" }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "yields": [{ "item": "stone", "min": 2, "max": 3 }],
+      "log": [
+        "Under the cliff, stones of every size. You pick the hardest.",
+        "You choose stones from the foot of the cliff, flat and heavy.",
+        "You gather stones where the cliff has crumbled."
+      ]
+    },
+    {
       "id": "catch_fish",
       "name": "catch fish",
       "hours": 1.0,
@@ -313,8 +342,8 @@
       "effort": "sleep",
       "icon": "sleep",
       "visibleWhen": { "discovered": "rock_shelter" },
-      "requires": { "timer": "fire" },
-      "requiresText": "Too cold and dark to sleep without a fire",
+      "requires": { "any": [{ "timer": "fire" }, { "built": "shelter" }] },
+      "requiresText": "Too cold and dark to sleep without a fire or a shelter",
       "_thoughts": "before sleeping: how tired you are (energy, same bands as the bar), then up to 3 things you remember from today, most memorable first",
       "thoughts": [
         {
@@ -395,6 +424,30 @@
                 "The fish in the shallows, so close."
               ],
               "when": { "today": "school_of_fish" }
+            },
+            {
+              "text": [
+                "Building the shelter, log by log.",
+                "The shelter against the rocks, and how still it is inside.",
+                "The wind breaking on the logs you raised."
+              ],
+              "when": { "today": "shelter" }
+            },
+            {
+              "text": [
+                "The first harvest from the field.",
+                "Breaking the corn off the stalks.",
+                "Arms full of corn."
+              ],
+              "when": { "today": "harvest_corn" }
+            },
+            {
+              "text": [
+                "Hacking at the wood with the axe.",
+                "The axe biting into wood.",
+                "Logs, real logs, at last."
+              ],
+              "when": { "today": "chop_wood" }
             },
             {
               "text": [

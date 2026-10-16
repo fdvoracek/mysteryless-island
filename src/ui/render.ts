@@ -161,6 +161,7 @@ export class UI {
     this.renderButtons(this.els.actions, v.actions);
     this.renderStatus(v);
     this.renderQuests(v);
+    this.renderBuildings(v);
     this.renderStores(v);
     this.renderInventory(v);
     this.renderLog(v);
@@ -488,6 +489,27 @@ export class UI {
       b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
       return b;
     });
+  }
+
+  /** Buildings here: name, state (growing · 2d 4h, ripe…), the cost still missing, and its button. */
+  private renderBuildings(v: View) {
+    this.els.buildingsBox.hidden = v.buildings.length === 0;
+    this.els.buildings.replaceChildren(
+      ...v.buildings.map((b) => {
+        const row = div("", "row building" + (b.built ? "" : " unbuilt"));
+        row.dataset.id = b.id;
+        if (b.hint) row.title = b.hint;
+        row.append(div(b.label, "key"), div(b.word, "val"));
+        if (b.action) {
+          const acts = document.createElement("span");
+          acts.className = "acts";
+          acts.append(...this.itemButtons(b.label, [b.action]));
+          row.append(acts);
+        }
+        if (b.progress.length) row.append(div(b.progress.map((p) => `${p.label} ${p.have}/${p.need}`).join(" · "), "progress"));
+        return row;
+      }),
+    );
   }
 
   private renderStores(v: View) {

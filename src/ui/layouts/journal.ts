@@ -22,6 +22,7 @@ export const journal: Layout = {
       </main>
       <aside class="j-margin">
         ${panel.tasks()}
+        ${panel.buildings()}
         ${panel.stores()}
         ${panel.inventory()}
       </aside>

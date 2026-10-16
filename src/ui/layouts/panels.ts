@@ -14,6 +14,8 @@ export const panel = {
   /** time of day and survival bars */
   status: () => `<fieldset class="box status-box"><legend id="clock"></legend><div id="status"></div></fieldset>`,
   tasks: () => `<fieldset class="box" id="questsBox"><legend>tasks</legend><div id="quests"></div></fieldset>`,
+  /** buildings in this place: what stands here (its state, sow/harvest…) and what you can build */
+  buildings: () => `<fieldset class="box" id="buildingsBox"><legend>buildings</legend><div id="buildings"></div></fieldset>`,
   stores: () => `<fieldset class="box" id="storesBox"><legend>stores</legend><div id="stores"></div></fieldset>`,
   inventory: () => `<fieldset class="box" id="inventoryBox"><legend>inventory</legend><div id="inventory"></div></fieldset>`,
 };
@@ -21,5 +23,5 @@ export const panel = {
 /** ids that must exist in every layout skeleton (logOlder is optional) */
 export const REQUIRED_IDS = [
   "wrap", "log", "tabs", "actions", "clock", "status",
-  "quests", "questsBox", "stores", "storesBox", "inventory", "inventoryBox",
+  "quests", "questsBox", "buildings", "buildingsBox", "stores", "storesBox", "inventory", "inventoryBox",
 ] as const;

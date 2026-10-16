@@ -16,6 +16,7 @@ export const classic: Layout = {
       <aside class="side">
         ${panel.status()}
         ${panel.tasks()}
+        ${panel.buildings()}
         ${panel.stores()}
         ${panel.inventory()}
       </aside>

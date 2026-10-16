@@ -77,8 +77,8 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     e.dispatch({ type: "travel", region: "meadows" });
     lookAround(e); // the bushes
     lookAround(e); // the willows: the river
-    expect(labels(e)).toEqual(["look around", "pick berries", "drink water", "catch fish"]);
-    expect(view(e).actions[0].badge).toBeUndefined();
+    expect(labels(e)).toEqual(["look around", "pick berries", "drink water", "catch fish", "cut willow twigs"]);
+    expect(view(e).actions[0].badge).toBe("*"); // the flat ground, the corn and the bees are left
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear");
     const fish = view(e).actions.find((a) => a.label === "catch fish")!;
     expect(fish.enabled).toBe(false); // no spear yet

@@ -44,7 +44,8 @@
     "gained": "{item} added to your {where}.",
     "used": "{item} used.",
     "opened": "A way to {place} opens.",
-    "possible": "You can now {action}."
+    "possible": "You can now {action}.",
+    "built": "{building} built."
   },
   "_newPlace": "a place new on the map ({place}): text under the finding that opened it (or a note titled title), and go, the button that walks there",
   "newPlace": {

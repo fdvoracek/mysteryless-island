@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
-  Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Region, StatsFile,
-  type Activity, type QuestAction, type Timer,
+  Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Region, StatsFile,
+  type Activity, type BuildingStep, type QuestAction, type Timer,
 } from "./schema";
 
 /** Frozen, indexed content. Systems read content only through this object. */
@@ -18,6 +18,10 @@ export interface Registry {
   quests: Map<string, Quest>;
   /** in file order (content/events/*.json) */
   events: Map<string, GameEvent>;
+  /** content/buildings/*.json, in file order (the buildings panel lists them in this order) */
+  buildings: Map<string, Building>;
+  /** a cycle step id (sow, harvest…) -> its building and which step it is */
+  buildingSteps: Map<string, { building: string; step: "start" | "collect"; def: BuildingStep }>;
   /** tags counted by { "did": tag } conditions */
   tags: Set<string>;
   /** discovery id -> region id */
@@ -79,6 +83,8 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const activities = new Map<string, { activity: Activity; region: string }>();
   const quests = new Map<string, Quest>();
   const events = new Map<string, GameEvent>();
+  const buildings = new Map<string, Building>();
+  const buildingSteps = new Map<string, { building: string; step: "start" | "collect"; def: BuildingStep }>();
   const discoveries = new Map<string, string>();
   const allIds = new Map<string, string>(); // id -> where it was defined
 
@@ -105,6 +111,18 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     } else if (/content\/events\/[^/]+\.json$/.test(path)) {
       const list = parse(z.array(GameEvent), data, path, problems) ?? [];
       for (const ev of list) { claim(ev.id, path); events.set(ev.id, ev); }
+    } else if (/content\/buildings\/[^/]+\.json$/.test(path)) {
+      const list = parse(z.array(Building), data, path, problems) ?? [];
+      for (const b of list) {
+        claim(b.id, path);
+        buildings.set(b.id, b);
+        if (b.cycle) {
+          for (const step of ["start", "collect"] as const) {
+            claim(b.cycle[step].id, path);
+            buildingSteps.set(b.cycle[step].id, { building: b.id, step, def: b.cycle[step] });
+          }
+        }
+      }
     }
   }
 
@@ -118,6 +136,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const phaseIds = new Set(climate.phases.map((p) => p.id));
   const tags = new Set<string>();
   for (const { activity } of activities.values()) activity.tags?.forEach((t) => tags.add(t));
+  for (const { def } of buildingSteps.values()) def.tags?.forEach((t) => tags.add(t));
   for (const it of items.values()) {
     it.consume?.tags?.forEach((t) => tags.add(t));
     it.actions?.forEach((a) => a.tags?.forEach((t) => tags.add(t)));
@@ -126,7 +145,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const startedByEffect = new Set<string>();
 
   // ---------- reference checks ----------
-  const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery" | "today", id: string, where: string) => {
+  const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery" | "today" | "building", id: string, where: string) => {
     const ok =
       kind === "item" ? items.has(id)
       : kind === "region" ? regions.has(id)
@@ -135,8 +154,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       : kind === "band" ? bandIds.includes(id)
       : kind === "quest" ? quests.has(id)
       : kind === "discovery" ? discoveries.has(id)
-      : kind === "did" ? activities.has(id) || items.has(id) || tags.has(id)
-      : kind === "today" ? activities.has(id) || items.has(id) || tags.has(id) || discoveries.has(id) || regions.has(id) || quests.has(id)
+      : kind === "building" ? buildings.has(id)
+      : kind === "did" ? activities.has(id) || items.has(id) || tags.has(id) || buildingSteps.has(id) || buildings.has(id)
+      : kind === "today" ? activities.has(id) || items.has(id) || tags.has(id) || discoveries.has(id) || regions.has(id) || quests.has(id) || buildingSteps.has(id) || buildings.has(id)
       : phaseIds.has(id);
     if (!ok) problems.push(`${where}: unknown ${kind} "${id}"`);
   };
@@ -158,6 +178,11 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else if ("quest" in c) ref("quest", c.quest, where);
     else if ("discovered" in c) ref("discovery", c.discovered, where);
     else if ("explored" in c) ref("region", c.explored, where);
+    else if ("built" in c) ref("building", c.built, where);
+    else if ("building" in c) {
+      ref("building", c.building, where);
+      if (buildings.has(c.building) && !buildings.get(c.building)!.cycle) problems.push(`${where}: building "${c.building}" has no cycle, so it is never ${c.is}`);
+    }
   };
   const checkOutcomes = (os: Outcome[] | undefined, where: string) =>
     os?.forEach((o, i) => {
@@ -174,6 +199,11 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       else if ("roll" in e) checkOutcomes(e.roll, w);
       else if ("startQuest" in e) { ref("quest", e.startQuest, w); startedByEffect.add(e.startQuest); }
       else if ("unlock" in e) ref("region", e.unlock, w);
+      else if ("build" in e) ref("building", e.build, w);
+      else if ("startCycle" in e) {
+        ref("building", e.startCycle, w);
+        if (buildings.has(e.startCycle) && !buildings.get(e.startCycle)!.cycle) problems.push(`${w}: building "${e.startCycle}" has no cycle to start`);
+      }
     });
 
   for (const q of quests.values()) {
@@ -181,6 +211,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof q.trigger === "object") checkCond(q.trigger.when, `${w}.trigger.when`);
     checkCond(q.completeWhen, `${w}.completeWhen`);
     checkEffects(q.effects, w);
+    if (q.build) ref("building", q.build, `${w}.build`);
     questActions(q).forEach((a, i) => {
       const aw = `${w}.action${Array.isArray(q.action) ? `[${i}]` : ""}`;
       if (a.visibleWhen) checkCond(a.visibleWhen, `${aw}.visibleWhen`);
@@ -197,7 +228,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof t === "object" && "when" in t) checkCond(t.when, `${w}.trigger.when`);
     if (typeof t === "object" && "after" in t) {
       for (const a of t.after ?? []) {
-        const ok = a === "explore" || a === "travel" || activities.has(a) || tags.has(a) || items.has(a) || quests.has(a) || discoveries.has(a);
+        const ok = a === "explore" || a === "travel" || activities.has(a) || tags.has(a) || items.has(a) || quests.has(a) || discoveries.has(a) || buildingSteps.has(a) || buildings.has(a);
         if (!ok) problems.push(`${w}.trigger.after: unknown action "${a}" (use an activity id, a tag, an item id, "explore" or "travel")`);
       }
     }
@@ -238,6 +269,22 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       for (const field of ["thoughts", "afterwards"] as const) {
         a[field]?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.${field}[${gi}].lines[${li}].when`); }));
       }
+    }
+  }
+  for (const b of buildings.values()) {
+    const w = `building ${b.id}`;
+    b.places.forEach((p, i) => { ref("region", p.region, `${w}.places[${i}]`); if (p.when) checkCond(p.when, `${w}.places[${i}].when`); });
+    if (b.availableWhen) checkCond(b.availableWhen, `${w}.availableWhen`);
+    if (b.build.requires) checkCond(b.build.requires, `${w}.build.requires`);
+    Object.keys(b.build.cost ?? {}).forEach((k) => ref("item", k, `${w}.build.cost`));
+    checkEffects(b.build.effects, `${w}.build`);
+    for (const step of b.cycle ? [b.cycle.start, b.cycle.collect] : []) {
+      const sw = `${w}.cycle.${step.id}`;
+      if (step.requires) checkCond(step.requires, `${sw}.requires`);
+      Object.keys(step.cost ?? {}).forEach((k) => ref("item", k, `${sw}.cost`));
+      step.yields?.forEach((y, i) => { ref("item", y.item, `${sw}.yields[${i}]`); if (y.when) checkCond(y.when, `${sw}.yields[${i}].when`); });
+      checkOutcomes(step.outcomes, sw);
+      checkEffects(step.effects, sw);
     }
   }
   for (const it of items.values()) {
@@ -282,6 +329,12 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   }
   for (const q of quests.values()) questActions(q).forEach((a, i) => checkHours(a.hours, `quest ${q.id}.action[${i}].hours`));
   for (const r of regions.values()) if (r.travelHours > 0) checkHours(r.travelHours, `region ${r.id}.travelHours`);
+  for (const b of buildings.values()) {
+    checkHours(b.build.hours, `building ${b.id}.build.hours`);
+    if (!b.cycle) continue;
+    checkHours(b.cycle.hours, `building ${b.id}.cycle.hours`);
+    for (const step of [b.cycle.start, b.cycle.collect]) checkHours(step.hours, `building ${b.id}.cycle.${step.id}.hours`);
+  }
 
   if (!statIds.has("health")) problems.push(`stats.json: a "health" stat is required (death happens at health 0)`);
 
@@ -292,7 +345,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     .map((r) => r.id);
 
   return Object.freeze({
-    game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, tags, discoveries, statIds, bandIds, phaseIds,
+    game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
   });
 }
 

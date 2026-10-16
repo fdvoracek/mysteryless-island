@@ -58,6 +58,11 @@ export function hasSavedGame(): boolean {
 /** Tolerant loading: drop unknown ids, add missing regions/timers/stats from content. */
 function isCompatible(s: GameState, reg: Registry): boolean {
   if (!s || !reg.regions.has(s.location)) return false;
+  s.buildings ??= {};
+  for (const key of Object.keys(s.buildings)) {
+    const [id, region] = key.split("@");
+    if (!reg.buildings.has(id) || !reg.regions.has(region)) delete s.buildings[key];
+  }
   for (const id of Object.keys(s.items)) if (!reg.items.has(id)) delete s.items[id];
   for (const id of reg.regionOrder) {
     s.regions[id] ??= { unlocked: !reg.regions.get(id)!.unlockWhen, visited: false, explored: 0, discoveries: [] };

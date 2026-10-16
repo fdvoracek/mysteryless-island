@@ -25,6 +25,7 @@ export const bujo: Layout = {
         ${panel.status()}
         ${panel.tasks()}
         <div class="bj-pair">
+          ${panel.buildings()}
           ${panel.stores()}
           ${panel.inventory()}
         </div>

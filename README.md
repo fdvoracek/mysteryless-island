@@ -56,6 +56,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 - **Saving:** *save.* in the bottom menu stores the game in the browser; going to sleep saves it too, just before you fall asleep, so after a death you can load the evening and do it differently. Separately, the game autosaves after every action, so a reload continues where you were (a death stays a death).
 - Tasks (quests): "survive the first night" (done at day 2, 06:00); "build a fishing spear" once the fish are found: collect 10 firewood (progress shown under the task), then click *build* next to it. Only active tasks are listed; hover for a hint.
 - **When a task is done** a note pops up: "Task done: build a fishing spear", the task's ending, and what changed (items added or used, places opened, actions now possible: "Fishing spear added to your inventory.", "10 firewood used.", "You can now catch fish."). The sentences are templates in `game.json` → `tasks`; the changes are worked out by the engine.
+- **Buildings:** each place can have buildings that produce over time; you start each cycle yourself (sow, set the trap), and collect when it is ready. A task opens the chance (finding the flat ground → *dig a corn field*), its button builds where you are, and its cost shows as progress; built ones are listed in the *buildings* panel of their place with their state (*growing · 2d 4h*, *ripe*, *2 fish*) and their button. Logs need an **axe** (firewood and stones); the corn field needs a **hoe** and wild corn to sow. Ten so far: shelter (warmer, sleep without a fire), bed (better sleep), drying rack, rain barrel (beach); fish trap (beach or river: 20 willow twigs, 1 fish every 2 hours up to 3); snares, mushroom logs (forest); corn field, bee hive, fish weir (meadows). Defined in `content/buildings/` (see `docs/TDD.md` 6.8).
 - Inventory: tools and clothing (summer clothes, the knife or the water can if you grabbed them, the fishing spear), listed apart from stores.
 - **Events:** a modal over the game (as in A Dark Room) with a title, text and buttons; each choice applies effects (stats, items, open a place) and may lead to another page; a page without choices ends with *close*. Every page is also written into the journal when it opens (a blank line in the text starts a new paragraph), before whatever follows, so the events read as part of the story. Triggers: the start of the game, a time (`{ "at": { "day": 3, "hour": 11 } }`), a condition, or a chance after given actions (`{ "after": ["explore"], "chance": 0.25 }`). Defined in `content/events/`.
 
@@ -67,6 +68,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 | Items and food | `content/items/*.json` |
 | Quests (tasks) | `content/quests/*.json` |
 | Events (pop-ups with choices) | `content/events/*.json` |
+| Buildings (built through tasks, cycles over time) | `content/buildings/*.json` |
 | Survival rules (rates, damage, regen) | `content/stats.json` |
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |

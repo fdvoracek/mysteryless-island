@@ -202,5 +202,176 @@
         "Salt meat and a damp biscuit. Your stomach is grateful."
       ]
     }
+  },
+  {
+    "id": "stone",
+    "name": "stones",
+    "category": "material",
+    "_note": "picked up under the cliff; for the axe, the hoe and the weir"
+  },
+  {
+    "id": "timber",
+    "name": "logs",
+    "category": "material",
+    "_note": "better wood than firewood: chopped in the forest with the axe"
+  },
+  {
+    "id": "willow_twigs",
+    "name": "willow twigs",
+    "category": "material",
+    "_note": "cut by the river; 20 for a fish trap"
+  },
+  {
+    "id": "cordage",
+    "name": "cord",
+    "category": "material",
+    "_note": "twisted from meadow grass; for the snares"
+  },
+  { "id": "axe", "name": "axe", "category": "tool" },
+  { "id": "hoe", "name": "hoe", "category": "tool" },
+  {
+    "id": "corn",
+    "name": "corn",
+    "category": "food",
+    "_note": "also the seed for the corn field",
+    "consume": {
+      "verb": "eat raw",
+      "hours": 0.25,
+      "stats": { "hunger": -6 },
+      "tags": ["eat"],
+      "log": [
+        "Hard, starchy kernels. You chew a long time.",
+        "Raw corn, tough and faintly sweet.",
+        "You gnaw the kernels off the cob."
+      ]
+    },
+    "actions": [
+      {
+        "id": "cook",
+        "label": "roast",
+        "hours": 0.25,
+        "effort": "light",
+        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "effects": [{ "give": { "roasted_corn": 1 } }],
+        "log": [
+          "You roast the ear in the embers until the kernels split.",
+          "The husk blackens; the kernels inside go gold.",
+          "Corn in the embers, turned until it smells sweet."
+        ],
+        "tags": ["cook"]
+      }
+    ]
+  },
+  {
+    "id": "roasted_corn",
+    "name": "roasted corn",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -16 },
+      "tags": ["eat"],
+      "log": [
+        "Hot, sweet and smoky.",
+        "You eat it off the cob, burning your fingers.",
+        "Sweet roasted corn. Real food."
+      ]
+    }
+  },
+  {
+    "id": "dried_fish",
+    "name": "dried fish",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -22 },
+      "tags": ["eat"],
+      "log": [
+        "Hard and salty. You tear it with your teeth.",
+        "Dry fish, chewy and smoky.",
+        "It takes a long time to chew. It fills you."
+      ]
+    }
+  },
+  {
+    "id": "raw_meat",
+    "name": "raw meat",
+    "category": "food",
+    "consume": {
+      "verb": "eat raw",
+      "hours": 0.25,
+      "stats": { "hunger": -14 },
+      "tags": ["eat"],
+      "log": ["Raw and bloody. You force it down.", "You chew the raw meat, trying not to taste it."],
+      "outcomes": [
+        { "weight": 1 },
+        {
+          "weight": 1,
+          "text": ["Your stomach heaves.", "It does not stay down easily."],
+          "effects": [{ "stat": { "health": -8 } }]
+        }
+      ]
+    },
+    "actions": [
+      {
+        "id": "cook",
+        "label": "cook",
+        "hours": 0.5,
+        "effort": "light",
+        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "effects": [{ "give": { "cooked_meat": 1 } }],
+        "log": [
+          "Meat on a stick over the fire, dripping into the flames.",
+          "The meat spits and browns over the fire.",
+          "You turn the meat over the flames until it is brown through."
+        ],
+        "tags": ["cook"]
+      }
+    ]
+  },
+  {
+    "id": "cooked_meat",
+    "name": "cooked meat",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -35, "health": 3 },
+      "tags": ["eat"],
+      "log": [
+        "Hot meat, fat running down your chin.",
+        "Rich and hot. The best meal on the island.",
+        "You eat slowly. Real meat."
+      ]
+    }
+  },
+  {
+    "id": "mushrooms",
+    "name": "mushrooms",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -7 },
+      "tags": ["eat"],
+      "log": ["Soft, earthy, a little bitter.", "They taste of the forest floor.", "Cool and earthy."]
+    }
+  },
+  {
+    "id": "honey",
+    "name": "honey",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": { "hunger": -8, "health": 4 },
+      "tags": ["eat"],
+      "log": [
+        "Sweet enough to make your eyes water.",
+        "Honey and wax and a dead bee. Sweet.",
+        "You suck the comb dry."
+      ]
+    }
   }
 ]

@@ -60,6 +60,12 @@ export interface GameState {
   /** minutes left per timer */
   timers: Record<string, number>;
   regions: Record<string, RegionState>;
+  /**
+   * Buildings put up, by "<building>@<region>" (absent = not built there). `startedAt`: when the
+   * running cycle began counting (game minutes); absent = idle. Batches are worked out from the
+   * clock (see batchesReady), so nothing needs ticking.
+   */
+  buildings: Record<string, { builtAt: number; startedAt?: number }>;
   /** stats before the last command, for trend arrows */
   prevStats: Record<string, number>;
   log: LogEntry[];
@@ -98,6 +104,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     quests: {},
     timers,
     regions,
+    buildings: {},
     prevStats: { ...start.stats },
     // the log array is newest-first in time order; the views put each action's lines back in reading order
     log: [],

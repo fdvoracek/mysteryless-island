@@ -56,5 +56,177 @@
       "You test the point with your thumb. Good enough for fish."
     ],
     "_action": "with the knife: 1 h; without it, a sharp stone: 3 h (the first alternative that is visible is used)"
+  },
+  {
+    "id": "build_shelter",
+    "title": "build a shelter",
+    "hint": "Logs against the rocks, out of the wind. Firewood won't do: you need logs, and for logs, an axe.",
+    "trigger": { "when": { "quest": "survive_first_night", "is": "done" } },
+    "startLog": [
+      "The wind found you all night. A shelter against the rocks would keep it off.",
+      "Another night like that and the cold will win. You need a shelter."
+    ],
+    "build": "shelter",
+    "completeWhen": { "built": "shelter" },
+    "doneLog": [
+      "The wind breaks on the logs. Inside, it is almost still.",
+      "A shelter, rough but yours. The wind can't reach you here."
+    ]
+  },
+  {
+    "id": "make_axe",
+    "title": "make an axe",
+    "hint": "A sharp stone lashed to a stout branch. Stones lie under the cliff.",
+    "trigger": {
+      "when": {
+        "any": [
+          { "quest": "build_shelter", "is": "active" },
+          { "quest": "build_drying_rack", "is": "active" },
+          { "quest": "build_rain_barrel", "is": "active" },
+          { "quest": "build_mushroom_logs", "is": "active" },
+          { "quest": "make_hoe", "is": "active" },
+          { "quest": "build_bee_hive", "is": "active" },
+          { "quest": "build_fish_weir", "is": "active" }
+        ]
+      }
+    },
+    "action": {
+      "label": "make",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "firewood": 2, "stone": 2 },
+      "effects": [{ "give": { "axe": 1 } }],
+      "log": [
+        "You knock one stone against another until it has an edge, and lash it into a split branch.",
+        "Stone on stone until one has an edge. Then a split branch, and the stone wedged in tight.",
+        "A sharp stone, a stout branch, and a long time binding them."
+      ]
+    },
+    "completeWhen": { "item": "axe" },
+    "doneLog": ["The axe is crude, but it bites into wood.", "It is heavy and ugly, and it cuts."]
+  },
+  {
+    "id": "make_bed",
+    "title": "make a bed",
+    "hint": "A frame of logs and a heap of branches, off the cold sand. You will sleep deeper.",
+    "trigger": { "when": { "built": "shelter" } },
+    "build": "bed",
+    "completeWhen": { "built": "bed" },
+    "doneLog": [
+      "You lie down to try it. Off the sand, for the first time.",
+      "Not soft, but dry and off the ground. It will do."
+    ]
+  },
+  {
+    "id": "build_rain_barrel",
+    "title": "build a rain barrel",
+    "hint": "A hollowed log where the shelter drips. Water without the walk to the spring.",
+    "trigger": { "when": { "built": "shelter" } },
+    "build": "rain_barrel",
+    "completeWhen": { "built": "rain_barrel" },
+    "doneLog": [
+      "The barrel stands under the shelter's edge, waiting for rain.",
+      "Now the rain will come to you."
+    ]
+  },
+  {
+    "id": "build_drying_rack",
+    "title": "build a drying rack",
+    "hint": "Fish dried in the smoke keep, and need no fire to eat.",
+    "trigger": {
+      "when": { "any": [{ "did": "catch_fish" }, { "did": "catch_river_fish" }, { "did": "empty_trap" }] }
+    },
+    "build": "drying_rack",
+    "completeWhen": { "built": "drying_rack" },
+    "doneLog": [
+      "The rack stands by the fire, ready for fish.",
+      "A rack for drying fish. Food for the bad days."
+    ]
+  },
+  {
+    "id": "build_fish_trap",
+    "title": "build a fish trap",
+    "hint": "20 willow twigs from the river. It can stand wherever there are fish: the shallows or the river.",
+    "trigger": { "when": { "discovered": "river" } },
+    "build": "fish_trap",
+    "completeWhen": { "built": "fish_trap" },
+    "doneLog": [
+      "The trap is set. The fish will come to it.",
+      "Willow and patience. Now the fish do the work."
+    ]
+  },
+  {
+    "id": "build_snares",
+    "title": "set snares",
+    "hint": "Cord nooses on the small trails. Twist the cord from meadow grass.",
+    "trigger": { "when": { "discovered": "rabbit_runs" } },
+    "build": "snares",
+    "completeWhen": { "built": "snares" },
+    "doneLog": ["The snares wait along the trails.", "Nooses on the runs. Now leave them alone."]
+  },
+  {
+    "id": "build_mushroom_logs",
+    "title": "grow mushrooms",
+    "hint": "Cut the fallen oak into logs and keep them wet. Needs the axe.",
+    "trigger": { "when": { "discovered": "fallen_oak" } },
+    "build": "mushroom_logs",
+    "completeWhen": { "built": "mushroom_logs" },
+    "doneLog": [
+      "The logs lie in the shade. Keep them wet, and wait.",
+      "Oak logs in the damp. The mushrooms will come."
+    ]
+  },
+  {
+    "id": "make_hoe",
+    "title": "make a hoe",
+    "hint": "A flat stone on a log handle, to break the ground.",
+    "trigger": { "when": { "quest": "build_corn_field", "is": "active" } },
+    "action": {
+      "label": "make",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "timber": 1, "stone": 1 },
+      "effects": [{ "give": { "hoe": 1 } }],
+      "log": [
+        "You lash a flat stone across the end of a log handle.",
+        "A flat stone, a handle cut from a log, a lot of cord.",
+        "You bind a flat stone crosswise to a handle. A hoe, of sorts."
+      ]
+    },
+    "completeWhen": { "item": "hoe" },
+    "doneLog": ["The hoe is heavy, but it breaks the ground.", "Clumsy, but it digs."]
+  },
+  {
+    "id": "build_corn_field",
+    "title": "dig a corn field",
+    "hint": "Break the flat ground with a hoe and sow wild corn: 2 ears for the first rows.",
+    "trigger": { "when": { "discovered": "field_site" } },
+    "build": "corn_field",
+    "completeWhen": { "built": "corn_field" },
+    "doneLog": [
+      "Rows of dark earth, sown. Three days, if the weather holds.",
+      "The field is dug and sown. Now the waiting."
+    ]
+  },
+  {
+    "id": "build_bee_hive",
+    "title": "build a bee hive",
+    "hint": "A hollow log among the flowers, for the wild bees.",
+    "trigger": { "when": { "discovered": "bees" } },
+    "build": "bee_hive",
+    "completeWhen": { "built": "bee_hive" },
+    "doneLog": ["The hive log stands among the flowers.", "A home for the bees, if they want it."]
+  },
+  {
+    "id": "build_fish_weir",
+    "title": "build a fish weir",
+    "hint": "A wall of stones and stakes across the river: more fish than a trap. Stones from the beach.",
+    "trigger": { "when": { "did": "empty_trap", "gte": 2 } },
+    "build": "fish_weir",
+    "completeWhen": { "built": "fish_weir" },
+    "doneLog": [
+      "The weir stretches across the river. The water runs through; the fish don't.",
+      "A wall across the river, with one way in."
+    ]
   }
 ]

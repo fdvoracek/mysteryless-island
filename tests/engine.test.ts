@@ -19,10 +19,10 @@ describe("engine: the prototype loop", () => {
   it("once the beach is explored: fire, shells, fish, sleep", () => {
     const e = fresh();
     const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "light_fire", "collect_shells", "catch_fish", "sleep"]);
+    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "light_fire", "collect_shells", "collect_stones", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
     expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
-    expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire");
+    expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire or a shelter");
   });
 
   it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory, not stores", () => {

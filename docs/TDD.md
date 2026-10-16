@@ -405,23 +405,51 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 
 **Region exploration** (`explore`) is the region's "look around" button **[implemented]**: `{ name, title?, view: [{ text, when? }], nothingLeft?, landmarks: [Landmark] }`. The `explore` command takes no time and opens a pop-up (`events.active.id = "explore:<region>"`): its text is every `view` line whose `when` holds (plus `nothingLeft` when no landmark is left), its choices the landmarks not explored yet whose `visibleWhen` holds, with their time, and *close*. A landmark is `{ id, label, hours, effort, visibleWhen?, requires?, requiresText?, text, effects? }`; choosing it advances time, marks the discovery (`{ "discovered": id }`; `{ "explored": region, "gte": n }` counts them), logs `text` to the journal, applies `effects`, and shows `text` with *close*. Closing that page runs "after explore" event triggers (keys `"explore"` and the landmark id). The button has `badge: "*"` while any landmark is offered. Tests: `lookAround(e)` in `tests/helpers.ts` explores the next landmark in content order.
 
-### 6.8 Buildings and upgrades
+### 6.8 Buildings **[implemented]**
+
+`content/buildings/*.json`: a list of buildings. A building is put up in a place and produces over time in **cycles the player starts** (no idle income).
 
 ```json
 {
-  "id": "shelter", "name": "shelter",
-  "levels": [
-    { "name": "lean-to", "cost": { "driftwood": 10, "palm_leaves": 12 }, "hours": 3, "effort": "work",
-      "modifiers": { "localHeatC": 2, "sleep": { "energyPerHour": 12, "healthPerHour": 2 } } },
-    { "name": "hut", "requires": { "item": "stone_axe" },
-      "cost": { "log": 8, "cordage": 6, "palm_leaves": 20 }, "hours": 10, "effort": "heavy",
-      "modifiers": { "localHeatC": 4, "sleep": { "energyPerHour": 13, "healthPerHour": 3 } } },
-    { "name": "cabin", "requires": { "item": "iron_axe" },
-      "cost": { "plank": 30, "nail": 40, "stone": 20 }, "hours": 20, "effort": "heavy",
-      "modifiers": { "localHeatC": 6, "sleep": { "energyPerHour": 14, "healthPerHour": 4 } } }
-  ]
+  "id": "fish_trap", "name": "fish trap", "icon": "fish", "hint": "…",
+  "places": [{ "region": "beach", "when": { "discovered": "school_of_fish" } }, { "region": "meadows", "when": { "discovered": "river" } }],
+  "availableWhen": { "any": [{ "quest": "build_fish_trap", "is": "active" }, { "quest": "build_fish_trap", "is": "done" }] },
+  "build": { "hours": 1, "effort": "work", "cost": { "willow_twigs": 20 }, "log": "…" },
+  "cycle": {
+    "start": { "id": "set_trap", "label": "set", "hours": 0.25, "effort": "light", "log": "…" },
+    "hours": 2, "batches": 3, "repeat": true,
+    "collect": { "id": "empty_trap", "label": "empty", "hours": 0.25, "effort": "light", "yields": [{ "item": "raw_fish", "min": 1, "max": 1 }] },
+    "words": { "idle": "not set", "working": "set", "ready": "{n} fish" },
+    "readyLog": "Something thrashes in the trap."
+  }
 }
 ```
+
+- **Where:** `places` lists the regions (each with an optional `when`); one can stand in each (state key `"<id>@<region>"` in `state.buildings`, `{ builtAt, startedAt? }`). `availableWhen` gates the build button (usually: its task has started).
+- **Building it:** the `build` step (label default "build"; `requires`, `cost`, `hours`, `effort`, `log`, `effects`) is a `{ type: "building", id, step: "build" }` command, offered where you are. A quest with `build: "<id>"` (instead of `action`) has that button and shows the cost as progress; while that task is open the buildings panel does not repeat the button. The `{ "build": id }` effect puts one up where you are without the step (events); `{ "startCycle": id }` starts the one here (the corn field is sown as it is dug).
+- **Cycles:** `start` (cost, time) sets `startedAt` when its work ends. Every `hours` one batch is ready, up to `batches` (default 1); nothing ticks, batches are worked out from the clock (`batchesReady`). `collect` applies its `yields` / `outcomes` once per batch ready, plus `effects`; then it is idle, or with `repeat` it counts again from the end of the collect. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
+- **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Anything else goes through conditions: `{ "built": id }` (any place) and `{ "building": id, "is": "idle" | "working" | "ready" }` (the one here, else the first built), e.g. the bed is a `stats.multipliers` entry (`effort: sleep`, `built: bed`, at the beach: energy ×1.4) and a `regen` entry; the shelter makes `sleep` possible without a fire (`requires: any [timer fire, built shelter]`).
+- **View:** `view.buildings` lists, for the current place, the buildings standing here (`word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button) and those you can build here. Panel `#buildingsBox` / `#buildings` in every layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
+- **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle; a quest's `build` must exist.
+
+The 10 buildings in `content/buildings/camp.json`:
+
+| Building | Place | Task starts when | Build | Cycle |
+|---|---|---|---|---|
+| shelter | beach | the first night is over | 4 logs, 2h | none; +3 °C, sleep without fire |
+| bed | beach (by the shelter) | the shelter stands | 2 logs, 4 firewood | none; sleep energy ×1.4, +1 health/h |
+| drying rack | beach | you caught a fish | 2 logs | hang 2 raw fish → 12h → 2 dried fish |
+| rain barrel | beach (by the shelter) | the shelter stands | 3 logs | set out → 12h → drink (thirst −45), repeats |
+| fish trap | beach shallows or the river | you found the river | 20 willow twigs | set → 1 fish / 2h, up to 3, stays set |
+| snares | forest | you found the small trails (day 2+) | 2 cord, 2 firewood | set → 12h → maybe a rabbit (raw meat), repeats |
+| mushroom logs | forest | you found the fallen oak (after collecting wood 3 times) | 2 logs | soak (needs the spring) → 2 days → 3–5 mushrooms |
+| corn field | meadows | you found the flat ground | needs a hoe, 2 corn (sown at once) | sow 2 corn → 3 days → 6–10 corn |
+| bee hive | meadows | you found the humming (after the bushes) | 2 logs | lure with 2 berries → 3 days → 1–2 honey (smoke: 1 firewood), repeats |
+| fish weir | the river | you emptied the trap twice | 6 stones, 2 logs | close → 12h → 2–4 fish, repeats |
+
+Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe is a task (2 firewood, 2 stones) that starts with any task needing logs; *stones* under the low cliff (*pick up stones*, once the axe or weir task has started); the **hoe** (1 log, 1 stone) starts with the corn field; *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); *cord* from meadow grass (*twist cord*, once the snares task started); *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
+
+The original design (levels, modifiers) is kept below for later.
 
 **Modifiers** are the only way buildings and items change the rules. The engine sums them:
 

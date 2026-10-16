@@ -1,5 +1,5 @@
 import { clockText, day, phaseAt } from "./clock";
-import { evaluate } from "./conditions";
+import { batchesReady, buildingKey, buildingState, evaluate } from "./conditions";
 import { sentence } from "./text";
 import type { Command, Engine } from "./engine";
 import type { GameState } from "./state";
@@ -54,6 +54,19 @@ export interface View {
   quests: Array<{
     id: string; title: string; hint?: string;
     /** cost progress for the quest action, e.g. firewood 4/10 */
+    progress: Array<{ label: string; have: number; need: number }>;
+    action?: ButtonView;
+  }>;
+  /**
+   * Buildings in this place, in content order: those standing here (with their state and the
+   * cycle's button: sow, harvest…) and those you can build here (cost progress and "build"),
+   * unless their task is still open (then the task has the button).
+   */
+  buildings: Array<{
+    id: string; label: string; hint?: string;
+    built: boolean;
+    /** e.g. "growing · 2d 4h", "ripe", "2 fish in the trap", "not built" */
+    word: string;
     progress: Array<{ label: string; have: number; need: number }>;
     action?: ButtonView;
   }>;
@@ -144,7 +157,13 @@ export function view(engine: Engine): View {
       label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
     }));
     let action: View["quests"][number]["action"];
-    if (qa) {
+    if (q.build) {
+      const b = reg.buildings.get(q.build)!;
+      progress.push(...Object.entries(b.build.cost ?? {}).map(([item, need]) => ({
+        label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
+      })));
+      action = buildButton(engine, q.build, `quest:${q.id}`);
+    } else if (qa) {
       const c = engine.checkQuestAction(q.id);
       const tooltip = [`${qa.label} · ${fmtHours(qa.hours)}`];
       action = {
@@ -181,6 +200,32 @@ export function view(engine: Engine): View {
   stores.sort((a, b) => a.label.localeCompare(b.label));
   inventory.sort((a, b) => a.label.localeCompare(b.label));
 
+  const buildings: View["buildings"] = [];
+  for (const b of reg.buildings.values()) {
+    const st = buildingState(reg, s, b.id, s.location);
+    const progress = (need?: Record<string, number>) => Object.entries(need ?? {}).map(([item, n]) => ({
+      label: reg.items.get(item)?.name ?? item, have: Math.min(n, s.items[item] ?? 0), need: n,
+    }));
+    if (st === "none") {
+      // while its task is open, the task has the build button (and the progress); no second one here
+      const task = [...reg.quests.values()].some((q) => q.build === b.id && s.quests[q.id]?.status === "active");
+      if (!engine.buildable(b.id) || task) continue;
+      buildings.push({ id: b.id, label: b.name, hint: b.hint, built: false, word: "not built", progress: progress(b.build.cost), action: buildButton(engine, b.id, `building:${b.id}:build`) });
+      continue;
+    }
+    const step = engine.buildingStepFor(b.id);
+    let action: ButtonView | undefined;
+    if (step && step.step !== "build") {
+      const c = engine.checkBuildingStep(b.id, step.step);
+      action = {
+        id: `building:${b.id}:${step.step}`, command: { type: "building", id: b.id, step: step.step },
+        label: (step.def as { label: string }).label, enabled: c.enabled, reason: sentence(c.reason),
+        tooltip: [`${fmtHours(step.def.hours)} · ${step.def.effort}`, ...Object.entries(step.def.cost ?? {}).map(([k, n]) => `${reg.items.get(k)?.name ?? k}: ${n}`)],
+      };
+    }
+    buildings.push({ id: b.id, label: b.name, hint: b.hint, built: true, word: buildingWord(engine, b.id), progress: [], action });
+  }
+
   const turns = groupTurns(s.log);
 
   return {
@@ -190,6 +235,7 @@ export function view(engine: Engine): View {
     actions,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     quests,
+    buildings,
     inventory,
     stores,
     log: turns.flatMap((t) => t.lines),
@@ -275,11 +321,59 @@ function goChoices(engine: Engine) {
   });
 }
 
+/** "build" for a building here (also a task's button): disabled with the reason when it can't be built here. */
+function buildButton(engine: Engine, id: string, buttonId: string): ButtonView {
+  const { reg, state: s } = engine;
+  const b = reg.buildings.get(id)!;
+  const c = engine.checkBuildingStep(id, "build");
+  let reason = c.reason;
+  if (!c.visible) {
+    reason = s.buildings[buildingKey(id, s.location)] ? "already built here"
+      : `only in ${b.places.map((p) => reg.regions.get(p.region)!.name).join(" or ")}`;
+  }
+  return {
+    id: buttonId, command: { type: "building", id, step: "build" }, label: b.build.label ?? "build",
+    enabled: c.enabled, reason: sentence(reason),
+    tooltip: [`${b.build.label ?? "build"} · ${fmtHours(b.build.hours)}`],
+  };
+}
+
+/** The buildings panel's word: built, or its cycle (idle; working and the time to the next batch; ready). */
+function buildingWord(engine: Engine, id: string): string {
+  const { reg, state: s } = engine;
+  const b = reg.buildings.get(id)!;
+  if (!b.cycle) return b.word ?? "built";
+  const st = buildingState(reg, s, id, s.location);
+  const w = b.cycle.words;
+  if (st === "idle") return w.idle;
+  const per = Math.round(b.cycle.hours * 60);
+  const started = s.buildings[buildingKey(id, s.location)].startedAt!;
+  const left = per - ((s.time - started) % per);
+  if (st === "working") return `${w.working} · ${fmtLeft(left)}`;
+  const n = batchesReady(reg, s, id, s.location);
+  return w.ready.replace("{n}", String(n));
+}
+
+/** 3000 minutes -> "2d 2h"; 90 -> "1.5h"; 45 -> "45m" (time left on a building) */
+export function fmtLeft(minutes: number): string {
+  if (minutes >= 1440) {
+    const d = Math.floor(minutes / 1440), h = Math.round((minutes % 1440) / 60);
+    return h ? `${d}d ${h}h` : `${d}d`;
+  }
+  return fmtHours(Math.ceil(minutes / 15) * 15 / 60);
+}
+
 /** What you have found to do at a place, as map icons: the activities shown there now (each kind once, in a fixed order). */
 function placeIcons(engine: Engine, regionId: string): Icon[] {
   const ctx = engine.ctx();
   const found = new Set(engine.reg.regions.get(regionId)!.activities
     .filter((a) => a.icon && evaluate(a.visibleWhen, ctx)).map((a) => a.icon!));
+  // and what you have built there
+  for (const key of Object.keys(engine.state.buildings)) {
+    const [id, region] = key.split("@");
+    const icon = engine.reg.buildings.get(id)?.icon;
+    if (region === regionId && icon) found.add(icon);
+  }
   return Icon.options.filter((i) => found.has(i));
 }
 

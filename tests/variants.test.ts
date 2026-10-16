@@ -93,7 +93,9 @@ describe("text variants in the content", () => {
           [/\.tasks\.used/, ["{item}"]],
           [/\.tasks\.opened/, ["{place}"]],
           [/\.tasks\.possible/, ["{action}"]],
+          [/\.tasks\.built/, ["{building}"]],
           [/\.newPlace\.(text|go)/, ["{place}"]],
+          [/\.cycle\.words\.ready/, ["{n}"]],
         ];
         const rule = allowed.find(([re]) => re.test(path));
         const ok = !!rule && o.match(/\{\w+\}/g)!.every((m) => rule[1].includes(m));
