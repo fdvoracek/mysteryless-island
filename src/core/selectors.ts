@@ -38,7 +38,7 @@ export interface View {
   map: {
     cols: number; rows: number;
     unknown: Array<{ col: number; row: number }>;
-    paths: Array<{ from: { col: number; row: number }; to: { col: number; row: number }; unknown: boolean }>;
+    paths: Array<{ from: { col: number; row: number }; to: { col: number; row: number }; label?: string; unknown: boolean }>;
   };
   actions: ButtonView[];
   status: {
@@ -290,6 +290,7 @@ function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
   });
   const paths = [...known, ...unknown].filter((id) => id !== hub).map((id) => ({
     from: cell(hub), to: cell(id), unknown: !s.regions[id]?.unlocked,
+    label: s.regions[id]?.unlocked ? fmtHours(reg.regions.get(id)!.travelHours) : undefined,
   }));
   return {
     tabs,

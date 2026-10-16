@@ -209,16 +209,25 @@ export class UI {
   // ---------------------------------------------------------------- panels
 
   /**
-   * The places as a small route map in the "map" box: a grid with paths from the camp and "?" where
-   * a place is still to be found. The place you are in is a dot and a bold name; every other place
-   * is a framed button with its walking time ("the forest · 30m →"). A place new on the map pulses
-   * once the pop-ups are closed and the map can be seen.
+   * The places as a small route map: a grid of equal cells with a node (button) per place you know,
+   * paths from the camp with the walking time, and "?" where a place is still to be found. The map is
+   * centred on the place you are in: when you walk, the whole map slides to put the new place in the
+   * middle (the `.map` element stays, only its --hc/--hr change, so the move is a CSS transition).
    */
   private renderTabs(v: View) {
     const m = v.map;
-    const grid = div("", "map");
-    grid.style.gridTemplateColumns = `repeat(${m.cols}, minmax(7.5em, auto))`;
-    grid.style.gridTemplateRows = `repeat(${m.rows}, 2.6em)`;
+    let view = this.els.tabs.querySelector<HTMLElement>(":scope > .map-view");
+    if (!view) { view = div("", "map-view"); view.append(div("", "map")); this.els.tabs.replaceChildren(view); }
+    const grid = view.firstElementChild as HTMLElement;
+    const here = v.tabs.find((t) => t.here) ?? { col: 0, row: 0 };
+    const cells = [...v.tabs, ...m.unknown];
+    const dy = Math.max(0, ...cells.map((c) => Math.abs(c.row - here.row)));
+    view.style.setProperty("--dy", String(dy));
+    grid.style.setProperty("--cols", String(m.cols));
+    grid.style.setProperty("--rows", String(m.rows));
+    grid.style.setProperty("--hc", String(here.col));
+    grid.style.setProperty("--hr", String(here.row));
+    // cell centres in % of the grid, for the paths and their labels
     const at = (p: { col: number; row: number }) => ({ x: ((p.col + 0.5) / m.cols) * 100, y: ((p.row + 0.5) / m.rows) * 100 });
     const NS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(NS, "svg");
@@ -226,6 +235,7 @@ export class UI {
     svg.setAttribute("viewBox", "0 0 100 100");
     svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("aria-hidden", "true");
+    const labels: HTMLElement[] = [];
     for (const p of m.paths) {
       const a = at(p.from), b = at(p.to);
       const line = document.createElementNS(NS, "line");
@@ -234,20 +244,24 @@ export class UI {
       line.setAttribute("vector-effect", "non-scaling-stroke");
       if (p.unknown) line.setAttribute("class", "unknown");
       svg.append(line);
+      if (p.label) {
+        const t = div(p.label, "map-time");
+        t.style.left = `${(a.x + b.x) / 2}%`;
+        t.style.top = `${(a.y + b.y) / 2}%`;
+        labels.push(t);
+      }
     }
     const place = (el: HTMLElement, p: { col: number; row: number }) => { el.style.gridColumn = String(p.col + 1); el.style.gridRow = String(p.row + 1); };
     const first = this.knownPlaces === null;
     const known = new Set(v.tabs.map((t) => t.id));
     if (!first) for (const id of known) if (!this.knownPlaces!.has(id)) this.pulse.add(id);
+    this.knownPlaces = known;
     const nodes = v.tabs.map((t) => {
       const b = document.createElement("button");
       b.className = "tab" + (t.here ? " here" : "") + (this.pulse.has(t.id) && !t.here && !v.event ? " new" : "");
       b.dataset.id = t.id;
-      b.innerHTML = t.here
-        ? `<span class="dot" aria-hidden="true"></span><span class="name"></span>`
-        : `<span class="name"></span><span class="time"></span><span class="go" aria-hidden="true">→</span>`;
+      b.innerHTML = `<span class="dot" aria-hidden="true"></span><span class="name"></span>`;
       b.querySelector(".name")!.textContent = t.label;
-      if (!t.here) b.querySelector(".time")!.textContent = fmtHours(t.hours);
       b.title = t.here ? "you are here" : `walk there · ${fmtHours(t.hours)}`;
       if (t.here) b.setAttribute("aria-current", "location");
       b.disabled = t.here || this.isBusy();
@@ -255,11 +269,12 @@ export class UI {
       place(b, t);
       return b;
     });
-    this.knownPlaces = known;
     const unknown = m.unknown.map((u) => { const q = div("?", "map-unknown"); q.setAttribute("aria-label", "somewhere not found yet"); place(q, u); return q; });
-    grid.append(svg, ...nodes, ...unknown);
-    this.els.tabs.replaceChildren(grid);
+    grid.replaceChildren(svg, ...labels, ...nodes, ...unknown);
+    // the first drawing (and a restart or load) puts the map in place without sliding
+    if (first) { grid.classList.add("still"); void grid.offsetWidth; grid.classList.remove("still"); }
   }
+
 
 
   private renderButtons(container: HTMLElement, buttons: ButtonView[]) {

@@ -20,8 +20,7 @@
 .layout-scene .log .entry.latest { font-size: 21px; line-height: 1.5; }
 
 /* places: the route map, under the text */
-.layout-scene .map-box { margin-top: 18px; }
-.layout-scene .tabs { font-size: 16px; }
+.layout-scene .tabs { margin: 18px 0 0; padding-top: 14px; border-top: 1px solid var(--line); font-size: 16px; }
 
 /* the buttons: a little lower, away from the text */
 .layout-scene .buttons { margin-top: 22px; }
@@ -52,7 +51,7 @@
   .layout-scene .wrap { padding: 12px 14px 0; }
   .layout-scene .log { height: 13.5em; }
   .layout-scene .log .entry.latest { font-size: 19px; }
-  .layout-scene .map-box { margin-top: 12px; }
+  .layout-scene .tabs { margin-top: 12px; padding-top: 12px; }
   .layout-scene .buttons { margin-top: 14px; }
   .layout-scene .s-shelf .bar { width: 96px; }
 }

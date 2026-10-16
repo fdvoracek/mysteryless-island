@@ -144,10 +144,15 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(1);
   await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
-  // the map box: the place you are in is a dot, the others framed buttons with their walking time
-  await expect(page.locator("#mapBox legend")).toHaveText("map");
-  await expect(tab(page, "the forest")).toHaveText("the forest30m→");
-  await expect(page.locator("#tabs .tab.here .dot")).toHaveCount(1);
+  await expect(page.locator("#tabs .map-time")).toHaveText(["30m"]);
+  // the map is centred on the place you are in
+  const centred = async (name: string) => {
+    const map = (await page.locator("#tabs").boundingBox())!;
+    const node = (await tab(page, name).boundingBox())!;
+    expect(Math.abs(node.x + node.width / 2 - (map.x + map.width / 2)), `${name} in the middle of the map`).toBeLessThan(2);
+  };
+  await expect(tab(page, "the beach")).toHaveClass(/here/);
+  await centred("the beach");
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(0);
   await expect(action(page, "light fire")).toHaveCount(0);
   await explore(page, "rock_shelter");
@@ -160,6 +165,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   // forest: wood can be collected at once; the sound of water leads to the spring
   await tab(page, "the forest").click();
   await expect(tab(page, "the forest")).toHaveClass(/here/);
+  await expect(async () => centred("the forest")).toPass(); // the map slides to the forest
   await action(page, "collect wood").click();
   await action(page, "collect wood").click();
   await explore(page, "spring");
