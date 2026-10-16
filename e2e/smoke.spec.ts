@@ -36,9 +36,15 @@ async function explore(page: Page, landmark?: string) {
   const pick = landmark
     ? page.locator(`#eventChoices [data-choice="${landmark}"]`)
     : page.locator('#eventChoices .btn:not([data-choice="close"])').first();
+  const id = await pick.getAttribute("data-choice");
   await pick.click();
   await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]); // what was found
   await page.locator('#eventChoices [data-choice="close"]').click();
+  if (id === "forest_edge") {
+    // the first new place on the map: a one-time note
+    await expect(page.locator("#eventTitle")).toHaveText("A new place");
+    await page.locator('#eventChoices [data-choice="close"]').click();
+  }
   await expect(page.locator("#event")).toBeHidden();
 }
 
@@ -130,7 +136,10 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(1);
   await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
-  await expect(page.locator("#tabs .map-time")).toHaveText(["30m"]);
+  // the map box: the place you are in is a dot, the others framed buttons with their walking time
+  await expect(page.locator("#mapBox legend")).toHaveText("map");
+  await expect(tab(page, "the forest")).toHaveText("the forest30m→");
+  await expect(page.locator("#tabs .tab.here .dot")).toHaveCount(1);
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(0);
   await expect(action(page, "light fire")).toHaveCount(0);
   await explore(page, "rock_shelter");

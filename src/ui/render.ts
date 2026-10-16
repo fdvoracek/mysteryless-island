@@ -15,6 +15,10 @@ export class UI {
   private layout: Layout;
   /** true while the death fade runs (nothing can be clicked) */
   private restoring = false;
+  /** places shown on the map last time (null before the first render): a new one pulses */
+  private knownPlaces: Set<string> | null = null;
+  /** new places that pulse once the pop-ups over the map are closed, until the next action */
+  private pulse = new Set<string>();
   /** whether this page has shown the game alive (then a death gets the fade first) */
   private wasAlive = false;
 
@@ -78,8 +82,8 @@ export class UI {
     this.buildFontMenu();
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
     // the end screen's buttons: back to the saved game, or a new game from the storm
-    this.els.endRestart.addEventListener("click", () => { this.onRestart(); this.els.quests.replaceChildren(); this.render(); });
-    this.els.endLoad.addEventListener("click", () => { if (this.saves.load()) { this.els.quests.replaceChildren(); this.render(); } });
+    this.els.endRestart.addEventListener("click", () => { this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
+    this.els.endLoad.addEventListener("click", () => { if (this.saves.load()) { this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); } });
     // save.: store the game as it is now; a short "saved." confirms it
     this.els.saveBtn.addEventListener("click", () => {
       const e = this.getEngine();
@@ -205,15 +209,16 @@ export class UI {
   // ---------------------------------------------------------------- panels
 
   /**
-   * The places as a small route map: a grid with a node (button) per place you know, paths from
-   * the camp with the walking time, and "?" where a place is still to be found. Click a node to walk.
+   * The places as a small route map in the "map" box: a grid with paths from the camp and "?" where
+   * a place is still to be found. The place you are in is a dot and a bold name; every other place
+   * is a framed button with its walking time ("the forest · 30m →"). A place new on the map pulses
+   * once the pop-ups are closed and the map can be seen.
    */
   private renderTabs(v: View) {
     const m = v.map;
     const grid = div("", "map");
-    grid.style.gridTemplateColumns = `repeat(${m.cols}, minmax(7.5em, 10em))`;
-    grid.style.gridTemplateRows = `repeat(${m.rows}, 2.4em)`;
-    // cell centres in % of the grid, for the paths and their labels
+    grid.style.gridTemplateColumns = `repeat(${m.cols}, minmax(7.5em, auto))`;
+    grid.style.gridTemplateRows = `repeat(${m.rows}, 2.6em)`;
     const at = (p: { col: number; row: number }) => ({ x: ((p.col + 0.5) / m.cols) * 100, y: ((p.row + 0.5) / m.rows) * 100 });
     const NS = "http://www.w3.org/2000/svg";
     const svg = document.createElementNS(NS, "svg");
@@ -221,7 +226,6 @@ export class UI {
     svg.setAttribute("viewBox", "0 0 100 100");
     svg.setAttribute("preserveAspectRatio", "none");
     svg.setAttribute("aria-hidden", "true");
-    const labels: HTMLElement[] = [];
     for (const p of m.paths) {
       const a = at(p.from), b = at(p.to);
       const line = document.createElementNS(NS, "line");
@@ -230,19 +234,20 @@ export class UI {
       line.setAttribute("vector-effect", "non-scaling-stroke");
       if (p.unknown) line.setAttribute("class", "unknown");
       svg.append(line);
-      if (p.label) {
-        const t = div(p.label, "map-time");
-        t.style.left = `${(a.x + b.x) / 2}%`;
-        t.style.top = `${(a.y + b.y) / 2}%`;
-        labels.push(t);
-      }
     }
     const place = (el: HTMLElement, p: { col: number; row: number }) => { el.style.gridColumn = String(p.col + 1); el.style.gridRow = String(p.row + 1); };
+    const first = this.knownPlaces === null;
+    const known = new Set(v.tabs.map((t) => t.id));
+    if (!first) for (const id of known) if (!this.knownPlaces!.has(id)) this.pulse.add(id);
     const nodes = v.tabs.map((t) => {
       const b = document.createElement("button");
-      b.className = "tab" + (t.here ? " here" : "");
-      b.innerHTML = `<span class="dot" aria-hidden="true"></span><span class="name"></span>`;
+      b.className = "tab" + (t.here ? " here" : "") + (this.pulse.has(t.id) && !v.event ? " new" : "");
+      b.dataset.id = t.id;
+      b.innerHTML = t.here
+        ? `<span class="dot" aria-hidden="true"></span><span class="name"></span>`
+        : `<span class="name"></span><span class="time"></span><span class="go" aria-hidden="true">→</span>`;
       b.querySelector(".name")!.textContent = t.label;
+      if (!t.here) b.querySelector(".time")!.textContent = fmtHours(t.hours);
       b.title = t.here ? "you are here" : `walk there · ${fmtHours(t.hours)}`;
       if (t.here) b.setAttribute("aria-current", "location");
       b.disabled = t.here || this.isBusy();
@@ -250,10 +255,12 @@ export class UI {
       place(b, t);
       return b;
     });
+    this.knownPlaces = known;
     const unknown = m.unknown.map((u) => { const q = div("?", "map-unknown"); q.setAttribute("aria-label", "somewhere not found yet"); place(q, u); return q; });
-    grid.append(svg, ...labels, ...nodes, ...unknown);
+    grid.append(svg, ...nodes, ...unknown);
     this.els.tabs.replaceChildren(grid);
   }
+
 
   private renderButtons(container: HTMLElement, buttons: ButtonView[]) {
     const existing = new Map<string, HTMLButtonElement>();
@@ -516,6 +523,7 @@ export class UI {
 
   private send(cmd: Command, source: HTMLElement) {
     if (this.isBusy() || this.restoring) return;
+    if (cmd.type !== "choose") this.pulse.clear();
     const res = this.onCommand(cmd);
     if (!res.ok) { this.render(); return; }
     const ms = Math.round(res.cooldownMs * this.speed);
@@ -581,7 +589,7 @@ export class UI {
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);
-    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.els.quests.replaceChildren(); this.render(); });
+    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
     box.querySelector("#no")!.addEventListener("click", () => box.remove());
   }
 }

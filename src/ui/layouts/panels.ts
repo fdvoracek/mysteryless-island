@@ -8,7 +8,7 @@ export const panel = {
   /** optional: a second story area for older text (used with story.older = "inline") */
   storyOlder: () => `<div class="log-older" id="logOlder" aria-label="earlier"></div>`,
   /** places you can walk to (region tabs) */
-  places: () => `<nav class="tabs" id="tabs" aria-label="places"></nav>`,
+  places: () => `<fieldset class="box map-box" id="mapBox"><legend>map</legend><nav class="tabs" id="tabs" aria-label="map: places to walk to"></nav></fieldset>`,
   /** buttons for the current place */
   actions: () => `<div class="buttons" id="actions"></div>`,
   /** time of day and survival bars */

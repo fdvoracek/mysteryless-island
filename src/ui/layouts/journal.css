@@ -23,7 +23,7 @@
 
 /* places and actions read as underlined words, like choices at the end of a page */
 .layout-journal .j-play { display: grid; gap: 10px; }
-.layout-journal .tabs { margin: 0; font-size: 15px; color: var(--muted); }
+.layout-journal .tabs { font-size: 15px; }
 .layout-journal .buttons { gap: 6px 22px; }
 .layout-journal .btn {
   width: auto; padding: 2px 0 4px; border: 0; background: none; font-size: 18px;

@@ -46,6 +46,11 @@
     "opened": "A way to {place} opens.",
     "possible": "You can now {action}."
   },
+  "_mapHint": "a one-time note the first time a place joins the map: {place}",
+  "mapHint": {
+    "title": "A new place",
+    "text": "A new place is on your map: {place}. Click it on the map to walk there."
+  },
   "timers": [
     {
       "id": "fire",

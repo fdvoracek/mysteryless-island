@@ -42,8 +42,7 @@
 
 /* right page: places and actions first, since they are used most */
 .layout-bujo .bj-play { display: grid; gap: 14px; }
-.layout-bujo .tabs { margin: 0; font-size: 19px; gap: 2px 18px; }
-.layout-bujo .tab.here .name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+.layout-bujo .tabs { font-size: 17px; }
 .layout-bujo .buttons { gap: 10px; }
 .layout-bujo .btn {
   width: calc(50% - 5px); padding: 6px 10px; background: transparent;

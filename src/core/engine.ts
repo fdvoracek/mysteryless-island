@@ -102,6 +102,17 @@ export class Engine {
     return res;
   }
 
+  /** The first time a place joins the map: a one-time note that says it is there and clickable. */
+  private mapHint(regionId: string) {
+    if (this.state.flags.includes("map_hint")) return;
+    this.state.flags.push("map_hint");
+    const hint = this.reg.game.mapHint;
+    (this.state.events.notes ??= []).push({
+      title: this.say(hint.title)!,
+      text: this.say(hint.text, { place: this.reg.regions.get(regionId)!.name })!,
+    });
+  }
+
   /** What a finished task can be compared against: items, open places, actions possible here. */
   private snapshot() {
     const region = this.reg.regions.get(this.state.location)!;
@@ -696,7 +707,7 @@ export class Engine {
       else if ("startQuest" in e) this.startQuest(e.startQuest);
       else if ("unlock" in e) {
         const st = s.regions[e.unlock];
-        if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); }
+        if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); this.mapHint(e.unlock); }
       }
     }
     if (s.stats.health <= 0 && !s.dead) this.die(this.causeHint);
@@ -791,6 +802,7 @@ export class Engine {
       if (!st.unlocked && r.unlockWhen && evaluate(r.unlockWhen, ctx)) {
         st.unlocked = true;
         this.log(this.say(this.reg.game.journal.wayOpens, { place: r.name }));
+        this.mapHint(id);
       }
     }
     this.syncQuests();

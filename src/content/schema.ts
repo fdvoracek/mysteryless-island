@@ -326,6 +326,8 @@ export const Game = z
      * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action})
      */
     tasks: z.object({ title: Text, gained: Text, used: Text, opened: Text, possible: Text }).strict(),
+    /** a one-time note the first time a place joins the map ({place}) */
+    mapHint: z.object({ title: Text, text: Text }).strict(),
     /**
      * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why
      * ({cause}: the damage rule's cause, an event's title, or defaultCause). `load` and `restart`

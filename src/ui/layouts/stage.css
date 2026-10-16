@@ -11,7 +11,8 @@
   display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 24px; align-items: start;
 }
 .layout-stage .st-play { display: grid; gap: 12px; justify-items: center; }
-.layout-stage .tabs { margin: 0; justify-content: center; }
+.layout-stage .map-box { justify-self: center; }
+.layout-stage .tabs { justify-content: center; }
 .layout-stage .buttons { justify-content: center; }
 .layout-stage .st-goods { display: grid; gap: 12px; }
 .layout-stage .box { padding: 6px 10px 8px; font-size: 15px; }

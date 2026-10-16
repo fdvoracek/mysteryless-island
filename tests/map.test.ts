@@ -16,14 +16,14 @@ describe("the route map (the places panel)", () => {
     });
   });
 
-  it("a found place joins the map, with the walking time on its path", () => {
+  it("a found place joins the map, with its walking time", () => {
     const e = startGame(reg, 2);
     lookAround(e); // the dunes: the forest
     const v = view(e);
     expect(v.tabs.map((t) => [t.id, t.col, t.here])).toEqual([["beach", 0, true], ["forest", 1, false]]);
     expect(v.tabs[1].hours).toBe(0.5);
     expect(v.map.unknown).toEqual([]);
-    expect(v.map.paths).toEqual([{ from: { col: 0, row: 0 }, to: { col: 1, row: 0 }, unknown: false, label: "30m" }]);
+    expect(v.map.paths).toEqual([{ from: { col: 0, row: 0 }, to: { col: 1, row: 0 }, unknown: false }]);
     e.dispatch({ type: "travel", region: "forest" });
     expect(view(e).tabs.map((t) => t.here)).toEqual([false, true]);
   });
