@@ -53,7 +53,7 @@ Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go an
 - Death restores the last checkpoint (last sleep). Saved in `localStorage`.
 - Tasks (quests): "survive the first night" (done at day 2, 06:00); "build a fishing spear" once the fish are found: collect 10 firewood (progress shown under the task), then click *build* next to it. Only active tasks are listed; hover for a hint.
 - Inventory: tools and clothing (summer clothes, the knife or the water can if you grabbed them, the fishing spear), listed apart from stores.
-- **Events:** a modal over the game (as in A Dark Room) with a title, text and buttons; each choice applies effects (stats, items, open a place) and may lead to another page; a page without choices ends with *close*. Triggers: the start of the game, a time (`{ "at": { "day": 3, "hour": 11 } }`), a condition, or a chance after given actions (`{ "after": ["explore"], "chance": 0.25 }`). Defined in `content/events/`.
+- **Events:** a modal over the game (as in A Dark Room) with a title, text and buttons; each choice applies effects (stats, items, open a place) and may lead to another page; a page without choices ends with *close*. Every page is also written into the journal when it opens (a blank line in the text starts a new paragraph), before whatever follows, so the events read as part of the story. Triggers: the start of the game, a time (`{ "at": { "day": 3, "hour": 11 } }`), a condition, or a chance after given actions (`{ "after": ["explore"], "chance": 0.25 }`). Defined in `content/events/`.
 
 ## Adding content (no code changes)
 

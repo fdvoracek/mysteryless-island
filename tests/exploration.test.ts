@@ -77,8 +77,9 @@ describe("exploration", () => {
     expect(v.turns[1].lines[0]).toMatch(/^Grey sand runs both ways/);
     expect(v.turns[1].lines[1]).toBe("A way to the forest opens.");
     expect(v.log.slice(1, 3)).toEqual(v.turns[1].lines);
-    // the intro is the oldest
-    expect(v.turns.at(-1)!.lines[0]).toMatch(/^Awake\. Salt in the mouth\./);
+    // before that: the opening line, after the shipwreck pages (the oldest paragraphs)
+    expect(v.turns[2].lines[0]).toMatch(/^Awake\. Salt in the mouth\./);
+    expect(v.turns.at(-1)!.lines[0]).toMatch(/^You were three days out/);
   });
 
   it("dying rolls exploration back to the checkpoint", () => {

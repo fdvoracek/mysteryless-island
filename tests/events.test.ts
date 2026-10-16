@@ -24,7 +24,10 @@ describe("the opening event: the shipwreck", () => {
     expect(v.event).toMatchObject({ id: "shipwreck", title: "The storm" });
     expect(v.event!.text).toMatch(/^You were three days out when the storm came/);
     expect(v.event!.choices.map((c) => c.label)).toEqual(["the knife", "the matches", "the water can", "the rations"]);
-    expect(e.state.log).toEqual([]); // the beach comes later
+    // the journal already tells the story, one paragraph per paragraph of the page; the beach comes later
+    expect(view(e).turns.map((t) => t.lines.join(" ")).reverse()).toEqual([
+      expect.stringMatching(/^You were three days out/), expect.stringMatching(/^Then, in the dark/), expect.stringMatching(/^There is a moment/),
+    ]);
     expect(look(e)).toMatchObject({ ok: false, reason: "an event is open" });
   });
 
@@ -185,6 +188,37 @@ describe("event triggers", () => {
   });
 });
 
+describe("events in the journal", () => {
+  it("the shipwreck reads as the start of the journal: the storm, the swim, then the beach", () => {
+    const e = startGame(reg, 1, "knife");
+    const paragraphs = view(e).turns.map((t) => t.lines.join(" ")).reverse();
+    expect(paragraphs).toHaveLength(6);
+    expect(paragraphs[0]).toMatch(/^You were three days out/);
+    expect(paragraphs[2]).toMatch(/^There is a moment/);
+    expect(paragraphs[3]).toMatch(/^You jump with the knife clenched in your fist/);
+    expect(paragraphs[4]).toMatch(/^You swim until your arms stop answering/);
+    expect(paragraphs[5]).toMatch(/^Awake\. Salt in the mouth\./);
+  });
+
+  it("an event after an action: the action, then the event page, then what the choice did", () => {
+    const r = withEvents([{ id: "e_bottle", title: "A bottle", trigger: { after: ["explore"], chance: 1 },
+      scenes: { start: { text: "A bottle in the wrack.", choices: [{ id: "take", label: "take it", effects: [{ give: { firewood: 1 } }, { log: "You keep the cork." }] }] } } }]);
+    const e = startGame(r, 2);
+    look(e);
+    choose(e, "take");
+    const paragraphs = view(e).turns.slice(0, 3).map((t) => t.lines.join(" ")).reverse();
+    expect(paragraphs[0]).toMatch(/A forest, close and hard to miss/); // the look around
+    expect(paragraphs[1]).toBe("A bottle in the wrack.");
+    expect(paragraphs[2]).toBe("You keep the cork.");
+  });
+
+  it("choosing shows the next page at once (no progress bar)", () => {
+    const e = Engine.newGame(reg, 3);
+    expect(choose(e, "knife").cooldownMs).toBe(0);
+    expect(choose(e, "close").cooldownMs).toBe(0);
+  });
+});
+
 describe("event choices and effects", () => {
   const story = {
     id: "e_crate", title: "A crate", trigger: { after: ["explore"], chance: 1 },
@@ -219,15 +253,20 @@ describe("event choices and effects", () => {
     expect(view(noKnife).event!.choices.find((c) => c.id === "map")).toMatchObject({ enabled: false, reason: "The tar seal needs a blade" });
     expect(choose(noKnife, "map").ok).toBe(false);
 
-    const e = startGame(withEvents([{ ...story, trigger: { after: ["travel", "collect_shells"], chance: 1 } }]), 7, "knife");
+    // a forest that only the event can open (its usual unlock never comes true here)
+    const files = readContentFiles();
+    files["content/events/test.json"] = [story];
+    const forest = structuredClone(files["content/regions/forest.json"]) as { unlockWhen: unknown };
+    forest.unlockWhen = { flag: "never" };
+    files["content/regions/forest.json"] = forest;
+    const e = startGame(buildRegistry(files), 7, "knife");
+    look(e);
     expect(e.state.regions.forest.unlocked).toBe(false);
-    for (let i = 0; i < 3; i++) look(e); // the cliff: collect shells appears (the forest is found too)
-    e.state.regions.forest.unlocked = false;
-    e.dispatch({ type: "activity", id: "collect_shells" });
     choose(e, "map");
     expect(e.state.regions.forest.unlocked).toBe(true);
     expect(view(e).event).toBeNull();
     expect(e.state.log[0].text).toBe("A way to the forest opens.");
+    expect(e.state.log[1].text).toBe("A crate in the surf."); // the event page first, then what it caused
   });
 
   it("an event that kills you ends with death", () => {

@@ -43,14 +43,18 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
   await expect(page.locator("#eventTitle")).toHaveText("The storm");
   await expect(page.locator("#eventText")).toContainText("There is a moment, no more, to grab one thing");
   await expect(page.locator("#eventChoices .btn")).toHaveText(["the knife", "the matches", "the water can", "the rations"]);
-  // the beach is not there yet
-  await expect(page.locator("#log .entry")).toHaveCount(0);
+  // the island is not there yet: only the event is shown
+  await expect(page.locator("#app")).toHaveClass(/prologue/);
+  await expect(page.locator("#game")).toBeHidden();
 
   await page.locator('#eventChoices [data-choice="matches"]').click();
   await expect(page.locator("#eventText")).toContainText("The tin is still there, still shut.");
   await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]);
   await page.locator('#eventChoices [data-choice="close"]').click();
   await expect(event).toBeHidden();
+  // the journal tells it all as one story: the storm, the swim, then the beach
+  await expect(page.locator("#log")).toContainText("You were three days out when the storm came.");
+  await expect(page.locator("#log")).toContainText("The tin is still there, still shut.");
   await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
   await expect(page.locator("#stores")).toContainText("matches");
   await expect(page.locator("#inventory .row .key")).toHaveText(["summer clothes"]);

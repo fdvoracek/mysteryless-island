@@ -58,7 +58,12 @@ export interface View {
   turns: Array<{ turn: number; day: number; clock: string; lines: string[] }>;
   dead: boolean;
   /** the open event (a modal), if any: title, the scene's text and its buttons */
-  event: { id: string; title: string; text: string; choices: Array<{ id: string; label: string; enabled: boolean; reason?: string }> } | null;
+  event: {
+    id: string; title: string; text: string;
+    /** a "start" event: the story before the island, shown without the game behind it */
+    prologue: boolean;
+    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string }>;
+  } | null;
 }
 
 export function view(engine: Engine): View {
@@ -217,5 +222,5 @@ function eventView(engine: Engine): View["event"] {
       return ch.visible ? [{ id: c.id, label: c.label, enabled: ch.enabled, reason: sentence(ch.reason) }] : [];
     })
     : [{ id: "close", label: scene.close ?? "close", enabled: true }];
-  return { id: event.id, title: event.title, text, choices };
+  return { id: event.id, title: event.title, text, prologue: event.trigger === "start", choices };
 }

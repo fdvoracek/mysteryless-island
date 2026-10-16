@@ -135,7 +135,7 @@ export class Engine {
     if (!scene.choices) {
       if (choiceId !== "close") return refuse("unknown choice");
       this.endEvent(event);
-      return this.ok(0);
+      return this.chose();
     }
     const c = scene.choices.find((x) => x.id === choiceId);
     if (!c) return refuse("unknown choice");
@@ -147,7 +147,12 @@ export class Engine {
     if (this.state.dead) { this.state.events.active = null; this.state.events.queue = []; return this.died(0); }
     if (c.next) this.enterScene(event, c.next);
     else this.endEvent(event);
-    return this.ok(0);
+    return this.chose();
+  }
+
+  /** A choice takes no game time, and the next page must be clickable at once: no progress bar. */
+  private chose(): Result {
+    return this.state.dead ? this.died(0) : { ok: true, cooldownMs: 0 };
   }
 
   private openNextEvent() {
@@ -162,8 +167,23 @@ export class Engine {
 
   private enterScene(event: GameEvent, sceneId: string) {
     const scene = event.scenes[sceneId];
-    this.state.events.active = { id: event.id, scene: sceneId, text: this.say(scene.text)! };
+    const text = this.say(scene.text)!;
+    this.state.events.active = { id: event.id, scene: sceneId, text };
+    // the event is part of the story: its pages go into the journal too, in the order they happen
+    this.logStory(text);
     this.applyEffects(scene.effects);
+  }
+
+  /**
+   * Write a passage into the journal as its own paragraph(s): a blank line in the text starts a
+   * new paragraph. Whatever is logged after it in the same command starts a new paragraph too.
+   */
+  private logStory(text: string) {
+    for (const p of text.split(/\n\s*\n/)) {
+      this.state.turn = (this.state.turn ?? 0) + 1;
+      this.log(p.trim());
+    }
+    this.state.turn = (this.state.turn ?? 0) + 1;
   }
 
   private endEvent(event: GameEvent) {

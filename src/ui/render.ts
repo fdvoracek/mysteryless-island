@@ -145,8 +145,8 @@ export class UI {
   private renderEvent(v: View) {
     const box = this.els.event;
     const ev = v.event;
-    // before the first journal line (the shipwreck) there is no beach yet: show only the event
-    this.root.classList.toggle("prologue", !!ev && v.log.length === 0);
+    // a "start" event (the shipwreck) comes before the island: show only the event
+    this.root.classList.toggle("prologue", !!ev?.prologue);
     if (!ev) { box.hidden = true; delete box.dataset.key; return; }
     // rebuild only when the scene changes, so a button keeps focus and its cooldown bar
     const key = `${ev.id}|${ev.text}`;
