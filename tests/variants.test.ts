@@ -93,7 +93,7 @@ describe("text variants in the content", () => {
           [/\.tasks\.used/, ["{item}"]],
           [/\.tasks\.opened/, ["{place}"]],
           [/\.tasks\.possible/, ["{action}"]],
-          [/\.mapHint\.text/, ["{place}"]],
+          [/\.newPlace\.(text|go)/, ["{place}"]],
         ];
         const rule = allowed.find(([re]) => re.test(path));
         const ok = !!rule && o.match(/\{\w+\}/g)!.every((m) => rule[1].includes(m));

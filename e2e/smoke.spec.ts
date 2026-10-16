@@ -38,13 +38,9 @@ async function explore(page: Page, landmark?: string) {
     : page.locator('#eventChoices .btn:not([data-choice="close"])').first();
   const id = await pick.getAttribute("data-choice");
   await pick.click();
-  await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]); // what was found
+  // what was found; the dunes put the forest on the map, so that finding can also walk there
+  await expect(page.locator("#eventChoices .btn")).toHaveText(id === "forest_edge" ? ["go to the forest30m", "close"] : ["close"]);
   await page.locator('#eventChoices [data-choice="close"]').click();
-  if (id === "forest_edge") {
-    // the first new place on the map: a one-time note
-    await expect(page.locator("#eventTitle")).toHaveText("A new place");
-    await page.locator('#eventChoices [data-choice="close"]').click();
-  }
   await expect(page.locator("#event")).toBeHidden();
 }
 
@@ -55,6 +51,18 @@ async function escapeShip(page: Page, choice: "knife" | "matches" | "water" | "r
   await expect(page.locator("#event")).toBeHidden();
 }
 const tab = (page: Page, name: string) => page.locator("#tabs .tab", { hasText: name });
+
+test("a finding that opens a place: 'go to the forest' walks there", async ({ page }) => {
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await escapeShip(page, "knife");
+  await action(page, "look around").click();
+  await page.locator('#eventChoices [data-choice="forest_edge"]').click();
+  await expect(page.locator("#eventText")).toContainText("A new place is on your map: the forest.");
+  await page.locator('#eventChoices [data-choice="go:forest"]').click();
+  await expect(page.locator("#event")).toBeHidden();
+  await expect(tab(page, "the forest")).toHaveClass(/here/);
+});
 
 test("the story starts with the shipwreck: grab one thing, swim to the shore", async ({ page }) => {
   await page.evaluate(() => localStorage.clear());

@@ -21,7 +21,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 - `src/core/selectors.ts` turns state into a view model. `src/ui/render.ts` draws it and sends commands; the UI holds no game state.
 - Layouts: `src/ui/layouts/<id>.ts` + `<id>.css` (CSS scoped to `.layout-<id>`), listed in `index.ts`; shared panels with fixed ids in `panels.ts`. Every layout has a phone block (≤600px).
 - Fonts: `src/ui/fonts.ts`; all text uses `--font`. Layouts do not pick fonts.
-- The places panel is a route map in a `#mapBox` box (`renderTabs`): regions at their `map: { x, y }`, paths from the camp, "?" for places not found; other places are framed buttons with their walking time. Nodes are still `#tabs .tab` buttons. The first unlocked place opens a one-time note (`game.json` → `mapHint`); the e2e `explore()` closes it after the dunes.
+- The places panel is a route map in a `#mapBox` box (`renderTabs`): regions at their `map: { x, y }`, paths from the camp, "?" for places not found; other places are framed buttons with their walking time. Nodes are still `#tabs .tab` buttons. A pop-up that unlocks a place gets a line about it and a `go:<region>` button before *close* (`game.json` → `newPlace`; `Engine.offerNewPlaces`).
 
 ## Content rules
 

@@ -19,12 +19,15 @@ export interface QuestState { status: "active" | "done"; startedAt: number; done
 
 /** Events: the one open now (with the wording chosen for its scene), those waiting, and the history. */
 export interface EventsState {
-  /** `title` only for notes (a task done); events and look around take theirs from content */
-  active: { id: string; scene: string; text: string; title?: string } | null;
+  /**
+   * `title` only for notes; events and look around take theirs from content. `go`: places this
+   * pop-up opened (a "go to …" button each); `hint`: the line about them under a finding.
+   */
+  active: { id: string; scene: string; text: string; title?: string; go?: string[]; hint?: string } | null;
   /** events waiting to open after the current one (e.g. several "start" events) */
   queue: string[];
   /** information pop-ups waiting to open (a task done: what happened and what changed) */
-  notes?: Array<{ title: string; text: string }>;
+  notes?: Array<{ title: string; text: string; go?: string[] }>;
   seen: Record<string, { count: number; lastAt: number }>;
 }
 

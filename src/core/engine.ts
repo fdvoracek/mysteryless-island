@@ -39,6 +39,8 @@ export class Engine {
   /** what is happening, named as the cause if it kills you without a damage rule (an event, food) */
   private causeHint: string | undefined;
   /** the game before the current command, to say what a finished task changed */
+  /** places unlocked during the current command (see offerNewPlaces) */
+  private opened: string[] = [];
   private before?: { items: Record<string, number>; unlocked: string[]; location: string; possible: string[]; cmd: Command["type"] };
   /** characters logged during the current command, for the progress bar duration */
   private loggedChars = 0;
@@ -94,7 +96,9 @@ export class Engine {
     this.loggedChars = 0;
     this.causeHint = undefined;
     this.before = { ...this.snapshot(), cmd: cmd.type };
+    const notesBefore = this.state.events.notes?.length ?? 0;
     const res = this.run(cmd);
+    this.offerNewPlaces(notesBefore);
     // a task finished by this command: its note opens first
     if (!this.state.events.active && !this.state.dead) this.openNextEvent();
     if (res.ok && !this.state.dead && cmd.type !== "choose" && cmd.type !== "explore") this.checkEvents(this.actionKeys(cmd));
@@ -102,15 +106,34 @@ export class Engine {
     return res;
   }
 
-  /** The first time a place joins the map: a one-time note that says it is there and clickable. */
-  private mapHint(regionId: string) {
-    if (this.state.flags.includes("map_hint")) return;
-    this.state.flags.push("map_hint");
-    const hint = this.reg.game.mapHint;
-    (this.state.events.notes ??= []).push({
-      title: this.say(hint.title)!,
-      text: this.say(hint.text, { place: this.reg.regions.get(regionId)!.name })!,
-    });
+  /**
+   * Places new on the map after a command: the pop-up that opened them says so and offers to walk
+   * there ("go to the forest"). A look-around finding gets the line and the button; a task note from
+   * this command gets the button (it already says the way opens); otherwise a note of its own.
+   */
+  private offerNewPlaces(notesBefore: number) {
+    const ids = this.opened.filter((id) => id !== this.state.location);
+    this.opened = [];
+    if (!ids.length || this.state.dead) return;
+    const np = this.reg.game.newPlace;
+    const hint = () => ids.map((id) => this.say(np.text, { place: this.reg.regions.get(id)!.name })!).join(" ");
+    const a = this.state.events.active;
+    const notes = (this.state.events.notes ??= []);
+    if (a?.id.startsWith("explore:") && a.scene !== "look") Object.assign(a, { hint: hint(), go: ids });
+    else if (notes.length > notesBefore) notes[notes.length - 1].go = ids;
+    else notes.push({ title: this.say(np.title)!, text: hint(), go: ids });
+  }
+
+  /** "go to the forest" in a pop-up: close it and walk there (after-explore events follow). */
+  private goFromPopup(choiceId: string, after?: string[]): Result | null {
+    const a = this.state.events.active!;
+    const id = choiceId.startsWith("go:") ? choiceId.slice(3) : "";
+    if (!id || !a.go?.includes(id)) return null;
+    this.state.events.active = null;
+    const res = this.travel(id);
+    if (!this.state.dead && after) this.checkEvents(after);
+    if (!this.state.dead && !this.state.events.active) this.openNextEvent();
+    return res;
   }
 
   /** What a finished task can be compared against: items, open places, actions possible here. */
@@ -185,6 +208,8 @@ export class Engine {
 
   private choose(choiceId: string): Result {
     if (this.state.events.active!.id === "note") {
+      const went = this.goFromPopup(choiceId);
+      if (went) return went;
       if (choiceId !== "close") return refuse("unknown choice");
       this.state.events.active = null;
       this.openNextEvent();
@@ -219,7 +244,7 @@ export class Engine {
 
   private openNextEvent() {
     const note = this.state.events.notes?.shift();
-    if (note) { this.state.events.active = { id: "note", scene: "note", text: note.text, title: note.title }; return; }
+    if (note) { this.state.events.active = { id: "note", scene: "note", text: note.text, title: note.title, go: note.go }; return; }
     const id = this.state.events.queue.shift();
     if (!id) return;
     const event = this.reg.events.get(id)!;
@@ -419,7 +444,9 @@ export class Engine {
     const active = this.state.events.active!;
     const region = this.reg.regions.get(active.id.slice("explore:".length))!;
     if (active.scene !== "look") {
-      // the finding is read: back to the game; "after explore" events may follow
+      // the finding is read: back to the game (or walk to a place it opened); "after explore" events may follow
+      const went = this.goFromPopup(choiceId, ["explore", active.scene.slice("found:".length)]);
+      if (went) return went;
       if (choiceId !== "close") return refuse("unknown choice");
       this.state.events.active = null;
       this.checkEvents(["explore", active.scene.slice("found:".length)]);
@@ -707,7 +734,7 @@ export class Engine {
       else if ("startQuest" in e) this.startQuest(e.startQuest);
       else if ("unlock" in e) {
         const st = s.regions[e.unlock];
-        if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); this.mapHint(e.unlock); }
+        if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); this.opened.push(e.unlock); }
       }
     }
     if (s.stats.health <= 0 && !s.dead) this.die(this.causeHint);
@@ -802,7 +829,7 @@ export class Engine {
       if (!st.unlocked && r.unlockWhen && evaluate(r.unlockWhen, ctx)) {
         st.unlocked = true;
         this.log(this.say(this.reg.game.journal.wayOpens, { place: r.name }));
-        this.mapHint(id);
+        this.opened.push(id);
       }
     }
     this.syncQuests();

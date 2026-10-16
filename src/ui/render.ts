@@ -241,7 +241,7 @@ export class UI {
     if (!first) for (const id of known) if (!this.knownPlaces!.has(id)) this.pulse.add(id);
     const nodes = v.tabs.map((t) => {
       const b = document.createElement("button");
-      b.className = "tab" + (t.here ? " here" : "") + (this.pulse.has(t.id) && !v.event ? " new" : "");
+      b.className = "tab" + (t.here ? " here" : "") + (this.pulse.has(t.id) && !t.here && !v.event ? " new" : "");
       b.dataset.id = t.id;
       b.innerHTML = t.here
         ? `<span class="dot" aria-hidden="true"></span><span class="name"></span>`

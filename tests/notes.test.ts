@@ -29,7 +29,6 @@ describe("a note when a task is done", () => {
 
   it("surviving the night: the story only (nothing was gained or used)", () => {
     const e = startGame(reg, 2, "knife", { keepNotes: true });
-    e.state.flags.push("map_hint"); // the one-time map note is tested below
     lookAround(e); lookAround(e); // dunes, rocks
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
@@ -42,7 +41,6 @@ describe("a note when a task is done", () => {
 
   it("the note does not write to the journal again (its story is already there)", () => {
     const e = startGame(reg, 3, "knife", { keepNotes: true });
-    e.state.flags.push("map_hint"); // the one-time map note is tested below
     lookAround(e); lookAround(e); lookAround(e); lookAround(e);
     e.applyEffects([{ give: { firewood: 10 } }]);
     e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
@@ -50,20 +48,5 @@ describe("a note when a task is done", () => {
     close(e);
     expect(e.state.log.filter((l) => l.text === "The spear is light and true. The fish will not be so quick now.").length).toBe(logged);
     expect(logged).toBe(1);
-  });
-
-  it("a new place on the map: a one-time note says where it is and how to walk there", () => {
-    const e = startGame(reg, 4, "knife", { keepNotes: true });
-    lookAround(e); // the dunes: the forest
-    const v = view(e).event!;
-    expect(v.title).toBe("A new place");
-    expect(v.text).toBe("A new place is on your map: the forest. Click it on the map to walk there.");
-    expect(e.state.log.some((l) => l.text === v.text)).toBe(false); // a note, not the story
-    close(e);
-    expect(view(e).event).toBeNull();
-    expect(e.state.flags).toContain("map_hint"); // shown once per game, not for later places
-    e.dispatch({ type: "travel", region: "forest" });
-    e.dispatch({ type: "travel", region: "beach" });
-    expect(view(e).event).toBeNull();
   });
 });

@@ -229,7 +229,7 @@ function eventView(engine: Engine): View["event"] {
   const active = engine.state.events.active;
   if (active?.id.startsWith("explore:")) return exploreView(engine);
   if (active?.id === "note") {
-    return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [{ id: "close", label: "close", enabled: true }] };
+    return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "close", enabled: true }] };
   }
   const open = engine.openEventScene();
   if (!open) return null;
@@ -257,8 +257,19 @@ function exploreView(engine: Engine): View["event"] {
       }),
       ...close,
     ]
-    : close;
-  return { id: active.id, title: ex.title ?? region.title, text: active.text, prologue: false, choices };
+    : [...goChoices(engine), ...close];
+  const text = active.hint ? `${active.text}\n\n${active.hint}` : active.text;
+  return { id: active.id, title: ex.title ?? region.title, text, prologue: false, choices };
+}
+
+/** "go to the forest 30m": one button per place the open pop-up put on the map. */
+function goChoices(engine: Engine) {
+  const { reg, state: s } = engine;
+  const here = reg.regions.get(s.location)!;
+  return (s.events.active?.go ?? []).filter((id) => id !== s.location).map((id) => {
+    const r = reg.regions.get(id)!;
+    return { id: `go:${id}`, label: reg.game.newPlace.go.replace("{place}", r.name), enabled: true, time: fmtHours(here.travelHours + r.travelHours) };
+  });
 }
 
 /** The places you know and the route map between them (see View["map"]). */
