@@ -197,6 +197,8 @@ export const Region = z
     description: Text,
     climate: z.object({ baseC: z.number() }).strict(),
     travelHours: z.number().nonnegative(),
+    /** where the place sits on the route map (grid cells; x to the right, y down). Default: in a row by order */
+    map: z.object({ x: z.number().int(), y: z.number().int() }).strict().optional(),
     unlockWhen: Condition.optional(),
     firstVisit: z.object({ log: Text.optional() }).strict().optional(),
     /**

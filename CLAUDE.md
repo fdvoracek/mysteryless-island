@@ -21,6 +21,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 - `src/core/selectors.ts` turns state into a view model. `src/ui/render.ts` draws it and sends commands; the UI holds no game state.
 - Layouts: `src/ui/layouts/<id>.ts` + `<id>.css` (CSS scoped to `.layout-<id>`), listed in `index.ts`; shared panels with fixed ids in `panels.ts`. Every layout has a phone block (≤600px).
 - Fonts: `src/ui/fonts.ts`; all text uses `--font`. Layouts do not pick fonts.
+- The places panel is a route map (`renderTabs`): regions at their `map: { x, y }`, paths from the camp with walking times, "?" for places not found. Nodes are still `#tabs .tab` buttons.
 
 ## Content rules
 

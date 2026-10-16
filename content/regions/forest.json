@@ -10,6 +10,8 @@
   ],
   "climate": { "baseC": 18 },
   "travelHours": 1,
+  "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
+  "map": { "x": 1, "y": 0 },
   "unlockWhen": { "discovered": "forest_edge" },
   "firstVisit": {
     "log": [

@@ -1,5 +1,5 @@
 import type { Engine, Command } from "../core/engine";
-import { view, type ButtonView, type View } from "../core/selectors";
+import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
 import { getLayout, LAYOUTS, type Layout } from "./layouts";
 import { REQUIRED_IDS } from "./layouts/panels";
@@ -178,20 +178,55 @@ export class UI {
 
   // ---------------------------------------------------------------- panels
 
+  /**
+   * The places as a small route map: a grid with a node (button) per place you know, paths from
+   * the camp with the walking time, and "?" where a place is still to be found. Click a node to walk.
+   */
   private renderTabs(v: View) {
-    const nav = this.els.tabs;
-    nav.replaceChildren(
-      ...v.tabs.flatMap((t, i) => {
-        const b = document.createElement("button");
-        b.className = "tab" + (t.here ? " here" : "");
-        b.textContent = t.label;
-        b.disabled = t.here || this.isBusy();
-        if (!t.here) b.addEventListener("click", () => this.send({ type: "travel", region: t.id }, b));
-        const parts: HTMLElement[] = [b];
-        if (i < v.tabs.length - 1) { const sep = document.createElement("span"); sep.className = "sep"; sep.textContent = "|"; parts.push(sep); }
-        return parts;
-      }),
-    );
+    const m = v.map;
+    const grid = div("", "map");
+    grid.style.gridTemplateColumns = `repeat(${m.cols}, minmax(7.5em, 10em))`;
+    grid.style.gridTemplateRows = `repeat(${m.rows}, 2.4em)`;
+    // cell centres in % of the grid, for the paths and their labels
+    const at = (p: { col: number; row: number }) => ({ x: ((p.col + 0.5) / m.cols) * 100, y: ((p.row + 0.5) / m.rows) * 100 });
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "map-paths");
+    svg.setAttribute("viewBox", "0 0 100 100");
+    svg.setAttribute("preserveAspectRatio", "none");
+    svg.setAttribute("aria-hidden", "true");
+    const labels: HTMLElement[] = [];
+    for (const p of m.paths) {
+      const a = at(p.from), b = at(p.to);
+      const line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", String(a.x)); line.setAttribute("y1", String(a.y));
+      line.setAttribute("x2", String(b.x)); line.setAttribute("y2", String(b.y));
+      line.setAttribute("vector-effect", "non-scaling-stroke");
+      if (p.unknown) line.setAttribute("class", "unknown");
+      svg.append(line);
+      if (p.label) {
+        const t = div(p.label, "map-time");
+        t.style.left = `${(a.x + b.x) / 2}%`;
+        t.style.top = `${(a.y + b.y) / 2}%`;
+        labels.push(t);
+      }
+    }
+    const place = (el: HTMLElement, p: { col: number; row: number }) => { el.style.gridColumn = String(p.col + 1); el.style.gridRow = String(p.row + 1); };
+    const nodes = v.tabs.map((t) => {
+      const b = document.createElement("button");
+      b.className = "tab" + (t.here ? " here" : "");
+      b.innerHTML = `<span class="dot" aria-hidden="true"></span><span class="name"></span>`;
+      b.querySelector(".name")!.textContent = t.label;
+      b.title = t.here ? "you are here" : `walk there · ${fmtHours(t.hours)}`;
+      if (t.here) b.setAttribute("aria-current", "location");
+      b.disabled = t.here || this.isBusy();
+      if (!t.here) b.addEventListener("click", () => this.send({ type: "travel", region: t.id }, b));
+      place(b, t);
+      return b;
+    });
+    const unknown = m.unknown.map((u) => { const q = div("?", "map-unknown"); q.setAttribute("aria-label", "somewhere not found yet"); place(q, u); return q; });
+    grid.append(svg, ...labels, ...nodes, ...unknown);
+    this.els.tabs.replaceChildren(grid);
   }
 
   private renderButtons(container: HTMLElement, buttons: ButtonView[]) {

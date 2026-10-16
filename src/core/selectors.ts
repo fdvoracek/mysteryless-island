@@ -29,7 +29,17 @@ export interface StatusLine {
 
 export interface View {
   title: string;
-  tabs: Array<{ id: string; label: string; here: boolean }>;
+  /** the places you know (the nodes of the route map) */
+  tabs: Array<{ id: string; label: string; here: boolean; hours: number; col: number; row: number }>;
+  /**
+   * The route map: a grid of cols x rows; paths from the camp to each place, labelled with the
+   * walking time; places not found yet are "?" at the end of a dashed path.
+   */
+  map: {
+    cols: number; rows: number;
+    unknown: Array<{ col: number; row: number }>;
+    paths: Array<{ from: { col: number; row: number }; to: { col: number; row: number }; label?: string; unknown: boolean }>;
+  };
   actions: ButtonView[];
   status: {
     day: number;
@@ -73,13 +83,7 @@ export function view(engine: Engine): View {
   const { reg, state: s } = engine;
   const region = reg.regions.get(s.location)!;
 
-  const tabs = reg.regionOrder
-    .filter((id) => s.regions[id]?.unlocked)
-    .map((id) => {
-      const r = reg.regions.get(id)!;
-      const hours = id === s.location ? 0 : region.travelHours + r.travelHours;
-      return { id, label: hours ? `${r.name} · ${fmtHours(hours)}` : r.name, here: id === s.location };
-    });
+  const { tabs, map } = routeMap(engine);
 
   const actions: ButtonView[] = [];
   const ex = engine.checkExplore();
@@ -177,6 +181,7 @@ export function view(engine: Engine): View {
   return {
     title: region.title,
     tabs,
+    map,
     actions,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     quests,
@@ -248,5 +253,36 @@ function exploreView(engine: Engine): View["event"] {
     ]
     : close;
   return { id: active.id, title: ex.title ?? region.title, text: active.text, prologue: false, choices };
+}
+
+/** The places you know and the route map between them (see View["map"]). */
+function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
+  const { reg, state: s } = engine;
+  const pos = (id: string) => reg.regions.get(id)!.map ?? { x: reg.regionOrder.indexOf(id), y: 0 };
+  // the camp: every walk goes through it (travel time = here to camp + camp to there)
+  const hub = reg.regionOrder.find((id) => reg.regions.get(id)!.travelHours === 0) ?? reg.game.start.region;
+  const known = reg.regionOrder.filter((id) => s.regions[id]?.unlocked);
+  const unknown = reg.regionOrder.filter((id) => !s.regions[id]?.unlocked);
+  const all = [...known, ...unknown].map(pos);
+  const minX = Math.min(...all.map((p) => p.x)), minY = Math.min(...all.map((p) => p.y));
+  const cell = (id: string) => ({ col: pos(id).x - minX, row: pos(id).y - minY });
+  const here = reg.regions.get(s.location)!;
+  const tabs = known.map((id) => {
+    const r = reg.regions.get(id)!;
+    return { id, label: r.name, here: id === s.location, hours: id === s.location ? 0 : here.travelHours + r.travelHours, ...cell(id) };
+  });
+  const paths = [...known, ...unknown].filter((id) => id !== hub).map((id) => ({
+    from: cell(hub), to: cell(id), unknown: !s.regions[id]?.unlocked,
+    label: s.regions[id]?.unlocked ? fmtHours(reg.regions.get(id)!.travelHours) : undefined,
+  }));
+  return {
+    tabs,
+    map: {
+      cols: Math.max(...all.map((p) => p.x)) - minX + 1,
+      rows: Math.max(...all.map((p) => p.y)) - minY + 1,
+      unknown: unknown.map(cell),
+      paths,
+    },
+  };
 }
 

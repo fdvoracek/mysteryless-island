@@ -125,9 +125,13 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#event")).toBeHidden();
 
   // beach: the dunes (the forest), then the ring of rocks (fire and sleep)
+  // the route map: only the beach, and a ? where something is still to be found
   await expect(tab(page, "the forest")).toHaveCount(0);
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(1);
   await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
+  await expect(page.locator("#tabs .map-time")).toHaveText(["1h"]);
+  await expect(page.locator("#tabs .map-unknown")).toHaveCount(0);
   await expect(action(page, "light fire")).toHaveCount(0);
   await explore(page, "rock_shelter");
   await expect(action(page, "light fire")).toBeVisible();

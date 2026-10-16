@@ -39,13 +39,24 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .log .entry:first-child, .log .entry.latest { animation: fadein 0.6s ease-out; }
 .log .older-line { font-size: 14px; color: var(--muted); }
 
-/* tabs */
-.tabs { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; margin-bottom: 22px; font-size: 17px; }
-.tab { background: none; border: 0; padding: 0; cursor: pointer; }
-.tab.here { text-decoration: underline; text-underline-offset: 4px; cursor: default; }
-@media (hover: hover) { .tab:not(.here):hover { text-decoration: underline; } }
+/* places: a small route map (see renderTabs): nodes on a grid, paths from the camp with walking times */
+.tabs { display: flex; margin-bottom: 22px; font-size: 17px; }
+.map { position: relative; display: inline-grid; align-items: center; justify-items: center; }
+.map-paths { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.map-paths line { stroke: var(--line); stroke-width: 1; }
+.map-paths line.unknown { stroke: var(--muted); stroke-dasharray: 3 4; }
+.map-time { position: absolute; transform: translate(-50%, -130%); font-size: 12px; color: var(--muted); white-space: nowrap; pointer-events: none; }
+.map-unknown { position: relative; z-index: 1; padding: 0 6px; background: var(--bg); color: var(--muted); }
+.tab {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 6px;
+  background: var(--bg); border: 0; padding: 2px 6px; cursor: pointer;
+}
+.tab .dot { flex: none; width: 9px; height: 9px; border: 1px solid currentColor; border-radius: 50%; background: var(--bg); }
+.tab.here { cursor: default; }
+.tab.here .dot { background: currentColor; }
+.tab.here .name { text-decoration: underline; text-underline-offset: 4px; }
+@media (hover: hover) { .tab:not(.here):hover .name { text-decoration: underline; } }
 .tab:disabled:not(.here) { cursor: wait; }
-.sep { color: var(--fg); }
 
 /* buttons */
 .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
@@ -191,8 +202,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .buttons { gap: 8px; }
   .btn { width: calc(50% - 4px); min-height: 44px; padding: 8px 6px; }
   .sbtn { min-height: 34px; padding: 4px 12px; font-size: 15px; }
-  .tabs { gap: 6px 14px; font-size: 17px; }
-  .tab { padding: 8px 0; }
+  .tabs { font-size: 17px; }
+  .tab { padding: 8px 6px; }
   .row { padding: 3px 0; }
   .row.stat { padding: 5px 0; }
   .bar { width: 96px; }

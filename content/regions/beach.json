@@ -10,6 +10,8 @@
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
+  "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
+  "map": { "x": 0, "y": 0 },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
   "arrive": [
     {
