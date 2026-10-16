@@ -123,6 +123,32 @@ describe("what you grabbed", () => {
     expect(view(e).inventory.map((i) => i.id)).toContain("water_can");
   });
 
+  it("the water can: fill it at the spring once it is explored, up to 4 drinks; the can is kept", () => {
+    const e = startGame(reg, 7, "water", { matches: false });
+    const fill = () => view(e).inventory.find((i) => i.id === "water_can")!.actions.find((a) => a.label === "fill");
+    for (let i = 0; i < 2; i++) e.dispatch({ type: "consume", item: "can_water" });
+    expect(e.state.items.can_water).toBe(2);
+    expect(fill()).toBeUndefined(); // on the beach: no water source
+    look(e); // the dunes: the forest
+    e.dispatch({ type: "travel", region: "forest" });
+    expect(fill()).toBeUndefined(); // the spring is not explored yet
+    look(e); // the sound of water: the spring
+    expect(fill()).toMatchObject({ enabled: true, tooltip: ["fill · 30m"] });
+    const t0 = e.state.time;
+    expect(e.dispatch({ type: "itemAction", item: "water_can", action: "fill" }).ok).toBe(true);
+    expect(e.state.time - t0).toBe(30);
+    expect(e.state.items.can_water).toBe(4); // full, not 2 + 4
+    expect(e.state.items.water_can).toBe(1); // the can stays
+    expect(fill()).toMatchObject({ enabled: false, reason: "The can is full" });
+    expect(e.dispatch({ type: "itemAction", item: "water_can", action: "fill" }).ok).toBe(false);
+    // empty again, and back to the beach: no filling there
+    for (let i = 0; i < 4; i++) e.dispatch({ type: "consume", item: "can_water" });
+    expect(e.state.items.can_water ?? 0).toBe(0);
+    expect(fill()).toMatchObject({ enabled: true });
+    e.dispatch({ type: "travel", region: "beach" });
+    expect(fill()).toBeUndefined();
+  });
+
   it("the rations: six meals, eaten from the stores", () => {
     const e = startGame(reg, 6, "rations", { matches: false });
     expect(view(e).stores.find((s) => s.id === "rations")).toMatchObject({ count: 6, use: { verb: "eat" } });

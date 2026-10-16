@@ -254,7 +254,8 @@ export const ItemAction = z
     visibleWhen: Condition.optional(),
     requires: Condition.optional(),
     requiresText: z.string().optional(),
-    uses: z.number().int().positive().optional(),
+    /** how many of the item one use spends (default 1; 0 keeps it, e.g. filling the water can) */
+    uses: z.number().int().nonnegative().optional(),
     cost: Amounts.optional(),
     effects: z.array(Effect).min(1),
     log: Text.optional(),
@@ -268,6 +269,8 @@ export const Item = z
     name: z.string(),
     plural: z.string().optional(),
     category: z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"]),
+    /** the most you can have (e.g. 4 drinks in the water can); getting more stops there */
+    max: z.number().int().positive().optional(),
     consume: Consume.optional(),
     actions: z.array(ItemAction).optional(),
   })

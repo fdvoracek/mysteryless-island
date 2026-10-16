@@ -595,7 +595,8 @@ export class Engine {
   private give(items: Record<string, number>) {
     for (const [k, n] of Object.entries(items)) {
       if (n <= 0) continue;
-      this.state.items[k] = (this.state.items[k] ?? 0) + n;
+      const max = this.reg.items.get(k)?.max ?? Infinity;
+      this.state.items[k] = Math.min(max, (this.state.items[k] ?? 0) + n);
       if (!this.state.seen.includes(k)) this.state.seen.push(k);
     }
   }

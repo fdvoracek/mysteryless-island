@@ -117,7 +117,25 @@
     "id": "water_can",
     "name": "water can",
     "category": "tool",
-    "_note": "stays when the water is gone (later: refill at the spring)"
+    "_note": "stays when the water is gone; 'fill' at a water source you have explored",
+    "actions": [
+      {
+        "id": "fill",
+        "label": "fill",
+        "hours": 0.5,
+        "effort": "light",
+        "uses": 0,
+        "visibleWhen": { "all": [{ "at": "forest" }, { "discovered": "spring" }] },
+        "requires": { "item": "can_water", "lte": 3 },
+        "requiresText": "The can is full",
+        "effects": [{ "give": { "can_water": 4 } }],
+        "log": [
+          "You hold the can in the spring until it brims.",
+          "Cold water gurgles into the can.",
+          "You fill the can to the top and screw the lid on tight."
+        ]
+      }
+    ]
   },
   {
     "id": "can_water",
@@ -133,7 +151,9 @@
         "A long swallow from the can.",
         "You drink, then screw the lid back on tight."
       ]
-    }
+    },
+    "max": 4,
+    "_note": "up to 4 drinks; refilled from the water can's 'fill'"
   },
   {
     "id": "rations",

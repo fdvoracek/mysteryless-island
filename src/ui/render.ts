@@ -330,9 +330,30 @@ export class UI {
         row.dataset.id = it.id;
         row.append(div(it.label, "key"));
         if (it.count > 1) row.append(div(String(it.count), "val"));
+        if (it.actions.length) {
+          const acts = document.createElement("span");
+          acts.className = "acts";
+          acts.append(...this.itemButtons(it.label, it.actions));
+          row.append(acts);
+        }
         return row;
       }),
     );
+  }
+
+  /** Small labelled buttons next to an item (cook, fill...), for the stores and the inventory. */
+  private itemButtons(itemLabel: string, actions: ButtonView[]): HTMLButtonElement[] {
+    return actions.map((a) => {
+      const b = document.createElement("button");
+      b.className = "iaction sbtn" + (a.enabled ? "" : " off");
+      b.dataset.action = a.id.split(":").at(-1)!;
+      b.textContent = a.label;
+      const label = `${a.label} ${itemLabel} (${a.tooltip.join(", ")})`;
+      b.title = a.reason ? `${label}: ${a.reason}` : label;
+      b.setAttribute("aria-label", b.title);
+      b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
+      return b;
+    });
   }
 
   private renderStores(v: View) {
@@ -354,17 +375,7 @@ export class UI {
           b.addEventListener("click", () => this.send({ type: "consume", item: s.id }, b));
           acts.append(b);
         }
-        for (const a of s.actions) {
-          const b = document.createElement("button");
-          b.className = "iaction sbtn" + (a.enabled ? "" : " off");
-          b.dataset.action = a.id;
-          b.textContent = a.label;
-          const label = `${a.label} ${s.label} (${a.tooltip.join(", ")})`;
-          b.title = a.reason ? `${label}: ${a.reason}` : label;
-          b.setAttribute("aria-label", b.title);
-          b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
-          acts.append(b);
-        }
+        acts.append(...this.itemButtons(s.label, s.actions));
         if (acts.childElementCount) row.append(acts);
         return row;
       }),
