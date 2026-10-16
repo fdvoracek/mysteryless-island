@@ -22,9 +22,9 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(ev.text).toContain("Behind the dunes, a dark line of trees.");
     expect(ev.text).toContain("Something flashes in the shallows.");
     expect(ev.choices).toEqual([
-      { id: "forest_edge", label: "the dunes", enabled: true, time: "1h" },
-      { id: "rock_shelter", label: "the ring of rocks", enabled: true, time: "1h" },
-      { id: "school_of_fish", label: "the shallows", enabled: true, time: "1h" },
+      { id: "forest_edge", label: "the dunes", enabled: true, time: "30m" },
+      { id: "rock_shelter", label: "the ring of rocks", enabled: true, time: "30m" },
+      { id: "school_of_fish", label: "the shallows", enabled: true, time: "30m" },
       { id: "close", label: "close", enabled: true },
     ]);
     // closing without exploring: no time, nothing written
@@ -40,7 +40,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     open(e);
     const t0 = e.state.time;
     choose(e, "rock_shelter");
-    expect(e.state.time - t0).toBe(60);
+    expect(e.state.time - t0).toBe(30);
     const ev = view(e).event!;
     expect(ev.text).toMatch(/^At the far end of the beach, a ring of rocks breaks the sea wind/);
     expect(ev.choices).toEqual([{ id: "close", label: "close", enabled: true }]);

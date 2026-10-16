@@ -154,7 +154,7 @@ describe("quest actions: build a fishing spear", () => {
     expect(view(e).quests.find((x) => x.id === "build_fishing_spear")!.progress[0]).toMatchObject({ have: 10, need: 10 });
     const t0 = e.state.time;
     expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(true);
-    expect(e.state.time - t0).toBe(60);
+    expect(e.state.time - t0).toBe(30);
     expect(e.state.items.firewood).toBe(2);
     expect(e.state.quests.build_fishing_spear.status).toBe("done");
     expect(view(e).inventory.map((i) => i.id)).toContain("fishing_spear");

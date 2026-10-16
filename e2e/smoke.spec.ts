@@ -120,7 +120,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(action(page, "look around")).toContainText("*"); // something left to explore
   await action(page, "look around").click();
   await expect(page.locator("#eventText")).toContainText("Behind the dunes, a dark line of trees.");
-  await expect(page.locator('#eventChoices [data-choice="forest_edge"]')).toHaveText("the dunes1h");
+  await expect(page.locator('#eventChoices [data-choice="forest_edge"]')).toHaveText("the dunes30m");
   await page.locator('#eventChoices [data-choice="close"]').click();
   await expect(page.locator("#event")).toBeHidden();
 
@@ -130,7 +130,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(1);
   await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
-  await expect(page.locator("#tabs .map-time")).toHaveText(["1h"]);
+  await expect(page.locator("#tabs .map-time")).toHaveText(["30m"]);
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(0);
   await expect(action(page, "light fire")).toHaveCount(0);
   await explore(page, "rock_shelter");
@@ -192,7 +192,7 @@ test("while an action runs, the controls are locked and greyed out", async ({ pa
   await tab(page, "the forest").click(); // walking: no progress bar, you are there at once
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
   await expect(tab(page, "the forest")).toHaveClass(/here/);
-  await action(page, "collect wood").click(); // 1 h, with a progress bar
+  await action(page, "collect wood").click(); // 30 min, with a progress bar
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
   // the other place is greyed out and does nothing

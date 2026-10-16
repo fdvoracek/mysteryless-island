@@ -9,7 +9,7 @@
     "Among tall trees the air goes still. You can barely hear the sea."
   ],
   "climate": { "baseC": 18 },
-  "travelHours": 1,
+  "travelHours": 0.5,
   "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
   "map": { "x": 1, "y": 0 },
   "unlockWhen": { "discovered": "forest_edge" },
@@ -85,7 +85,7 @@
       {
         "id": "spring",
         "label": "the sound of water",
-        "hours": 1,
+        "hours": 0.5,
         "effort": "work",
         "text": [
           "Between mossy stones, a small spring. The water is clear and cold.",
@@ -99,7 +99,7 @@
     {
       "id": "gather_wood",
       "name": "collect wood",
-      "hours": 1,
+      "hours": 0.5,
       "effort": "work",
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
       "log": [
@@ -118,7 +118,7 @@
     {
       "id": "drink_stream",
       "name": "drink water",
-      "hours": 0.5,
+      "hours": 0.25,
       "effort": "light",
       "visibleWhen": { "discovered": "spring" },
       "effects": [{ "stat": { "thirst": -40 } }],

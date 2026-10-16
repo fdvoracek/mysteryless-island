@@ -14,7 +14,7 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     const t0 = e.state.time;
     expect(look(e).ok).toBe(true);
-    expect(e.state.time - t0).toBe(60); // takes an hour
+    expect(e.state.time - t0).toBe(30); // takes half an hour
     expect(logHas(e, "A forest, close and hard to miss")).toBe(true);
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach", "forest"]);
     expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);

@@ -21,7 +21,7 @@
       {
         "label": "build",
         "visibleWhen": { "item": "knife" },
-        "hours": 1,
+        "hours": 0.5,
         "effort": "light",
         "cost": { "firewood": 10 },
         "effects": [{ "give": { "fishing_spear": 1 } }],
@@ -33,7 +33,7 @@
       },
       {
         "label": "build",
-        "hours": 3,
+        "hours": 1.5,
         "effort": "work",
         "cost": { "firewood": 10 },
         "effects": [{ "give": { "fishing_spear": 1 } }],

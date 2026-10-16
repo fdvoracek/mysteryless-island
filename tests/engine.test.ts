@@ -55,11 +55,11 @@ describe("engine: the prototype loop", () => {
     expect(e.dispatch({ type: "activity", id: "gather_wood" }).ok).toBe(false);
   });
 
-  it("travel to the forest costs one hour and reveals its description once", () => {
+  it("travel to the forest costs half an hour and reveals its description once", () => {
     const e = fresh();
     const t0 = e.state.time;
     expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);
-    expect(e.state.time - t0).toBe(60);
+    expect(e.state.time - t0).toBe(30);
     expect(e.state.location).toBe("forest");
     expect(e.state.log.some((l) => l.text.includes("water runs over stones"))).toBe(true);
   });
@@ -154,11 +154,11 @@ describe("engine: the prototype loop", () => {
     const { minMs, maxMs } = reg.game.cosmetic;
     const e = startGame(reg, 1);
     lookAround(e); // finds the forest
-    // walking takes its hour but shows no bar: you arrive at once
+    // walking takes its half hour but shows no bar: you arrive at once
     const t0 = e.state.time;
     expect(e.dispatch({ type: "travel", region: "forest" })).toMatchObject({ ok: true, cooldownMs: 0 });
-    expect(e.state.time - t0).toBe(60);
-    const look = e.dispatch({ type: "activity", id: "gather_wood" }); // 1 h and a line
+    expect(e.state.time - t0).toBe(30);
+    const look = e.dispatch({ type: "activity", id: "gather_wood" }); // 30 min and a line
     expect(look.cooldownMs).toBeGreaterThan(minMs);
     expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
 

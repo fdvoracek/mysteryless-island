@@ -21,9 +21,9 @@ describe("the route map (the places panel)", () => {
     lookAround(e); // the dunes: the forest
     const v = view(e);
     expect(v.tabs.map((t) => [t.id, t.col, t.here])).toEqual([["beach", 0, true], ["forest", 1, false]]);
-    expect(v.tabs[1].hours).toBe(1);
+    expect(v.tabs[1].hours).toBe(0.5);
     expect(v.map.unknown).toEqual([]);
-    expect(v.map.paths).toEqual([{ from: { col: 0, row: 0 }, to: { col: 1, row: 0 }, unknown: false, label: "1h" }]);
+    expect(v.map.paths).toEqual([{ from: { col: 0, row: 0 }, to: { col: 1, row: 0 }, unknown: false, label: "30m" }]);
     e.dispatch({ type: "travel", region: "forest" });
     expect(view(e).tabs.map((t) => t.here)).toEqual([false, true]);
   });

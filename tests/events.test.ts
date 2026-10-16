@@ -62,18 +62,18 @@ describe("what you grabbed", () => {
   };
   const ids = (e: Engine) => view(e).actions.map((a) => a.id);
 
-  it("matches: light fire takes 30 minutes, always works and uses one match", () => {
+  it("matches: light fire takes 15 minutes, always works and uses one match", () => {
     const e = atTheRocks("matches");
     expect(ids(e)).toContain("light_fire");
     expect(ids(e)).not.toContain("make_fire");
     const t0 = e.state.time;
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(e.state.time - t0).toBe(30);
+    expect(e.state.time - t0).toBe(15);
     expect(e.state.timers.fire).toBeGreaterThan(0);
     expect(e.state.items.matches).toBe(9);
   });
 
-  it("without matches: 2 hours of friction; it can fail, and the wood is used only when it catches", () => {
+  it("without matches: an hour of friction; it can fail, and the wood is used only when it catches", () => {
     const results = new Set<string>();
     for (let seed = 1; seed <= 12; seed++) {
       const e = atTheRocks("knife");
@@ -82,15 +82,15 @@ describe("what you grabbed", () => {
       expect(view(e).actions.find((a) => a.id === "make_fire")!.label).toBe("light fire");
       const t0 = e.state.time;
       e.dispatch({ type: "activity", id: "make_fire" });
-      expect(e.state.time - t0).toBe(120);
+      expect(e.state.time - t0).toBe(60);
       if (e.state.timers.fire > 0) { results.add("lit"); expect(e.state.items.firewood ?? 0).toBe(0); }
       else { results.add("failed"); expect(e.state.items.firewood).toBe(3); }
     }
     expect(results).toEqual(new Set(["lit", "failed"]));
   });
 
-  it("the spear: 1 hour with the knife, 3 hours with a sharp stone", () => {
-    for (const [choice, minutes] of [["knife", 60], ["water", 180]] as const) {
+  it("the spear: 30 minutes with the knife, 90 with a sharp stone", () => {
+    for (const [choice, minutes] of [["knife", 30], ["water", 90]] as const) {
       const e = startGame(reg, 4, choice);
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 10 } }]);

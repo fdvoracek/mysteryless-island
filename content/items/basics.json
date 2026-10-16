@@ -27,7 +27,7 @@
       {
         "id": "cook",
         "label": "cook",
-        "hours": 0.5,
+        "hours": 0.25,
         "effort": "light",
         "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
         "effects": [{ "give": { "cooked_fish": 1 } }],
@@ -46,7 +46,7 @@
     "category": "food",
     "consume": {
       "verb": "eat",
-      "hours": 0.5,
+      "hours": 0.25,
       "stats": { "hunger": -30, "health": 2 },
       "tags": ["eat"],
       "log": [
@@ -161,7 +161,7 @@
     "category": "food",
     "consume": {
       "verb": "eat",
-      "hours": 0.5,
+      "hours": 0.25,
       "stats": { "hunger": -30 },
       "tags": ["eat"],
       "log": [
