@@ -153,6 +153,19 @@ describe("engine: the prototype loop", () => {
     expect(reg.bandIds[e.state.warmth]).toBe("comfortable");
   });
 
+  it("the clock moves in 15-minute steps: a 15-minute action takes 15 minutes, and stats drain per hour as before", () => {
+    expect(reg.game.stepMinutes).toBe(15);
+    const e = fresh();
+    e.applyEffects([{ give: { shells: 1 } }]);
+    const t0 = e.state.time;
+    const thirst0 = e.state.stats.thirst;
+    e.dispatch({ type: "consume", item: "shells" }); // eat raw: 15 min
+    expect(e.state.time - t0).toBe(15);
+    const perQuarter = e.state.stats.thirst - thirst0;
+    e.advance(1, "light");
+    expect(e.state.stats.thirst - thirst0 - perQuarter).toBeCloseTo(perQuarter * 4, 5); // an hour = 4 steps
+  });
+
   it("the progress bar runs longer for longer actions and for more text, within min/max", () => {
     const { minMs, maxMs } = reg.game.cosmetic;
     const e = startGame(reg, 1);

@@ -22,6 +22,17 @@ describe("content", () => {
     expect(bad).toEqual([]);
   });
 
+  it("rejects action times that are not whole clock steps (15 minutes)", () => {
+    const files = readContentFiles();
+    const beach = structuredClone(files["content/regions/beach.json"]) as { activities: Array<{ id: string; hours: number }> };
+    beach.activities.find((x) => x.id === "collect_shells")!.hours = 0.1;
+    files["content/regions/beach.json"] = beach;
+    try { buildRegistry(files); throw new Error("expected a ContentError"); } catch (err) {
+      expect(err).toBeInstanceOf(ContentError);
+      expect((err as ContentError).problems.join("\n")).toMatch(/activity collect_shells\.hours: 0\.1 h is not a whole number of 15-minute steps/);
+    }
+  });
+
   it("contains the prototype regions", () => {
     const reg = loadRegistry();
     expect(reg.regionOrder).toEqual(["beach", "forest"]);

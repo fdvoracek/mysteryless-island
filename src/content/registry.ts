@@ -265,6 +265,23 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   for (const q of quests.values()) {
     if (q.trigger === "manual" && !startedByEffect.has(q.id)) problems.push(`quest ${q.id}: trigger is "manual" but no { "startQuest": "${q.id}" } effect exists, so it can never start`);
   }
+  // every action time is a whole number of clock steps (the clock moves in game.stepMinutes)
+  const step = game.stepMinutes;
+  const checkHours = (h: number, where: string) => {
+    const minutes = h * 60;
+    if (Math.abs(minutes / step - Math.round(minutes / step)) > 1e-9 || minutes < step) {
+      problems.push(`${where}: ${h} h is not a whole number of ${step}-minute steps`);
+    }
+  };
+  for (const { activity: a } of activities.values()) checkHours(a.hours, `activity ${a.id}.hours`);
+  for (const r of regions.values()) r.explore?.landmarks.forEach((d) => checkHours(d.hours, `landmark ${d.id}.hours`));
+  for (const it of items.values()) {
+    if (it.consume) checkHours(it.consume.hours, `item ${it.id}.consume.hours`);
+    it.actions?.forEach((a) => checkHours(a.hours, `item ${it.id}.actions.${a.id}.hours`));
+  }
+  for (const q of quests.values()) questActions(q).forEach((a, i) => checkHours(a.hours, `quest ${q.id}.action[${i}].hours`));
+  for (const r of regions.values()) if (r.travelHours > 0) checkHours(r.travelHours, `region ${r.id}.travelHours`);
+
   if (!statIds.has("health")) problems.push(`stats.json: a "health" stat is required (death happens at health 0)`);
 
   if (problems.length) throw new ContentError(problems);

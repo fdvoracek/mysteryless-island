@@ -1,7 +1,7 @@
 {
   "_note": "Global game settings, start state and timers. Times are in hours unless a key says minutes.",
   "title": "Mysteryless Island",
-  "stepMinutes": 30,
+  "stepMinutes": 15,
   "start": {
     "region": "beach",
     "day": 1,

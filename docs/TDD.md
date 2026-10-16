@@ -132,12 +132,12 @@ TextIsland/
 ### 4.1 Clock
 
 - `state.time` is an integer: **minutes since the start** (day 1, 00:00). Day, hour, phase and season are derived in `clock.ts` from `climate.json`.
-- The engine advances in fixed **30-minute steps** **[proposal]**. A 3-hour action runs 6 steps. Every system update happens per step, in a fixed order. This keeps results identical no matter how actions are split.
+- The engine advances in fixed steps of `game.stepMinutes` **[implemented: 15 minutes]**. A 3-hour action runs 12 steps; stat rates are per hour, so the step length does not change the balance. The validator rejects action times that are not a whole number of steps. Every system update happens per step, in a fixed order. This keeps results identical no matter how actions are split.
 
 ### 4.2 The step order
 
 ```
-for each 30-minute step:
+for each step (15 minutes):
   1. clock.tick
   2. environment.update   weather roll at boundaries; environment °C; body warmth (1 band / hour)
   3. stats.update         per-step rates by effort (heavy / work / light / rest / sleep) × modifiers
@@ -574,7 +574,7 @@ sequenceDiagram
   Engine->>Engine: check visibleWhen, requires, cost, limit
   Engine->>State: take cost
   Engine->>Systems: advance(hours, effort)
-  Systems->>State: per 30-min step: clock, environment, stats, damage, processes, hooks
+  Systems->>State: per 15-min step: clock, environment, stats, damage, processes, hooks
   Engine->>State: apply yields / outcomes / effects
   Engine->>Systems: roll events (trigger "activity", tags)
   Engine->>Systems: post-checks (unlocks, knowledge, condition events)

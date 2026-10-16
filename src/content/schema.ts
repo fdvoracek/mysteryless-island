@@ -65,7 +65,7 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ day: z.object(range).strict() }).strict(),
     z.object({ did: Id, ...range }).strict(),
     z.object({ today: Id, ...range }).strict(),
-    z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
+    z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.75).optional() }).strict() }).strict(),
     z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
     z.object({ discovered: Id }).strict(),
     z.object({ explored: Id, ...range }).strict(),
@@ -300,7 +300,7 @@ export const Game = z
       .object({
         region: Id,
         day: z.number().int().positive(),
-        hour: z.number().min(0).max(23.5),
+        hour: z.number().min(0).max(23.75),
         stats: z.record(Id, z.number().min(0).max(100)),
         items: z.record(Id, z.number().int().nonnegative()),
         /** the opening of the story */
@@ -457,7 +457,7 @@ export const EventScene = z
  */
 export const EventTrigger = z.union([
   z.literal("start"),
-  z.object({ at: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.5).optional() }).strict() }).strict(),
+  z.object({ at: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.75).optional() }).strict() }).strict(),
   z.object({ when: Condition }).strict(),
   z.object({ after: z.array(Id).min(1).optional(), chance: z.number().gt(0).max(1) }).strict(),
 ]);

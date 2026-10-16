@@ -133,10 +133,10 @@ describe("what you grabbed", () => {
     e.dispatch({ type: "travel", region: "forest" });
     expect(fill()).toBeUndefined(); // the spring is not explored yet
     look(e); // the sound of water: the spring
-    expect(fill()).toMatchObject({ enabled: true, tooltip: ["fill · 30m"] });
+    expect(fill()).toMatchObject({ enabled: true, tooltip: ["fill · 15m"] });
     const t0 = e.state.time;
     expect(e.dispatch({ type: "itemAction", item: "water_can", action: "fill" }).ok).toBe(true);
-    expect(e.state.time - t0).toBe(30);
+    expect(e.state.time - t0).toBe(15);
     expect(e.state.items.can_water).toBe(4); // full, not 2 + 4
     expect(e.state.items.water_can).toBe(1); // the can stays
     expect(fill()).toMatchObject({ enabled: false, reason: "The can is full" });
