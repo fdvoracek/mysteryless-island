@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, readContentFiles, startGame } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
-const look = (e: Engine) => e.dispatch({ type: "explore" });
+const look = lookAround;
 const sleep = (e: Engine) => e.dispatch({ type: "activity", id: "sleep" });
 /** the lines written by the last command, in reading order */
 const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.turn).map((l) => l.text).reverse();
@@ -84,8 +84,8 @@ describe("going to sleep", () => {
   it("counts the forest walk, wood, the spring and a drink as today's memories", () => {
     const e = readyToSleep(4, 2);
     sleep(e); // the first night
-    e.dispatch({ type: "explore" }); // the cliff with shells
-    e.dispatch({ type: "explore" }); // the fish
+    lookAround(e); // the cliff with shells
+    lookAround(e); // the fish
     e.dispatch({ type: "travel", region: "forest" });
     look(e); // dry wood
     e.dispatch({ type: "activity", id: "gather_wood" });

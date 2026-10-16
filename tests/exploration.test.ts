@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, readContentFiles, startGame } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
 const labels = (e: Engine) => view(e).actions.map((a) => a.label);
-const look = (e: Engine) => e.dispatch({ type: "explore" });
+const look = lookAround;
 const logHas = (e: Engine, text: string) => e.state.log.some((l) => l.text.includes(text));
 
 describe("exploration", () => {
@@ -34,34 +34,35 @@ describe("exploration", () => {
     expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
   });
 
-  it("beach step 4: the fish need a spear; then 'look around' is gone", () => {
+  it("beach step 4: the fish need a spear; 'look around' stays, without the *", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
-    expect(labels(e)).toEqual(["light fire", "collect shells", "catch fish", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "catch fish", "sleep"]);
+    expect(view(e).actions[0].badge).toBeUndefined();
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
-    expect(look(e).ok).toBe(false); // nothing left to find
   });
 
-  it("forest: dry wood on the first look, the spring on the second", () => {
+  it("forest: collect wood from the start; following the sound of water finds the spring", () => {
     const e = startGame(reg, 1);
     look(e);
     e.dispatch({ type: "travel", region: "forest" });
-    expect(labels(e)).toEqual(["look around"]);
-    look(e);
     expect(labels(e)).toEqual(["look around", "collect wood"]);
     look(e);
-    expect(labels(e)).toEqual(["collect wood", "drink water"]);
+    expect(labels(e)).toEqual(["look around", "collect wood", "drink water"]);
   });
 
-  it("each region keeps its own progress", () => {
+  it("each region keeps its own progress; the * shows where something is left", () => {
     const e = startGame(reg, 1);
     look(e); look(e);
     e.dispatch({ type: "travel", region: "forest" });
+    expect(view(e).actions[0].badge).toBe("*");
     look(e);
     expect(e.state.regions.beach.explored).toBe(2);
     expect(e.state.regions.forest.explored).toBe(1);
-    expect(view(e).actions[0].tooltip).toContain("partly explored");
+    expect(view(e).actions[0].badge).toBeUndefined(); // the forest has nothing left
+    e.dispatch({ type: "travel", region: "beach" });
+    expect(view(e).actions[0].badge).toBe("*"); // the cliff and the shallows are still there
   });
 
   it("each action's lines read top-down, newest action first (classic) or as one paragraph (turns)", () => {
@@ -69,16 +70,13 @@ describe("exploration", () => {
     look(e);
     look(e);
     const v = view(e);
-    // the newest action first; a discovery is one passage
+    // the newest first; a finding is its own paragraph, and what it causes comes after it
     expect(v.log[0]).toMatch(/^At the far end of the beach.*You could light a fire here/);
     expect(v.turns[0].lines).toEqual([v.log[0]]);
-    // the first look: the discovery, then the unlock line, in that order
-    expect(v.turns[1].lines).toHaveLength(2);
-    expect(v.turns[1].lines[0]).toMatch(/^Grey sand runs both ways/);
-    expect(v.turns[1].lines[1]).toBe("A way to the forest opens.");
-    expect(v.log.slice(1, 3)).toEqual(v.turns[1].lines);
+    expect(v.turns[1].lines).toEqual(["A way to the forest opens."]);
+    expect(v.turns[2].lines[0]).toMatch(/^You climb the dunes\./);
     // before that: the opening line, after the shipwreck pages (the oldest paragraphs)
-    expect(v.turns[2].lines[0]).toMatch(/^Awake\. Salt in the mouth\./);
+    expect(v.turns[3].lines[0]).toMatch(/^Awake\. Salt in the mouth\./);
     expect(v.turns.at(-1)!.lines[0]).toMatch(/^You were three days out/);
   });
 

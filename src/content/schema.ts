@@ -168,6 +168,25 @@ export const Activity = z
   })
   .strict();
 
+/** A place to explore from "look around". Its id is a discovery: { "discovered": id } once explored. */
+export const Landmark = z
+  .object({
+    id: Id,
+    /** the button in the pop-up, e.g. "the dunes"; its time is shown next to it */
+    label: z.string(),
+    hours: z.number().positive(),
+    effort: Effort,
+    /** offered only while this holds (e.g. the cliff once the rocks are found); new ones bring the * back */
+    visibleWhen: Condition.optional(),
+    requires: Condition.optional(),
+    requiresText: z.string().optional(),
+    /** what you find: shown in the pop-up and written to the journal */
+    text: Text,
+    effects: z.array(Effect).optional(),
+  })
+  .strict();
+export type Landmark = z.infer<typeof Landmark>;
+
 export const Region = z
   .object({
     id: Id,
@@ -186,31 +205,21 @@ export const Region = z
      */
     arrive: z.array(z.object({ text: Text, when: Condition.optional() }).strict()).optional(),
     /** the "look around" action: each use explores the region one step further */
+    /**
+     * "look around": a pop-up (no time passes) that says what you see and offers the landmarks
+     * not explored yet. Exploring one takes its time, shows what you found and applies its effects;
+     * then it is gone from the list. The button shows a * while something is left to explore.
+     */
     explore: z
       .object({
         name: z.string(),
-        hours: z.number().positive(),
-        effort: Effort,
-        requires: Condition.optional(),
-        requiresText: z.string().optional(),
-        /** logged when a step finds nothing new */
-        nothingLog: Text.optional(),
-        /** hide the button once every discovery is made (default true) */
-        hideWhenDone: z.boolean().optional(),
-        discoveries: z
-          .array(
-            z
-              .object({
-                id: Id,
-                /** found on this exploration step (1 = first look around) */
-                at: z.number().int().positive(),
-                when: Condition.optional(),
-                text: Text,
-                effects: z.array(Effect).optional(),
-              })
-              .strict(),
-          )
-          .min(1),
+        /** the pop-up's title (default: the region's title) */
+        title: z.string().optional(),
+        /** what you see: every line whose `when` holds, in order (the pop-up's text) */
+        view: z.array(z.object({ text: Text, when: Condition.optional() }).strict()).min(1),
+        /** added to the view when nothing is left to explore */
+        nothingLeft: Text.optional(),
+        landmarks: z.array(Landmark).min(1),
       })
       .strict()
       .optional(),

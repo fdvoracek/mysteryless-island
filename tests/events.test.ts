@@ -3,11 +3,11 @@ import { buildRegistry, ContentError, type Registry } from "../src/content/regis
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, readContentFiles, startGame } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
 const choose = (e: Engine, choice: string) => e.dispatch({ type: "choose", choice });
-const look = (e: Engine) => e.dispatch({ type: "explore" });
+const look = lookAround;
 
 /** The shipped content plus test-only events (content/events/test.json). */
 function withEvents(events: unknown[]): Registry {
@@ -206,10 +206,11 @@ describe("events in the journal", () => {
     const e = startGame(r, 2);
     look(e);
     choose(e, "take");
-    const paragraphs = view(e).turns.slice(0, 3).map((t) => t.lines.join(" ")).reverse();
-    expect(paragraphs[0]).toMatch(/A forest, close and hard to miss/); // the look around
-    expect(paragraphs[1]).toBe("A bottle in the wrack.");
-    expect(paragraphs[2]).toBe("You keep the cork.");
+    const paragraphs = view(e).turns.slice(0, 4).map((t) => t.lines.join(" ")).reverse();
+    expect(paragraphs[0]).toMatch(/A forest, close and hard to miss/); // what exploring the dunes found
+    expect(paragraphs[1]).toBe("A way to the forest opens.");
+    expect(paragraphs[2]).toBe("A bottle in the wrack.");
+    expect(paragraphs[3]).toBe("You keep the cork.");
   });
 
   it("choosing shows the next page at once (no progress bar)", () => {

@@ -54,6 +54,12 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   background: var(--bg); border: 1px solid var(--line); border-radius: 0;
 }
 .btn .label { position: relative; z-index: 1; }
+/* "look around *": something left to explore */
+.btn .badge { margin-left: 4px; font-weight: 700; }
+/* inline-block: layouts that underline button labels (journal) don't underline the mark or the time */
+.btn .badge, .btn .time { display: inline-block; text-decoration: none; }
+/* the time a choice takes, next to its label (exploring a landmark) */
+.btn .time { margin-left: 8px; font-size: 0.85em; color: var(--muted); }
 .btn .cd { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--bar); z-index: 0; }
 .btn.off { color: var(--muted); border-color: var(--muted); cursor: default; }
 .btn.appear { animation: fadein 0.5s ease-out; }

@@ -9,6 +9,8 @@ export interface ButtonView {
   id: string;
   command: Command;
   label: string;
+  /** a small mark after the label, e.g. "*" on look around while something is left to explore */
+  badge?: string;
   enabled: boolean;
   reason?: string;
   tooltip: string[];
@@ -62,7 +64,8 @@ export interface View {
     id: string; title: string; text: string;
     /** a "start" event: the story before the island, shown without the game behind it */
     prologue: boolean;
-    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string }>;
+    /** `time`: how long the choice takes, shown next to it (landmarks to explore) */
+    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string }>;
   } | null;
 }
 
@@ -81,11 +84,12 @@ export function view(engine: Engine): View {
   const actions: ButtonView[] = [];
   const ex = engine.checkExplore();
   if (ex.visible && region.explore) {
-    const progress = ex.found === 0 ? "unexplored" : ex.found < ex.total ? "partly explored" : "fully explored";
     actions.push({
       id: `explore:${region.id}`, command: { type: "explore" }, label: region.explore.name,
-      enabled: ex.enabled, reason: sentence(ex.reason),
-      tooltip: [`${fmtHours(region.explore.hours)} · ${region.explore.effort}`, progress],
+      // * while there is something left to explore
+      badge: ex.open > 0 ? "*" : undefined,
+      enabled: true,
+      tooltip: ["no time", ex.open > 0 ? "something here is not explored yet" : "nothing new to explore"],
     });
   }
   for (const a of region.activities) {
@@ -213,6 +217,8 @@ export function fmtHours(h: number): string {
 }
 
 function eventView(engine: Engine): View["event"] {
+  const active = engine.state.events.active;
+  if (active?.id.startsWith("explore:")) return exploreView(engine);
   const open = engine.openEventScene();
   if (!open) return null;
   const { event, scene, text } = open;
@@ -224,3 +230,22 @@ function eventView(engine: Engine): View["event"] {
     : [{ id: "close", label: scene.close ?? "close", enabled: true }];
   return { id: event.id, title: event.title, text, prologue: event.trigger === "start", choices };
 }
+
+/** The look-around pop-up: what you see and the landmarks left (with their time), or what you found. */
+function exploreView(engine: Engine): View["event"] {
+  const active = engine.state.events.active!;
+  const region = engine.reg.regions.get(active.id.slice("explore:".length))!;
+  const ex = region.explore!;
+  const close = [{ id: "close", label: "close", enabled: true }];
+  const choices = active.scene === "look"
+    ? [
+      ...engine.openLandmarks(region).map((d) => {
+        const ch = engine.checkChoice(d);
+        return { id: d.id, label: d.label, enabled: ch.enabled, reason: sentence(ch.reason), time: fmtHours(d.hours) };
+      }),
+      ...close,
+    ]
+    : close;
+  return { id: active.id, title: ex.title ?? region.title, text: active.text, prologue: false, choices };
+}
+

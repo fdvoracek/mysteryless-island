@@ -3,10 +3,10 @@ import { Engine } from "../src/core/engine";
 import { seedRng } from "../src/core/rng";
 import type { GameState } from "../src/core/state";
 import { chooseText, setVariantMode } from "../src/core/text";
-import { loadRegistry, readContentFiles, startGame } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
-const look = (e: Engine) => e.dispatch({ type: "explore" });
+const look = lookAround;
 
 describe("text variants", () => {
   beforeEach(() => setVariantMode("random"));

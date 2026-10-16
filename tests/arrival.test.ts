@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
-import { loadRegistry, readContentFiles, startGame } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
-const look = (e: Engine) => e.dispatch({ type: "explore" });
+const look = lookAround;
 const go = (e: Engine, region: string) => e.dispatch({ type: "travel", region });
 /** the lines written by the last command, in reading order */
 const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.turn).map((l) => l.text).reverse();

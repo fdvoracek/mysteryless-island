@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
+import { loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
@@ -156,7 +156,7 @@ describe("quest actions: build a fishing spear", () => {
   it("appears when the school of fish is found, with progress towards 10 firewood", () => {
     const e = startGame(reg2, 1);
     expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
-    for (let i = 0; i < 4; i++) e.dispatch({ type: "explore" });
+    for (let i = 0; i < 4; i++) lookAround(e);
     const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;
     expect(q.progress).toEqual([{ label: "firewood", have: 0, need: 10 }]);
     expect(q.action).toMatchObject({ label: "build", enabled: false, reason: "Needs 10 firewood (have 0)" });

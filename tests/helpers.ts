@@ -41,10 +41,27 @@ export function revealAll(e: Engine): Engine {
   for (const [id, r] of e.reg.regions) {
     const st = e.state.regions[id];
     st.unlocked = true;
-    st.discoveries = (r.explore?.discoveries ?? []).map((d) => d.id);
-    st.explored = Math.max(0, ...(r.explore?.discoveries ?? []).map((d) => d.at));
+    st.discoveries = (r.explore?.landmarks ?? []).map((d) => d.id);
+    st.explored = st.discoveries.length;
   }
   e.syncQuests(); // quests triggered by discoveries (e.g. the fishing spear)
   e.checkpoint = JSON.parse(JSON.stringify(e.state));
   return e;
 }
+
+/**
+ * "look around" and explore the next landmark offered (in content order), then close the finding:
+ * what one "look around" did before exploration became a pop-up. Returns the result of exploring
+ * (or of closing the pop-up when nothing is left).
+ */
+export function lookAround(e: Engine) {
+  const opened = e.dispatch({ type: "explore" });
+  if (!opened.ok) return opened;
+  const region = e.reg.regions.get(e.state.location)!;
+  const next = e.openLandmarks(region)[0];
+  if (!next) return e.dispatch({ type: "choose", choice: "close" });
+  const res = e.dispatch({ type: "choose", choice: next.id });
+  if (e.state.events.active?.id.startsWith("explore:")) e.dispatch({ type: "choose", choice: "close" });
+  return res;
+}
+

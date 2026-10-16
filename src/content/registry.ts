@@ -98,7 +98,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       claim(region.id, path);
       regions.set(region.id, region);
       for (const a of region.activities) { claim(a.id, path); activities.set(a.id, { activity: a, region: region.id }); }
-      for (const d of region.explore?.discoveries ?? []) { claim(d.id, path); discoveries.set(d.id, region.id); }
+      for (const d of region.explore?.landmarks ?? []) { claim(d.id, path); discoveries.set(d.id, region.id); }
     } else if (/content\/quests\/[^/]+\.json$/.test(path)) {
       const list = parse(z.array(Quest), data, path, problems) ?? [];
       for (const q of list) { claim(q.id, path); quests.set(q.id, q); }
@@ -197,7 +197,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof t === "object" && "when" in t) checkCond(t.when, `${w}.trigger.when`);
     if (typeof t === "object" && "after" in t) {
       for (const a of t.after ?? []) {
-        const ok = a === "explore" || a === "travel" || activities.has(a) || tags.has(a) || items.has(a) || quests.has(a);
+        const ok = a === "explore" || a === "travel" || activities.has(a) || tags.has(a) || items.has(a) || quests.has(a) || discoveries.has(a);
         if (!ok) problems.push(`${w}.trigger.after: unknown action "${a}" (use an activity id, a tag, an item id, "explore" or "travel")`);
       }
     }
@@ -219,13 +219,12 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   for (const r of regions.values()) {
     if (r.unlockWhen) checkCond(r.unlockWhen, `region ${r.id}.unlockWhen`);
     r.arrive?.forEach((a, i) => { if (a.when) checkCond(a.when, `region ${r.id}.arrive[${i}].when`); });
-    if (r.explore) {
-      if (r.explore.requires) checkCond(r.explore.requires, `region ${r.id}.explore.requires`);
-      for (const d of r.explore.discoveries) {
-        const w = `discovery ${d.id}`;
-        if (d.when) checkCond(d.when, `${w}.when`);
-        checkEffects(d.effects, w);
-      }
+    r.explore?.view.forEach((v, i) => { if (v.when) checkCond(v.when, `region ${r.id}.explore.view[${i}].when`); });
+    for (const d of r.explore?.landmarks ?? []) {
+      const w = `landmark ${d.id}`;
+      if (d.visibleWhen) checkCond(d.visibleWhen, `${w}.visibleWhen`);
+      if (d.requires) checkCond(d.requires, `${w}.requires`);
+      checkEffects(d.effects, w);
     }
     for (const a of r.activities) {
       const w = `activity ${a.id}`;

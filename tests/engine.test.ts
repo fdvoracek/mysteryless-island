@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { clockText } from "../src/core/clock";
 import { view } from "../src/core/selectors";
-import { loadRegistry, revealAll, startGame } from "./helpers";
+import { loadRegistry, lookAround, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 /** a game with the beach and forest fully explored (exploration is tested separately) */
@@ -19,7 +19,7 @@ describe("engine: the prototype loop", () => {
   it("once the beach is explored: fire, shells, fish, sleep", () => {
     const e = fresh();
     const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["light_fire", "collect_shells", "catch_fish", "sleep"]);
+    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "light_fire", "collect_shells", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
     expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
     expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire");
@@ -156,7 +156,8 @@ describe("engine: the prototype loop", () => {
   it("the progress bar runs longer for longer actions and for more text, within min/max", () => {
     const { minMs, maxMs } = reg.game.cosmetic;
     const e = startGame(reg, 1);
-    const look = e.dispatch({ type: "explore" }); // 1 h and a two-line discovery
+    lookAround(e); // finds the forest
+    const look = e.dispatch({ type: "travel", region: "forest" }); // 1 h and a long first description
     expect(look.cooldownMs).toBeGreaterThanOrEqual(2500);
     expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
 

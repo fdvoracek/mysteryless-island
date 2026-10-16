@@ -160,6 +160,7 @@ export class UI {
         b.dataset.choice = c.id;
         b.innerHTML = `<span class="label"></span><span class="cd"></span>`;
         b.querySelector(".label")!.textContent = c.label;
+        if (c.time) { const t = document.createElement("span"); t.className = "time"; t.textContent = c.time; b.querySelector(".label")!.append(t); }
         b.addEventListener("click", () => { if (!b.classList.contains("off")) this.send({ type: "choose", choice: c.id }, b); });
         return b;
       }));
@@ -208,7 +209,9 @@ export class UI {
         el.innerHTML = `<span class="label"></span><span class="cd"></span><span class="tip" role="tooltip"></span>`;
         el.addEventListener("click", () => { if (!el!.classList.contains("off")) this.send(bv.command, el!); });
       }
-      el.querySelector(".label")!.textContent = bv.label;
+      const label = el.querySelector(".label")!;
+      label.textContent = bv.label;
+      if (bv.badge) { const m = document.createElement("span"); m.className = "badge"; m.textContent = bv.badge; label.append(m); }
       const tip = el.querySelector(".tip")!;
       tip.replaceChildren(...bv.tooltip.map((t) => div(t)), ...(bv.reason ? [div(bv.reason, "reason")] : []));
       el.classList.toggle("off", !bv.enabled);

@@ -27,6 +27,21 @@ test.afterEach(() => {
 
 const action = (page: Page, name: string) => page.locator("#actions .btn", { hasText: name });
 
+/**
+ * "look around" opens a pop-up; explore one landmark (by id, or the first offered), then close
+ * what was found. Exploring takes game time but shows no progress bar.
+ */
+async function explore(page: Page, landmark?: string) {
+  await action(page, "look around").click();
+  const pick = landmark
+    ? page.locator(`#eventChoices [data-choice="${landmark}"]`)
+    : page.locator('#eventChoices .btn:not([data-choice="close"])').first();
+  await pick.click();
+  await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]); // what was found
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(page.locator("#event")).toBeHidden();
+}
+
 /** The opening event: grab one thing from the sinking ship, then close the swim to the shore. */
 async function escapeShip(page: Page, choice: "knife" | "matches" | "water" | "rations") {
   await page.locator(`#eventChoices [data-choice="${choice}"]`).click();
@@ -101,21 +116,33 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator('#status .row[data-id="fire"]')).toHaveCount(0);
   await expect(page.locator('#status .row[data-id="comfort"] .key')).toHaveText("comfort");
 
-  // beach: the forest first, then the rocks with cover
-  await expect(tab(page, "the forest")).toHaveCount(0);
+  // look around: a pop-up with what you see and the landmarks, each with its time; close takes no time
+  await expect(action(page, "look around")).toContainText("*"); // something left to explore
   await action(page, "look around").click();
+  await expect(page.locator("#eventText")).toContainText("Behind the dunes, a dark line of trees.");
+  await expect(page.locator('#eventChoices [data-choice="forest_edge"]')).toHaveText("the dunes1h");
+  await page.locator('#eventChoices [data-choice="close"]').click();
+  await expect(page.locator("#event")).toBeHidden();
+
+  // beach: the dunes (the forest), then the ring of rocks (fire and sleep)
+  await expect(tab(page, "the forest")).toHaveCount(0);
+  await explore(page, "forest_edge");
   await expect(tab(page, "the forest")).toBeVisible();
   await expect(action(page, "light fire")).toHaveCount(0);
-  await action(page, "look around").click(); // waits until the cosmetic cooldown ends
+  await explore(page, "rock_shelter");
   await expect(action(page, "light fire")).toBeVisible();
+  // an explored landmark is not offered again
+  await action(page, "look around").click();
+  await expect(page.locator('#eventChoices [data-choice="rock_shelter"]')).toHaveCount(0);
+  await page.locator('#eventChoices [data-choice="close"]').click();
 
-  // forest: dry wood, then the spring
+  // forest: wood can be collected at once; the sound of water leads to the spring
   await tab(page, "the forest").click();
   await expect(tab(page, "the forest")).toHaveClass(/here/);
-  await action(page, "look around").click();
   await action(page, "collect wood").click();
-  await action(page, "look around").click();
   await action(page, "collect wood").click();
+  await explore(page, "spring");
+  await expect(action(page, "look around")).not.toContainText("*"); // nothing left in the forest
   await action(page, "drink water").click();
   await expect(page.locator("#stores")).toContainText("firewood");
   // still day 1: the night task stays active
@@ -142,7 +169,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
 });
 
 test("finding the fish starts the spear task; building it puts the spear in the inventory", async ({ page }) => {
-  for (let i = 0; i < 4; i++) await action(page, "look around").click();
+  for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
   const quest = page.locator('#quests .quest[data-id="build_fishing_spear"]');
   await expect(quest.locator(".progress")).toHaveText("firewood 0/10");
   await expect(quest.locator(".qaction")).toHaveClass(/off/);
@@ -157,19 +184,20 @@ test("finding the fish starts the spear task; building it puts the spear in the 
 
 test("while an action runs, the controls are locked and greyed out", async ({ page }) => {
   await page.goto("./?variants=first"); // normal speed
-  await action(page, "look around").click();
+  await explore(page, "forest_edge"); // the way to the forest
+  await tab(page, "the forest").click(); // a 1 h walk, with a progress bar
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
-  // the new tab is visible but greyed out and does nothing
-  await expect(tab(page, "the forest")).toBeDisabled();
-  // a second click on look around is ignored
-  await action(page, "look around").dispatchEvent("click");
+  // the other tab is greyed out and does nothing
+  await expect(tab(page, "the beach")).toBeDisabled();
+  // a click on collect wood meanwhile is ignored
+  await action(page, "collect wood").dispatchEvent("click");
   await page.waitForTimeout(1500);
   await expect(page.locator("#wrap")).toHaveClass(/busy/); // still running: the bar takes a few seconds
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 6_000 });
-  const explored = await page.evaluate(() =>
-    (window as unknown as { ti: { state(): { regions: { beach: { explored: number } } } } }).ti.state().regions.beach.explored);
-  expect(explored).toBe(1);
+  const firewood = await page.evaluate(() =>
+    (window as unknown as { ti: { state(): { items: Record<string, number> } } }).ti.state().items.firewood ?? 0);
+  expect(firewood).toBe(0);
 });
 
 test("every layout can be chosen from the menu, shows all panels, plays, and is remembered", async ({ page }) => {
@@ -191,11 +219,8 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
     const tasks = i < 4 ? ["survive the first night"] : ["survive the first night", "build a fishing spear"];
     await expect(page.locator("#quests .quest .title")).toHaveText(tasks);
     await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
-    // and the game plays: one more look around per layout (4 beach finds, then the button is gone)
-    if (i < 4) {
-      await action(page, "look around").click();
-      await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 5_000 });
-    }
+    // and the game plays: one more landmark explored per layout (4 on the beach)
+    if (i < 4) await explore(page);
   }
   await expect(page.locator("#log")).toContainText("a school of small fish");
 
@@ -251,8 +276,7 @@ test("on a phone screen every layout fits the width, and its buttons are on scre
       { x: box.x + box.width / 2, y: box.y + box.height / 2 },
     );
     expect(topmost, `${id}: something covers the button`).toContain("look around");
-    await look.click();
-    await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 5_000 });
+    await explore(page, "forest_edge");
     await expect(tab(page, "the forest"), id).toBeVisible();
     // the layout menu opens as a sheet inside the screen
     await page.locator("#layoutBtn").click();
@@ -270,7 +294,9 @@ test("dying fades out and restores the checkpoint", async ({ page }) => {
     ti.stat("health", 1);
     ti.stat("thirst", 100);
   });
+  // exploring takes time: an hour of thirst kills
   await action(page, "look around").click();
+  await page.locator('#eventChoices [data-choice="forest_edge"]').click();
 
   await expect(page.locator("#fade")).toBeVisible();
   await expect(page.locator("#fadeText")).toHaveText("The world fades.");

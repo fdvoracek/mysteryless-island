@@ -66,29 +66,59 @@
   ],
   "explore": {
     "name": "look around",
-    "hours": 1,
-    "effort": "work",
-    "nothingLog": [
-      "You walk the shore again. Nothing new.",
-      "Up and down the shore. Nothing you haven't seen.",
-      "The same sand, the same sea. Nothing new.",
-      "Only sand, and the sea.",
-      "Only wrack and gulls.",
-      "Sand, sea, wind. Nothing else."
+    "_explore": "look around: a pop-up with what you see (view lines whose 'when' holds) and the landmarks not explored yet; no time passes until you pick one",
+    "view": [
+      {
+        "text": [
+          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line.",
+          "The beach stretches both ways, grey and empty. Wrack marks the tide line.",
+          "Sand, wrack and broken shells, as far as you can see."
+        ]
+      },
+      {
+        "text": "Behind the dunes, a dark line of trees.",
+        "when": { "not": { "discovered": "forest_edge" } }
+      },
+      { "text": "Behind the dunes, the forest.", "when": { "discovered": "forest_edge" } },
+      {
+        "text": "At the far end of the beach, a ring of dark rocks.",
+        "when": { "not": { "discovered": "rock_shelter" } }
+      },
+      {
+        "text": "At the far end, the ring of rocks, out of the wind.",
+        "when": { "discovered": "rock_shelter" }
+      },
+      { "text": "Smoke rises from the rocks.", "when": { "timer": "fire" } },
+      {
+        "text": "Past the rocks, a low cliff drops into the surf.",
+        "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "discovered": "cliff_shells" } }] }
+      },
+      { "text": "Under the cliff, shells on the wet stone.", "when": { "discovered": "cliff_shells" } },
+      { "text": "Something flashes in the shallows.", "when": { "not": { "discovered": "school_of_fish" } } },
+      { "text": "Fish turn in the shallows.", "when": { "discovered": "school_of_fish" } }
     ],
-    "discoveries": [
+    "nothingLeft": [
+      "There is nothing here you have not seen.",
+      "You know this beach now.",
+      "Nothing new along the shore."
+    ],
+    "landmarks": [
       {
         "id": "forest_edge",
-        "at": 1,
+        "label": "the dunes",
+        "hours": 1,
+        "effort": "work",
         "text": [
-          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line. Behind the dunes the trees begin. A forest, close and hard to miss.",
-          "You walk the tide line: sand, wrack and broken shells as far as you can see. Inland, over the dunes, a forest. You could walk there.",
-          "The shore curves away both ways, empty. Behind the dunes stand trees: a forest, close enough to reach."
+          "You climb the dunes. From the top the beach runs both ways until it bends out of sight. Behind them the trees begin. A forest, close and hard to miss.",
+          "Up the soft sand of the dunes. On the other side, trunks and shade: a forest, close enough to walk to.",
+          "From the crest of the dunes you see the island's edge give way to trees. A forest, an hour's walk at most."
         ]
       },
       {
         "id": "rock_shelter",
-        "at": 2,
+        "label": "the ring of rocks",
+        "hours": 1,
+        "effort": "work",
         "text": [
           "At the far end of the beach, a ring of rocks breaks the sea wind. You could light a fire here, if you find some wood.",
           "At the end of the beach, rocks stand in a ring, out of the wind. A fire would keep here, with some wood.",
@@ -97,7 +127,10 @@
       },
       {
         "id": "cliff_shells",
-        "at": 3,
+        "label": "the low cliff",
+        "hours": 1,
+        "effort": "work",
+        "visibleWhen": { "discovered": "rock_shelter" },
         "text": [
           "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it. You could pick them and eat them as they are. Cooked, they would go further.",
           "Beyond the rocks, a low cliff meets the sea. Shells crowd the wet stone at its foot. You could eat them raw, or cook them for more.",
@@ -106,7 +139,9 @@
       },
       {
         "id": "school_of_fish",
-        "at": 4,
+        "label": "the shallows",
+        "hours": 1,
+        "effort": "work",
         "text": [
           "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
           "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",

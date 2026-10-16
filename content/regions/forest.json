@@ -39,10 +39,7 @@
       ],
       "when": { "phase": ["night"] }
     },
-    {
-      "text": ["Dry branches everywhere.", "Deadwood all around.", "Plenty of dry branches still."],
-      "when": { "discovered": "dry_wood" }
-    },
+    { "text": ["Dry branches everywhere.", "Deadwood all around.", "Plenty of dry branches still."] },
     {
       "text": [
         "Somewhere ahead, water runs over stones.",
@@ -62,26 +59,32 @@
   ],
   "explore": {
     "name": "look around",
-    "hours": 1,
-    "effort": "work",
-    "nothingLog": [
-      "The trees all look the same now. Nothing new.",
-      "Trunk after trunk. Nothing you haven't seen.",
-      "Only more trees. Nothing new."
-    ],
-    "discoveries": [
+    "_explore": "look around: a pop-up with what you see (view lines whose 'when' holds) and the landmarks not explored yet; no time passes until you pick one",
+    "view": [
       {
-        "id": "dry_wood",
-        "at": 1,
         "text": [
-          "Dead branches lie everywhere under the trees, dry enough to burn. You could collect some.",
-          "The ground is covered in fallen branches, dry and light. Good for burning, if you gather them.",
-          "Deadwood everywhere: branches, twigs, bark, all dry. You could carry some back."
+          "Tall trunks, close together. The light is dim and green.",
+          "Trees all around, close and still.",
+          "Trunks, moss, and a quiet that swallows the sea."
         ]
       },
       {
+        "text": [
+          "Dead branches lie among the roots, dry enough to burn.",
+          "Deadwood everywhere under the trees.",
+          "Fallen branches, dry and light, all around."
+        ]
+      },
+      { "text": "Somewhere ahead, water runs over stones.", "when": { "not": { "discovered": "spring" } } },
+      { "text": "The spring trickles between mossy stones.", "when": { "discovered": "spring" } }
+    ],
+    "nothingLeft": ["The trees all look the same now.", "Nothing here you have not seen.", "Only more trees."],
+    "landmarks": [
+      {
         "id": "spring",
-        "at": 2,
+        "label": "the sound of water",
+        "hours": 1,
+        "effort": "work",
         "text": [
           "Between mossy stones, a small spring. The water is clear and cold.",
           "Water wells up between mossy stones: a spring, clear and cold.",
@@ -96,7 +99,6 @@
       "name": "collect wood",
       "hours": 1,
       "effort": "work",
-      "visibleWhen": { "discovered": "dry_wood" },
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
       "log": [
         "Dry branches snap underfoot.",
@@ -108,7 +110,8 @@
         "Bark and twigs, dry enough to burn.",
         "Dry bark peels off in strips.",
         "Twigs and branches, light and dry."
-      ]
+      ],
+      "_note": "no exploring needed: the forest floor is full of deadwood"
     },
     {
       "id": "drink_stream",

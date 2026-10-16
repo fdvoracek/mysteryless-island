@@ -1,5 +1,5 @@
 import { questActions, type Registry } from "../content/registry";
-import type { Activity, Condition, Effect, Effort, GameEvent, ItemAction, Outcome, Quest, QuestAction, Region, Thoughts, Yield } from "../content/schema";
+import type { Activity, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Quest, QuestAction, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { evaluate, explain, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
@@ -95,7 +95,7 @@ export class Engine {
     this.damageLogged.clear();
     this.loggedChars = 0;
     const res = this.run(cmd);
-    if (res.ok && !this.state.dead && cmd.type !== "choose") this.checkEvents(cmd);
+    if (res.ok && !this.state.dead && cmd.type !== "choose" && cmd.type !== "explore") this.checkEvents(this.actionKeys(cmd));
     return res;
   }
 
@@ -116,7 +116,7 @@ export class Engine {
   /** The open event and its scene, if any. */
   openEventScene(): { event: GameEvent; scene: GameEvent["scenes"][string]; text: string } | null {
     const a = this.state.events.active;
-    if (!a) return null;
+    if (!a || a.id.startsWith("explore:")) return null;
     const event = this.reg.events.get(a.id)!;
     return { event, scene: event.scenes[a.scene], text: a.text };
   }
@@ -130,6 +130,7 @@ export class Engine {
   }
 
   private choose(choiceId: string): Result {
+    if (this.state.events.active!.id.startsWith("explore:")) return this.exploreChoose(choiceId);
     const open = this.openEventScene()!;
     const { event, scene } = open;
     if (!scene.choices) {
@@ -206,9 +207,8 @@ export class Engine {
   }
 
   /** After an action: open the first event whose trigger fires (time, condition, or a chance roll). */
-  private checkEvents(cmd: Command) {
-    if (this.state.events.active) return;
-    const keys = this.actionKeys(cmd);
+  private checkEvents(keys: string[]) {
+    if (this.state.events.active || this.state.dead) return;
     const ctx = this.ctx();
     for (const ev of this.reg.events.values()) {
       const t = ev.trigger;
@@ -239,20 +239,27 @@ export class Engine {
   }
 
   /** The "look around" action of the current region: visible until everything is discovered. */
-  checkExplore(): { visible: boolean; enabled: boolean; reason?: string; found: number; total: number } {
+  /** The "look around" button: there if the region can be explored; `open` = landmarks offered now. */
+  checkExplore(): { visible: boolean; open: number; found: number; total: number } {
     const region = this.reg.regions.get(this.state.location)!;
     const ex = region.explore;
-    if (!ex) return { visible: false, enabled: false, found: 0, total: 0 };
+    if (!ex) return { visible: false, open: 0, found: 0, total: 0 };
     const st = this.state.regions[region.id];
-    const total = ex.discoveries.length;
-    const found = ex.discoveries.filter((d) => st.discoveries.includes(d.id)).length;
-    if (found >= total && ex.hideWhenDone !== false) return { visible: false, enabled: false, found, total };
-    const ctx = this.ctx();
-    if (!evaluate(ex.requires, ctx)) {
-      return { visible: true, enabled: false, reason: ex.requiresText ?? explain(ex.requires, ctx) ?? undefined, found, total };
-    }
-    return { visible: true, enabled: true, found, total };
+    return {
+      visible: true,
+      open: this.openLandmarks(region).length,
+      found: ex.landmarks.filter((d) => st.discoveries.includes(d.id)).length,
+      total: ex.landmarks.length,
+    };
   }
+
+  /** Landmarks of a region not explored yet whose visibleWhen holds now, in content order. */
+  openLandmarks(region: Region): Landmark[] {
+    const st = this.state.regions[region.id];
+    const ctx = this.ctx();
+    return (region.explore?.landmarks ?? []).filter((d) => !st.discoveries.includes(d.id) && evaluate(d.visibleWhen, ctx));
+  }
+
 
   /** Can the action next to an active quest be used now? */
   /** A quest's action now: the first alternative whose visibleWhen holds. */
@@ -321,30 +328,48 @@ export class Engine {
     return this.ok(a.hours);
   }
 
+  /** "look around": open the pop-up with what you see and the landmarks to explore. No time passes. */
   private explore(): Result {
     const region = this.reg.regions.get(this.state.location)!;
     const ex = region.explore;
-    const c = this.checkExplore();
-    if (!ex || !c.visible) return refuse("nothing more to find here");
-    if (!c.enabled) return refuse(c.reason ?? "not possible now");
-
-    if (!this.advance(ex.hours, ex.effort)) return this.died(ex.hours);
-    const st = this.state.regions[region.id];
-    st.explored += 1;
+    if (!ex) return refuse("nothing to explore here");
     const ctx = this.ctx();
-    const found = ex.discoveries.filter(
-      (d) => !st.discoveries.includes(d.id) && d.at <= st.explored && evaluate(d.when, ctx),
-    );
-    for (const d of found) {
-      st.discoveries.push(d.id);
-      this.remember(d.id);
-      this.log(this.say(d.text));
-      this.applyEffects(d.effects);
-    }
-    if (!found.length) this.log(this.say(ex.nothingLog ?? this.reg.game.journal.nothingNew));
-    this.postCheck();
-    return this.ok(ex.hours);
+    const lines = ex.view.filter((v) => evaluate(v.when, ctx)).map((v) => this.say(v.text)!);
+    if (!this.openLandmarks(region).length && ex.nothingLeft) lines.push(this.say(ex.nothingLeft)!);
+    this.state.events.active = { id: `explore:${region.id}`, scene: "look", text: lines.join(" ") };
+    return { ok: true, cooldownMs: 0 };
   }
+
+  /** A choice in the look-around pop-up: a landmark to explore, or close. */
+  private exploreChoose(choiceId: string): Result {
+    const active = this.state.events.active!;
+    const region = this.reg.regions.get(active.id.slice("explore:".length))!;
+    if (active.scene !== "look") {
+      // the finding is read: back to the game; "after explore" events may follow
+      if (choiceId !== "close") return refuse("unknown choice");
+      this.state.events.active = null;
+      this.checkEvents(["explore", active.scene.slice("found:".length)]);
+      return this.chose();
+    }
+    if (choiceId === "close") { this.state.events.active = null; return this.chose(); }
+    const d = this.openLandmarks(region).find((x) => x.id === choiceId);
+    if (!d) return refuse("unknown choice");
+    const check = this.checkChoice(d);
+    if (!check.enabled) return refuse(check.reason ?? "not possible now");
+    if (!this.advance(d.hours, d.effort)) { this.state.events.active = null; return this.died(d.hours); }
+    const st = this.state.regions[region.id];
+    st.discoveries.push(d.id);
+    st.explored += 1;
+    this.remember(d.id);
+    const text = this.say(d.text)!;
+    this.state.events.active = { id: active.id, scene: `found:${d.id}`, text };
+    this.logStory(text);
+    this.applyEffects(d.effects);
+    this.postCheck();
+    if (this.state.dead) this.state.events.active = null;
+    return this.chose();
+  }
+
 
   /** Can this activity be shown, and can it be done now? Used by the UI and by dispatch. */
   check(a: Activity): { visible: boolean; enabled: boolean; reason?: string } {
