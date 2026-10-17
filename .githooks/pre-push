@@ -1,12 +1,15 @@
 #!/bin/sh
 # Before a push to main: run what CI runs (unit tests, build, browser test). A failure stops the push.
-# Needs once: npm install (sets core.hooksPath to .githooks) and npx playwright install chromium.
+# Needs once: npm install (sets core.hooksPath to .githooks); Chromium is installed here if missing.
 # Skip once with: git push --no-verify
 run=""
 while read -r local_ref local_sha remote_ref remote_sha; do
   case "$remote_ref" in refs/heads/main) run=1 ;; esac
 done
 [ -z "$run" ] && exit 0
+# the browser for the browser test (does nothing when it is already there, e.g. after a Playwright update)
+echo "pre-push: making sure Playwright's Chromium is installed..."
+npx playwright install chromium || { echo "pre-push: could not install Chromium (npx playwright install chromium)"; exit 1; }
 echo "pre-push: npm run check (unit tests, build, browser test), the same as CI..."
 if ! npm run check; then
   echo "pre-push: checks failed, push stopped. Fix them, or skip once with: git push --no-verify"
