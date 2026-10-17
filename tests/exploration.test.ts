@@ -40,7 +40,7 @@ describe("exploration", () => {
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
     expect(labels(e)).toEqual(["look around", "craft", "build", "light fire", "collect shells", "catch fish", "sleep"]);
     expect(view(e).actions[0].badge).toBe("*");
-    expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
+    expect(view(e).quests.map((q) => q.id)).toContain("first_catch"); // catching one is a task now
   });
 
   it("beach step 5: climbing the cliff shows the meadows; 'look around' stays, without the *", () => {

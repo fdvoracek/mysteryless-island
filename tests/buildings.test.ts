@@ -44,7 +44,8 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     e.syncQuests();
     const ids = view(e).quests.map((q) => q.id);
     expect(ids).toContain("build_shelter");
-    expect(ids).toContain("make_axe"); // the shelter needs logs
+    expect(ids).toContain("cut_logs"); // the shelter needs logs, logs need an axe
+    expect(view(e).quests.find((q) => q.id === "cut_logs")!.needs).toEqual([[{ label: "axe", have: false }]]);
     const task = view(e).quests.find((q) => q.id === "build_shelter")!;
     expect(task.progress).toEqual([{ label: "logs", have: 0, need: 4 }]);
     // the task has no button: the shelter is in the build menu, with what it needs
@@ -220,7 +221,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     const quests = structuredClone(files["content/quests/first-days.json"]) as Array<Record<string, unknown>>;
     quests.find((q) => q.id === "build_shelter")!.build = "castle";
     quests.find((q) => q.id === "make_bed")!.completeWhen = { building: "shelter", is: "ready" }; // the shelter has no cycle
-    quests.find((q) => q.id === "make_axe")!.craft = "craft_castle";
+    quests.find((q) => q.id === "cut_logs")!.needs = ["castle"];
     files["content/quests/first-days.json"] = quests;
     const recipes = structuredClone(files["content/recipes/tools.json"]) as Array<Record<string, unknown>>;
     recipes[0].item = "unobtainium";
@@ -231,7 +232,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
       expect(msg).toMatch(/building shelter\.places\[0\]: unknown region "atlantis"/);
       expect(msg).toMatch(/quest build_shelter\.build: unknown building "castle"/);
       expect(msg).toMatch(/building "shelter" has no cycle, so it is never ready/);
-      expect(msg).toMatch(/quest make_axe\.craft: unknown recipe "craft_castle"/);
+      expect(msg).toMatch(/quest cut_logs\.needs: unknown item or building "castle"/);
       expect(msg).toMatch(/recipe craft_spear\.item: unknown item "unobtainium"/);
     }
   });
@@ -241,12 +242,12 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     const has = (q: string) => !!e.state.quests[q];
     const find = (region: string, id: string) => { e.state.regions[region].discoveries.push(id); e.syncQuests(); };
     find("meadows", "field_site");
-    expect([has("build_corn_field"), has("make_hoe"), has("make_axe")]).toEqual([true, true, true]); // hoe: logs: axe
+    expect([has("build_corn_field"), has("cut_logs")]).toEqual([true, true]); // the hoe needs a log, logs an axe
     find("meadows", "bees");
     find("meadows", "river");
     find("forest", "rabbit_runs");
     find("forest", "fallen_oak");
-    expect(["build_bee_hive", "build_fish_trap", "build_snares", "build_mushroom_logs"].map(has)).toEqual([true, true, true, true]);
+    expect(["build_bee_hive", "build_fish_trap", "first_catch", "build_snares", "build_mushroom_logs"].map(has)).toEqual([true, true, true, true, true]);
     expect(has("build_drying_rack")).toBe(false);
     e.state.counters["did:catch_river_fish"] = 1;
     e.syncQuests();
@@ -331,13 +332,15 @@ describe("the craft and build menus", () => {
     expect(f.dispatch({ type: "choose", choice: "castle" }).ok).toBe(false);
   });
 
-  it("finishing a task by making something: the note says what is now possible", () => {
+  it("crafting finishes no task by itself: the tools serve tasks that need them", () => {
     const e = startGame(reg, 11, "knife", { keepNotes: true });
     for (let i = 0; i < 4; i++) lookAround(e);
     e.state.events.notes = [];
     e.applyEffects([{ give: { firewood: 10 } }]);
     craft(e, "craft_spear");
-    expect(view(e).event).toMatchObject({ id: "note", title: "Task done: build a fishing spear" });
-    expect(view(e).event!.text).toContain("You can now catch fish.");
+    expect(view(e).event).toBeNull(); // no note
+    expect(e.state.quests.first_catch.status).toBe("active");
+    expect(view(e).quests.find((q) => q.id === "first_catch")!.needs[0][0]).toEqual({ label: "fishing spear", have: true });
   });
+
 });

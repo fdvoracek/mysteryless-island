@@ -2,12 +2,7 @@
   {
     "id": "craft_spear",
     "item": "fishing_spear",
-    "availableWhen": {
-      "any": [
-        { "quest": "build_fishing_spear", "is": "active" },
-        { "quest": "build_fishing_spear", "is": "done" }
-      ]
-    },
+    "availableWhen": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
     "ways": [
       {
         "visibleWhen": { "item": "knife" },
@@ -37,7 +32,7 @@
     "id": "craft_axe",
     "item": "axe",
     "availableWhen": {
-      "any": [{ "quest": "make_axe", "is": "active" }, { "quest": "make_axe", "is": "done" }]
+      "any": [{ "quest": "cut_logs", "is": "active" }, { "quest": "cut_logs", "is": "done" }]
     },
     "ways": [
       {
@@ -56,7 +51,7 @@
     "id": "craft_hoe",
     "item": "hoe",
     "availableWhen": {
-      "any": [{ "quest": "make_hoe", "is": "active" }, { "quest": "make_hoe", "is": "done" }]
+      "any": [{ "quest": "build_corn_field", "is": "active" }, { "quest": "build_corn_field", "is": "done" }]
     },
     "ways": [
       {

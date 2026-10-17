@@ -72,14 +72,14 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     expect(e.state.stats.hunger).toBeLessThan(hunger);
   });
 
-  it("the river: drink, fill the water can, and fish with a spear (it also starts the spear task)", () => {
+  it("the river: drink, fill the water can, and fish with a spear (it also starts 'catch a fish')", () => {
     const e = toCliffTop(4, "water");
     e.dispatch({ type: "travel", region: "meadows" });
     lookAround(e); // the bushes
     lookAround(e); // the willows: the river
     expect(labels(e)).toEqual(["look around", "craft", "build", "pick berries", "drink water", "catch fish", "cut willow twigs"]);
     expect(view(e).actions[0].badge).toBe("*"); // the flat ground, the corn and the bees are left
-    expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear");
+    expect(view(e).quests.map((q) => q.id)).toContain("first_catch");
     const fish = view(e).actions.find((a) => a.label === "catch fish")!;
     expect(fish.enabled).toBe(false); // no spear yet
     e.state.stats.thirst = 60;

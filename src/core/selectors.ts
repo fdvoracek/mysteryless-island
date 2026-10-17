@@ -55,8 +55,10 @@ export interface View {
   /** active quests only, in content order (no buttons: things are made in the craft and build menus) */
   quests: Array<{
     id: string; title: string; hint?: string;
-    /** progress towards the cost of what the task asks you to make, e.g. firewood 4/10 */
+    /** progress towards the cost of the building the task asks for, e.g. logs 2/4 */
     progress: Array<{ label: string; have: number; need: number }>;
+    /** what it needs (for the tooltip): each entry is one thing, or any one of several */
+    needs: Array<Array<{ label: string; have: boolean }>>;
   }>;
   /**
    * Buildings standing in this place, in content order, with their state and the cycle's button
@@ -170,9 +172,13 @@ export function view(engine: Engine): View {
   }));
   for (const q of reg.quests.values()) {
     if (s.quests[q.id]?.status !== "active") continue;
-    // what the task asks you to make: progress towards its cost (made in the craft or build menu)
-    const cost = q.craft ? engine.recipeWay(reg.recipes.get(q.craft)!)?.cost : q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
-    quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost) });
+    // progress towards the building it asks for; what it needs (items, buildings) for the tooltip
+    const cost = q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
+    const thing = (id: string) => reg.items.has(id)
+      ? { label: reg.items.get(id)!.name, have: (s.items[id] ?? 0) > 0 }
+      : { label: reg.buildings.get(id)!.name, have: Object.keys(s.buildings).some((k) => k.startsWith(`${id}@`)) };
+    const needs = (q.needs ?? []).map((n) => (Array.isArray(n) ? n : [n]).map(thing));
+    quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost), needs });
   }
 
   const stores: View["stores"] = [];

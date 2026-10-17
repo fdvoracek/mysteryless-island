@@ -566,15 +566,15 @@ export const Quest = z
     doneLog: Text.optional(),
     /** applied when the quest is done (rewards, follow-up quests) */
     effects: z.array(Effect).optional(),
-    /**
-     * The tasks panel shows progress towards what this task asks you to make: a recipe's cost
-     * (`craft`, made in the craft menu) or a building's (`build`, in the build menu).
-     */
-    craft: Id.optional(),
+    /** the tasks panel shows progress towards this building's cost (it is built in the build menu) */
     build: Id.optional(),
+    /**
+     * What the task needs, shown in its tooltip (marked once you have it): items or buildings; a
+     * list inside the list means any one of them, e.g. [["fishing_spear", "fish_trap"]].
+     */
+    needs: z.array(z.union([Id, z.array(Id).min(2)])).optional(),
   })
-  .strict()
-  .refine((q) => !(q.craft && q.build), "a task shows the progress of either a recipe or a building, not both");
+  .strict();
 
 export type Quest = z.infer<typeof Quest>;
 

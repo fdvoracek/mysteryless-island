@@ -427,13 +427,21 @@ export class UI {
         head.append(div(q.title, "title"));
         el.append(head);
         if (q.progress.length) el.append(div("", "progress"));
-        if (q.hint) el.append(div(q.hint, "tip"));
+        // the tooltip: the hint, and what the task needs (marked once you have it)
+        if (q.hint || q.needs.length) {
+          const tip = div("", "tip");
+          if (q.hint) tip.append(div(q.hint));
+          if (q.needs.length) tip.append(div("", "needs"));
+          el.append(tip);
+        }
         if (prev) prev.after(el);
         else box.prepend(el);
       }
-      // refresh progress on every render
+      // refresh progress and needs on every render
       const progress = el.querySelector(".progress");
       if (progress) progress.textContent = q.progress.map((p) => `${p.label} ${p.have}/${p.need}`).join(" · ");
+      const needs = el.querySelector(".needs");
+      if (needs) needs.textContent = "needs: " + q.needs.map((alts) => alts.map((t) => (t.have ? `${t.label} ✓` : t.label)).join(" or ")).join(", ");
       prev = el;
     }
     this.els.questsBox.hidden = !box.querySelector(".quest");

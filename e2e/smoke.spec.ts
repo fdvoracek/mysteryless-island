@@ -236,11 +236,12 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator('#stores .row[data-id="cooked_fish"]')).toBeVisible();
 });
 
-test("finding the fish starts the spear task; crafting it (the craft menu) puts the spear in the inventory", async ({ page }) => {
+test("finding the fish starts 'catch a fish' (it needs a spear or a trap); the spear comes from the craft menu", async ({ page }) => {
   for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
-  const quest = page.locator('#quests .quest[data-id="build_fishing_spear"]');
-  await expect(quest.locator(".progress")).toHaveText("firewood 0/10");
+  const quest = page.locator('#quests .quest[data-id="first_catch"]');
+  await expect(quest.locator(".title")).toHaveText("catch a fish");
   await expect(quest.locator("button")).toHaveCount(0); // tasks have no buttons
+  await expect(quest.locator(".needs")).toHaveText("needs: fishing spear or fish trap"); // in its tooltip
   // the craft menu: a pop-up with the spear, what it needs in its tooltip
   await action(page, "craft").click();
   await expect(page.locator("#eventTitle")).toHaveText("Craft");
@@ -250,18 +251,12 @@ test("finding the fish starts the spear task; crafting it (the craft menu) puts 
   await page.locator('#eventChoices [data-choice="close"]').click();
 
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
-  await expect(quest.locator(".progress")).toHaveText("firewood 10/10");
-  await expect(action(page, "craft")).toContainText("*"); // something can be made now
+  await expect(action(page, "craft").locator(".label")).toHaveText("craft*"); // something can be made now
   await action(page, "craft").click();
   await spear.click();
-  // a note: the task is done, and what changed
-  await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fishing spear");
-  await expect(page.locator("#eventText")).toContainText("Fishing spear added to your inventory.");
-  await expect(page.locator("#eventText")).toContainText("10 firewood used.");
-  await page.locator('#eventChoices [data-choice="close"]').click();
-  await expect(page.locator("#event")).toBeHidden();
+  await expect(page.locator("#event")).toBeHidden(); // the menu closes; no task is done by crafting
   await expect(page.locator("#inventory")).toContainText("fishing spear");
-  await expect(quest).toHaveCount(0, { timeout: 5_000 });
+  await expect(quest.locator(".needs")).toHaveText("needs: fishing spear ✓ or fish trap");
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
   await expect(action(page, "craft").locator(".label")).toHaveText("craft"); // no *: one spear is enough
 });

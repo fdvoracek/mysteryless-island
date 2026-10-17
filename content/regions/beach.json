@@ -275,7 +275,13 @@
           { "discovered": "cliff_shells" },
           {
             "any": [
-              { "any": [{ "quest": "make_axe", "is": "active" }, { "quest": "make_axe", "is": "done" }] },
+              { "any": [{ "quest": "cut_logs", "is": "active" }, { "quest": "cut_logs", "is": "done" }] },
+              {
+                "any": [
+                  { "quest": "build_corn_field", "is": "active" },
+                  { "quest": "build_corn_field", "is": "done" }
+                ]
+              },
               {
                 "any": [
                   { "quest": "build_fish_weir", "is": "active" },
@@ -407,7 +413,7 @@
                 "The knife turning a branch into a spear.",
                 "The spear you carved, its point sharp under your thumb."
               ],
-              "when": { "all": [{ "today": "build_fishing_spear" }, { "item": "knife" }] }
+              "when": { "all": [{ "today": "craft_spear" }, { "item": "knife" }] }
             },
             {
               "text": [
@@ -415,7 +421,7 @@
                 "The stone, the branch, and your aching arms: a spear.",
                 "A spear made without a blade, only stone and patience."
               ],
-              "when": { "all": [{ "today": "build_fishing_spear" }, { "not": { "item": "knife" } }] }
+              "when": { "all": [{ "today": "craft_spear" }, { "not": { "item": "knife" } }] }
             },
             {
               "text": [

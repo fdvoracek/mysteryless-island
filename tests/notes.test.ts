@@ -1,30 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, startGame, craft } from "./helpers";
+import { build, loadRegistry, lookAround, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const close = (e: ReturnType<typeof startGame>) => e.dispatch({ type: "choose", choice: "close" });
+/** In the meadows with the river found (the fish trap task) and 20 willow twigs. */
+function atTheRiver(seed: number) {
+  const e = startGame(reg, seed, "knife", { keepNotes: true });
+  e.state.regions.meadows.unlocked = true;
+  e.dispatch({ type: "travel", region: "meadows" });
+  for (const id of ["berry_bushes", "river"]) { e.dispatch({ type: "explore" }); e.dispatch({ type: "choose", choice: id }); e.dispatch({ type: "choose", choice: "close" }); }
+  e.applyEffects([{ give: { willow_twigs: 20 } }]);
+  return e;
+}
 
 describe("a note when a task is done", () => {
-  it("building the spear: the story, then what changed", () => {
-    const e = startGame(reg, 1, "knife", { keepNotes: true });
-    for (let i = 0; i < 4; i++) { lookAround(e); if (view(e).event?.id === "note") close(e); } // the fish start the task
-    e.applyEffects([{ give: { firewood: 12 } }]);
-    e.state.time = 9 * 60; // daylight, so fishing is possible
-    craft(e, "craft_spear");
+  it("building the fish trap: the story, then what changed", () => {
+    const e = atTheRiver(1);
+    build(e, "fish_trap");
     const v = view(e).event!;
-    expect(v).toMatchObject({ id: "note", title: "Task done: build a fishing spear", choices: [{ id: "close", label: "close", enabled: true }] });
-    expect(v.text.split("\n\n")).toEqual([
-      "The spear is light and true. The fish will not be so quick now.",
-      "Fishing spear added to your inventory.",
-      "10 firewood used.",
-      "You can now catch fish.",
-    ]);
+    expect(v).toMatchObject({ id: "note", title: "Task done: build a fish trap", choices: [{ id: "close", label: "close", enabled: true }] });
+    expect(v.text.split("\n\n")).toEqual(["The trap is set. The fish will come to it.", "20 willow twigs used.", "Fish trap built."]);
     // the game waits for it, then goes on
-    expect(e.dispatch({ type: "activity", id: "catch_fish" })).toMatchObject({ ok: false, reason: "an event is open" });
+    expect(e.dispatch({ type: "activity", id: "drink_river" })).toMatchObject({ ok: false, reason: "an event is open" });
     close(e);
     expect(view(e).event).toBeNull();
-    expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(true);
+    expect(e.dispatch({ type: "activity", id: "drink_river" }).ok).toBe(true);
   });
 
   it("surviving the night: the story only (nothing was gained or used)", () => {
@@ -40,13 +41,12 @@ describe("a note when a task is done", () => {
   });
 
   it("the note does not write to the journal again (its story is already there)", () => {
-    const e = startGame(reg, 3, "knife", { keepNotes: true });
-    lookAround(e); lookAround(e); lookAround(e); lookAround(e);
-    e.applyEffects([{ give: { firewood: 10 } }]);
-    craft(e, "craft_spear");
-    const logged = e.state.log.filter((l) => l.text === "The spear is light and true. The fish will not be so quick now.").length;
+    const e = atTheRiver(3);
+    build(e, "fish_trap");
+    const story = "The trap is set. The fish will come to it.";
+    const logged = e.state.log.filter((l) => l.text === story).length;
     close(e);
-    expect(e.state.log.filter((l) => l.text === "The spear is light and true. The fish will not be so quick now.").length).toBe(logged);
+    expect(e.state.log.filter((l) => l.text === story).length).toBe(logged);
     expect(logged).toBe(1);
   });
 });

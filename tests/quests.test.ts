@@ -43,8 +43,8 @@ describe("quests", () => {
     const e = revealAll(startGame(reg, 3));
     // the spear quest is triggered by finding the fish (revealAll found everything)
     expect(active(e)).toEqual([
-      "survive_first_night", "build_fishing_spear", "make_axe", "build_fish_trap", "build_snares",
-      "build_mushroom_logs", "make_hoe", "build_corn_field", "build_bee_hive", "find_water", "find_food",
+      "survive_first_night", "first_catch", "cut_logs", "build_fish_trap", "build_snares",
+      "build_mushroom_logs", "build_corn_field", "build_bee_hive", "find_water", "find_food",
     ]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
   });
@@ -138,42 +138,34 @@ describe("quests", () => {
   });
 });
 
-describe("quest actions: build a fishing spear", () => {
+describe("a task that needs things: catch a fish", () => {
   const reg2 = loadRegistry();
-  const explored = () => revealAll(startGame(reg2, 1));
+  const task = (e: Engine) => view(e).quests.find((x) => x.id === "first_catch");
 
-  it("appears when the school of fish is found, with progress towards 10 firewood", () => {
+  it("appears when the school of fish is found; its tooltip says it needs a fishing spear or a fish trap", () => {
     const e = startGame(reg2, 1);
     expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
     for (let i = 0; i < 4; i++) lookAround(e);
-    const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;
-    expect(q.progress).toEqual([{ label: "firewood", have: 0, need: 10 }]);
-    // made in the craft menu, not from the task
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs 10 firewood (have 0)", time: "30m", tooltip: "10 firewood · 30m" });
-  });
-
-  it("building spends the wood, takes time, puts the spear in the inventory and finishes the quest", () => {
-    const e = explored();
-    e.applyEffects([{ give: { firewood: 12 } }]);
-    expect(view(e).quests.find((x) => x.id === "build_fishing_spear")!.progress[0]).toMatchObject({ have: 10, need: 10 });
-    const t0 = e.state.time;
-    expect(craft(e, "craft_spear").ok).toBe(true);
-    expect(e.state.time - t0).toBe(30);
-    expect(e.state.items.firewood).toBe(2);
-    expect(e.state.quests.build_fishing_spear.status).toBe("done");
-    expect(view(e).inventory.map((i) => i.id)).toContain("fishing_spear");
-    expect(view(e).quests.map((q) => q.id)).not.toContain("build_fishing_spear");
-    expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(true);
-  });
-
-  it("refuses to build without enough wood, or once the quest is done", () => {
-    const e = explored();
-    e.applyEffects([{ give: { firewood: 9 } }]);
-    expect(craft(e, "craft_spear")).toMatchObject({ ok: false, reason: "needs 10 firewood (have 9)" });
-    e.applyEffects([{ give: { firewood: 11 } }]);
+    expect(task(e)).toMatchObject({ title: "catch a fish", progress: [], needs: [[{ label: "fishing spear", have: false }, { label: "fish trap", have: false }]] });
+    // made in the craft menu; the task marks it
+    e.applyEffects([{ give: { firewood: 10 } }]);
     craft(e, "craft_spear");
-    expect(craft(e, "craft_spear").ok).toBe(false);
-    expect(e.state.items.fishing_spear).toBe(1);
+    expect(task(e)!.needs).toEqual([[{ label: "fishing spear", have: true }, { label: "fish trap", have: false }]]);
+  });
+
+  it("is done with the first fish caught, whichever way", () => {
+    const e = revealAll(startGame(reg2, 1));
+    e.applyEffects([{ give: { fishing_spear: 1 } }]);
+    e.state.time = 9 * 60;
+    for (let i = 0; i < 6 && e.state.quests.first_catch.status === "active"; i++) {
+      e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 };
+      e.dispatch({ type: "activity", id: "catch_fish" });
+    }
+    expect(e.state.quests.first_catch.status).toBe("done");
+    expect(view(e).quests.map((q) => q.id)).not.toContain("first_catch");
+  });
+
+  it("there are no tasks to craft things: tasks never have buttons", () => {
+    for (const q of reg2.quests.values()) expect(q).not.toHaveProperty("action");
   });
 });

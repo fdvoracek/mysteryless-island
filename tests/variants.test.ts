@@ -30,8 +30,7 @@ describe("text variants", () => {
     const e = startGame(reg, 3);
     for (let i = 0; i < 4; i++) look(e);
     e.applyEffects([{ give: { fishing_spear: 1 } }]);
-    e.syncQuests(); // the spear finishes its task now; drop its note so every catch below is one paragraph
-    e.state.events.notes = [];
+    e.state.quests.first_catch.status = "done"; // so every catch below is one paragraph (no task ending)
     const wade: string[] = [];
     for (let i = 0; i < 12; i++) {
       e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; // stay alive and keep fishing
