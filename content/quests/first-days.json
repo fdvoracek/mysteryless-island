@@ -26,6 +26,18 @@
     ]
   },
   {
+    "id": "climb_cliff",
+    "title": "climb the cliff",
+    "hint": "Too steep for bare hands. Bark from the forest, twisted into a rope, would do.",
+    "trigger": { "when": { "discovered": "cliff_shells" } },
+    "needs": ["cordage"],
+    "completeWhen": { "discovered": "cliff_top" },
+    "doneLog": [
+      "You stand on the cliff top, the rope coiled at your feet, and look inland.",
+      "The cliff is behind you. The island is bigger than you thought."
+    ]
+  },
+  {
     "id": "build_shelter",
     "title": "build a shelter",
     "hint": "Logs against the rocks, out of the wind. Firewood won't do: you need logs, and for logs, an axe.",
@@ -115,7 +127,7 @@
   {
     "id": "build_snares",
     "title": "set snares",
-    "hint": "Cord nooses on the small trails. Twist the cord from meadow grass.",
+    "hint": "Rope nooses on the small trails. Rope is twisted from bark strips (craft menu).",
     "trigger": { "when": { "discovered": "rabbit_runs" } },
     "build": "snares",
     "completeWhen": { "built": "snares" },

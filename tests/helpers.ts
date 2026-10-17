@@ -59,6 +59,7 @@ export function revealAll(e: Engine): Engine {
     st.explored = st.discoveries.length;
   }
   e.syncQuests(); // quests triggered by discoveries (e.g. the fishing spear)
+  e.state.events.notes = []; // tasks done by the discoveries themselves (climb the cliff): no notes waiting
   return e;
 }
 
@@ -71,7 +72,8 @@ export function lookAround(e: Engine) {
   const opened = e.dispatch({ type: "explore" });
   if (!opened.ok) return opened;
   const region = e.reg.regions.get(e.state.location)!;
-  const next = e.openLandmarks(region)[0];
+  // the next landmark that can be explored now (the cliff top waits for a rope)
+  const next = e.openLandmarks(region).find((d) => e.checkChoice(d).enabled);
   if (!next) return e.dispatch({ type: "choose", choice: "close" });
   const res = e.dispatch({ type: "choose", choice: next.id });
   if (e.state.events.active?.id.startsWith("explore:")) e.dispatch({ type: "choose", choice: "close" });

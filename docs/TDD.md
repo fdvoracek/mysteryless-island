@@ -441,13 +441,13 @@ The 10 buildings in `content/buildings/camp.json`:
 | drying rack | beach | you caught a fish | 2 logs | hang 2 raw fish → 12h → 2 dried fish |
 | rain barrel | beach (by the shelter) | the shelter stands | 3 logs | set out → 12h → drink (thirst −45), repeats |
 | fish trap | beach shallows or the river | you found the river | 20 willow twigs | set → 1 fish / 2h, up to 3, stays set |
-| snares | forest | you found the small trails (day 2+) | 2 cord, 2 firewood | set → 12h → maybe a rabbit (raw meat), repeats |
+| snares | forest | you found the small trails (day 2+) | 1 rope, 2 firewood | set → 12h → maybe a rabbit (raw meat), repeats |
 | mushroom logs | forest | you found the fallen oak (after collecting wood 3 times) | 2 logs | soak (needs the spring) → 2 days → 3–5 mushrooms |
 | corn field | meadows | you found the flat ground | needs a hoe, 2 corn (sown at once) | sow 2 corn → 3 days → 6–10 corn |
 | bee hive | meadows | you found the humming (after the bushes) | 2 logs | lure with 2 berries → 3 days → 1–2 honey (smoke: 1 firewood), repeats |
 | fish weir | the river | you emptied the trap twice | 6 stones, 2 logs | close → 12h → 2–4 fish, repeats |
 
-Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe (craft menu: 2 firewood, 2 stones) is offered once the task *cut logs* (needs: axe) starts, with any task needing logs; *stones* under the low cliff (*pick up stones*, once *cut logs*, the corn field or the weir task has started); the **hoe** (1 log, 1 stone) is offered with the corn field task (needs: hoe); *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); *cord* from meadow grass (*twist cord*, once the snares task started); *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
+Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe (craft menu: 2 firewood, 2 stones) is offered once the task *cut logs* (needs: axe) starts, with any task needing logs; *stones* under the low cliff (*pick up stones*, once *cut logs*, the corn field or the weir task has started); the **hoe** (1 log, 1 stone) is offered with the corn field task (needs: hoe); *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); the **rope** (`cordage`; craft menu: 4 bark strips, 3 h; *strip bark* in the forest needs something sharp, 1 h) climbs the cliff (`cliff_top` requires it; task *climb the cliff*, needs: rope) and makes the snares; *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
 
 The original design (levels, modifiers) is kept below for later.
 

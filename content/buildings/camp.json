@@ -206,7 +206,7 @@
     "id": "snares",
     "name": "snares",
     "icon": "meat",
-    "hint": "Cord nooses on the small trails. Check them after 12 hours.",
+    "hint": "Rope nooses on the small trails. Check them after 12 hours.",
     "places": [{ "region": "forest", "when": { "discovered": "rabbit_runs" } }],
     "availableWhen": {
       "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }]
@@ -215,7 +215,7 @@
       "label": "make",
       "hours": 1,
       "effort": "work",
-      "cost": { "cordage": 2, "firewood": 2 },
+      "cost": { "cordage": 1, "firewood": 2 },
       "log": [
         "You tie running nooses and peg them low over the trails.",
         "Nooses of cord, pegged a hand above the ground where the trails narrow.",

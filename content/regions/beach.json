@@ -97,7 +97,7 @@
       },
       { "text": "Under the cliff, shells on the wet stone.", "when": { "discovered": "cliff_shells" } },
       {
-        "text": "The cliff above them looks climbable.",
+        "text": "The cliff above them is steep. With a rope, it could be climbed.",
         "when": { "all": [{ "discovered": "cliff_shells" }, { "not": { "discovered": "cliff_top" } }] }
       },
       { "text": "Beyond the cliff, to the west, the meadows.", "when": { "discovered": "cliff_top" } },
@@ -162,10 +162,12 @@
         "effort": "work",
         "visibleWhen": { "discovered": "cliff_shells" },
         "text": [
-          "You climb the cliff, handhold by handhold. From the top the land opens out to the west: long grass in waves, bushes, a line of willows. Meadows, an hour's walk away.",
-          "Up the cliff, slowly, the wind pulling at you. At the top you see what the cliff was hiding: meadows to the west, wide and green, an hour away.",
-          "The climb is short but steep. From the top, inland to the west, grass rolls away under the wind: meadows, maybe an hour's walk."
-        ]
+          "You tie the rope around a rock and climb, hand over hand. From the top the land opens out to the west: long grass in waves, bushes, a line of willows. Meadows, an hour's walk away.",
+          "With the rope looped round a boulder you haul yourself up, the wind pulling at you. At the top you see what the cliff was hiding: meadows to the west, wide and green, an hour away.",
+          "The rope holds. The climb is short but steep. From the top, inland to the west, grass rolls away under the wind: meadows, maybe an hour's walk."
+        ],
+        "requires": { "item": "cordage" },
+        "requiresText": "Too steep to climb without a rope"
       }
     ]
   },

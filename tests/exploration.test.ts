@@ -31,7 +31,7 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e);
     expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "pick up stones", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "craft", "light fire", "collect shells", "pick up stones", "sleep"]); // craft: the rope for the cliff
   });
 
   it("beach step 4: the fish need a spear; the cliff is still left (*)", () => {
@@ -45,6 +45,7 @@ describe("exploration", () => {
 
   it("beach step 5: climbing the cliff shows the meadows; 'look around' stays, without the *", () => {
     const e = startGame(reg, 1);
+    e.applyEffects([{ give: { cordage: 1 } }]); // a rope: the cliff is too steep without one
     for (let i = 0; i < 5; i++) look(e);
     expect(logHas(e, "Meadows, an hour's walk away.")).toBe(true);
     expect(e.state.regions.meadows.unlocked).toBe(true);

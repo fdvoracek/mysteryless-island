@@ -67,16 +67,28 @@ test("a finding that opens a place: 'go to the forest' walks there", async ({ pa
   await expect(tab(page, "the forest")).toHaveClass(/here/);
 });
 
-test("the meadows: a ? to the west once the cliff is seen; climbing it opens them, an hour away", async ({ page }) => {
+test("the meadows: a ? to the west from the start; climbing the cliff with a rope opens them, an hour away", async ({ page }) => {
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(2); // the forest and the meadows, from the start
   await explore(page, "rock_shelter");
   await explore(page, "cliff_shells");
   await expect(page.locator("#tabs .map-unknown")).toHaveCount(2);
+  // too steep without a rope
+  await action(page, "look around").click();
+  await expect(page.locator('#eventChoices [data-choice="cliff_top"]')).toHaveClass(/off/);
+  await expect(page.locator('#eventChoices [data-choice="cliff_top"]')).toHaveAttribute("title", "Too steep to climb without a rope");
+  await page.locator("#eventBack").click();
+  await expect(page.locator('#quests .quest[data-id="climb_cliff"] .needs')).toHaveText("needs: rope");
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("cordage", 1));
+  await expect(page.locator('#quests .quest[data-id="climb_cliff"] .needs')).toHaveText("needs: rope ✓");
   await action(page, "look around").click();
   await page.locator('#eventChoices [data-choice="cliff_top"]').click();
   await expect(page.locator("#eventText")).toContainText("A new place is on your map: the meadows.");
   await page.locator('#eventChoices [data-choice="go:meadows"]').click();
   await expect(tab(page, "the meadows")).toHaveClass(/here/);
+  // the climb was a task: its note opens on arrival
+  await expect(page.locator("#eventTitle")).toHaveText("Task done: climb the cliff");
+  await page.locator("#eventBack").click();
+  await expect(page.locator("#event")).toBeHidden();
   await explore(page, "berry_bushes");
   await explore(page, "river");
   for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
@@ -339,8 +351,10 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
       (window as unknown as { ti: { state(): { log: Array<{ text: string }> } } }).ti.state().log[0].text);
     await expect(page.locator("#log")).toContainText(newest);
     await expect(page.locator("#status .row")).toHaveCount(5);
-    // the game moves on between layouts: the 4th look finds the fish, which starts "catch a fish"
-    const tasks = i < 4 ? ["survive the first night"] : ["survive the first night", "catch a fish"];
+    // the game moves on between layouts: the 3rd look finds the cliff ("climb the cliff"), the 4th the fish ("catch a fish")
+    const tasks = i < 3 ? ["survive the first night"]
+      : i < 4 ? ["survive the first night", "climb the cliff"]
+      : ["survive the first night", "catch a fish", "climb the cliff"];
     await expect(page.locator("#quests .quest .title")).toHaveText(tasks);
     await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
     // and the game plays: one more landmark explored per layout (4 on the beach)

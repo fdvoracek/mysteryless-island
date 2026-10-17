@@ -249,21 +249,6 @@
         "A few small ears among the grass.",
         "Wild corn, thin ears, hard kernels."
       ]
-    },
-    {
-      "id": "twist_cord",
-      "name": "twist cord",
-      "hours": 0.5,
-      "effort": "light",
-      "visibleWhen": {
-        "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }]
-      },
-      "yields": [{ "item": "cordage", "min": 1, "max": 1 }],
-      "log": [
-        "You twist long grass into cord, strand over strand.",
-        "Grass, rolled and twisted on your thigh into cord.",
-        "A length of grass cord, rough but strong."
-      ]
     }
   ]
 }

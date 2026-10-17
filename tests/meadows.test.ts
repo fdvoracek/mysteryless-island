@@ -13,6 +13,7 @@ const unknownCells = (e: Engine) => view(e).map.unknown;
 /** beach: rocks, cliff, then the climb (the forest stays a "?") */
 function toCliffTop(seed: number, choice: "knife" | "water" = "knife") {
   const e = startGame(reg, seed, choice);
+  e.applyEffects([{ give: { cordage: 1 } }]); // a rope: the cliff is too steep without one
   for (const id of ["rock_shelter", "cliff_shells", "cliff_top"]) explore(e, id);
   return e;
 }
@@ -28,8 +29,13 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     explore(e, "cliff_shells");
     expect(view(e).tabs.find((t) => t.here)).toMatchObject({ id: "beach", col: 1 });
     e.dispatch({ type: "explore" });
-    expect(view(e).event!.text).toContain("The cliff above them looks climbable.");
-    expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m" });
+    expect(view(e).event!.text).toContain("The cliff above them is steep. With a rope, it could be climbed.");
+    // too steep without a rope
+    expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m", enabled: false, reason: "Too steep to climb without a rope" });
+    expect(choose(e, "cliff_top").ok).toBe(false);
+    expect(view(e).quests.find((q) => q.id === "climb_cliff")).toMatchObject({ title: "climb the cliff", needs: [[{ label: "rope", have: false }]] });
+    e.applyEffects([{ give: { cordage: 1 } }]);
+    expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ enabled: true });
     choose(e, "cliff_top");
     const found = view(e).event!;
     expect(found.text).toMatch(/Meadows, an hour's walk away\./);
@@ -48,7 +54,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     e.dispatch({ type: "travel", region: "meadows" });
     expect(e.state.time - t0).toBe(60);
     expect(e.state.log[0].text).toMatch(/willows/);
-    expect(labels(e)).toEqual(["look around"]);
+    expect(labels(e)).toEqual(["look around", "craft"]); // craft: since the cliff (the rope)
     e.dispatch({ type: "travel", region: "beach" });
     explore(e, "forest_edge");
     e.dispatch({ type: "travel", region: "forest" });
@@ -61,7 +67,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     const e = toCliffTop(3);
     e.dispatch({ type: "travel", region: "meadows" });
     explore(e, "berry_bushes");
-    expect(labels(e)).toEqual(["look around", "pick berries"]);
+    expect(labels(e)).toEqual(["look around", "craft", "pick berries"]);
     e.dispatch({ type: "activity", id: "collect_berries" });
     const n = e.state.items.berries;
     expect(n).toBeGreaterThanOrEqual(3);

@@ -291,6 +291,7 @@ describe("the craft and build menus", () => {
     expect(view(e).event).toMatchObject({ id: "menu:craft", title: "Craft" });
     expect(view(e).event!.choices).toEqual([
       { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "30m", tooltip: "10 firewood · 30m" },
+      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", tooltip: "4 bark strips · 3h" },
       { id: "close", label: "back", enabled: true },
     ]);
     expect(e.state.time).toBe(t0);
@@ -302,7 +303,7 @@ describe("the craft and build menus", () => {
     expect(e.state.items.fishing_spear).toBe(1);
     expect(menu()!.badge).toBeUndefined();
     e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["close"]); // the spear has left the menu
+    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_rope", "close"]); // the spear has left the menu
     e.dispatch({ type: "choose", choice: "close" });
     e.state.regions.forest.unlocked = true;
     e.dispatch({ type: "travel", region: "forest" });
@@ -341,6 +342,7 @@ describe("the craft and build menus", () => {
     // the rock knife is had (it leaves the menu); the spear now takes twice as long
     expect(view(e).event!.choices).toEqual([
       { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "1h", tooltip: "10 firewood · 1h" },
+      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", tooltip: "4 bark strips · 3h" },
       { id: "close", label: "back", enabled: true },
     ]);
     e.dispatch({ type: "choose", choice: "close" });
@@ -354,7 +356,7 @@ describe("the craft and build menus", () => {
     const e = startGame(reg, 9, "knife");
     for (let i = 0; i < 4; i++) lookAround(e);
     e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "close"]);
+    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "craft_rope", "close"]);
   });
 
   it("anything sharp does for 'something sharp'; the rock knife doubles the time (activities too)", () => {
@@ -403,4 +405,36 @@ describe("the craft and build menus", () => {
     expect(view(e).quests.find((q) => q.id === "first_catch")!.needs[0][0]).toEqual({ label: "fishing spear", have: true });
   });
 
+
+  it("the rope: bark strips from the forest (something sharp, 1 hour), twisted for 3 hours; it climbs the cliff", () => {
+    const e = startGame(reg, 13, "matches"); // nothing sharp
+    for (let i = 0; i < 3; i++) lookAround(e); // dunes, rocks, cliff: the climb waits for a rope
+    expect(view(e).quests.map((q) => q.id)).toContain("climb_cliff");
+    e.dispatch({ type: "travel", region: "forest" });
+    const strip = () => view(e).actions.find((a) => a.id === "strip_bark")!;
+    expect(strip()).toMatchObject({ label: "strip bark", enabled: false, reason: "Needs something sharp" });
+    e.applyEffects([{ give: { rock_knife: 1 } }]);
+    expect(strip()).toMatchObject({ enabled: true, tooltip: ["2h · work"] }); // the rock knife: twice as long
+    e.applyEffects([{ give: { knife: 1 } }]);
+    let t0 = e.state.time;
+    e.dispatch({ type: "activity", id: "strip_bark" });
+    expect(e.state.time - t0).toBe(60);
+    expect(e.state.items.bark_strips).toBe(4);
+    t0 = e.state.time;
+    expect(craft(e, "craft_rope").ok).toBe(true);
+    expect(e.state.time - t0).toBe(180);
+    expect(e.state.items.cordage).toBe(1);
+    expect(view(e).stores.find((x) => x.id === "cordage")).toMatchObject({ label: "rope", count: 1 });
+    // the rope stays in the menu: more can be made (the snares need one too)
+    e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event!.choices.map((c) => c.id)).toContain("craft_rope");
+    e.dispatch({ type: "choose", choice: "close" });
+    // with it, the cliff can be climbed; the rope is kept
+    e.dispatch({ type: "travel", region: "beach" });
+    lookAround(e); // the shallows come first in the list
+    lookAround(e); // then the cliff top
+    expect(e.state.regions.meadows.unlocked).toBe(true);
+    expect(e.state.items.cordage).toBe(1);
+    expect(e.state.quests.climb_cliff.status).toBe("done");
+  });
 });

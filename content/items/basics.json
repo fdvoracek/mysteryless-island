@@ -237,10 +237,16 @@
     "_note": "cut by the river; 20 for a fish trap"
   },
   {
-    "id": "cordage",
-    "name": "cord",
+    "id": "bark_strips",
+    "name": "bark strips",
     "category": "material",
-    "_note": "twisted from meadow grass; for the snares"
+    "_note": "cut from the trees in the forest with something sharp; 4 make a rope"
+  },
+  {
+    "id": "cordage",
+    "name": "rope",
+    "category": "material",
+    "_note": "twisted from bark strips (craft menu, 3 h); climbs the cliff (kept) and makes snares"
   },
   { "id": "axe", "name": "axe", "category": "tool" },
   { "id": "hoe", "name": "hoe", "category": "tool" },
