@@ -224,7 +224,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     quests.find((q) => q.id === "cut_logs")!.needs = ["castle"];
     files["content/quests/first-days.json"] = quests;
     const recipes = structuredClone(files["content/recipes/tools.json"]) as Array<Record<string, unknown>>;
-    recipes[0].item = "unobtainium";
+    recipes.find((r) => r.id === "craft_spear")!.item = "unobtainium";
     files["content/recipes/tools.json"] = recipes;
     try { buildRegistry(files); throw new Error("expected a ContentError"); } catch (err) {
       expect(err).toBeInstanceOf(ContentError);
@@ -314,18 +314,60 @@ describe("the craft and build menus", () => {
     expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // shown in the forest too: it says there is nothing here
   });
 
-  it("the spear without a knife: the menu offers the slower way (a sharp stone)", () => {
+  it("without a knife: the spear needs one; a rock knife (3 hours) stands in for it, at half the speed", () => {
     const e = startGame(reg, 9, "matches");
     for (let i = 0; i < 4; i++) lookAround(e);
     e.applyEffects([{ give: { firewood: 10 } }]);
     e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_spear", time: "1.5h" });
+    expect(view(e).event!.choices.slice(0, 2)).toEqual([
+      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", tooltip: "3h" },
+      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs a knife. Without one, sharpen a rock into a rock knife first", time: "30m", tooltip: "10 firewood · 30m" },
+    ]);
     e.dispatch({ type: "choose", choice: "close" });
-    const t0 = e.state.time;
+    let t0 = e.state.time;
+    craft(e, "craft_rock_knife");
+    expect(e.state.time - t0).toBe(180);
+    expect(view(e).inventory.map((i) => i.id)).toContain("rock_knife");
+    e.dispatch({ type: "menu", menu: "craft" });
+    // the rock knife is had (it leaves the menu); the spear now takes twice as long
+    expect(view(e).event!.choices).toEqual([
+      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "1h", tooltip: "10 firewood · 1h" },
+      { id: "close", label: "back", enabled: true },
+    ]);
+    e.dispatch({ type: "choose", choice: "close" });
+    t0 = e.state.time;
     craft(e, "craft_spear");
-    expect(e.state.time - t0).toBe(90);
-    expect(e.state.log.some((l) => /sharp stone|sharp rock/.test(l.text))).toBe(true);
+    expect(e.state.time - t0).toBe(60);
+    expect(e.state.log.some((l) => /rock knife|stone blade/.test(l.text))).toBe(true);
   });
+
+  it("with the knife from the ship, the rock knife is never offered", () => {
+    const e = startGame(reg, 9, "knife");
+    for (let i = 0; i < 4; i++) lookAround(e);
+    e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "close"]);
+  });
+
+  it("a stand-in tool works wherever the tool is needed, and doubles the time (activities too)", () => {
+    const files = readContentFiles();
+    const forest = structuredClone(files["content/regions/forest.json"]) as { activities: unknown[] };
+    forest.activities.push({ id: "whittle", name: "whittle", hours: 1, effort: "light", requires: { item: "knife" } });
+    files["content/regions/forest.json"] = forest;
+    const r2 = buildRegistry(files);
+    const e = startGame(r2, 12, "water");
+    e.state.regions.forest.unlocked = true;
+    e.dispatch({ type: "travel", region: "forest" });
+    const whittle = () => view(e).actions.find((a) => a.id === "whittle")!;
+    expect(whittle()).toMatchObject({ enabled: false, reason: "Needs a knife or a rock knife" });
+    e.applyEffects([{ give: { rock_knife: 1 } }]);
+    expect(whittle()).toMatchObject({ enabled: true, tooltip: ["2h · light"] });
+    const t0 = e.state.time;
+    e.dispatch({ type: "activity", id: "whittle" });
+    expect(e.state.time - t0).toBe(120);
+    e.applyEffects([{ give: { knife: 1 } }]); // the real knife: back to its own time
+    expect(whittle().tooltip).toEqual(["1h · light"]);
+  });
+
 
   it("a menu with nothing in it says so (only close); while it is open nothing else works", () => {
     const e = startGame(reg, 10);

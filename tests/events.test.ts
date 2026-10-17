@@ -89,11 +89,15 @@ describe("what you grabbed", () => {
     expect(results).toEqual(new Set(["lit", "failed"]));
   });
 
-  it("the spear: 30 minutes with the knife, 90 with a sharp stone", () => {
-    for (const [choice, minutes] of [["knife", 30], ["water", 90]] as const) {
+  it("the spear: 30 minutes with the knife, an hour with a rock knife (made first, without the knife)", () => {
+    for (const [choice, minutes] of [["knife", 30], ["water", 60]] as const) {
       const e = startGame(reg, 4, choice);
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 10 } }]);
+      if (choice !== "knife") {
+        expect(craft(e, "craft_spear").ok, "no knife at all").toBe(false);
+        expect(craft(e, "craft_rock_knife").ok).toBe(true);
+      }
       const t0 = e.state.time;
       expect(craft(e, "craft_spear").ok).toBe(true);
       expect(e.state.time - t0, choice).toBe(minutes);

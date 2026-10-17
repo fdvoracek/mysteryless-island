@@ -304,6 +304,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
   for (const it of items.values()) {
+    if (it.substitutes) ref("item", it.substitutes.item, `item ${it.id}.substitutes`);
     for (const a of it.actions ?? []) {
       const w = `item ${it.id}.actions.${a.id}`;
       if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);

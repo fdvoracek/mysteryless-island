@@ -136,7 +136,7 @@ export function view(engine: Engine): View {
   for (const a of region.activities) {
     const c = engine.check(a);
     if (!c.visible) continue;
-    const tooltip = [`${fmtHours(a.hours)} · ${a.effort}`];
+    const tooltip = [`${fmtHours(engine.hoursFor(a.hours, [a.visibleWhen, a.requires]))} · ${a.effort}`];
     for (const [k, n] of Object.entries(a.cost ?? {})) tooltip.push(`${reg.items.get(k)?.name ?? k}: ${n}`);
     actions.push({ id: a.id, command: { type: "activity", id: a.id }, label: a.name, enabled: c.enabled, reason: sentence(c.reason), tooltip });
   }
@@ -197,7 +197,7 @@ export function view(engine: Engine): View {
       if (!c.visible) continue;
       actions.push({
         id: `item:${id}:${a.id}`, command: { type: "itemAction", item: id, action: a.id }, label: a.label,
-        enabled: c.enabled, reason: sentence(c.reason), tooltip: [`${a.label} · ${fmtHours(a.hours)}`],
+        enabled: c.enabled, reason: sentence(c.reason), tooltip: [`${a.label} · ${fmtHours(engine.hoursFor(a.hours, [a.visibleWhen, a.requires]))}`],
       });
     }
     if (invCats.has(item.category)) { inventory.push({ id, label: item.name, count, actions }); continue; }
@@ -307,14 +307,16 @@ function menuView(engine: Engine): View["event"] {
     ? engine.craftOptions().map((r) => {
       const w = engine.recipeWay(r)!;
       const c = engine.checkRecipe(r);
-      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(w.hours), tooltip: needs(w.cost, w.hours) };
+      const hours = engine.hoursFor(w.hours, [w.visibleWhen, w.requires]);
+      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), tooltip: needs(w.cost, hours) };
     })
     : engine.buildOptions().map((id) => {
       const b = reg.buildings.get(id)!;
       const c = engine.checkBuildingStep(id, "build");
       const built = engine.builtHere(id);
       const label = built ? `${b.name} (${built + 1} of ${b.max ?? 1})` : b.name;
-      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(b.build.hours), tooltip: [needs(b.build.cost, b.build.hours), b.hint].filter(Boolean).join(". ") };
+      const hours = engine.stepCost(id, "build").hours;
+      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), tooltip: [needs(b.build.cost, hours), b.hint].filter(Boolean).join(". ") };
     });
   choices.push({ id: "close", label: "back", enabled: true });
   return { id: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
@@ -330,7 +332,7 @@ function exploreView(engine: Engine): View["event"] {
     ? [
       ...engine.openLandmarks(region).map((d) => {
         const ch = engine.checkChoice(d);
-        return { id: d.id, label: d.label, enabled: ch.enabled, reason: sentence(ch.reason), time: fmtHours(d.hours) };
+        return { id: d.id, label: d.label, enabled: ch.enabled, reason: sentence(ch.reason), time: fmtHours(engine.hoursFor(d.hours, [d.visibleWhen, d.requires])) };
       }),
       ...close,
     ]

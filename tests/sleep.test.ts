@@ -15,7 +15,8 @@ const NOTHING = ["A day of small things. You hardly remember it.", "Nothing much
 const MEMORIES = [
   "The cold sea. Waking alone on the sand.",
   "Carving the spear with the knife, shaving by shaving.",
-  "Grinding a branch to a point on a sharp stone, for hours.",
+  "Hacking at a branch with the rock knife until it had a point.",
+  "Grinding a stone into a blade, for hours.",
   "Fish flashing in the shallows, just out of reach.",
   "Standing in the surf with the spear raised.",
   "A match flaring in your cupped hands, then warmth.",
@@ -72,11 +73,12 @@ describe("going to sleep", () => {
     expect(lines.indexOf(remembered[2])).toBeLessThan(lines.findIndex((l) => l === "Sleep takes you." || l === "At last, sleep."));
   });
 
-  it("remembers the fire and the spear the way you did them: match or friction, knife or stone", () => {
+  it("remembers the fire and the spear the way you did them: match or friction, knife or rock knife", () => {
     const memory = (choice: string, matches: boolean) => {
       const e = startGame(reg, 11, choice, { matches });
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 13 } }]);
+      if (choice !== "knife") craft(e, "craft_rock_knife"); // no knife from the ship: a rock knife first
       craft(e, "craft_spear");
       for (let i = 0; i < 6 && !e.state.timers.fire; i++) { // friction can fail: keep trying
         e.state.stats = { health: 100, energy: 50, hunger: 0, thirst: 0 };
@@ -88,9 +90,9 @@ describe("going to sleep", () => {
     };
     const knifeAndMatches = memory("knife", true);
     expect(knifeAndMatches).toContain("Carving the spear with the knife, shaving by shaving.");
-    expect(knifeAndMatches).not.toContain("Grinding a branch to a point on a sharp stone, for hours.");
+    expect(knifeAndMatches).not.toContain("Hacking at a branch with the rock knife until it had a point.");
     const stoneAndFriction = memory("rations", false);
-    expect(stoneAndFriction).toContain("Grinding a branch to a point on a sharp stone, for hours.");
+    expect(stoneAndFriction).toContain("Hacking at a branch with the rock knife until it had a point.");
     expect(stoneAndFriction).not.toContain("Carving the spear with the knife, shaving by shaving.");
     // the fire on its own (only the dunes and the rocks explored): match or friction
     const fireMemory = (matches: boolean) => {

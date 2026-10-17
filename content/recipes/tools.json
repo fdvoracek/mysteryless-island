@@ -1,11 +1,46 @@
 [
   {
+    "id": "craft_rock_knife",
+    "item": "rock_knife",
+    "_note": "for when you have no knife: 3 hours of sharpening; offered once a knife is needed (the spear)",
+    "availableWhen": {
+      "all": [
+        { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
+        { "not": { "item": "knife" } }
+      ]
+    },
+    "ways": [
+      {
+        "hours": 3,
+        "effort": "work",
+        "log": [
+          "You find a flat, hard stone and grind one edge against a rock, hour after hour, until it cuts.",
+          "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
+          "You knock flakes off a hard stone, then grind the edge. It will never be a knife, but it will do."
+        ]
+      }
+    ]
+  },
+  {
     "id": "craft_spear",
     "item": "fishing_spear",
     "availableWhen": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
     "ways": [
       {
-        "visibleWhen": { "item": "knife" },
+        "visibleWhen": { "item": "rock_knife" },
+        "requires": { "item": "knife" },
+        "hours": 0.5,
+        "effort": "light",
+        "cost": { "firewood": 10 },
+        "log": [
+          "You hack the straightest branch to a point with the rock knife. It is slow, blunt work.",
+          "The rock knife chews more than it cuts, but at last the branch has a point.",
+          "Stroke after stroke with the stone blade, until the tip is sharp enough."
+        ]
+      },
+      {
+        "requires": { "item": "knife" },
+        "requiresText": "Needs a knife. Without one, sharpen a rock into a rock knife first",
         "hours": 0.5,
         "effort": "light",
         "cost": { "firewood": 10 },
@@ -14,19 +49,9 @@
           "You pick the straightest branch and whittle the tip sharp.",
           "Shaving by shaving, the knife turns a branch into a point."
         ]
-      },
-      {
-        "hours": 1.5,
-        "effort": "work",
-        "cost": { "firewood": 10 },
-        "log": [
-          "Without a knife, you grind the straightest branch to a point on a sharp stone. It takes hours.",
-          "You scrape a branch against a sharp rock, again and again, until the tip is a point.",
-          "No blade, only a sharp stone and patience. Slowly the branch becomes a spear."
-        ]
       }
     ],
-    "_note": "with the knife: 30 min; without: a sharp stone, 1.5 h (each way has its own texts)"
+    "_note": "needs a knife: the real one 30 min; the rock knife takes twice as long (Item.substitutes)"
   },
   {
     "id": "craft_axe",

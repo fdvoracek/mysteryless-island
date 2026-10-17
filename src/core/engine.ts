@@ -1,7 +1,7 @@
 import type { Registry } from "../content/registry";
 import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
-import { batchesReady, buildingKey, buildingState, evaluate, explain, type Ctx } from "./conditions";
+import { batchesReady, buildingKey, buildingState, evaluate, explain, toolFactor, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
 import { createInitialState, type GameState } from "./state";
 import { chooseText, sentence } from "./text";
@@ -457,16 +457,25 @@ export class Engine {
     return res;
   }
 
+  /**
+   * An action's time with the tools you have: a stand-in for a tool it needs (the rock knife for the
+   * knife) makes it take longer (see Item.substitutes).
+   */
+  hoursFor(hours: number, conds: Array<Condition | undefined>): number {
+    return hours * toolFactor(this.reg, this.state, conds);
+  }
+
   private craft(r: Recipe): Result {
     const w = this.recipeWay(r)!;
+    const hours = this.hoursFor(w.hours, [w.visibleWhen, w.requires]);
     this.take(w.cost);
     this.log(this.say(w.log));
-    if (!this.advance(w.hours, w.effort)) return this.died(w.hours);
+    if (!this.advance(hours, w.effort)) return this.died(hours);
     this.give({ [r.item]: r.count ?? 1 });
     this.applyEffects(w.effects);
     this.count(r.id, r.tags);
     this.postCheck();
-    return this.ok(w.hours);
+    return this.ok(hours);
   }
 
   /** Is an item's action button (e.g. cook) shown, and usable now? */
@@ -491,14 +500,15 @@ export class Engine {
     const c = this.checkItemAction(itemId, a);
     if (!c.visible) return refuse("not possible here");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
+    const hours = this.hoursFor(a.hours, [a.visibleWhen, a.requires]);
     this.take({ [itemId]: a.uses ?? 1 });
     this.take(a.cost);
     this.log(this.say(a.log));
-    if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
+    if (!this.advance(hours, a.effort)) return this.died(hours);
     this.applyEffects(a.effects);
     this.count(`${itemId}_${a.id}`, a.tags);
     this.postCheck();
-    return this.ok(a.hours);
+    return this.ok(hours);
   }
 
   /** "look around": open the pop-up with what you see and the landmarks to explore. No time passes. */
@@ -531,7 +541,8 @@ export class Engine {
     if (!d) return refuse("unknown choice");
     const check = this.checkChoice(d);
     if (!check.enabled) return refuse(check.reason ?? "not possible now");
-    if (!this.advance(d.hours, d.effort)) { this.state.events.active = null; return this.died(d.hours); }
+    const hours = this.hoursFor(d.hours, [d.visibleWhen, d.requires]);
+    if (!this.advance(hours, d.effort)) { this.state.events.active = null; return this.died(hours); }
     const st = this.state.regions[region.id];
     st.discoveries.push(d.id);
     st.explored += 1;
@@ -572,15 +583,16 @@ export class Engine {
     if (!c.visible) return refuse("not available");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
 
+    const hours = this.hoursFor(a.hours, [a.visibleWhen, a.requires]);
     // thoughts are worked out first: how tired you are as you lie down, not after the night
     this.logLines(this.thoughts(a.thoughts));
     this.take(a.cost);
     this.log(this.say(a.log));
     // asleep you notice nothing (thirst, the fire dying): the morning sums it up in `afterwards`
     this.quiet = a.effort === "sleep";
-    const alive = this.advance(a.hours, a.effort);
+    const alive = this.advance(hours, a.effort);
     this.quiet = false;
-    if (!alive) return this.died(a.hours);
+    if (!alive) return this.died(hours);
 
     this.applyYields(a.yields);
     this.applyOutcomes(a.outcomes);
@@ -590,7 +602,7 @@ export class Engine {
     // sleeping ends the day: tomorrow's memories start empty
     if (a.effort === "sleep") this.state.today = {};
     this.postCheck();
-    return this.ok(a.hours);
+    return this.ok(hours);
   }
 
   private travel(regionId: string): Result {
@@ -681,7 +693,7 @@ export class Engine {
     const n = step === "build" ? 1 : Math.max(1, this.builtHere(id));
     const cost: Record<string, number> = {};
     for (const [k, v] of Object.entries(d.cost ?? {})) cost[k] = v * n;
-    return { hours: d.hours * n, cost };
+    return { hours: this.hoursFor(d.hours * n, [d.requires]), cost };
   }
 
   /** Can this step be done now (you are there, it is its turn, its requirements and cost)? */

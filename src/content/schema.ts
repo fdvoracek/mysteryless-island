@@ -376,6 +376,11 @@ export const Item = z
     category: z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"]),
     /** the most you can have (e.g. 4 drinks in the water can); getting more stops there */
     max: z.number().int().positive().optional(),
+    /**
+     * Stands in for another item wherever that one is needed ({ "item": id } in a requirement), but
+     * the action then takes `hoursFactor` times as long (the rock knife for the knife: twice as long).
+     */
+    substitutes: z.object({ item: Id, hoursFactor: z.number().min(1) }).strict().optional(),
     consume: Consume.optional(),
     actions: z.array(ItemAction).optional(),
   })

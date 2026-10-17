@@ -413,15 +413,23 @@
                 "The knife turning a branch into a spear.",
                 "The spear you carved, its point sharp under your thumb."
               ],
-              "when": { "all": [{ "today": "craft_spear" }, { "item": "knife" }] }
+              "when": { "all": [{ "today": "craft_spear" }, { "not": { "item": "rock_knife" } }] }
             },
             {
               "text": [
-                "Grinding a branch to a point on a sharp stone, for hours.",
-                "The stone, the branch, and your aching arms: a spear.",
-                "A spear made without a blade, only stone and patience."
+                "Hacking at a branch with the rock knife until it had a point.",
+                "The blunt rock knife, and the spear it made, slowly.",
+                "A spear made with a blade of stone."
               ],
-              "when": { "all": [{ "today": "craft_spear" }, { "not": { "item": "knife" } }] }
+              "when": { "all": [{ "today": "craft_spear" }, { "item": "rock_knife" }] }
+            },
+            {
+              "text": [
+                "Grinding a stone into a blade, for hours.",
+                "Stone on stone, until it had an edge.",
+                "The rock knife, and how long it took."
+              ],
+              "when": { "today": "craft_rock_knife" }
             },
             {
               "text": [
@@ -588,7 +596,7 @@
             "An empty sort of day.",
             "Hours of wind and waiting."
           ],
-          "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches or friction, knife or stone)"
+          "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches or friction, knife or rock knife)"
         }
       ],
       "log": [

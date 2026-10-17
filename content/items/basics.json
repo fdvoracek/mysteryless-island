@@ -122,6 +122,13 @@
   },
   { "id": "fishing_spear", "name": "fishing spear", "category": "tool" },
   { "id": "knife", "name": "knife", "category": "tool" },
+  {
+    "id": "rock_knife",
+    "name": "rock knife",
+    "category": "tool",
+    "_note": "a sharpened rock: works wherever a knife is needed, but everything takes twice as long with it",
+    "substitutes": { "item": "knife", "hoursFactor": 2 }
+  },
   { "id": "summer_clothes", "name": "summer clothes", "category": "clothing" },
   {
     "id": "matches",
