@@ -78,6 +78,10 @@ test("the meadows: a ? to the west once the cliff is seen; climbing it opens the
   await explore(page, "berry_bushes");
   await explore(page, "river");
   for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
+  // the spear can be crafted, the trap built: look around, craft and build share the first line (classic is wide enough)
+  const y = async (name: string) => (await action(page, name).boundingBox())!.y;
+  expect(await y("craft")).toBe(await y("look around"));
+  expect(await y("build")).toBe(await y("look around"));
   // the river starts the fish trap task: 20 willow twigs; built from the build menu; then it is in the buildings panel
   const task = page.locator('#quests .quest[data-id="build_fish_trap"]');
   await expect(task).toBeVisible();
@@ -129,10 +133,8 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
 test("the game is visible and not covered on load", async ({ page }) => {
   await expect(page).toHaveTitle("Mysteryless Island");
   await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
-  // the game starts with the buttons that are there everywhere: look around, craft, build (one line)
-  await expect(page.locator("#actions .btn .label")).toHaveText(["look around*", "craft", "build"]);
-  const y = async (name: string) => (await action(page, name).boundingBox())!.y;
-  expect(await y("craft")).toBe(await y("look around"));
+  // the game starts with a single button (craft and build appear once there is something to make)
+  await expect(page.locator("#actions .btn .label")).toHaveText(["look around*"]);
   await expect(page.locator("#fade")).toBeHidden();
 
   // survival stats are ink bars with the word on hover

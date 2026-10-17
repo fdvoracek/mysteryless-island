@@ -1,6 +1,7 @@
 /* classic: like A Dark Room: the places on their own row on top, then three columns */
 .layout-classic .wrap {
-  max-width: 980px; margin: 0 auto; padding: 24px 20px 80px;
+  /* wide enough for three buttons in a row in the middle column (look around, craft, build) */
+  max-width: 1040px; margin: 0 auto; padding: 24px 20px 80px;
   display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 28px 32px; align-items: start;
   grid-template-areas: "places places places" "log centre side";
 }
@@ -18,6 +19,10 @@
 .layout-classic .log .entry { font-size: 15px; }
 .layout-classic .side { display: grid; gap: 18px; }
 
+/* a narrower window: slimmer side columns, so the three buttons still fit in the middle */
+@media (max-width: 1080px) {
+  .layout-classic .wrap { grid-template-columns: 170px minmax(0, 1fr) 200px; gap: 24px 20px; }
+}
 @media (max-width: 760px) {
   .layout-classic .wrap { grid-template-columns: 1fr; grid-template-areas: none; gap: 20px; }
   .layout-classic .tabs, .layout-classic .log, .layout-classic .centre, .layout-classic .side { grid-area: auto; }

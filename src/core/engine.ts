@@ -391,6 +391,17 @@ export class Engine {
       evaluate(r.availableWhen, ctx) && !!this.recipeWay(r) && (r.multiple || (this.state.items[r.item] ?? 0) < 1));
   }
 
+  /**
+   * Is the craft or build button shown? Not at the start: from the moment something can be crafted,
+   * or something is available to build somewhere; then it stays, everywhere (flag "menu_<menu>").
+   */
+  menuShown(menu: "craft" | "build"): boolean {
+    if (this.state.flags.includes(`menu_${menu}`)) return true;
+    if (menu === "craft") return this.craftOptions().length > 0;
+    const ctx = this.ctx();
+    return [...this.reg.buildings.values()].some((b) => evaluate(b.availableWhen, ctx));
+  }
+
   /** Buildings in the build menu: available, allowed here, fewer than their max here. */
   buildOptions(): string[] {
     return [...this.reg.buildings.keys()].filter((id) => this.buildable(id));
@@ -997,7 +1008,7 @@ export class Engine {
     }
   }
 
-  /** Runs after every command: unlock regions, then update quests. */
+  /** Runs after every command: unlock regions, then update quests (and remember menus once shown). */
   private postCheck() {
     const ctx = this.ctx();
     for (const id of this.reg.regionOrder) {
@@ -1010,6 +1021,14 @@ export class Engine {
       }
     }
     this.syncQuests();
+    this.rememberMenus();
+  }
+
+  /** Once the craft or build button has appeared it stays, even where there is nothing to make. */
+  private rememberMenus() {
+    for (const m of ["craft", "build"] as const) {
+      if (!this.state.flags.includes(`menu_${m}`) && this.menuShown(m)) this.state.flags.push(`menu_${m}`);
+    }
   }
 }
 

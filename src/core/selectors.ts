@@ -119,8 +119,10 @@ export function view(engine: Engine): View {
       tooltip: ["no time", ex.open > 0 ? "something here is not explored yet" : "nothing new to explore"],
     });
   }
-  // the craft and build menus: everywhere, next to look around; * when something in them can be made now
+  // the craft and build menus: next to look around, everywhere, once they have appeared (not at the
+  // start); * when something in them can be made now
   for (const menu of ["craft", "build"] as const) {
+    if (!engine.menuShown(menu)) continue;
     const options = menu === "craft"
       ? engine.craftOptions().map((r) => engine.checkRecipe(r).enabled)
       : engine.buildOptions().map((id) => engine.checkBuildingStep(id, "build").enabled);

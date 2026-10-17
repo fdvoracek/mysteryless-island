@@ -8,11 +8,11 @@ const reg = loadRegistry();
 const fresh = (seed = 1) => revealAll(startGame(reg, seed));
 
 describe("engine: the prototype loop", () => {
-  it("starts at dawn on the beach with only 'look around', 'craft' and 'build'", () => {
+  it("starts at dawn on the beach with only 'look around' (craft and build appear once there is something)", () => {
     const e = startGame(reg, 1);
     expect(e.state.location).toBe("beach");
     expect(clockText(e.state.time)).toBe("06:00");
-    expect(view(e).actions.map((a) => a.label)).toEqual(["look around", "craft", "build"]);
+    expect(view(e).actions.map((a) => a.label)).toEqual(["look around"]);
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
   });
 

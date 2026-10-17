@@ -276,13 +276,13 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 });
 
 describe("the craft and build menus", () => {
-  it("craft and build: everywhere, next to look around; * when something can be made now", () => {
+  it("craft and build: hidden at first; they appear next to look around once there is something, then stay everywhere", () => {
     const e = startGame(reg, 8);
     const menu = () => view(e).actions.find((a) => a.id === "menu:craft");
-    expect(view(e).actions.slice(0, 3).map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build"]);
-    expect(menu()).toMatchObject({ label: "craft", menu: true, badge: undefined }); // nothing to make yet, but there
-    for (let i = 0; i < 4; i++) lookAround(e); // the shallows: the spear task, so the spear recipe
-    expect(menu()).toMatchObject({ label: "craft", badge: undefined });
+    expect(view(e).actions.map((a) => a.id)).toEqual(["explore:beach"]); // nothing to make yet
+    for (let i = 0; i < 4; i++) lookAround(e); // the shallows: fish, so the spear recipe
+    expect(view(e).actions.slice(0, 2).map((a) => a.id)).toEqual(["explore:beach", "menu:craft"]);
+    expect(menu()).toMatchObject({ label: "craft", menu: true, badge: undefined });
     e.applyEffects([{ give: { firewood: 10 } }]);
     expect(menu()!.badge).toBe("*");
     // the pop-up: one button per thing, with its time; what it needs is in the tooltip; no time passes
@@ -303,6 +303,15 @@ describe("the craft and build menus", () => {
     expect(menu()!.badge).toBeUndefined();
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.map((c) => c.id)).toEqual(["close"]); // the spear has left the menu
+    e.dispatch({ type: "choose", choice: "close" });
+    e.state.regions.forest.unlocked = true;
+    e.dispatch({ type: "travel", region: "forest" });
+    expect(menu()).toBeDefined(); // it stays, everywhere
+    expect(view(e).actions.map((a) => a.id)).not.toContain("menu:build"); // nothing to build anywhere yet
+    e.state.quests.survive_first_night.status = "done"; // the shelter task: something to build (on the beach)
+    e.syncQuests();
+    e.dispatch({ type: "activity", id: "gather_wood" });
+    expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // shown in the forest too: it says there is nothing here
   });
 
   it("the spear without a knife: the menu offers the slower way (a sharp stone)", () => {
