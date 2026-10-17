@@ -96,6 +96,7 @@ describe("what you grabbed", () => {
       e.applyEffects([{ give: { firewood: 10 } }]);
       if (choice !== "knife") {
         expect(craft(e, "craft_spear").ok, "no knife at all").toBe(false);
+        e.applyEffects([{ give: { stone: 2 } }]);
         expect(craft(e, "craft_rock_knife").ok).toBe(true);
       }
       const t0 = e.state.time;

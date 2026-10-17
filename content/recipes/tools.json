@@ -2,7 +2,7 @@
   {
     "id": "craft_rock_knife",
     "item": "rock_knife",
-    "_note": "for when you have no knife: 3 hours of sharpening; offered once a knife is needed (the spear)",
+    "_note": "for when you have no knife: 2 stones and 3 hours of sharpening; offered once a knife is needed (the spear)",
     "availableWhen": {
       "all": [
         { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
@@ -13,10 +13,11 @@
       {
         "hours": 3,
         "effort": "work",
+        "cost": { "stone": 2 },
         "log": [
-          "You find a flat, hard stone and grind one edge against a rock, hour after hour, until it cuts.",
+          "You grind one stone against the other, hour after hour, until an edge comes up that cuts.",
           "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
-          "You knock flakes off a hard stone, then grind the edge. It will never be a knife, but it will do."
+          "You knock flakes off one stone with the other, then grind the edge. It will never be a knife, but it will do."
         ]
       }
     ]
@@ -40,7 +41,7 @@
       },
       {
         "requires": { "item": "knife" },
-        "requiresText": "Needs a knife. Without one, sharpen a rock into a rock knife first",
+        "requiresText": "Needs a knife. Without one, grind two stones into a rock knife first",
         "hours": 0.5,
         "effort": "light",
         "cost": { "firewood": 10 },

@@ -275,6 +275,7 @@
           { "discovered": "cliff_shells" },
           {
             "any": [
+              { "all": [{ "discovered": "school_of_fish" }, { "not": { "item": "knife" } }] },
               { "any": [{ "quest": "cut_logs", "is": "active" }, { "quest": "cut_logs", "is": "done" }] },
               {
                 "any": [
@@ -297,7 +298,8 @@
         "Under the cliff, stones of every size. You pick the hardest.",
         "You choose stones from the foot of the cliff, flat and heavy.",
         "You gather stones where the cliff has crumbled."
-      ]
+      ],
+      "_note": "stones lie under the cliff: shown once you need them (a rock knife without the knife, the axe, the hoe, the weir)"
     },
     {
       "id": "catch_fish",

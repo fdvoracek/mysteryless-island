@@ -78,7 +78,7 @@ describe("going to sleep", () => {
       const e = startGame(reg, 11, choice, { matches });
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 13 } }]);
-      if (choice !== "knife") craft(e, "craft_rock_knife"); // no knife from the ship: a rock knife first
+      if (choice !== "knife") { e.applyEffects([{ give: { stone: 2 } }]); craft(e, "craft_rock_knife"); } // no knife from the ship: a rock knife first
       craft(e, "craft_spear");
       for (let i = 0; i < 6 && !e.state.timers.fire; i++) { // friction can fail: keep trying
         e.state.stats = { health: 100, energy: 50, hunger: 0, thirst: 0 };

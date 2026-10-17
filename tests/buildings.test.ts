@@ -314,19 +314,28 @@ describe("the craft and build menus", () => {
     expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // shown in the forest too: it says there is nothing here
   });
 
-  it("without a knife: the spear needs one; a rock knife (3 hours) stands in for it, at half the speed", () => {
+  it("without a knife: the spear needs one; a rock knife (2 stones, 3 hours) stands in for it, at half the speed", () => {
     const e = startGame(reg, 9, "matches");
     for (let i = 0; i < 4; i++) lookAround(e);
     e.applyEffects([{ give: { firewood: 10 } }]);
     e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_rock_knife", enabled: false, reason: "Needs 2 stones (have 0)" });
+    e.dispatch({ type: "choose", choice: "close" });
+    // the stones lie under the cliff: picking them up is offered now that a knife is needed
+    expect(view(e).actions.map((a) => a.id)).toContain("collect_stones");
+    e.dispatch({ type: "activity", id: "collect_stones" });
+    expect(e.state.items.stone).toBeGreaterThanOrEqual(2);
+    e.state.items.stone = 2;
+    e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.slice(0, 2)).toEqual([
-      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", tooltip: "3h" },
-      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs a knife. Without one, sharpen a rock into a rock knife first", time: "30m", tooltip: "10 firewood · 30m" },
+      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", tooltip: "2 stones · 3h" },
+      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs a knife. Without one, grind two stones into a rock knife first", time: "30m", tooltip: "10 firewood · 30m" },
     ]);
     e.dispatch({ type: "choose", choice: "close" });
     let t0 = e.state.time;
     craft(e, "craft_rock_knife");
     expect(e.state.time - t0).toBe(180);
+    expect(e.state.items.stone).toBe(0);
     expect(view(e).inventory.map((i) => i.id)).toContain("rock_knife");
     e.dispatch({ type: "menu", menu: "craft" });
     // the rock knife is had (it leaves the menu); the spear now takes twice as long
@@ -341,9 +350,10 @@ describe("the craft and build menus", () => {
     expect(e.state.log.some((l) => /rock knife|stone blade/.test(l.text))).toBe(true);
   });
 
-  it("with the knife from the ship, the rock knife is never offered", () => {
+  it("with the knife from the ship, the rock knife is never offered (nor the stones, yet)", () => {
     const e = startGame(reg, 9, "knife");
     for (let i = 0; i < 4; i++) lookAround(e);
+    expect(view(e).actions.map((a) => a.id)).not.toContain("collect_stones");
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "close"]);
   });

@@ -281,14 +281,16 @@ test("finding the fish starts 'catch a fish' (it needs a spear or a trap); the s
   await expect(action(page, "craft").locator(".label")).toHaveText("craft"); // no *: one spear is enough
 });
 
-test("without the knife: a rock knife first (3 hours), then the spear takes twice as long", async ({ page }) => {
+test("without the knife: a rock knife first (2 stones, 3 hours), then the spear takes twice as long", async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await escapeShip(page, "matches");
   for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
+  await action(page, "pick up stones").click(); // under the cliff: 2 or 3 stones
   await action(page, "craft").click();
   await expect(page.locator('#eventChoices [data-choice="craft_rock_knife"]')).toHaveText("rock knife3h");
+  await expect(page.locator('#eventChoices [data-choice="craft_rock_knife"]')).toHaveAttribute("title", "2 stones · 3h");
   await expect(page.locator('#eventChoices [data-choice="craft_spear"]')).toHaveClass(/off/);
   await page.locator('#eventChoices [data-choice="craft_rock_knife"]').click();
   await expect(page.locator("#inventory")).toContainText("rock knife");
