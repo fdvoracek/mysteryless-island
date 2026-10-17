@@ -35,7 +35,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     expect(found.text).toMatch(/Meadows, an hour's walk away\./);
     expect(found.choices).toEqual([
       { id: "go:meadows", label: "go to the meadows", enabled: true, time: "1h" },
-      { id: "close", label: "close", enabled: true },
+      { id: "close", label: "back", enabled: true },
     ]);
     choose(e, "close");
     expect(view(e).tabs.map((t) => [t.id, t.col])).toEqual([["beach", 1], ["meadows", 0]]);

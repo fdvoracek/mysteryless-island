@@ -18,7 +18,7 @@ describe("a new place on the map: the pop-up that opened it offers to walk there
     expect(v.text.endsWith(`\n\n${HINT}`)).toBe(true);
     expect(v.choices).toEqual([
       { id: "go:forest", label: "go to the forest", enabled: true, time: "30m" },
-      { id: "close", label: "close", enabled: true },
+      { id: "close", label: "back", enabled: true },
     ]);
     expect(e.state.log.some((l) => l.text.includes("on your map"))).toBe(false); // the hint is not the story
     choose(e, "close");
@@ -67,7 +67,7 @@ describe("a new place on the map: the pop-up that opened it offers to walk there
     choose(e, "follow");
     const v = view(e).event!;
     expect(v).toMatchObject({ id: "note", title: "A new place", text: HINT });
-    expect(v.choices.map((c) => c.label)).toEqual(["go to the forest", "close"]);
+    expect(v.choices.map((c) => c.label)).toEqual(["go to the forest", "back"]);
     choose(e, "go:forest");
     expect(e.state.location).toBe("forest");
   });

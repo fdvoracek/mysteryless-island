@@ -202,9 +202,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .modal.event .event-text p:last-child { margin-bottom: 0; }
 .modal.event .buttons { gap: 10px; }
 .modal.event .btn { width: calc(50% - 5px); }
-/* close: always last, on the right (see renderEvent) */
-.modal.event .btn.close { margin-left: auto; }
-.modal.event { cursor: default; }
+/* the title line: the title, and the back arrow on the right at the same height (see renderEvent) */
+.modal.event .title-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.modal.event .back {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; margin: -2px -4px -2px 0;
+  border: 0; background: none; color: var(--muted); font-size: 17px; line-height: 1.2; cursor: pointer;
+}
+.modal.event .back:hover, .modal.event .back:focus-visible { color: var(--fg); }
 /* an event before the story starts: nothing of the island behind it yet */
 #app.prologue #game, #app.prologue .menu { visibility: hidden; }
 #app.prologue .modal.event { background: var(--bg); }
@@ -265,6 +269,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   /* events: the text a little tighter, the choices two per row, so a scene fits one screen */
   .modal.event .panel { padding: 18px; gap: 14px; }
   .modal.event .title { font-size: 20px; }
+  .modal.event .back { min-height: 40px; padding: 0 6px; margin-right: -6px; }
   .modal.event .event-text p { font-size: 16px; line-height: 1.45; margin-bottom: 0.6em; }
   .modal.event .buttons { gap: 8px; }
   .modal.event .btn { width: calc(50% - 4px); }

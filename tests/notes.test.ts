@@ -19,7 +19,7 @@ describe("a note when a task is done", () => {
     const e = atTheRiver(1);
     build(e, "fish_trap");
     const v = view(e).event!;
-    expect(v).toMatchObject({ id: "note", title: "Task done: build a fish trap", choices: [{ id: "close", label: "close", enabled: true }] });
+    expect(v).toMatchObject({ id: "note", title: "Task done: build a fish trap", choices: [{ id: "close", label: "back", enabled: true }] });
     expect(v.text.split("\n\n")).toEqual(["The trap is set. The fish will come to it.", "20 willow twigs used.", "Fish trap built."]);
     // the game waits for it, then goes on
     expect(e.dispatch({ type: "activity", id: "drink_river" })).toMatchObject({ ok: false, reason: "an event is open" });

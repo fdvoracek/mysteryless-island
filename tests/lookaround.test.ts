@@ -25,7 +25,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
       { id: "forest_edge", label: "the dunes", enabled: true, time: "30m" },
       { id: "rock_shelter", label: "the ring of rocks", enabled: true, time: "30m" },
       { id: "school_of_fish", label: "the shallows", enabled: true, time: "30m" },
-      { id: "close", label: "close", enabled: true },
+      { id: "close", label: "back", enabled: true },
     ]);
     // closing without exploring: no time, nothing written
     const logged = e.state.log.length;
@@ -43,7 +43,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(e.state.time - t0).toBe(30);
     const ev = view(e).event!;
     expect(ev.text).toMatch(/^At the far end of the beach, a ring of rocks breaks the sea wind/);
-    expect(ev.choices).toEqual([{ id: "close", label: "close", enabled: true }]);
+    expect(ev.choices).toEqual([{ id: "close", label: "back", enabled: true }]);
     expect(e.state.log.some((l) => l.text === ev.text)).toBe(true);
     choose(e, "close");
     expect(view(e).actions.map((a) => a.id)).toContain("light_fire"); // the result: a new action

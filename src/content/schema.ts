@@ -601,7 +601,10 @@ export const EventScene = z
     /** applied when the scene opens */
     effects: z.array(Effect).optional(),
     choices: z.array(EventChoice).min(1).optional(),
-    /** label of the button that ends the event, for a scene without choices */
+    /**
+     * label of the button that ends the event, for a scene without choices (default "back", the
+     * arrow in the title line; in the story before the island it is a button under the text)
+     */
     close: z.string().optional(),
   })
   .strict();

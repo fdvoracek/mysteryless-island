@@ -72,18 +72,22 @@ export class UI {
       </div>
       <div class="modal event" id="event" hidden>
         <div class="panel" role="dialog" aria-modal="true" aria-labelledby="eventTitle">
-          <h2 class="title" id="eventTitle"></h2>
+          <div class="title-row">
+            <h2 class="title" id="eventTitle"></h2>
+            <button class="back" id="eventBack" hidden><span aria-hidden="true">←</span> <span class="label"></span></button>
+          </div>
           <div class="event-text" id="eventText" aria-live="polite"></div>
           <div class="buttons" id="eventChoices"></div>
         </div>
       </div>`;
-    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventText", "eventChoices", "end", "endTitle", "endText", "endLoad", "endRestart", "saveBtn"]) {
+    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventBack", "eventText", "eventChoices", "end", "endTitle", "endText", "endLoad", "endRestart", "saveBtn"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
     this.buildLayoutMenu();
     this.buildFontMenu();
-    // a pop-up with a close button also closes on a click next to it, or on Escape (not the story
-    // before the island, which fills the screen)
+    // the back arrow closes the pop-up; so does a click next to it, or Escape (not the story before
+    // the island, which fills the screen)
+    this.els.eventBack.addEventListener("click", () => this.closeEvent());
     this.els.event.addEventListener("click", (e) => { if (e.target === this.els.event) this.closeEvent(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.els.event.hidden) this.closeEvent(); });
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
@@ -191,7 +195,14 @@ export class UI {
       box.dataset.key = key;
       this.els.eventTitle.textContent = ev.title;
       this.els.eventText.replaceChildren(...ev.text.split(/\n\s*\n/).map((p) => { const el = document.createElement("p"); el.textContent = p; return el; }));
-      this.els.eventChoices.replaceChildren(...ev.choices.map((c) => {
+      // close is the back arrow in the title line (the same place in every pop-up); in the story
+      // before the island it stays a button under the text
+      const closeChoice = ev.prologue ? undefined : ev.choices.find((c) => c.id === "close");
+      this.els.eventBack.hidden = !closeChoice;
+      if (closeChoice) this.els.eventBack.querySelector(".label")!.textContent = closeChoice.label;
+      const buttons = ev.choices.filter((c) => c !== closeChoice);
+      this.els.eventChoices.hidden = buttons.length === 0;
+      this.els.eventChoices.replaceChildren(...buttons.map((c) => {
         const b = document.createElement("button");
         b.className = "btn";
         b.dataset.choice = c.id;
@@ -201,15 +212,8 @@ export class UI {
         b.addEventListener("click", () => { if (!b.classList.contains("off")) this.send({ type: "choose", choice: c.id }, b); });
         return b;
       }));
-      // close is always on the last row, on the right, so it is in the same place in every pop-up
-      const close = this.els.eventChoices.querySelector<HTMLElement>('[data-choice="close"]');
-      if (close) {
-        close.classList.add("close");
-        close.parentElement!.append(close);
-        if (close.previousElementSibling) close.before(div("", "break"));
-      }
       box.hidden = false;
-      window.setTimeout(() => this.els.eventChoices.querySelector<HTMLButtonElement>(".btn:not(.off)")?.focus(), 0);
+      window.setTimeout(() => (this.els.eventChoices.querySelector<HTMLButtonElement>(".btn:not(.off)") ?? (closeChoice ? this.els.eventBack : null))?.focus(), 0);
     }
     for (const c of ev.choices) {
       const b = this.els.eventChoices.querySelector<HTMLElement>(`[data-choice="${c.id}"]`);
@@ -221,11 +225,10 @@ export class UI {
     }
   }
 
-  /** Close the open pop-up, if it has a close button (an event that asks for a choice does not close). */
+  /** Close the open pop-up, if it has a back arrow (an event that asks for a choice does not close). */
   private closeEvent() {
-    if (this.root.classList.contains("prologue")) return;
-    const b = this.els.eventChoices.querySelector<HTMLElement>('[data-choice="close"]');
-    if (b && !b.classList.contains("off")) this.send({ type: "choose", choice: "close" }, b);
+    if (this.root.classList.contains("prologue") || this.els.eventBack.hidden) return;
+    this.send({ type: "choose", choice: "close" }, this.els.eventBack);
   }
 
   // ---------------------------------------------------------------- panels

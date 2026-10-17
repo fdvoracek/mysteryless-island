@@ -280,7 +280,7 @@ function eventView(engine: Engine): View["event"] {
   if (active?.id.startsWith("explore:")) return exploreView(engine);
   if (active?.id.startsWith("menu:")) return menuView(engine);
   if (active?.id === "note") {
-    return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "close", enabled: true }] };
+    return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "back", enabled: true }] };
   }
   const open = engine.openEventScene();
   if (!open) return null;
@@ -290,7 +290,7 @@ function eventView(engine: Engine): View["event"] {
       const ch = engine.checkChoice(c);
       return ch.visible ? [{ id: c.id, label: c.label, enabled: ch.enabled, reason: sentence(ch.reason) }] : [];
     })
-    : [{ id: "close", label: scene.close ?? "close", enabled: true }];
+    : [{ id: "close", label: scene.close ?? "back", enabled: true }];
   return { id: event.id, title: event.title, text, prologue: event.trigger === "start", choices };
 }
 
@@ -316,7 +316,7 @@ function menuView(engine: Engine): View["event"] {
       const label = built ? `${b.name} (${built + 1} of ${b.max ?? 1})` : b.name;
       return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(b.build.hours), tooltip: [needs(b.build.cost, b.build.hours), b.hint].filter(Boolean).join(". ") };
     });
-  choices.push({ id: "close", label: "close", enabled: true });
+  choices.push({ id: "close", label: "back", enabled: true });
   return { id: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
 }
 
@@ -325,7 +325,7 @@ function exploreView(engine: Engine): View["event"] {
   const active = engine.state.events.active!;
   const region = engine.reg.regions.get(active.id.slice("explore:".length))!;
   const ex = region.explore!;
-  const close = [{ id: "close", label: "close", enabled: true }];
+  const close = [{ id: "close", label: "back", enabled: true }];
   const choices = active.scene === "look"
     ? [
       ...engine.openLandmarks(region).map((d) => {

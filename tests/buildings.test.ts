@@ -291,7 +291,7 @@ describe("the craft and build menus", () => {
     expect(view(e).event).toMatchObject({ id: "menu:craft", title: "Craft" });
     expect(view(e).event!.choices).toEqual([
       { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "30m", tooltip: "10 firewood · 30m" },
-      { id: "close", label: "close", enabled: true },
+      { id: "close", label: "back", enabled: true },
     ]);
     expect(e.state.time).toBe(t0);
     // making it closes the pop-up and takes its time; the spear leaves the menu (one is enough)

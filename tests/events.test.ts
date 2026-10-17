@@ -31,7 +31,7 @@ describe("the opening event: the shipwreck", () => {
     expect(look(e)).toMatchObject({ ok: false, reason: "an event is open" });
   });
 
-  it("each choice gives its item, then tells how you reached the shore, with a close button", () => {
+  it("each choice gives its item, then tells how you reached the shore, with 'wash ashore' to end it", () => {
     const kits: Array<[string, Record<string, number>, RegExp]> = [
       ["knife", { knife: 1 }, /the knife clenched in your fist/],
       ["matches", { matches: 10 }, /the tin of matches/],
@@ -43,7 +43,7 @@ describe("the opening event: the shipwreck", () => {
       expect(choose(e, choice).ok).toBe(true);
       const v = view(e);
       expect(v.event!.text, choice).toMatch(swim);
-      expect(v.event!.choices).toEqual([{ id: "close", label: "close", enabled: true }]);
+      expect(v.event!.choices).toEqual([{ id: "close", label: "wash ashore", enabled: true }]);
       expect(e.state.items).toEqual({ summer_clothes: 1, ...items });
       expect(choose(e, "close").ok).toBe(true);
       expect(view(e).event).toBeNull();

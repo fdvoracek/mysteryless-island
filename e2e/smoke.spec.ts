@@ -40,8 +40,10 @@ async function explore(page: Page, landmark?: string) {
   await pick.click();
   // what was found; the dunes and the cliff top put a place on the map, so those findings can also walk there
   const go: Record<string, string> = { forest_edge: "go to the forest30m", cliff_top: "go to the meadows1h" };
-  await expect(page.locator("#eventChoices .btn")).toHaveText(id && go[id] ? [go[id], "close"] : ["close"]);
-  await page.locator('#eventChoices [data-choice="close"]').click();
+  if (id && go[id]) await expect(page.locator("#eventChoices .btn")).toHaveText([go[id]]);
+  else await expect(page.locator("#eventChoices .btn")).toHaveCount(0);
+  await expect(page.locator("#eventBack")).toBeVisible();
+  await page.locator("#eventBack").click();
   await expect(page.locator("#event")).toBeHidden();
 }
 
@@ -94,7 +96,7 @@ test("the meadows: a ? to the west once the cliff is seen; climbing it opens the
   const trap = page.locator('#buildings .row[data-id="fish_trap"]');
   await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fish trap");
   await expect(page.locator("#eventText")).toContainText("Fish trap built.");
-  await page.locator('#eventChoices [data-choice="close"]').click();
+  await page.locator("#eventBack").click();
   await expect(trap.locator(".val")).toHaveText("not set");
   await trap.locator(".sbtn").click();
   await expect(trap.locator(".val")).toHaveText("set · 2h");
@@ -114,7 +116,9 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
 
   await page.locator('#eventChoices [data-choice="matches"]').click();
   await expect(page.locator("#eventText")).toContainText("The tin is still there, still shut.");
-  await expect(page.locator("#eventChoices .btn")).toHaveText(["close"]);
+  // the story before the island ends with a button under the text, not the back arrow
+  await expect(page.locator("#eventChoices .btn")).toHaveText(["wash ashore"]);
+  await expect(page.locator("#eventBack")).toBeHidden();
   await page.locator('#eventChoices [data-choice="close"]').click();
   await expect(event).toBeHidden();
   // the journal tells it all as one story: the storm, the swim, then the beach
@@ -170,12 +174,15 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await action(page, "look around").click();
   await expect(page.locator("#eventText")).toContainText("Behind the dunes, a dark line of trees.");
   await expect(page.locator('#eventChoices [data-choice="forest_edge"]')).toHaveText("the dunes30m");
-  // close is the last button, on its own row, on the right
-  const closeBox = (await page.locator('#eventChoices [data-choice="close"]').boundingBox())!;
-  const lastLandmark = (await page.locator('#eventChoices .btn:not([data-choice="close"])').last().boundingBox())!;
-  const choicesBox = (await page.locator("#eventChoices").boundingBox())!;
-  expect(closeBox.y).toBeGreaterThan(lastLandmark.y);
-  expect(Math.abs(closeBox.x + closeBox.width - (choicesBox.x + choicesBox.width))).toBeLessThan(2);
+  // no close button: "← back" in the title line, on the right, level with the title
+  await expect(page.locator('#eventChoices [data-choice="close"]')).toHaveCount(0);
+  await expect(page.locator("#eventBack")).toHaveText("← back");
+  const backBox = (await page.locator("#eventBack").boundingBox())!;
+  const titleBox = (await page.locator("#eventTitle").boundingBox())!;
+  const textBox = (await page.locator("#eventText").boundingBox())!;
+  expect(Math.abs(backBox.y + backBox.height / 2 - (titleBox.y + titleBox.height / 2))).toBeLessThan(3);
+  expect(backBox.x).toBeGreaterThan(titleBox.x + titleBox.width);
+  expect(Math.abs(backBox.x + backBox.width - (textBox.x + textBox.width))).toBeLessThan(6);
   // a click next to the pop-up closes it, like close
   await page.mouse.click(5, 5);
   await expect(page.locator("#event")).toBeHidden();
@@ -214,7 +221,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   // an explored landmark is not offered again
   await action(page, "look around").click();
   await expect(page.locator('#eventChoices [data-choice="rock_shelter"]')).toHaveCount(0);
-  await page.locator('#eventChoices [data-choice="close"]').click();
+  await page.locator("#eventBack").click();
 
   // forest: wood can be collected at once; the sound of water leads to the spring
   await tab(page, "the forest").click();
@@ -261,7 +268,7 @@ test("finding the fish starts 'catch a fish' (it needs a spear or a trap); the s
   const spear = page.locator('#eventChoices [data-choice="craft_spear"]');
   await expect(spear).toHaveClass(/off/);
   await expect(spear).toHaveAttribute("title", "10 firewood · 30m: Needs 10 firewood (have 0)");
-  await page.locator('#eventChoices [data-choice="close"]').click();
+  await page.locator("#eventBack").click();
 
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
   await expect(action(page, "craft").locator(".label")).toHaveText("craft*"); // something can be made now
