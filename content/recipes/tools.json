@@ -2,11 +2,11 @@
   {
     "id": "craft_rock_knife",
     "item": "rock_knife",
-    "_note": "for when you have no knife: 2 stones and 3 hours of sharpening; offered once a knife is needed (the spear)",
+    "_note": "for when you have nothing sharp: 2 stones and 3 hours of grinding; offered once something sharp is needed (the spear)",
     "availableWhen": {
       "all": [
         { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
-        { "not": { "item": "knife" } }
+        { "not": { "tool": "sharp" } }
       ]
     },
     "ways": [
@@ -28,8 +28,8 @@
     "availableWhen": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
     "ways": [
       {
-        "visibleWhen": { "item": "rock_knife" },
-        "requires": { "item": "knife" },
+        "visibleWhen": { "all": [{ "item": "rock_knife" }, { "not": { "item": "knife" } }] },
+        "requires": { "tool": "sharp" },
         "hours": 0.5,
         "effort": "light",
         "cost": { "firewood": 10 },
@@ -40,8 +40,7 @@
         ]
       },
       {
-        "requires": { "item": "knife" },
-        "requiresText": "Needs a knife. Without one, grind two stones into a rock knife first",
+        "requires": { "tool": "sharp" },
         "hours": 0.5,
         "effort": "light",
         "cost": { "firewood": 10 },
@@ -52,7 +51,7 @@
         ]
       }
     ],
-    "_note": "needs a knife: the real one 30 min; the rock knife takes twice as long (Item.substitutes)"
+    "_note": "needs something sharp: the knife 30 min; the rock knife is slower (its tool.hoursFactor 2), with its own texts"
   },
   {
     "id": "craft_axe",

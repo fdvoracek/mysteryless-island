@@ -458,8 +458,8 @@ export class Engine {
   }
 
   /**
-   * An action's time with the tools you have: a stand-in for a tool it needs (the rock knife for the
-   * knife) makes it take longer (see Item.substitutes).
+   * An action's time with the tools you have: a slow tool for a { "tool": tag } it needs (the rock
+   * knife as the only sharp thing) makes it take longer (see Item.tool).
    */
   hoursFor(hours: number, conds: Array<Condition | undefined>): number {
     return hours * toolFactor(this.reg, this.state, conds);

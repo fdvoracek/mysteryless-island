@@ -31,14 +31,14 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e);
     expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "pick up stones", "sleep"]);
   });
 
   it("beach step 4: the fish need a spear; the cliff is still left (*)", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "craft", "light fire", "collect shells", "catch fish", "sleep"]); // the spear can be crafted now: the craft button appears; nothing to build yet
+    expect(labels(e)).toEqual(["look around", "craft", "light fire", "collect shells", "pick up stones", "catch fish", "sleep"]); // the spear can be crafted now: the craft button appears; nothing to build yet
     expect(view(e).actions[0].badge).toBe("*");
     expect(view(e).quests.map((q) => q.id)).toContain("first_catch"); // catching one is a task now
   });

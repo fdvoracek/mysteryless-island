@@ -77,7 +77,7 @@ describe("going to sleep", () => {
     const memory = (choice: string, matches: boolean) => {
       const e = startGame(reg, 11, choice, { matches });
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
-      e.applyEffects([{ give: { firewood: 13 } }]);
+      e.applyEffects([{ give: { firewood: 15 } }]); // 10 for the spear, 5 for a fire by friction
       if (choice !== "knife") { e.applyEffects([{ give: { stone: 2 } }]); craft(e, "craft_rock_knife"); } // no knife from the ship: a rock knife first
       craft(e, "craft_spear");
       for (let i = 0; i < 6 && !e.state.timers.fire; i++) { // friction can fail: keep trying
@@ -98,7 +98,7 @@ describe("going to sleep", () => {
     const fireMemory = (matches: boolean) => {
       const e = startGame(reg, 12, "rations", { matches });
       look(e); look(e); // the dunes, the ring of rocks
-      e.applyEffects([{ give: { firewood: 3 } }]);
+      e.applyEffects([{ give: { firewood: 5 } }]);
       for (let i = 0; i < 6 && !e.state.timers.fire; i++) e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
       e.state.stats.energy = 50;
       sleep(e);

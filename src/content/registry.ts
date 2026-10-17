@@ -186,6 +186,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else if ("quest" in c) ref("quest", c.quest, where);
     else if ("discovered" in c) ref("discovery", c.discovered, where);
     else if ("explored" in c) ref("region", c.explored, where);
+    else if ("tool" in c) { if (!(c.tool in game.tools)) problems.push(`${where}: unknown tool tag "${c.tool}"`); }
     else if ("built" in c) ref("building", c.built, where);
     else if ("building" in c) {
       ref("building", c.building, where);
@@ -304,7 +305,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
   for (const it of items.values()) {
-    if (it.substitutes) ref("item", it.substitutes.item, `item ${it.id}.substitutes`);
+    for (const t of it.tool?.tags ?? []) if (!(t in game.tools)) problems.push(`item ${it.id}.tool: unknown tool tag "${t}" (add it to game.json → tools)`);
     for (const a of it.actions ?? []) {
       const w = `item ${it.id}.actions.${a.id}`;
       if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);

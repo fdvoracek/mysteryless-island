@@ -321,7 +321,7 @@ describe("the craft and build menus", () => {
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_rock_knife", enabled: false, reason: "Needs 2 stones (have 0)" });
     e.dispatch({ type: "choose", choice: "close" });
-    // the stones lie under the cliff: picking them up is offered now that a knife is needed
+    // the stones lie under the cliff
     expect(view(e).actions.map((a) => a.id)).toContain("collect_stones");
     e.dispatch({ type: "activity", id: "collect_stones" });
     expect(e.state.items.stone).toBeGreaterThanOrEqual(2);
@@ -329,7 +329,7 @@ describe("the craft and build menus", () => {
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.slice(0, 2)).toEqual([
       { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", tooltip: "2 stones · 3h" },
-      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs a knife. Without one, grind two stones into a rock knife first", time: "30m", tooltip: "10 firewood · 30m" },
+      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs something sharp", time: "30m", tooltip: "10 firewood · 30m" },
     ]);
     e.dispatch({ type: "choose", choice: "close" });
     let t0 = e.state.time;
@@ -350,31 +350,30 @@ describe("the craft and build menus", () => {
     expect(e.state.log.some((l) => /rock knife|stone blade/.test(l.text))).toBe(true);
   });
 
-  it("with the knife from the ship, the rock knife is never offered (nor the stones, yet)", () => {
+  it("with the knife from the ship, the rock knife is never offered (you have something sharp)", () => {
     const e = startGame(reg, 9, "knife");
     for (let i = 0; i < 4; i++) lookAround(e);
-    expect(view(e).actions.map((a) => a.id)).not.toContain("collect_stones");
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "close"]);
   });
 
-  it("a stand-in tool works wherever the tool is needed, and doubles the time (activities too)", () => {
+  it("anything sharp does for 'something sharp'; the rock knife doubles the time (activities too)", () => {
     const files = readContentFiles();
     const forest = structuredClone(files["content/regions/forest.json"]) as { activities: unknown[] };
-    forest.activities.push({ id: "whittle", name: "whittle", hours: 1, effort: "light", requires: { item: "knife" } });
+    forest.activities.push({ id: "whittle", name: "whittle", hours: 1, effort: "light", requires: { tool: "sharp" } });
     files["content/regions/forest.json"] = forest;
     const r2 = buildRegistry(files);
     const e = startGame(r2, 12, "water");
     e.state.regions.forest.unlocked = true;
     e.dispatch({ type: "travel", region: "forest" });
     const whittle = () => view(e).actions.find((a) => a.id === "whittle")!;
-    expect(whittle()).toMatchObject({ enabled: false, reason: "Needs a knife or a rock knife" });
+    expect(whittle()).toMatchObject({ enabled: false, reason: "Needs something sharp" });
     e.applyEffects([{ give: { rock_knife: 1 } }]);
     expect(whittle()).toMatchObject({ enabled: true, tooltip: ["2h · light"] });
     const t0 = e.state.time;
     e.dispatch({ type: "activity", id: "whittle" });
     expect(e.state.time - t0).toBe(120);
-    e.applyEffects([{ give: { knife: 1 } }]); // the real knife: back to its own time
+    e.applyEffects([{ give: { knife: 1 } }]); // the knife is quicker: it is used
     expect(whittle().tooltip).toEqual(["1h · light"]);
   });
 

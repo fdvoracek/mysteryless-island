@@ -39,19 +39,19 @@ export function buildingState(reg: Registry, s: GameState, id: string, region?: 
   return batchesReady(reg, s, id, where) > 0 ? "ready" : "working";
 }
 
-/** Items you have that stand in for this one (see Item.substitutes), slowest last. */
-export function substitutesFor(reg: Registry, s: GameState, id: string): Array<{ id: string; hoursFactor: number }> {
+/** Items you have enough of to count as this tool (`tool.amount`), quickest first. */
+export function toolsFor(reg: Registry, s: GameState, tag: string): Array<{ id: string; hoursFactor: number }> {
   const out: Array<{ id: string; hoursFactor: number }> = [];
   for (const it of reg.items.values()) {
-    if (it.substitutes?.item === id && (s.items[it.id] ?? 0) > 0) out.push({ id: it.id, hoursFactor: it.substitutes.hoursFactor });
+    if (it.tool?.tags.includes(tag) && (s.items[it.id] ?? 0) >= (it.tool.amount ?? 1)) out.push({ id: it.id, hoursFactor: it.tool.hoursFactor ?? 1 });
   }
   return out.sort((a, b) => a.hoursFactor - b.hoursFactor);
 }
 
 /**
- * How much longer an action takes because a tool it needs is only a stand-in: the largest
- * `hoursFactor` among the items its conditions ask for (not under `not`) that you don't have but
- * whose substitute you do. 1 when nothing is missing.
+ * How much longer an action takes because of the tools you have: for each { "tool": tag } its
+ * conditions ask for (not under `not`), the quickest item you have with that tag; the largest of
+ * their `hoursFactor` (the rock knife, when it is the only sharp thing: 2). 1 when nothing slows it.
  */
 export function toolFactor(reg: Registry, s: GameState, conds: Array<Condition | undefined>): number {
   let factor = 1;
@@ -59,9 +59,9 @@ export function toolFactor(reg: Registry, s: GameState, conds: Array<Condition |
     if (!c) return;
     if ("all" in c) c.all.forEach(walk);
     else if ("any" in c) c.any.forEach(walk);
-    else if ("item" in c && c.lte === undefined && !(s.items[c.item] ?? 0)) {
-      const sub = substitutesFor(reg, s, c.item)[0];
-      if (sub) factor = Math.max(factor, sub.hoursFactor);
+    else if ("tool" in c) {
+      const best = toolsFor(reg, s, c.tool)[0];
+      if (best) factor = Math.max(factor, best.hoursFactor);
     }
   };
   conds.forEach(walk);
@@ -75,12 +75,8 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if ("all" in c) return c.all.every((x) => evaluate(x, ctx));
   if ("any" in c) return c.any.some((x) => evaluate(x, ctx));
   if ("not" in c) return !evaluate(c.not, ctx);
-  if ("item" in c) {
-    // "you have one" is also met by an item that stands in for it (the rock knife for the knife)
-    const have = s.items[c.item] ?? 0;
-    if (!have && c.lte === undefined && (c.gte ?? 1) <= 1 && substitutesFor(reg, s, c.item).length) return true;
-    return inRange(have, c, 1);
-  }
+  if ("item" in c) return inRange(s.items[c.item] ?? 0, c, 1);
+  if ("tool" in c) return toolsFor(reg, s, c.tool).length > 0;
   if ("seen" in c) return s.seen.includes(c.seen);
   if ("flag" in c) return s.flags.includes(c.flag);
   // timer values are authored in hours; a bare { "timer": "fire" } means "running"
@@ -123,12 +119,10 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
   if ("any" in c) return c.any.map((x) => explain(x, ctx)).filter(Boolean).join(" or ") || "not possible now";
   if ("item" in c) {
     const name = reg.items.get(c.item)?.name ?? c.item;
-    if (c.lte !== undefined) return `too much ${name}`;
-    // a tool that something else can stand in for: say so (needs a knife or a rock knife)
-    const subs = [...reg.items.values()].filter((it) => it.substitutes?.item === c.item).map((it) => it.name);
-    if (subs.length && (c.gte ?? 1) <= 1) return `needs a ${[name, ...subs].join(" or a ")}`;
-    return `needs ${c.gte ?? 1} ${name}`;
+    return c.lte !== undefined ? `too much ${name}` : `needs ${c.gte ?? 1} ${name}`;
   }
+  // a tool: what it is for, not which item ("needs something sharp")
+  if ("tool" in c) return `needs ${reg.game.tools[c.tool]?.needs ?? c.tool}`;
   if ("timer" in c) return `the ${reg.timers.get(c.timer)?.name ?? c.timer} is out`;
   if ("phase" in c) return `only at ${c.phase.join(", ")}`;
   if ("at" in c) return `only in ${reg.regions.get(c.at)?.name ?? c.at}`;

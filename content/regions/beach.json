@@ -186,12 +186,13 @@
         "You shield a match in your hands. The flame jumps to the kindling.",
         "One match, struck carefully. The fire is lit."
       ],
-      "tags": ["kindle"]
+      "tags": ["kindle"],
+      "_note": "with matches: 15 min, always works, one match each time"
     },
     {
-      "id": "make_fire",
+      "id": "strike_fire",
       "name": "light fire",
-      "_note": "without matches: friction, 2 h, catches 2 times in 3; the wood is only used when it catches",
+      "_note": "without matches, with 2 stones: sparks, 1 h, catches 2 times in 3; the stones stay; the wood is only used when it catches",
       "hours": 1.0,
       "effort": "work",
       "icon": "fire",
@@ -199,10 +200,53 @@
         "all": [
           { "discovered": "rock_shelter" },
           { "not": { "timer": "fire" } },
-          { "not": { "item": "matches" } }
+          { "not": { "item": "matches" } },
+          { "item": "stone", "gte": 2 }
         ]
       },
       "requires": { "item": "firewood", "gte": 3 },
+      "log": [
+        "You strike one stone against the other over a nest of dry grass, again and again.",
+        "Stone on stone, sparks jumping into the tinder, most of them dying at once.",
+        "You knock the stones together until your knuckles bleed, coaxing sparks into the kindling."
+      ],
+      "outcomes": [
+        {
+          "weight": 2,
+          "text": [
+            "A spark holds. You blow, and it becomes a flame.",
+            "One spark lands right. Smoke, a glow, then fire.",
+            "The tinder catches at last. You feed it twig by twig."
+          ],
+          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
+        },
+        {
+          "weight": 1,
+          "text": [
+            "The sparks die in the tinder, one after another. Not this time.",
+            "Smoke, then nothing. The wood will keep for another try.",
+            "Your hands are numb before a spark holds."
+          ]
+        }
+      ],
+      "tags": ["kindle"]
+    },
+    {
+      "id": "make_fire",
+      "name": "light fire",
+      "_note": "without matches or 2 stones: friction with 2 dry sticks (firewood), 1 h, catches 2 times in 3; the wood (3 to burn, 2 sticks) is only used when it catches",
+      "hours": 1.0,
+      "effort": "work",
+      "icon": "fire",
+      "visibleWhen": {
+        "all": [
+          { "discovered": "rock_shelter" },
+          { "not": { "timer": "fire" } },
+          { "not": { "item": "matches" } },
+          { "not": { "item": "stone", "gte": 2 } }
+        ]
+      },
+      "requires": { "all": [{ "tool": "fire_starter" }, { "item": "firewood", "gte": 5 }] },
       "log": [
         "You twist a dry stick against a branch, again and again, until your palms burn.",
         "No matches. You spin a stick between your hands until your arms ache.",
@@ -216,7 +260,7 @@
             "The wisp of smoke becomes an ember, then a flame.",
             "Finally, a flame. You feed it, careful as with a newborn."
           ],
-          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
+          "effects": [{ "take": { "firewood": 5 } }, { "timer": "fire", "addHours": 6 }]
         },
         {
           "weight": 1,
@@ -270,36 +314,14 @@
       "hours": 0.5,
       "effort": "work",
       "icon": "stone",
-      "visibleWhen": {
-        "all": [
-          { "discovered": "cliff_shells" },
-          {
-            "any": [
-              { "all": [{ "discovered": "school_of_fish" }, { "not": { "item": "knife" } }] },
-              { "any": [{ "quest": "cut_logs", "is": "active" }, { "quest": "cut_logs", "is": "done" }] },
-              {
-                "any": [
-                  { "quest": "build_corn_field", "is": "active" },
-                  { "quest": "build_corn_field", "is": "done" }
-                ]
-              },
-              {
-                "any": [
-                  { "quest": "build_fish_weir", "is": "active" },
-                  { "quest": "build_fish_weir", "is": "done" }
-                ]
-              }
-            ]
-          }
-        ]
-      },
+      "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "stone", "min": 2, "max": 3 }],
       "log": [
         "Under the cliff, stones of every size. You pick the hardest.",
         "You choose stones from the foot of the cliff, flat and heavy.",
         "You gather stones where the cliff has crumbled."
       ],
-      "_note": "stones lie under the cliff: shown once you need them (a rock knife without the knife, the axe, the hoe, the weir)"
+      "_note": "stones lie under the cliff: 2 strike sparks for a fire; also for the rock knife, the axe, the hoe and the weir"
     },
     {
       "id": "catch_fish",
@@ -515,6 +537,14 @@
             },
             {
               "text": [
+                "Striking stone on stone until a spark held.",
+                "Sparks in the tinder, and at last a flame.",
+                "Your sore knuckles, and the fire the stones made."
+              ],
+              "when": { "today": "strike_fire" }
+            },
+            {
+              "text": [
                 "Cold water from a spring between mossy stones.",
                 "The spring, and how cold the water was.",
                 "Drinking from the spring until your teeth ached."
@@ -598,7 +628,7 @@
             "An empty sort of day.",
             "Hours of wind and waiting."
           ],
-          "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches or friction, knife or rock knife)"
+          "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches, stones or friction; knife or rock knife)"
         }
       ],
       "log": [

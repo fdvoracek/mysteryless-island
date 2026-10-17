@@ -474,7 +474,7 @@ export class UI {
       ...v.inventory.map((it) => {
         const row = div("", "row");
         row.dataset.id = it.id;
-        row.append(div(it.label, "key"));
+        row.append(...this.itemKey(it.label, it.tags));
         if (it.count > 1) row.append(div(String(it.count), "val"));
         if (it.actions.length) {
           const acts = document.createElement("span");
@@ -485,6 +485,12 @@ export class UI {
         return row;
       }),
     );
+  }
+
+  /** An item's name, and its tool tags next to it (knife · sharp). */
+  private itemKey(label: string, tags: string[]): HTMLElement[] {
+    const key = div(label, "key");
+    return tags.length ? [key, div(tags.join(" · "), "itags")] : [key];
   }
 
   /** Small labelled buttons next to an item (cook, fill...), for the stores and the inventory. */
@@ -528,7 +534,7 @@ export class UI {
       ...v.stores.map((s) => {
         const row = div("", "row");
         row.dataset.id = s.id;
-        row.append(div(s.label, "key"), div(String(s.count), "val"));
+        row.append(...this.itemKey(s.label, s.tags), div(String(s.count), "val"));
         // the item's buttons are grouped so a layout can place them (e.g. outside the box)
         const acts = document.createElement("span");
         acts.className = "acts";

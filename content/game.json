@@ -53,6 +53,11 @@
     "text": "A new place is on your map: {place}. You can walk there now, or later from the map.",
     "go": "go to {place}"
   },
+  "_tools": "tool tags: the label next to the items that have it, and what a { \"tool\": tag } requirement asks for (without naming an item)",
+  "tools": {
+    "sharp": { "label": "sharp", "needs": "something sharp" },
+    "fire_starter": { "label": "fire starter", "needs": "something to make a fire with" }
+  },
   "_menus": "the craft and build menus: the button next to look around, the pop-up's title, its text, and the text when it offers nothing",
   "menus": {
     "craft": {

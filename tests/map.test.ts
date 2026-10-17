@@ -68,10 +68,10 @@ describe("the route map (the places panel)", () => {
     expect(icons("beach")).toEqual(["fire", "sleep"]);
     expect(icons("forest")).toEqual(["wood"]); // wood from the start, the spring not found yet
     lookAround(e); lookAround(e); // cliff (shells), shallows (fish)
-    expect(icons("beach")).toEqual(["fire", "fish", "shells", "sleep"]);
+    expect(icons("beach")).toEqual(["fire", "stone", "fish", "shells", "sleep"]);
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(icons("beach")).toEqual(["fire", "fish", "shells", "sleep"]); // stoke fire: still one fire
+    expect(icons("beach")).toEqual(["fire", "stone", "fish", "shells", "sleep"]); // stoke fire: still one fire
     e.dispatch({ type: "travel", region: "forest" });
     lookAround(e);
     expect(icons("forest")).toEqual(["water", "wood"]);

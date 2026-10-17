@@ -155,6 +155,7 @@ test("the game is visible and not covered on load", async ({ page }) => {
   // the first task is listed; the inventory holds the starting kit
   await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
   await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
+  await expect(page.locator('#inventory .row[data-id="knife"] .itags')).toHaveText("sharp"); // what it is good for
 
   // nothing may sit on top of the buttons (the bug that blanked the first deploy)
   const box = (await action(page, "look around").boundingBox())!;

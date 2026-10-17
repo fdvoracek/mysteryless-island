@@ -73,10 +73,11 @@ describe("what you grabbed", () => {
     expect(e.state.items.matches).toBe(9);
   });
 
-  it("without matches: an hour of friction; it can fail, and the wood is used only when it catches", () => {
+  it("without matches or stones: an hour of friction with 2 dry sticks; it can fail, and the wood is used only when it catches", () => {
     const results = new Set<string>();
     for (let seed = 1; seed <= 12; seed++) {
       const e = atTheRocks("knife");
+      e.applyEffects([{ give: { firewood: 2 } }]); // 3 to burn, 2 sticks to rub
       e.state.rng = Engine.newGame(reg, seed).state.rng; // vary the roll
       expect(ids(e)).toContain("make_fire");
       expect(view(e).actions.find((a) => a.id === "make_fire")!.label).toBe("light fire");
@@ -84,10 +85,29 @@ describe("what you grabbed", () => {
       e.dispatch({ type: "activity", id: "make_fire" });
       expect(e.state.time - t0).toBe(60);
       if (e.state.timers.fire > 0) { results.add("lit"); expect(e.state.items.firewood ?? 0).toBe(0); }
-      else { results.add("failed"); expect(e.state.items.firewood).toBe(3); }
+      else { results.add("failed"); expect(e.state.items.firewood).toBe(5); }
     }
     expect(results).toEqual(new Set(["lit", "failed"]));
   });
+  it("to light a fire you need something to make it with: matches, 2 stones, or 2 dry sticks", () => {
+    const e = startGame(reg, 3, "knife", { matches: false });
+    look(e); look(e); // the forest, the ring of rocks
+    const fire = () => view(e).actions.find((a) => a.label === "light fire")!;
+    e.applyEffects([{ give: { firewood: 1 } }]);
+    expect(fire()).toMatchObject({ id: "make_fire", enabled: false, reason: "Needs something to make a fire with" });
+    e.applyEffects([{ give: { firewood: 2 } }]); // 3: sticks, but not enough to burn as well
+    expect(fire()).toMatchObject({ id: "make_fire", enabled: false, reason: "Needs 5 firewood" });
+    e.applyEffects([{ give: { stone: 2 } }]); // two stones strike sparks: the stones stay
+    expect(fire()).toMatchObject({ id: "strike_fire", enabled: true });
+    for (let i = 0; i < 6 && !e.state.timers.fire; i++) { e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; e.dispatch({ type: "activity", id: "strike_fire" }); }
+    expect(e.state.timers.fire).toBeGreaterThan(0);
+    expect(e.state.items.stone).toBe(2);
+    expect(e.state.items.firewood ?? 0).toBe(0);
+    // the items show what they are good for
+    expect(view(e).stores.find((s) => s.id === "stone")!.tags).toEqual(["fire starter"]);
+    expect(view(e).inventory.find((i) => i.id === "knife")!.tags).toEqual(["sharp"]);
+  });
+
 
   it("the spear: 30 minutes with the knife, an hour with a rock knife (made first, without the knife)", () => {
     for (const [choice, minutes] of [["knife", 30], ["water", 60]] as const) {

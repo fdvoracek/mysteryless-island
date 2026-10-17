@@ -44,6 +44,8 @@ export type Condition =
   | { discovered: string }
   /** how many times a region was explored */
   | { explored: string; gte?: number; lte?: number }
+  /** you have something with this tool tag (game.json → tools), e.g. something sharp */
+  | { tool: string }
   /** a building stands (it was built) */
   | { built: string }
   /** a building's cycle: idle (built, nothing running), working (e.g. the corn is growing) or ready (to collect) */
@@ -73,6 +75,7 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
     z.object({ discovered: Id }).strict(),
     z.object({ explored: Id, ...range }).strict(),
+    z.object({ tool: Id }).strict(),
     z.object({ built: Id }).strict(),
     z.object({ building: Id, is: z.enum(["idle", "working", "ready"]) }).strict(),
   ]),
@@ -377,10 +380,14 @@ export const Item = z
     /** the most you can have (e.g. 4 drinks in the water can); getting more stops there */
     max: z.number().int().positive().optional(),
     /**
-     * Stands in for another item wherever that one is needed ({ "item": id } in a requirement), but
-     * the action then takes `hoursFactor` times as long (the rock knife for the knife: twice as long).
+     * What it is good for, as tool tags (game.json → tools): a requirement { "tool": tag } is met by
+     * any item with the tag, `amount` of it (default 1; 2 stones strike a spark). With `hoursFactor`
+     * the action takes that many times as long (the rock knife is sharp, but slow).
      */
-    substitutes: z.object({ item: Id, hoursFactor: z.number().min(1) }).strict().optional(),
+    tool: z
+      .object({ tags: z.array(Id).min(1), amount: z.number().int().positive().optional(), hoursFactor: z.number().min(1).optional() })
+      .strict()
+      .optional(),
     consume: Consume.optional(),
     actions: z.array(ItemAction).optional(),
   })
@@ -441,6 +448,11 @@ export const Game = z
      * `go`, the label of the button that walks there.
      */
     newPlace: z.object({ title: Text, text: Text, go: z.string() }).strict(),
+    /**
+     * Tool tags: `label` is shown next to the items that have it (knife · sharp); `needs` says what
+     * a requirement { "tool": tag } asks for, without naming an item ("something sharp").
+     */
+    tools: z.record(Id, z.object({ label: z.string(), needs: z.string() }).strict()),
     /** the craft and build menus: the button, the pop-up's title, its text, and the text when it offers nothing */
     menus: z.object({
       craft: z.object({ button: z.string(), title: z.string(), text: Text, empty: Text }).strict(),

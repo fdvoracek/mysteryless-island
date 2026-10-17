@@ -73,9 +73,10 @@ export interface View {
     action?: ButtonView;
   }>;
   /** tools and clothing (categories from game.json) */
-  inventory: Array<{ id: string; label: string; count: number; actions: ButtonView[] }>;
+  /** `tags`: the item's tool tags, shown next to it (knife · sharp) */
+  inventory: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
   stores: Array<{
-    id: string; label: string; count: number;
+    id: string; label: string; count: number; tags: string[];
     use?: { verb: string; tooltip: string[] };
     /** buttons next to the item, e.g. cook over the fire */
     actions: ButtonView[];
@@ -200,11 +201,12 @@ export function view(engine: Engine): View {
         enabled: c.enabled, reason: sentence(c.reason), tooltip: [`${a.label} · ${fmtHours(engine.hoursFor(a.hours, [a.visibleWhen, a.requires]))}`],
       });
     }
-    if (invCats.has(item.category)) { inventory.push({ id, label: item.name, count, actions }); continue; }
+    const tags = (item.tool?.tags ?? []).map((t) => reg.game.tools[t].label);
+    if (invCats.has(item.category)) { inventory.push({ id, label: item.name, count, tags, actions }); continue; }
     const use = item.consume
       ? { verb: item.consume.verb, tooltip: [`${fmtHours(item.consume.hours)}`] }
       : undefined;
-    stores.push({ id, label: item.name, count, use, actions });
+    stores.push({ id, label: item.name, count, tags, use, actions });
   }
   stores.sort((a, b) => a.label.localeCompare(b.label));
   inventory.sort((a, b) => a.label.localeCompare(b.label));

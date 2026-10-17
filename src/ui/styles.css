@@ -125,6 +125,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .box legend { padding: 0 4px; font-size: 15px; }
 .row { display: flex; gap: 8px; align-items: baseline; padding: 1px 0; }
 .row .key { flex: 1; }
+/* an item's tool tags, next to its name: knife · sharp */
+.row .key:has(+ .itags) { flex: 0 1 auto; }
+.row .itags { flex: 1; color: var(--muted); font-size: 0.85em; }
+.row .itags::before { content: "· "; }
 .row .val { font-variant-numeric: tabular-nums; text-align: right; }
 .row.bad .val { color: var(--bad); }
 /* buildings: name, state, button; the cost still missing on its own line below */
