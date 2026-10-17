@@ -82,6 +82,10 @@ export class UI {
     }
     this.buildLayoutMenu();
     this.buildFontMenu();
+    // a pop-up with a close button also closes on a click next to it, or on Escape (not the story
+    // before the island, which fills the screen)
+    this.els.event.addEventListener("click", (e) => { if (e.target === this.els.event) this.closeEvent(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.els.event.hidden) this.closeEvent(); });
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
     // the end screen's buttons: back to the saved game, or a new game from the storm
     this.els.endRestart.addEventListener("click", () => { this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
@@ -197,6 +201,13 @@ export class UI {
         b.addEventListener("click", () => { if (!b.classList.contains("off")) this.send({ type: "choose", choice: c.id }, b); });
         return b;
       }));
+      // close is always on the last row, on the right, so it is in the same place in every pop-up
+      const close = this.els.eventChoices.querySelector<HTMLElement>('[data-choice="close"]');
+      if (close) {
+        close.classList.add("close");
+        close.parentElement!.append(close);
+        if (close.previousElementSibling) close.before(div("", "break"));
+      }
       box.hidden = false;
       window.setTimeout(() => this.els.eventChoices.querySelector<HTMLButtonElement>(".btn:not(.off)")?.focus(), 0);
     }
@@ -208,6 +219,13 @@ export class UI {
       b.title = [c.tooltip, c.reason].filter(Boolean).join(": ");
       b.setAttribute("aria-disabled", String(!c.enabled));
     }
+  }
+
+  /** Close the open pop-up, if it has a close button (an event that asks for a choice does not close). */
+  private closeEvent() {
+    if (this.root.classList.contains("prologue")) return;
+    const b = this.els.eventChoices.querySelector<HTMLElement>('[data-choice="close"]');
+    if (b && !b.classList.contains("off")) this.send({ type: "choose", choice: "close" }, b);
   }
 
   // ---------------------------------------------------------------- panels

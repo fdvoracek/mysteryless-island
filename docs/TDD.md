@@ -699,6 +699,8 @@ interface SaveFile {
 
 ## 12. UI layer
 
+
+**Pop-ups [implemented]:** events, look around, the menus and notes share `#event`. `renderEvent` moves the `close` choice last, after a line break, right-aligned (`.btn.close`), so it never moves between pop-ups. A click on the backdrop (`#event` itself, not the panel) or Escape sends `close` when the pop-up has one and it is enabled; not during the prologue (the shipwreck).
 - **No framework [decided].** `render.ts` has a ~150-line keyed `patch(container, items, key, create, update)` helper so buttons keep their DOM node (hover, focus and cooldown animation survive re-renders). If this grows painful, `lit-html` (a templating library, ~3 kB) is a drop-in fallback **[proposal]**.
 - Panels: `LogPanel` (prepend, fade, cap), `RegionTabs`, `ButtonGroup` (actions, build, craft, running), `StatusPanel`, `StoresPanel` (click a consumable to use it), `EventModal`, `Tooltip`, `Illustration`.
 - **Styles:** CSS custom properties; one serif typeface; light and dark themes; fixed max width (~980 px) centred; keyboard focus visible.

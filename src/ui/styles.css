@@ -202,6 +202,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .modal.event .event-text p:last-child { margin-bottom: 0; }
 .modal.event .buttons { gap: 10px; }
 .modal.event .btn { width: calc(50% - 5px); }
+/* close: always last, on the right (see renderEvent) */
+.modal.event .btn.close { margin-left: auto; }
+.modal.event { cursor: default; }
 /* an event before the story starts: nothing of the island behind it yet */
 #app.prologue #game, #app.prologue .menu { visibility: hidden; }
 #app.prologue .modal.event { background: var(--bg); }

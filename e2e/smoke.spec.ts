@@ -170,7 +170,18 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await action(page, "look around").click();
   await expect(page.locator("#eventText")).toContainText("Behind the dunes, a dark line of trees.");
   await expect(page.locator('#eventChoices [data-choice="forest_edge"]')).toHaveText("the dunes30m");
-  await page.locator('#eventChoices [data-choice="close"]').click();
+  // close is the last button, on its own row, on the right
+  const closeBox = (await page.locator('#eventChoices [data-choice="close"]').boundingBox())!;
+  const lastLandmark = (await page.locator('#eventChoices .btn:not([data-choice="close"])').last().boundingBox())!;
+  const choicesBox = (await page.locator("#eventChoices").boundingBox())!;
+  expect(closeBox.y).toBeGreaterThan(lastLandmark.y);
+  expect(Math.abs(closeBox.x + closeBox.width - (choicesBox.x + choicesBox.width))).toBeLessThan(2);
+  // a click next to the pop-up closes it, like close
+  await page.mouse.click(5, 5);
+  await expect(page.locator("#event")).toBeHidden();
+  // so does Escape
+  await action(page, "look around").click();
+  await page.keyboard.press("Escape");
   await expect(page.locator("#event")).toBeHidden();
 
   // beach: the dunes (the forest), then the ring of rocks (fire and sleep)
