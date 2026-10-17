@@ -40,6 +40,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 
 - A new game opens the shipwreck event first: tests use `startGame(reg, seed, choice?)` from `tests/helpers.ts` (picks the knife, closes the event, adds matches); the e2e test calls `escapeShip(page, choice)`.
 - A finished task opens a note pop-up that blocks the game until closed: `startGame` closes notes after every command unless `{ keepNotes: true }`; the e2e test closes it explicitly.
+- The note opens while the action's progress bar still runs: pop-up buttons (`choose`) work during a bar, everything else is locked until it ends (`UI.send`). Third CI failure: closing a note was ignored while busy.
 - Unit tests run with `variants: "first"` (`tests/setup.ts`); `tests/variants.test.ts` switches to random to test variety. The e2e test opens every page with `?variants=first`.
 - When a test plays through several steps, expectations must follow the game state as it changes (e.g. the spear task appears after the 4th landmark explored; layouts keep different numbers of paragraphs). `lookAround(e)` (tests/helpers.ts) and `explore(page, id?)` (e2e) explore the next landmark. Both past CI failures came from this.
 - Add a test with every engine feature; check new content with a short playthrough.

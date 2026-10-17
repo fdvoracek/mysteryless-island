@@ -603,15 +603,20 @@ export class UI {
   private isBusy() { return performance.now() < this.busyUntil; }
 
   private send(cmd: Command, source: HTMLElement) {
-    if (this.isBusy() || this.restoring) return;
+    if (this.restoring) return;
+    // a pop-up's buttons work at once, even while the last action's bar still runs behind it (a task
+    // note opens as the build starts): choosing takes no game time and has no bar of its own
+    if (this.isBusy() && cmd.type !== "choose") return;
     if (cmd.type !== "choose") this.pulse.clear();
     const res = this.onCommand(cmd);
     if (!res.ok) { this.render(); return; }
     const ms = Math.round(res.cooldownMs * this.speed);
     // while the bar runs, every control is locked and greyed out; only the running one keeps its look
-    this.busyUntil = performance.now() + ms;
-    this.els.wrap.classList.add("busy");
-    this.els.wrap.setAttribute("aria-busy", "true");
+    if (ms > 0) {
+      this.busyUntil = Math.max(this.busyUntil, performance.now() + ms);
+      this.els.wrap.classList.add("busy");
+      this.els.wrap.setAttribute("aria-busy", "true");
+    }
     source.classList.add("running");
     const bar = source.querySelector<HTMLElement>(".cd");
     if (bar && ms > 0) {
@@ -623,8 +628,12 @@ export class UI {
     }
     this.render();
     window.setTimeout(() => {
-      this.els.wrap.classList.remove("busy");
-      this.els.wrap.removeAttribute("aria-busy");
+      // a choice made during an earlier bar must not unlock the game before that bar ends
+      if (performance.now() >= this.busyUntil - 20) { // (timers and the clock can differ by a few ms)
+        this.busyUntil = 0;
+        this.els.wrap.classList.remove("busy");
+        this.els.wrap.removeAttribute("aria-busy");
+      }
       source.classList.remove("running");
       this.render();
     }, ms);
