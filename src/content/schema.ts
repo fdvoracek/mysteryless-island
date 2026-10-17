@@ -285,8 +285,10 @@ export const Building = z
     icon: Icon.optional(),
     /** where it can be built; `when`: only once this holds there (e.g. the river is found) */
     places: z.array(z.object({ region: Id, when: Condition.optional() }).strict()).min(1),
-    /** when the build button is offered at all (e.g. once its task has started); default always */
+    /** when it is offered in the build menu (e.g. once its task has started); default always */
     availableWhen: Condition.optional(),
+    /** how many can stand in one place (default 1): several fish traps, several fields */
+    max: z.number().int().positive().optional(),
     /** putting it up: label (default "build"), time, cost, extra requirements, what happens */
     build: z
       .object({
@@ -307,7 +309,11 @@ export const Building = z
     cycle: z
       .object({
         start: BuildingStep,
-        /** game hours per batch, counted from the end of `start` (or of `collect`, with repeat) */
+        /**
+     * game hours per batch, counted from the end of `start` (or of `collect`, with repeat). With
+     * several in a place they work together: `start` and `collect` cost and take that many times as
+     * much, and each batch yields that many times.
+     */
         hours: z.number().positive(),
         /** how many batches can wait to be collected (default 1): a trap holds up to 3 fish */
         batches: z.number().int().positive().optional(),
@@ -430,6 +436,11 @@ export const Game = z
      * `go`, the label of the button that walks there.
      */
     newPlace: z.object({ title: Text, text: Text, go: z.string() }).strict(),
+    /** the craft and build menus: the button, the pop-up's title and its text */
+    menus: z.object({
+      craft: z.object({ button: z.string(), title: z.string(), text: Text }).strict(),
+      build: z.object({ button: z.string(), title: z.string(), text: Text }).strict(),
+    }).strict(),
     /**
      * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why
      * ({cause}: the damage rule's cause, an event's title, or defaultCause). `load` and `restart`
@@ -506,22 +517,42 @@ export const QuestTrigger = z.union([
 ]);
 
 /**
- * A task's action button. A list gives alternatives: the first one whose `visibleWhen` holds is
- * used (e.g. carve the spear with the knife in 1 h, or with a sharp stone in 3 h).
+ * One way to craft a recipe. A recipe lists its ways; the first whose `visibleWhen` holds is used
+ * (e.g. carve the spear with the knife in 30 min, or grind it with a sharp stone in 1.5 h).
  */
-export const QuestAction = z
+export const RecipeWay = z
   .object({
-    label: z.string(),
     visibleWhen: Condition.optional(),
     hours: z.number().positive(),
     effort: Effort,
     requires: Condition.optional(),
     requiresText: z.string().optional(),
     cost: Amounts.optional(),
-    effects: z.array(Effect).min(1),
     log: Text.optional(),
+    effects: z.array(Effect).optional(),
   })
   .strict();
+
+/**
+ * Something you can make, offered in the craft menu (a pop-up) once `availableWhen` holds. Making it
+ * gives `count` of `item` (default 1). It leaves the menu once you have it, unless `multiple`.
+ */
+export const Recipe = z
+  .object({
+    id: Id,
+    item: Id,
+    count: z.number().int().positive().optional(),
+    /** the button (default: the item's name) */
+    label: z.string().optional(),
+    availableWhen: Condition.optional(),
+    /** can be made again while you have one (default: only while you have none) */
+    multiple: z.boolean().optional(),
+    ways: z.array(RecipeWay).min(1),
+    tags: z.array(Id).optional(),
+  })
+  .strict();
+export type Recipe = z.infer<typeof Recipe>;
+export type RecipeWay = z.infer<typeof RecipeWay>;
 
 export const Quest = z
   .object({
@@ -536,15 +567,14 @@ export const Quest = z
     /** applied when the quest is done (rewards, follow-up quests) */
     effects: z.array(Effect).optional(),
     /**
-     * Optional action button next to the quest in the tasks panel (e.g. "build").
-     * The panel shows progress towards its cost; clicking spends the cost, takes the time and applies the effects.
+     * The tasks panel shows progress towards what this task asks you to make: a recipe's cost
+     * (`craft`, made in the craft menu) or a building's (`build`, in the build menu).
      */
-    action: z.union([QuestAction, z.array(QuestAction).min(1)]).optional(),
-    /** instead of `action`: the task's button builds this building where you are (its cost is the progress) */
+    craft: Id.optional(),
     build: Id.optional(),
   })
   .strict()
-  .refine((q) => !(q.action && q.build), "a task has either an action or build, not both");
+  .refine((q) => !(q.craft && q.build), "a task shows the progress of either a recipe or a building, not both");
 
 export type Quest = z.infer<typeof Quest>;
 
@@ -606,7 +636,6 @@ export const GameEvent = z
   .strict();
 export type GameEvent = z.infer<typeof GameEvent>;
 export type EventScene = z.infer<typeof EventScene>;
-export type QuestAction = z.infer<typeof QuestAction>;
 export type ItemAction = z.infer<typeof ItemAction>;
 export type Activity = z.infer<typeof Activity>;
 export type Icon = z.infer<typeof Icon>;

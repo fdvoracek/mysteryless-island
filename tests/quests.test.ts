@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
+import { loadRegistry, lookAround, readContentFiles, revealAll, startGame, craft } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
@@ -148,7 +148,9 @@ describe("quest actions: build a fishing spear", () => {
     for (let i = 0; i < 4; i++) lookAround(e);
     const q = view(e).quests.find((x) => x.id === "build_fishing_spear")!;
     expect(q.progress).toEqual([{ label: "firewood", have: 0, need: 10 }]);
-    expect(q.action).toMatchObject({ label: "build", enabled: false, reason: "Needs 10 firewood (have 0)" });
+    // made in the craft menu, not from the task
+    e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs 10 firewood (have 0)", time: "30m", tooltip: "10 firewood · 30m" });
   });
 
   it("building spends the wood, takes time, puts the spear in the inventory and finishes the quest", () => {
@@ -156,7 +158,7 @@ describe("quest actions: build a fishing spear", () => {
     e.applyEffects([{ give: { firewood: 12 } }]);
     expect(view(e).quests.find((x) => x.id === "build_fishing_spear")!.progress[0]).toMatchObject({ have: 10, need: 10 });
     const t0 = e.state.time;
-    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(true);
+    expect(craft(e, "craft_spear").ok).toBe(true);
     expect(e.state.time - t0).toBe(30);
     expect(e.state.items.firewood).toBe(2);
     expect(e.state.quests.build_fishing_spear.status).toBe("done");
@@ -168,10 +170,10 @@ describe("quest actions: build a fishing spear", () => {
   it("refuses to build without enough wood, or once the quest is done", () => {
     const e = explored();
     e.applyEffects([{ give: { firewood: 9 } }]);
-    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" })).toMatchObject({ ok: false, reason: "needs 10 firewood (have 9)" });
+    expect(craft(e, "craft_spear")).toMatchObject({ ok: false, reason: "needs 10 firewood (have 9)" });
     e.applyEffects([{ give: { firewood: 11 } }]);
-    e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
-    expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(false);
+    craft(e, "craft_spear");
+    expect(craft(e, "craft_spear").ok).toBe(false);
     expect(e.state.items.fishing_spear).toBe(1);
   });
 });

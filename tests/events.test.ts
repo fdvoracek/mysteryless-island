@@ -3,7 +3,7 @@ import { buildRegistry, ContentError, type Registry } from "../src/content/regis
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
+import { loadRegistry, readContentFiles, startGame, lookAround, craft } from "./helpers";
 
 const reg = loadRegistry();
 const choose = (e: Engine, choice: string) => e.dispatch({ type: "choose", choice });
@@ -95,7 +95,7 @@ describe("what you grabbed", () => {
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 10 } }]);
       const t0 = e.state.time;
-      expect(e.dispatch({ type: "questAction", quest: "build_fishing_spear" }).ok).toBe(true);
+      expect(craft(e, "craft_spear").ok).toBe(true);
       expect(e.state.time - t0, choice).toBe(minutes);
       expect(e.state.items.fishing_spear).toBe(1);
     }

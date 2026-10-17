@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, startGame } from "./helpers";
+import { loadRegistry, lookAround, startGame, craft } from "./helpers";
 
 const reg = loadRegistry();
 const close = (e: ReturnType<typeof startGame>) => e.dispatch({ type: "choose", choice: "close" });
@@ -11,7 +11,7 @@ describe("a note when a task is done", () => {
     for (let i = 0; i < 4; i++) { lookAround(e); if (view(e).event?.id === "note") close(e); } // the fish start the task
     e.applyEffects([{ give: { firewood: 12 } }]);
     e.state.time = 9 * 60; // daylight, so fishing is possible
-    e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
+    craft(e, "craft_spear");
     const v = view(e).event!;
     expect(v).toMatchObject({ id: "note", title: "Task done: build a fishing spear", choices: [{ id: "close", label: "close", enabled: true }] });
     expect(v.text.split("\n\n")).toEqual([
@@ -43,7 +43,7 @@ describe("a note when a task is done", () => {
     const e = startGame(reg, 3, "knife", { keepNotes: true });
     lookAround(e); lookAround(e); lookAround(e); lookAround(e);
     e.applyEffects([{ give: { firewood: 10 } }]);
-    e.dispatch({ type: "questAction", quest: "build_fishing_spear" });
+    craft(e, "craft_spear");
     const logged = e.state.log.filter((l) => l.text === "The spear is light and true. The fish will not be so quick now.").length;
     close(e);
     expect(e.state.log.filter((l) => l.text === "The spear is light and true. The fish will not be so quick now.").length).toBe(logged);

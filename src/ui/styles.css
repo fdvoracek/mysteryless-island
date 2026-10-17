@@ -172,7 +172,6 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .quest .head { display: flex; align-items: baseline; gap: 8px; }
 .quest .title { flex: 1; }
 .quest .progress { font-size: 14px; color: var(--muted); padding-left: 1em; }
-.quest.done .qaction { visibility: hidden; }
 
 
 /* menu */

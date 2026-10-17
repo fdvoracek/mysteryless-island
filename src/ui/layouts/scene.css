@@ -30,20 +30,18 @@
 .layout-scene .s-shelf .bar { width: 60px; }
 /* the buttons of the stores and of tasks (cook, eat, build) stand outside their box, on its right, level with their row */
 .layout-scene .s-shelf { margin-right: 130px; }  /* keep in step with the shelf column above */
-.layout-scene #stores .row, .layout-scene #inventory .row { position: relative; min-height: 25px; align-items: center; }  /* room for a button per row */
-.layout-scene #stores .acts, .layout-scene #inventory .acts {
+.layout-scene #stores .row, .layout-scene #inventory .row, .layout-scene #buildings .row { position: relative; min-height: 25px; align-items: center; }  /* room for a button per row */
+.layout-scene #stores .acts, .layout-scene #inventory .acts, .layout-scene #buildings .acts {
   position: absolute; left: calc(100% + 22px); top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap;
 }
 .layout-scene #quests .quest .head { min-height: 25px; align-items: center; }
-.layout-scene #quests .qaction { position: absolute; left: calc(100% + 22px); top: 1px; margin: 0; white-space: nowrap; }
 
 @media (max-width: 760px) {
   .layout-scene .wrap { grid-template-columns: 1fr; gap: 20px; }
   .layout-scene .log { height: 15em; }
   /* one column: no room beside the box, so the buttons go back into their row */
   .layout-scene .s-shelf { margin-right: 0; }
-  .layout-scene #stores .acts, .layout-scene #inventory .acts { position: static; transform: none; margin-left: 2px; }
-  .layout-scene #quests .qaction { position: static; }
+  .layout-scene #stores .acts, .layout-scene #inventory .acts, .layout-scene #buildings .acts { position: static; transform: none; margin-left: 2px; }
   .layout-scene .s-main { max-width: none; }
   .layout-scene .s-shelf .row .tip, .layout-scene .s-shelf .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }

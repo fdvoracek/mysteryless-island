@@ -38,7 +38,7 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "catch fish", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "catch fish", "sleep", "craft"]); // the spear
     expect(view(e).actions[0].badge).toBe("*");
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
   });

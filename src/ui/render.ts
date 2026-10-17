@@ -204,7 +204,8 @@ export class UI {
       const b = this.els.eventChoices.querySelector<HTMLElement>(`[data-choice="${c.id}"]`);
       if (!b) continue;
       b.classList.toggle("off", !c.enabled);
-      b.title = c.reason ?? "";
+      // the craft and build menus: what it needs (and why not, when it can't be made yet)
+      b.title = [c.tooltip, c.reason].filter(Boolean).join(": ");
       b.setAttribute("aria-disabled", String(!c.enabled));
     }
   }
@@ -344,6 +345,7 @@ export class UI {
       const tip = el.querySelector(".tip")!;
       tip.replaceChildren(...bv.tooltip.map((t) => div(t)), ...(bv.reason ? [div(bv.reason, "reason")] : []));
       el.classList.toggle("off", !bv.enabled);
+      el.classList.toggle("menu-btn", !!bv.menu);
       el.setAttribute("aria-disabled", String(!bv.enabled || this.isBusy()));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
@@ -353,6 +355,9 @@ export class UI {
       explore.classList.add("explore");
       if (explore.nextElementSibling) explore.after(div("", "break"));
     }
+    // the craft and build menus: on a line of their own, after the place's actions
+    const menu = container.querySelector<HTMLElement>("button.btn.menu-btn");
+    if (menu?.previousElementSibling && !menu.previousElementSibling.classList.contains("break")) menu.before(div("", "break"));
   }
 
   private renderStatus(v: View) {
@@ -424,34 +429,15 @@ export class UI {
         el.tabIndex = 0;
         const head = div("", "head");
         head.append(div(q.title, "title"));
-        if (q.action) {
-          const action = q.action;
-          const b = document.createElement("button");
-          b.className = "qaction sbtn";
-          b.textContent = action.label;
-          b.addEventListener("click", (e) => {
-            e.stopPropagation();
-            if (!b.classList.contains("off")) this.send(action.command, b);
-          });
-          head.append(b);
-        }
         el.append(head);
         if (q.progress.length) el.append(div("", "progress"));
         if (q.hint) el.append(div(q.hint, "tip"));
         if (prev) prev.after(el);
         else box.prepend(el);
       }
-      // refresh progress and the action button on every render
+      // refresh progress on every render
       const progress = el.querySelector(".progress");
       if (progress) progress.textContent = q.progress.map((p) => `${p.label} ${p.have}/${p.need}`).join(" · ");
-      const b = el.querySelector<HTMLButtonElement>(".qaction");
-      if (b && q.action) {
-        b.classList.toggle("off", !q.action.enabled);
-        const label = `${q.action.label} (${q.action.tooltip.join(", ")})`;
-        b.title = q.action.reason ? `${label}: ${q.action.reason}` : label;
-        b.setAttribute("aria-label", `${q.action.label} ${q.title}${q.action.reason ? ", " + q.action.reason : ""}`);
-        b.setAttribute("aria-disabled", String(!q.action.enabled));
-      }
       prev = el;
     }
     this.els.questsBox.hidden = !box.querySelector(".quest");
@@ -491,12 +477,12 @@ export class UI {
     });
   }
 
-  /** Buildings here: name, state (growing · 2d 4h, ripe…), the cost still missing, and its button. */
+  /** Buildings here: name (×2), state (growing · 2d 4h, ripe…) and the cycle's button. */
   private renderBuildings(v: View) {
     this.els.buildingsBox.hidden = v.buildings.length === 0;
     this.els.buildings.replaceChildren(
       ...v.buildings.map((b) => {
-        const row = div("", "row building" + (b.built ? "" : " unbuilt"));
+        const row = div("", "row building");
         row.dataset.id = b.id;
         if (b.hint) row.title = b.hint;
         row.append(div(b.label, "key"), div(b.word, "val"));
@@ -506,7 +492,6 @@ export class UI {
           acts.append(...this.itemButtons(b.label, [b.action]));
           row.append(acts);
         }
-        if (b.progress.length) row.append(div(b.progress.map((p) => `${p.label} ${p.have}/${p.need}`).join(" · "), "progress"));
         return row;
       }),
     );

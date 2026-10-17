@@ -61,11 +61,12 @@ export interface GameState {
   timers: Record<string, number>;
   regions: Record<string, RegionState>;
   /**
-   * Buildings put up, by "<building>@<region>" (absent = not built there). `startedAt`: when the
+   * Buildings put up, by "<building>@<region>" (absent = not built there); `count` of them there
+   * (they share one cycle). `startedAt`: when the
    * running cycle began counting (game minutes); absent = idle. Batches are worked out from the
    * clock (see batchesReady), so nothing needs ticking.
    */
-  buildings: Record<string, { builtAt: number; startedAt?: number }>;
+  buildings: Record<string, { count: number; builtAt: number; startedAt?: number }>;
   /** stats before the last command, for trend arrows */
   prevStats: Record<string, number>;
   log: LogEntry[];

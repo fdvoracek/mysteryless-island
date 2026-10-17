@@ -53,6 +53,22 @@
     "text": "A new place is on your map: {place}. You can walk there now, or later from the map.",
     "go": "go to {place}"
   },
+  "_menus": "the craft and build menus: the button after the place's actions, the pop-up's title and text",
+  "menus": {
+    "craft": {
+      "button": "craft",
+      "title": "Craft",
+      "text": [
+        "What could you make with your hands and what you carry?",
+        "You turn over what you have. What could it become?"
+      ]
+    },
+    "build": {
+      "button": "build",
+      "title": "Build",
+      "text": ["What could you build here?", "You look around for a place to build."]
+    }
+  },
   "timers": [
     {
       "id": "fire",

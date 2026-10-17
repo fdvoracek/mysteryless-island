@@ -16,6 +16,8 @@ export interface ButtonView {
   enabled: boolean;
   reason?: string;
   tooltip: string[];
+  /** the craft and build menus (drawn on a line of their own, after the place's actions) */
+  menu?: boolean;
 }
 
 export interface StatusLine {
@@ -50,24 +52,22 @@ export interface View {
     phase: string;
     lines: StatusLine[];
   };
-  /** active quests only, in content order */
+  /** active quests only, in content order (no buttons: things are made in the craft and build menus) */
   quests: Array<{
     id: string; title: string; hint?: string;
-    /** cost progress for the quest action, e.g. firewood 4/10 */
+    /** progress towards the cost of what the task asks you to make, e.g. firewood 4/10 */
     progress: Array<{ label: string; have: number; need: number }>;
-    action?: ButtonView;
   }>;
   /**
-   * Buildings in this place, in content order: those standing here (with their state and the
-   * cycle's button: sow, harvest…) and those you can build here (cost progress and "build"),
-   * unless their task is still open (then the task has the button).
+   * Buildings standing in this place, in content order, with their state and the cycle's button
+   * (sow, harvest…). New ones are built from the build menu.
    */
   buildings: Array<{
     id: string; label: string; hint?: string;
-    built: boolean;
-    /** e.g. "growing · 2d 4h", "ripe", "2 fish in the trap", "not built" */
+    /** how many stand here ("fish trap ×2" in the label) */
+    count: number;
+    /** e.g. "growing · 2d 4h", "ripe", "2 fish in the trap" */
     word: string;
-    progress: Array<{ label: string; have: number; need: number }>;
     action?: ButtonView;
   }>;
   /** tools and clothing (categories from game.json) */
@@ -92,8 +92,11 @@ export interface View {
     id: string; title: string; text: string;
     /** a "start" event: the story before the island, shown without the game behind it */
     prologue: boolean;
-    /** `time`: how long the choice takes, shown next to it (landmarks to explore) */
-    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string }>;
+    /**
+     * `time`: how long the choice takes, shown next to it (landmarks to explore); `tooltip`: what
+     * it needs (the craft and build menus)
+     */
+    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string; tooltip?: string }>;
   } | null;
 }
 
@@ -150,28 +153,29 @@ export function view(engine: Engine): View {
   }
 
   const quests: View["quests"] = [];
+  const progressOf = (need?: Record<string, number>) => Object.entries(need ?? {}).map(([item, n]) => ({
+    label: reg.items.get(item)?.name ?? item, have: Math.min(n, s.items[item] ?? 0), need: n,
+  }));
   for (const q of reg.quests.values()) {
     if (s.quests[q.id]?.status !== "active") continue;
-    const qa = engine.questActionFor(q);
-    const progress = Object.entries(qa?.cost ?? {}).map(([item, need]) => ({
-      label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
-    }));
-    let action: View["quests"][number]["action"];
-    if (q.build) {
-      const b = reg.buildings.get(q.build)!;
-      progress.push(...Object.entries(b.build.cost ?? {}).map(([item, need]) => ({
-        label: reg.items.get(item)?.name ?? item, have: Math.min(need, s.items[item] ?? 0), need,
-      })));
-      action = buildButton(engine, q.build, `quest:${q.id}`);
-    } else if (qa) {
-      const c = engine.checkQuestAction(q.id);
-      const tooltip = [`${qa.label} · ${fmtHours(qa.hours)}`];
-      action = {
-        id: `quest:${q.id}`, command: { type: "questAction", quest: q.id }, label: qa.label,
-        enabled: c.enabled, reason: sentence(c.reason), tooltip,
-      };
-    }
-    quests.push({ id: q.id, title: q.title, hint: q.hint, progress, action });
+    // what the task asks you to make: progress towards its cost (made in the craft or build menu)
+    const cost = q.craft ? engine.recipeWay(reg.recipes.get(q.craft)!)?.cost : q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
+    quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost) });
+  }
+
+  // the craft and build menus: a button each (after the place's actions) while they offer something
+  for (const menu of ["craft", "build"] as const) {
+    const options = menu === "craft"
+      ? engine.craftOptions().map((r) => engine.checkRecipe(r).enabled)
+      : engine.buildOptions().map((id) => engine.checkBuildingStep(id, "build").enabled);
+    if (!options.length) continue;
+    const ready = options.filter(Boolean).length;
+    actions.push({
+      id: `menu:${menu}`, command: { type: "menu", menu }, label: reg.game.menus[menu].button,
+      // * while something in it can be made now
+      badge: ready ? "*" : undefined, enabled: true, menu: true,
+      tooltip: ["no time", ready ? `${ready} can be made now` : "nothing can be made yet"],
+    });
   }
 
   const stores: View["stores"] = [];
@@ -202,28 +206,20 @@ export function view(engine: Engine): View {
 
   const buildings: View["buildings"] = [];
   for (const b of reg.buildings.values()) {
-    const st = buildingState(reg, s, b.id, s.location);
-    const progress = (need?: Record<string, number>) => Object.entries(need ?? {}).map(([item, n]) => ({
-      label: reg.items.get(item)?.name ?? item, have: Math.min(n, s.items[item] ?? 0), need: n,
-    }));
-    if (st === "none") {
-      // while its task is open, the task has the build button (and the progress); no second one here
-      const task = [...reg.quests.values()].some((q) => q.build === b.id && s.quests[q.id]?.status === "active");
-      if (!engine.buildable(b.id) || task) continue;
-      buildings.push({ id: b.id, label: b.name, hint: b.hint, built: false, word: "not built", progress: progress(b.build.cost), action: buildButton(engine, b.id, `building:${b.id}:build`) });
-      continue;
-    }
+    const n = engine.builtHere(b.id);
+    if (!n) continue;
     const step = engine.buildingStepFor(b.id);
     let action: ButtonView | undefined;
-    if (step && step.step !== "build") {
+    if (step) {
       const c = engine.checkBuildingStep(b.id, step.step);
+      const { hours, cost } = engine.stepCost(b.id, step.step);
       action = {
         id: `building:${b.id}:${step.step}`, command: { type: "building", id: b.id, step: step.step },
-        label: (step.def as { label: string }).label, enabled: c.enabled, reason: sentence(c.reason),
-        tooltip: [`${fmtHours(step.def.hours)} · ${step.def.effort}`, ...Object.entries(step.def.cost ?? {}).map(([k, n]) => `${reg.items.get(k)?.name ?? k}: ${n}`)],
+        label: step.def.label, enabled: c.enabled, reason: sentence(c.reason),
+        tooltip: [`${fmtHours(hours)} · ${step.def.effort}`, ...Object.entries(cost).map(([k, v]) => `${reg.items.get(k)?.name ?? k}: ${v}`)],
       };
     }
-    buildings.push({ id: b.id, label: b.name, hint: b.hint, built: true, word: buildingWord(engine, b.id), progress: [], action });
+    buildings.push({ id: b.id, label: n > 1 ? `${b.name} ×${n}` : b.name, hint: b.hint, count: n, word: buildingWord(engine, b.id), action });
   }
 
   const turns = groupTurns(s.log);
@@ -277,6 +273,7 @@ export function fmtHours(h: number): string {
 function eventView(engine: Engine): View["event"] {
   const active = engine.state.events.active;
   if (active?.id.startsWith("explore:")) return exploreView(engine);
+  if (active?.id.startsWith("menu:")) return menuView(engine);
   if (active?.id === "note") {
     return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "close", enabled: true }] };
   }
@@ -290,6 +287,32 @@ function eventView(engine: Engine): View["event"] {
     })
     : [{ id: "close", label: scene.close ?? "close", enabled: true }];
   return { id: event.id, title: event.title, text, prologue: event.trigger === "start", choices };
+}
+
+/**
+ * The craft or build menu: one button per thing you can make (here), with its time; the tooltip
+ * says what it needs. What can't be made yet is shown, disabled, with the reason.
+ */
+function menuView(engine: Engine): View["event"] {
+  const { reg, state: s } = engine;
+  const menu = s.events.active!.id.slice("menu:".length) as "craft" | "build";
+  const needs = (cost: Record<string, number> | undefined, hours: number) =>
+    [...Object.entries(cost ?? {}).map(([k, n]) => `${n} ${reg.items.get(k)?.name ?? k}`), fmtHours(hours)].join(" · ");
+  const choices: NonNullable<View["event"]>["choices"] = menu === "craft"
+    ? engine.craftOptions().map((r) => {
+      const w = engine.recipeWay(r)!;
+      const c = engine.checkRecipe(r);
+      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(w.hours), tooltip: needs(w.cost, w.hours) };
+    })
+    : engine.buildOptions().map((id) => {
+      const b = reg.buildings.get(id)!;
+      const c = engine.checkBuildingStep(id, "build");
+      const built = engine.builtHere(id);
+      const label = built ? `${b.name} (${built + 1} of ${b.max ?? 1})` : b.name;
+      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(b.build.hours), tooltip: [needs(b.build.cost, b.build.hours), b.hint].filter(Boolean).join(". ") };
+    });
+  choices.push({ id: "close", label: "close", enabled: true });
+  return { id: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
 }
 
 /** The look-around pop-up: what you see and the landmarks left (with their time), or what you found. */
@@ -319,23 +342,6 @@ function goChoices(engine: Engine) {
     const r = reg.regions.get(id)!;
     return { id: `go:${id}`, label: reg.game.newPlace.go.replace("{place}", r.name), enabled: true, time: fmtHours(here.travelHours + r.travelHours) };
   });
-}
-
-/** "build" for a building here (also a task's button): disabled with the reason when it can't be built here. */
-function buildButton(engine: Engine, id: string, buttonId: string): ButtonView {
-  const { reg, state: s } = engine;
-  const b = reg.buildings.get(id)!;
-  const c = engine.checkBuildingStep(id, "build");
-  let reason = c.reason;
-  if (!c.visible) {
-    reason = s.buildings[buildingKey(id, s.location)] ? "already built here"
-      : `only in ${b.places.map((p) => reg.regions.get(p.region)!.name).join(" or ")}`;
-  }
-  return {
-    id: buttonId, command: { type: "building", id, step: "build" }, label: b.build.label ?? "build",
-    enabled: c.enabled, reason: sentence(reason),
-    tooltip: [`${b.build.label ?? "build"} · ${fmtHours(b.build.hours)}`],
-  };
 }
 
 /** The buildings panel's word: built, or its cycle (idle; working and the time to the next batch; ready). */

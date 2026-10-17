@@ -1,5 +1,5 @@
-import { questActions, type Registry } from "../content/registry";
-import type { Activity, Building, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Quest, QuestAction, Region, Thoughts, Yield } from "../content/schema";
+import type { Registry } from "../content/registry";
+import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Yield } from "../content/schema";
 import { phaseAt } from "./clock";
 import { batchesReady, buildingKey, buildingState, evaluate, explain, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
@@ -11,10 +11,11 @@ export type Command =
   | { type: "travel"; region: string }
   | { type: "consume"; item: string }
   | { type: "explore" }
-  | { type: "questAction"; quest: string }
+  /** open the craft menu or the build menu (a pop-up; choosing in it makes the thing) */
+  | { type: "menu"; menu: "craft" | "build" }
   | { type: "itemAction"; item: string; action: string }
-  /** a building here: put it up, start its cycle (sow, set the trap) or collect (harvest) */
-  | { type: "building"; id: string; step: "build" | "start" | "collect" }
+  /** a building here (its button in the buildings panel): start its cycle (sow, set the trap) or collect (harvest) */
+  | { type: "building"; id: string; step: "start" | "collect" }
   /** pick a button in the open event ("close" ends a scene without choices) */
   | { type: "choose"; choice: string };
 
@@ -46,6 +47,8 @@ export class Engine {
   private before?: { items: Record<string, number>; unlocked: string[]; location: string; possible: string[]; built: string[]; cmd: Command["type"] };
   /** characters logged during the current command, for the progress bar duration */
   private loggedChars = 0;
+  /** something was crafted or built in the current command (its note says what is now possible) */
+  private made = false;
 
   constructor(public reg: Registry, state: GameState) {
     this.state = state;
@@ -54,6 +57,7 @@ export class Engine {
     this.state.lastText ??= {};
     this.state.events ??= { active: null, queue: [], seen: {} };
     this.state.buildings ??= {};
+    for (const b of Object.values(this.state.buildings)) b.count ??= 1;
   }
 
   static newGame(reg: Registry, seed: number): Engine {
@@ -99,6 +103,7 @@ export class Engine {
     this.loggedChars = 0;
     this.causeHint = undefined;
     this.before = { ...this.snapshot(), cmd: cmd.type };
+    this.made = false;
     const notesBefore = this.state.events.notes?.length ?? 0;
     const res = this.run(cmd);
     this.offerNewPlaces(notesBefore);
@@ -174,7 +179,7 @@ export class Engine {
     out.push(...gained, ...used);
     for (const key of now.built) if (!b.built.includes(key)) out.push(sentence(this.say(t.built, { building: this.reg.buildings.get(key.split("@")[0])!.name })!));
     for (const id of now.unlocked) if (!b.unlocked.includes(id)) out.push(this.say(t.opened, { place: this.reg.regions.get(id)!.name })!);
-    if (b.cmd === "questAction" && now.location === b.location) {
+    if (this.made && now.location === b.location) {
       const region = this.reg.regions.get(now.location)!;
       for (const id of now.possible) if (!b.possible.includes(id)) out.push(this.say(t.possible, { action: region.activities.find((a) => a.id === id)!.name })!);
     }
@@ -187,7 +192,7 @@ export class Engine {
       case "travel": return this.travel(cmd.region);
       case "consume": return this.consume(cmd.item);
       case "explore": return this.explore();
-      case "questAction": return this.questAction(cmd.quest);
+      case "menu": return this.openMenu(cmd.menu);
       case "itemAction": return this.itemAction(cmd.item, cmd.action);
       case "building": return this.buildingStep(cmd.id, cmd.step);
       case "choose": return this.choose(cmd.choice);
@@ -199,7 +204,7 @@ export class Engine {
   /** The open event and its scene, if any. */
   openEventScene(): { event: GameEvent; scene: GameEvent["scenes"][string]; text: string } | null {
     const a = this.state.events.active;
-    if (!a || a.id.startsWith("explore:") || a.id === "note") return null;
+    if (!a || a.id.startsWith("explore:") || a.id.startsWith("menu:") || a.id === "note") return null;
     const event = this.reg.events.get(a.id)!;
     return { event, scene: event.scenes[a.scene], text: a.text };
   }
@@ -222,6 +227,7 @@ export class Engine {
       return this.chose();
     }
     if (this.state.events.active!.id.startsWith("explore:")) return this.exploreChoose(choiceId);
+    if (this.state.events.active!.id.startsWith("menu:")) return this.menuChoose(choiceId);
     const open = this.openEventScene()!;
     const { event, scene } = open;
     if (!scene.choices) {
@@ -326,9 +332,8 @@ export class Engine {
       case "explore": return ["explore"];
       case "consume": return [cmd.item, ...(this.reg.items.get(cmd.item)?.consume?.tags ?? [])];
       case "itemAction": return [cmd.item, ...(this.reg.items.get(cmd.item)?.actions?.find((a) => a.id === cmd.action)?.tags ?? [])];
-      case "questAction": return [cmd.quest];
+      case "menu": return [];
       case "building": {
-        if (cmd.step === "build") return [cmd.id];
         const b = this.reg.buildings.get(cmd.id)?.cycle?.[cmd.step];
         return b ? [b.id, ...(b.tags ?? [])] : [];
       }
@@ -371,39 +376,86 @@ export class Engine {
   }
 
 
-  /** Can the action next to an active quest be used now? */
-  /** A quest's action now: the first alternative whose visibleWhen holds. */
-  questActionFor(q: Quest): QuestAction | undefined {
+  // ---------------------------------------------------------------- craft and build menus
+
+  /** A recipe's way now: the first whose visibleWhen holds. */
+  recipeWay(r: Recipe): RecipeWay | undefined {
     const ctx = this.ctx();
-    return questActions(q).find((a) => evaluate(a.visibleWhen, ctx));
+    return r.ways.find((w) => evaluate(w.visibleWhen, ctx));
   }
 
-  checkQuestAction(id: string): { visible: boolean; enabled: boolean; reason?: string } {
-    const q = this.reg.quests.get(id);
-    const a = q && this.questActionFor(q);
-    if (!a || this.state.quests[id]?.status !== "active") return { visible: false, enabled: false };
+  /** Recipes in the craft menu: available, and not had yet (unless they can be made again). */
+  craftOptions(): Recipe[] {
     const ctx = this.ctx();
-    if (!evaluate(a.requires, ctx)) {
-      return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
-    }
-    for (const [item, n] of Object.entries(a.cost ?? {})) {
+    return [...this.reg.recipes.values()].filter((r) =>
+      evaluate(r.availableWhen, ctx) && !!this.recipeWay(r) && (r.multiple || (this.state.items[r.item] ?? 0) < 1));
+  }
+
+  /** Buildings in the build menu: available, allowed here, fewer than their max here. */
+  buildOptions(): string[] {
+    return [...this.reg.buildings.keys()].filter((id) => this.buildable(id));
+  }
+
+  /** Can this recipe be made now (its way's requirements and cost)? */
+  checkRecipe(r: Recipe): { enabled: boolean; reason?: string } {
+    const w = this.recipeWay(r);
+    if (!w) return { enabled: false };
+    return this.checkCost(w.requires, w.requiresText, w.cost);
+  }
+
+  private checkCost(requires: Condition | undefined, requiresText: string | undefined, cost: Record<string, number> | undefined): { enabled: boolean; reason?: string } {
+    const ctx = this.ctx();
+    if (!evaluate(requires, ctx)) return { enabled: false, reason: requiresText ?? explain(requires, ctx) ?? undefined };
+    for (const [item, n] of Object.entries(cost ?? {})) {
       const have = this.state.items[item] ?? 0;
-      if (have < n) return { visible: true, enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${have})` };
+      if (have < n) return { enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${have})` };
     }
-    return { visible: true, enabled: true };
+    return { enabled: true };
   }
 
-  private questAction(id: string): Result {
-    const c = this.checkQuestAction(id);
-    if (!c.visible) return refuse("no such task");
+  /** Open the craft or build menu: a pop-up listing what can be made (no time passes). */
+  private openMenu(menu: "craft" | "build"): Result {
+    const empty = menu === "craft" ? !this.craftOptions().length : !this.buildOptions().length;
+    if (empty) return refuse(menu === "craft" ? "nothing to craft" : "nothing to build here");
+    this.state.events.active = { id: `menu:${menu}`, scene: "menu", text: this.say(this.reg.game.menus[menu].text)! };
+    return { ok: true, cooldownMs: 0 };
+  }
+
+  /** A choice in a menu: close, or make it (the pop-up closes; the work takes its time and shows its bar). */
+  private menuChoose(choiceId: string): Result {
+    const menu = this.state.events.active!.id.slice("menu:".length) as "craft" | "build";
+    if (choiceId === "close") { this.state.events.active = null; return this.chose(); }
+    if (menu === "craft") {
+      const r = this.craftOptions().find((x) => x.id === choiceId);
+      if (!r) return refuse("unknown choice");
+      const c = this.checkRecipe(r);
+      if (!c.enabled) return refuse(c.reason ?? "not possible now");
+      this.state.events.active = null;
+      this.made = true;
+      const res = this.craft(r);
+      if (res.ok && !this.state.dead) this.checkEvents([r.id, ...(r.tags ?? [])]);
+      return res;
+    }
+    if (!this.buildOptions().includes(choiceId)) return refuse("unknown choice");
+    const c = this.checkBuildingStep(choiceId, "build");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
-    const a = this.questActionFor(this.reg.quests.get(id)!)!;
-    this.take(a.cost);
-    this.log(this.say(a.log));
-    if (!this.advance(a.hours, a.effort)) return this.died(a.hours);
-    this.applyEffects(a.effects);
+    this.state.events.active = null;
+    this.made = true;
+    const res = this.buildingStep(choiceId, "build");
+    if (res.ok && !this.state.dead) this.checkEvents([choiceId]);
+    return res;
+  }
+
+  private craft(r: Recipe): Result {
+    const w = this.recipeWay(r)!;
+    this.take(w.cost);
+    this.log(this.say(w.log));
+    if (!this.advance(w.hours, w.effort)) return this.died(w.hours);
+    this.give({ [r.item]: r.count ?? 1 });
+    this.applyEffects(w.effects);
+    this.count(r.id, r.tags);
     this.postCheck();
-    return this.ok(a.hours);
+    return this.ok(w.hours);
   }
 
   /** Is an item's action button (e.g. cook) shown, and usable now? */
@@ -587,38 +639,50 @@ export class Engine {
     return !!b && b.places.some((p) => p.region === this.state.location && evaluate(p.when, ctx));
   }
 
-  /** Is the build button offered here: available, allowed in this place, not standing here yet? */
-  buildable(id: string): boolean {
-    const b = this.reg.buildings.get(id);
-    return !!b && evaluate(b.availableWhen, this.ctx()) && this.canBuildHere(id) && !this.state.buildings[buildingKey(id, this.state.location)];
+  /** How many of a building stand where you are (0 = none). */
+  builtHere(id: string): number {
+    return this.state.buildings[buildingKey(id, this.state.location)]?.count ?? 0;
   }
 
-  /** The step a building here offers now: build (not standing), start (idle), collect (ready). */
-  buildingStepFor(id: string): { step: "build" | "start" | "collect"; def: BuildingStep | Building["build"] } | null {
+  /** Is it offered in the build menu here: available, allowed in this place, fewer than its max? */
+  buildable(id: string): boolean {
     const b = this.reg.buildings.get(id);
-    if (!b) return null;
+    return !!b && evaluate(b.availableWhen, this.ctx()) && this.canBuildHere(id) && this.builtHere(id) < (b.max ?? 1);
+  }
+
+  /** The cycle step a building here offers now (in the buildings panel): start when idle, collect when ready. */
+  buildingStepFor(id: string): { step: "start" | "collect"; def: BuildingStep } | null {
+    const b = this.reg.buildings.get(id);
+    if (!b?.cycle) return null;
     const st = buildingState(this.reg, this.state, id, this.state.location);
-    if (st === "none") return this.buildable(id) ? { step: "build", def: b.build } : null;
-    if (st === "idle" && b.cycle) return { step: "start", def: b.cycle.start };
-    if (st === "ready" && b.cycle) return { step: "collect", def: b.cycle.collect };
+    if (st === "idle") return { step: "start", def: b.cycle.start };
+    if (st === "ready") return { step: "collect", def: b.cycle.collect };
     return null;
+  }
+
+  /**
+   * A step's cost and time for the buildings here: several in a place work together, so starting or
+   * collecting costs and takes that many times as much (building one is always for one).
+   */
+  stepCost(id: string, step: "build" | "start" | "collect"): { hours: number; cost: Record<string, number> } {
+    const b = this.reg.buildings.get(id)!;
+    const d = step === "build" ? b.build : b.cycle![step];
+    const n = step === "build" ? 1 : Math.max(1, this.builtHere(id));
+    const cost: Record<string, number> = {};
+    for (const [k, v] of Object.entries(d.cost ?? {})) cost[k] = v * n;
+    return { hours: d.hours * n, cost };
   }
 
   /** Can this step be done now (you are there, it is its turn, its requirements and cost)? */
   checkBuildingStep(id: string, step: "build" | "start" | "collect"): { visible: boolean; enabled: boolean; reason?: string } {
-    const now = this.buildingStepFor(id);
-    if (!now || now.step !== step) return { visible: false, enabled: false };
-    const ctx = this.ctx();
-    const d = now.def;
-    if (!evaluate(d.requires, ctx)) return { visible: true, enabled: false, reason: d.requiresText ?? explain(d.requires, ctx) ?? undefined };
-    for (const [item, n] of Object.entries(d.cost ?? {})) {
-      const have = this.state.items[item] ?? 0;
-      if (have < n) return { visible: true, enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${have})` };
-    }
-    return { visible: true, enabled: true };
+    const b = this.reg.buildings.get(id);
+    if (!b) return { visible: false, enabled: false };
+    const d = step === "build" ? (this.buildable(id) ? b.build : null) : (this.buildingStepFor(id)?.step === step ? b.cycle![step] : null);
+    if (!d) return { visible: false, enabled: false };
+    return { visible: true, ...this.checkCost(d.requires, d.requiresText, this.stepCost(id, step).cost) };
   }
 
-  /** Put up a building here, start its cycle, or collect what it made (once per batch ready). */
+  /** Put up a building here, start its cycle, or collect what it made (once per batch ready, per building). */
   private buildingStep(id: string, step: "build" | "start" | "collect"): Result {
     const c = this.checkBuildingStep(id, step);
     if (!c.visible) return refuse("not available");
@@ -626,23 +690,34 @@ export class Engine {
     const b = this.reg.buildings.get(id)!;
     const key = buildingKey(id, this.state.location);
     const d = step === "build" ? b.build : b.cycle![step];
+    const { hours, cost } = this.stepCost(id, step);
+    const n = Math.max(1, this.builtHere(id));
     const batches = step === "collect" ? batchesReady(this.reg, this.state, id, this.state.location) : 0;
-    this.take(d.cost);
+    this.take(cost);
     this.log(this.say(d.log));
     // what was caught so far is taken out now; with `repeat` the next batch counts from the end of the work
     if (step === "collect") this.state.buildings[key].startedAt = undefined;
-    if (!this.advance(d.hours, d.effort)) return this.died(d.hours);
-    if (step === "build") this.state.buildings[key] = { builtAt: this.state.time };
+    if (!this.advance(hours, d.effort)) return this.died(hours);
+    if (step === "build") this.addBuilding(id);
     if (step === "start" || (step === "collect" && b.cycle!.repeat)) this.state.buildings[key].startedAt = this.state.time;
-    if (step !== "build") {
+    if (step === "collect") {
       const cd = d as BuildingStep;
-      for (let i = 0; i < Math.max(1, batches); i++) { this.applyYields(cd.yields); this.applyOutcomes(cd.outcomes); }
+      for (let i = 0; i < Math.max(1, batches) * n; i++) { this.applyYields(cd.yields); this.applyOutcomes(cd.outcomes); }
     }
     this.applyEffects(d.effects);
     if (step === "build") this.count(id);
     else this.count((d as BuildingStep).id, (d as BuildingStep).tags);
     this.postCheck();
-    return this.ok(d.hours);
+    return this.ok(hours);
+  }
+
+  /** One more of a building where you are (up to its max). A new one joins a cycle already running. */
+  private addBuilding(id: string) {
+    const key = buildingKey(id, this.state.location);
+    const max = this.reg.buildings.get(id)!.max ?? 1;
+    const st = this.state.buildings[key];
+    if (!st) this.state.buildings[key] = { count: 1, builtAt: this.state.time };
+    else st.count = Math.min(max, (st.count ?? 1) + 1);
   }
 
   /** Buildings here whose first batch became ready in this clock step: say so (if you are awake). */
@@ -831,8 +906,8 @@ export class Engine {
         const st = s.regions[e.unlock];
         if (!st.unlocked) { st.unlocked = true; this.log(this.say(this.reg.game.journal.wayOpens, { place: this.reg.regions.get(e.unlock)!.name })); this.opened.push(e.unlock); }
       } else if ("build" in e) {
-        const key = buildingKey(e.build, s.location);
-        if (!s.buildings[key]) { s.buildings[key] = { builtAt: s.time }; this.remember(e.build); }
+        this.addBuilding(e.build);
+        this.remember(e.build);
       } else if ("startCycle" in e) {
         // the building here (e.g. the field is sown as it is dug)
         const st = s.buildings[buildingKey(e.startCycle, s.location)];

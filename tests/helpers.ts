@@ -78,3 +78,21 @@ export function lookAround(e: Engine) {
   return res;
 }
 
+
+/** Make something from the craft menu: open it, pick the recipe (the pop-up closes, the work takes its time). */
+export function craft(e: Engine, recipe: string) {
+  const opened = e.dispatch({ type: "menu", menu: "craft" });
+  if (!opened.ok) return opened;
+  const res = e.dispatch({ type: "choose", choice: recipe });
+  if (!res.ok && e.state.events.active?.id === "menu:craft") e.dispatch({ type: "choose", choice: "close" });
+  return res;
+}
+
+/** Build something here from the build menu. */
+export function build(e: Engine, building: string) {
+  const opened = e.dispatch({ type: "menu", menu: "build" });
+  if (!opened.ok) return opened;
+  const res = e.dispatch({ type: "choose", choice: building });
+  if (!res.ok && e.state.events.active?.id === "menu:build") e.dispatch({ type: "choose", choice: "close" });
+  return res;
+}

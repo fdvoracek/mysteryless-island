@@ -160,6 +160,7 @@
     "availableWhen": {
       "any": [{ "quest": "build_fish_trap", "is": "active" }, { "quest": "build_fish_trap", "is": "done" }]
     },
+    "max": 3,
     "build": {
       "hours": 1,
       "effort": "work",
@@ -330,6 +331,7 @@
     "availableWhen": {
       "any": [{ "quest": "build_corn_field", "is": "active" }, { "quest": "build_corn_field", "is": "done" }]
     },
+    "max": 3,
     "build": {
       "label": "dig",
       "hours": 3,

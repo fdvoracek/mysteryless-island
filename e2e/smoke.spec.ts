@@ -78,13 +78,15 @@ test("the meadows: a ? to the west once the cliff is seen; climbing it opens the
   await explore(page, "berry_bushes");
   await explore(page, "river");
   for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
-  // the river starts the fish trap task: 20 willow twigs; its button builds it; then it is in the buildings panel
+  // the river starts the fish trap task: 20 willow twigs; built from the build menu; then it is in the buildings panel
   const task = page.locator('#quests .quest[data-id="build_fish_trap"]');
   await expect(task).toBeVisible();
   await action(page, "cut willow twigs").click();
   await action(page, "cut willow twigs").click();
   await expect(task.locator(".progress")).toHaveText("willow twigs 20/20");
-  await task.locator(".qaction").click();
+  await action(page, "build").click();
+  await expect(page.locator("#eventTitle")).toHaveText("Build");
+  await page.locator('#eventChoices [data-choice="fish_trap"]').click();
   const trap = page.locator('#buildings .row[data-id="fish_trap"]');
   await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fish trap");
   await expect(page.locator("#eventText")).toContainText("Fish trap built.");
@@ -233,15 +235,24 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator('#stores .row[data-id="cooked_fish"]')).toBeVisible();
 });
 
-test("finding the fish starts the spear task; building it puts the spear in the inventory", async ({ page }) => {
+test("finding the fish starts the spear task; crafting it (the craft menu) puts the spear in the inventory", async ({ page }) => {
   for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
   const quest = page.locator('#quests .quest[data-id="build_fishing_spear"]');
   await expect(quest.locator(".progress")).toHaveText("firewood 0/10");
-  await expect(quest.locator(".qaction")).toHaveClass(/off/);
+  await expect(quest.locator("button")).toHaveCount(0); // tasks have no buttons
+  // the craft menu: a pop-up with the spear, what it needs in its tooltip
+  await action(page, "craft").click();
+  await expect(page.locator("#eventTitle")).toHaveText("Craft");
+  const spear = page.locator('#eventChoices [data-choice="craft_spear"]');
+  await expect(spear).toHaveClass(/off/);
+  await expect(spear).toHaveAttribute("title", "10 firewood · 30m: Needs 10 firewood (have 0)");
+  await page.locator('#eventChoices [data-choice="close"]').click();
 
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
   await expect(quest.locator(".progress")).toHaveText("firewood 10/10");
-  await quest.locator(".qaction").click();
+  await expect(action(page, "craft")).toContainText("*"); // something can be made now
+  await action(page, "craft").click();
+  await spear.click();
   // a note: the task is done, and what changed
   await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fishing spear");
   await expect(page.locator("#eventText")).toContainText("Fishing spear added to your inventory.");
@@ -251,6 +262,7 @@ test("finding the fish starts the spear task; building it puts the spear in the 
   await expect(page.locator("#inventory")).toContainText("fishing spear");
   await expect(quest).toHaveCount(0, { timeout: 5_000 });
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
+  await expect(action(page, "craft")).toHaveCount(0); // nothing left to craft: one spear is enough
 });
 
 test("while an action runs, the controls are locked and greyed out", async ({ page }) => {

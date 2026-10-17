@@ -62,6 +62,7 @@ function isCompatible(s: GameState, reg: Registry): boolean {
   for (const key of Object.keys(s.buildings)) {
     const [id, region] = key.split("@");
     if (!reg.buildings.has(id) || !reg.regions.has(region)) delete s.buildings[key];
+    else s.buildings[key].count ??= 1;
   }
   for (const id of Object.keys(s.items)) if (!reg.items.has(id)) delete s.items[id];
   for (const id of reg.regionOrder) {

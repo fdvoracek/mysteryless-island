@@ -17,33 +17,7 @@
     "title": "build a fishing spear",
     "hint": "A long, straight shaft and a sharp point. Gather branches enough to choose a good one.",
     "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
-    "action": [
-      {
-        "label": "build",
-        "visibleWhen": { "item": "knife" },
-        "hours": 0.5,
-        "effort": "light",
-        "cost": { "firewood": 10 },
-        "effects": [{ "give": { "fishing_spear": 1 } }],
-        "log": [
-          "You choose the straightest branch and carve it to a point with the knife.",
-          "You pick the straightest branch and whittle the tip sharp.",
-          "Shaving by shaving, the knife turns a branch into a point."
-        ]
-      },
-      {
-        "label": "build",
-        "hours": 1.5,
-        "effort": "work",
-        "cost": { "firewood": 10 },
-        "effects": [{ "give": { "fishing_spear": 1 } }],
-        "log": [
-          "Without a knife, you grind the straightest branch to a point on a sharp stone. It takes hours.",
-          "You scrape a branch against a sharp rock, again and again, until the tip is a point.",
-          "No blade, only a sharp stone and patience. Slowly the branch becomes a spear."
-        ]
-      }
-    ],
+    "craft": "craft_spear",
     "completeWhen": { "item": "fishing_spear" },
     "startLog": [
       "A spear would reach them. You will need wood to choose from.",
@@ -90,18 +64,7 @@
         ]
       }
     },
-    "action": {
-      "label": "make",
-      "hours": 1,
-      "effort": "work",
-      "cost": { "firewood": 2, "stone": 2 },
-      "effects": [{ "give": { "axe": 1 } }],
-      "log": [
-        "You knock one stone against another until it has an edge, and lash it into a split branch.",
-        "Stone on stone until one has an edge. Then a split branch, and the stone wedged in tight.",
-        "A sharp stone, a stout branch, and a long time binding them."
-      ]
-    },
+    "craft": "craft_axe",
     "completeWhen": { "item": "axe" },
     "doneLog": ["The axe is crude, but it bites into wood.", "It is heavy and ugly, and it cuts."]
   },
@@ -181,18 +144,7 @@
     "title": "make a hoe",
     "hint": "A flat stone on a log handle, to break the ground.",
     "trigger": { "when": { "quest": "build_corn_field", "is": "active" } },
-    "action": {
-      "label": "make",
-      "hours": 1,
-      "effort": "work",
-      "cost": { "timber": 1, "stone": 1 },
-      "effects": [{ "give": { "hoe": 1 } }],
-      "log": [
-        "You lash a flat stone across the end of a log handle.",
-        "A flat stone, a handle cut from a log, a lot of cord.",
-        "You bind a flat stone crosswise to a handle. A hoe, of sorts."
-      ]
-    },
+    "craft": "craft_hoe",
     "completeWhen": { "item": "hoe" },
     "doneLog": ["The hoe is heavy, but it breaks the ground.", "Clumsy, but it digs."]
   },
