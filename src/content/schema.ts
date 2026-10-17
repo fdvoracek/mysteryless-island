@@ -436,10 +436,10 @@ export const Game = z
      * `go`, the label of the button that walks there.
      */
     newPlace: z.object({ title: Text, text: Text, go: z.string() }).strict(),
-    /** the craft and build menus: the button, the pop-up's title and its text */
+    /** the craft and build menus: the button, the pop-up's title, its text, and the text when it offers nothing */
     menus: z.object({
-      craft: z.object({ button: z.string(), title: z.string(), text: Text }).strict(),
-      build: z.object({ button: z.string(), title: z.string(), text: Text }).strict(),
+      craft: z.object({ button: z.string(), title: z.string(), text: Text, empty: Text }).strict(),
+      build: z.object({ button: z.string(), title: z.string(), text: Text, empty: Text }).strict(),
     }).strict(),
     /**
      * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why

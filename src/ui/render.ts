@@ -349,15 +349,11 @@ export class UI {
       el.setAttribute("aria-disabled", String(!bv.enabled || this.isBusy()));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
-    // look around stands on its own line, above the other buttons: it stays, and changes with what is left to find
+    // look around, craft and build stand on their own line, above the place's buttons: they are there everywhere
     const explore = container.querySelector<HTMLElement>('button.btn[data-id^="explore:"]');
-    if (explore) {
-      explore.classList.add("explore");
-      if (explore.nextElementSibling) explore.after(div("", "break"));
-    }
-    // the craft and build menus: on a line of their own, after the place's actions
-    const menu = container.querySelector<HTMLElement>("button.btn.menu-btn");
-    if (menu?.previousElementSibling && !menu.previousElementSibling.classList.contains("break")) menu.before(div("", "break"));
+    explore?.classList.add("explore");
+    const first = [...container.querySelectorAll<HTMLElement>("button.btn")].filter((b) => b === explore || b.classList.contains("menu-btn")).at(-1);
+    if (first?.nextElementSibling) first.after(div("", "break"));
   }
 
   private renderStatus(v: View) {

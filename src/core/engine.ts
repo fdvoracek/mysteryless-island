@@ -413,11 +413,11 @@ export class Engine {
     return { enabled: true };
   }
 
-  /** Open the craft or build menu: a pop-up listing what can be made (no time passes). */
+  /** Open the craft or build menu: a pop-up listing what can be made (no time passes); `empty` says when there is nothing. */
   private openMenu(menu: "craft" | "build"): Result {
+    const m = this.reg.game.menus[menu];
     const empty = menu === "craft" ? !this.craftOptions().length : !this.buildOptions().length;
-    if (empty) return refuse(menu === "craft" ? "nothing to craft" : "nothing to build here");
-    this.state.events.active = { id: `menu:${menu}`, scene: "menu", text: this.say(this.reg.game.menus[menu].text)! };
+    this.state.events.active = { id: `menu:${menu}`, scene: "menu", text: this.say(empty ? m.empty : m.text)! };
     return { ok: true, cooldownMs: 0 };
   }
 

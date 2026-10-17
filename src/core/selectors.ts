@@ -16,7 +16,7 @@ export interface ButtonView {
   enabled: boolean;
   reason?: string;
   tooltip: string[];
-  /** the craft and build menus (drawn on a line of their own, after the place's actions) */
+  /** the craft and build menus (on the first line with look around, everywhere) */
   menu?: boolean;
 }
 
@@ -117,6 +117,18 @@ export function view(engine: Engine): View {
       tooltip: ["no time", ex.open > 0 ? "something here is not explored yet" : "nothing new to explore"],
     });
   }
+  // the craft and build menus: everywhere, next to look around; * when something in them can be made now
+  for (const menu of ["craft", "build"] as const) {
+    const options = menu === "craft"
+      ? engine.craftOptions().map((r) => engine.checkRecipe(r).enabled)
+      : engine.buildOptions().map((id) => engine.checkBuildingStep(id, "build").enabled);
+    const ready = options.filter(Boolean).length;
+    actions.push({
+      id: `menu:${menu}`, command: { type: "menu", menu }, label: reg.game.menus[menu].button,
+      badge: ready ? "*" : undefined, enabled: true, menu: true,
+      tooltip: ["no time", ready ? `${ready} can be made now` : options.length ? "nothing can be made yet" : "nothing to make yet"],
+    });
+  }
   for (const a of region.activities) {
     const c = engine.check(a);
     if (!c.visible) continue;
@@ -161,21 +173,6 @@ export function view(engine: Engine): View {
     // what the task asks you to make: progress towards its cost (made in the craft or build menu)
     const cost = q.craft ? engine.recipeWay(reg.recipes.get(q.craft)!)?.cost : q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
     quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost) });
-  }
-
-  // the craft and build menus: a button each (after the place's actions) while they offer something
-  for (const menu of ["craft", "build"] as const) {
-    const options = menu === "craft"
-      ? engine.craftOptions().map((r) => engine.checkRecipe(r).enabled)
-      : engine.buildOptions().map((id) => engine.checkBuildingStep(id, "build").enabled);
-    if (!options.length) continue;
-    const ready = options.filter(Boolean).length;
-    actions.push({
-      id: `menu:${menu}`, command: { type: "menu", menu }, label: reg.game.menus[menu].button,
-      // * while something in it can be made now
-      badge: ready ? "*" : undefined, enabled: true, menu: true,
-      tooltip: ["no time", ready ? `${ready} can be made now` : "nothing can be made yet"],
-    });
   }
 
   const stores: View["stores"] = [];

@@ -275,12 +275,13 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 });
 
 describe("the craft and build menus", () => {
-  it("craft: a button after the place's actions while something can be made; * when it can be made now", () => {
+  it("craft and build: everywhere, next to look around; * when something can be made now", () => {
     const e = startGame(reg, 8);
     const menu = () => view(e).actions.find((a) => a.id === "menu:craft");
-    expect(menu()).toBeUndefined(); // nothing to make yet
+    expect(view(e).actions.slice(0, 3).map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build"]);
+    expect(menu()).toMatchObject({ label: "craft", menu: true, badge: undefined }); // nothing to make yet, but there
     for (let i = 0; i < 4; i++) lookAround(e); // the shallows: the spear task, so the spear recipe
-    expect(menu()).toMatchObject({ label: "craft", menu: true, badge: undefined });
+    expect(menu()).toMatchObject({ label: "craft", badge: undefined });
     e.applyEffects([{ give: { firewood: 10 } }]);
     expect(menu()!.badge).toBe("*");
     // the pop-up: one button per thing, with its time; what it needs is in the tooltip; no time passes
@@ -298,7 +299,9 @@ describe("the craft and build menus", () => {
     expect(res.cooldownMs).toBeGreaterThan(0); // the progress bar runs, as for any action
     expect(e.state.time - t0).toBe(30);
     expect(e.state.items.fishing_spear).toBe(1);
-    expect(menu()).toBeUndefined();
+    expect(menu()!.badge).toBeUndefined();
+    e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["close"]); // the spear has left the menu
   });
 
   it("the spear without a knife: the menu offers the slower way (a sharp stone)", () => {
@@ -314,10 +317,14 @@ describe("the craft and build menus", () => {
     expect(e.state.log.some((l) => /sharp stone|sharp rock/.test(l.text))).toBe(true);
   });
 
-  it("a menu with nothing in it does not open; while it is open nothing else works", () => {
+  it("a menu with nothing in it says so (only close); while it is open nothing else works", () => {
     const e = startGame(reg, 10);
-    expect(e.dispatch({ type: "menu", menu: "craft" })).toMatchObject({ ok: false, reason: "nothing to craft" });
-    expect(e.dispatch({ type: "menu", menu: "build" })).toMatchObject({ ok: false, reason: "nothing to build here" });
+    e.dispatch({ type: "menu", menu: "craft" });
+    expect(view(e).event).toMatchObject({ title: "Craft", text: "Nothing comes to mind that you could make yet.", choices: [{ id: "close" }] });
+    e.dispatch({ type: "choose", choice: "close" });
+    e.dispatch({ type: "menu", menu: "build" });
+    expect(view(e).event).toMatchObject({ title: "Build", text: "There is nothing you could build here yet.", choices: [{ id: "close" }] });
+    e.dispatch({ type: "choose", choice: "close" });
     const f = ready("beach");
     f.dispatch({ type: "menu", menu: "build" });
     expect(f.dispatch({ type: "activity", id: "collect_shells" })).toMatchObject({ ok: false, reason: "an event is open" });

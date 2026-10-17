@@ -24,21 +24,21 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e); look(e);
     expect(logHas(e, "a ring of rocks breaks the sea wind")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build", "light fire", "sleep"]);
   });
 
   it("beach step 3: the cliff with shells reveals collect shells", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e);
     expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "sleep"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build", "light fire", "collect shells", "sleep"]);
   });
 
   it("beach step 4: the fish need a spear; the cliff is still left (*)", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "light fire", "collect shells", "catch fish", "sleep", "craft"]); // the spear
+    expect(labels(e)).toEqual(["look around", "craft", "build", "light fire", "collect shells", "catch fish", "sleep"]);
     expect(view(e).actions[0].badge).toBe("*");
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear"); // the spear is a task now
   });
@@ -55,9 +55,9 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e);
     e.dispatch({ type: "travel", region: "forest" });
-    expect(labels(e)).toEqual(["look around", "collect wood"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build", "collect wood"]);
     look(e);
-    expect(labels(e)).toEqual(["look around", "collect wood", "drink water"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build", "collect wood", "drink water"]);
   });
 
   it("each region keeps its own progress; the * shows where something is left", () => {

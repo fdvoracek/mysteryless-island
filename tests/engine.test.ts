@@ -8,18 +8,18 @@ const reg = loadRegistry();
 const fresh = (seed = 1) => revealAll(startGame(reg, seed));
 
 describe("engine: the prototype loop", () => {
-  it("starts at dawn on the beach with only 'look around'", () => {
+  it("starts at dawn on the beach with only 'look around', 'craft' and 'build'", () => {
     const e = startGame(reg, 1);
     expect(e.state.location).toBe("beach");
     expect(clockText(e.state.time)).toBe("06:00");
-    expect(view(e).actions.map((a) => a.label)).toEqual(["look around"]);
+    expect(view(e).actions.map((a) => a.label)).toEqual(["look around", "craft", "build"]);
     expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
   });
 
   it("once the beach is explored: fire, shells, fish, sleep", () => {
     const e = fresh();
     const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "light_fire", "collect_shells", "collect_stones", "catch_fish", "sleep", "menu:craft", "menu:build"]);
+    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build", "light_fire", "collect_shells", "collect_stones", "catch_fish", "sleep"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
     expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
     expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire or a shelter");

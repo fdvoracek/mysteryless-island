@@ -129,9 +129,10 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
 test("the game is visible and not covered on load", async ({ page }) => {
   await expect(page).toHaveTitle("Mysteryless Island");
   await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
-  // the game starts with a single button
-  await expect(page.locator("#actions .btn")).toHaveCount(1);
-  await expect(action(page, "look around")).toBeVisible();
+  // the game starts with the buttons that are there everywhere: look around, craft, build (one line)
+  await expect(page.locator("#actions .btn .label")).toHaveText(["look around*", "craft", "build"]);
+  const y = async (name: string) => (await action(page, name).boundingBox())!.y;
+  expect(await y("craft")).toBe(await y("look around"));
   await expect(page.locator("#fade")).toBeHidden();
 
   // survival stats are ink bars with the word on hover
@@ -262,7 +263,7 @@ test("finding the fish starts the spear task; crafting it (the craft menu) puts 
   await expect(page.locator("#inventory")).toContainText("fishing spear");
   await expect(quest).toHaveCount(0, { timeout: 5_000 });
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
-  await expect(action(page, "craft")).toHaveCount(0); // nothing left to craft: one spear is enough
+  await expect(action(page, "craft").locator(".label")).toHaveText("craft"); // no *: one spear is enough
 });
 
 test("while an action runs, the controls are locked and greyed out", async ({ page }) => {

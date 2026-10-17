@@ -53,7 +53,7 @@
     "text": "A new place is on your map: {place}. You can walk there now, or later from the map.",
     "go": "go to {place}"
   },
-  "_menus": "the craft and build menus: the button after the place's actions, the pop-up's title and text",
+  "_menus": "the craft and build menus: the button next to look around, the pop-up's title, its text, and the text when it offers nothing",
   "menus": {
     "craft": {
       "button": "craft",
@@ -61,12 +61,20 @@
       "text": [
         "What could you make with your hands and what you carry?",
         "You turn over what you have. What could it become?"
+      ],
+      "empty": [
+        "Nothing comes to mind that you could make yet.",
+        "You turn over what you have. Nothing to make from it yet."
       ]
     },
     "build": {
       "button": "build",
       "title": "Build",
-      "text": ["What could you build here?", "You look around for a place to build."]
+      "text": ["What could you build here?", "You look around for a place to build."],
+      "empty": [
+        "There is nothing you could build here yet.",
+        "You look around. Nothing to build here, not yet."
+      ]
     }
   },
   "timers": [

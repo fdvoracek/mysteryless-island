@@ -48,7 +48,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     e.dispatch({ type: "travel", region: "meadows" });
     expect(e.state.time - t0).toBe(60);
     expect(e.state.log[0].text).toMatch(/willows/);
-    expect(labels(e)).toEqual(["look around"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build"]);
     e.dispatch({ type: "travel", region: "beach" });
     explore(e, "forest_edge");
     e.dispatch({ type: "travel", region: "forest" });
@@ -61,7 +61,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     const e = toCliffTop(3);
     e.dispatch({ type: "travel", region: "meadows" });
     explore(e, "berry_bushes");
-    expect(labels(e)).toEqual(["look around", "pick berries"]);
+    expect(labels(e)).toEqual(["look around", "craft", "build", "pick berries"]);
     e.dispatch({ type: "activity", id: "collect_berries" });
     const n = e.state.items.berries;
     expect(n).toBeGreaterThanOrEqual(3);
@@ -77,7 +77,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     e.dispatch({ type: "travel", region: "meadows" });
     lookAround(e); // the bushes
     lookAround(e); // the willows: the river
-    expect(labels(e)).toEqual(["look around", "pick berries", "drink water", "catch fish", "cut willow twigs", "craft", "build"]); // the spear, the fish trap
+    expect(labels(e)).toEqual(["look around", "craft", "build", "pick berries", "drink water", "catch fish", "cut willow twigs"]);
     expect(view(e).actions[0].badge).toBe("*"); // the flat ground, the corn and the bees are left
     expect(view(e).quests.map((q) => q.id)).toContain("build_fishing_spear");
     const fish = view(e).actions.find((a) => a.label === "catch fish")!;
