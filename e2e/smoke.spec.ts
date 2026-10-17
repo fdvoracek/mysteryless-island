@@ -318,8 +318,8 @@ test("every layout can be chosen from the menu, shows all panels, plays, and is 
       (window as unknown as { ti: { state(): { log: Array<{ text: string }> } } }).ti.state().log[0].text);
     await expect(page.locator("#log")).toContainText(newest);
     await expect(page.locator("#status .row")).toHaveCount(5);
-    // the game moves on between layouts: the 4th look finds the fish, which starts the spear task
-    const tasks = i < 4 ? ["survive the first night"] : ["survive the first night", "build a fishing spear"];
+    // the game moves on between layouts: the 4th look finds the fish, which starts "catch a fish"
+    const tasks = i < 4 ? ["survive the first night"] : ["survive the first night", "catch a fish"];
     await expect(page.locator("#quests .quest .title")).toHaveText(tasks);
     await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
     // and the game plays: one more landmark explored per layout (4 on the beach)

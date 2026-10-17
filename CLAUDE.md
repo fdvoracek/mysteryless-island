@@ -10,6 +10,7 @@ npm run content:check  # only the content checks (schema, references, sentence r
 npm run typecheck
 npm run build          # tsc + vite build into dist/
 npm run test:e2e       # Playwright smoke test of dist/ (needs a build; Chromium)
+npm run check          # all of it, as CI: unit tests, build, browser test (the pre-push hook runs this)
 ```
 
 URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.
@@ -51,5 +52,6 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 ## Workflow
 
 - Commit author: `Frantisek Dvoracek <f.dvoracek@gmail.com>`. The user pushes; pushing to `main` deploys via `.github/workflows/pages.yml` (tests, build, e2e, deploy).
+- `.githooks/pre-push` runs `npm run check` before a push to `main` and stops the push if it fails (`npm install` sets `core.hooksPath`; `npx playwright install chromium` once). In a sandbox without Chromium the browser test can't run: `tests/e2e-content.test.ts` checks with the unit tests that every id and label the browser test expects still exists in the content. When a task, label or id is renamed, grep `e2e/smoke.spec.ts` for the old name too.
 - If you work in a Linux sandbox with this folder mounted from macOS, never install `node_modules` into the repo: copy it elsewhere (e.g. `rsync --exclude node_modules --exclude .git`) and build there.
 - Update `README.md` / `docs/TDD.md` when behaviour or the content model changes.

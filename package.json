@@ -11,7 +11,9 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "content:check": "vitest run tests/content.test.ts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "check": "npm test && npm run build && npm run test:e2e",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "zod": "^3.23.8"

@@ -13,7 +13,10 @@ npm test             # engine + content tests
 npm run content:check
 npm run build        # static build in dist/
 npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright install chromium)
+npm run check        # everything CI runs: unit tests, build, browser test
 ```
+
+`git push` to `main` runs `npm run check` first (a pre-push hook in `.githooks/`, set up by `npm install`) and stops the push if anything fails; `git push --no-verify` skips it once.
 
 Pacing: actions take 15 minutes to 1.5 hours of game time (sleep: 8 hours; 15 minutes is the shortest). After each action a progress bar runs (in-game hours and the amount of new text set its length; see `cosmetic` in `content/game.json`). All controls are locked meanwhile. Walking to another place, exploring a landmark and choosing in a pop-up take their game time but show no bar, so they never feel like loading. Add `?speed=0.2` to the URL to make bars 5× faster while testing.
 
