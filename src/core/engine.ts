@@ -6,7 +6,7 @@ import { batchesReady, buildingKey, buildingState, evaluate, type Ctx } from "./
 import { int, weighted } from "./rng";
 import { createInitialState, type GameState } from "./state";
 import { chooseText, sentence } from "./text";
-import { initializeTimers, timerKey, timerValue } from "./timers";
+import { timerKey, timerValue } from "./timers";
 
 export type SleepRecoveryReason = "early_warm_bed" | "early_unheated_bed" | "late_warm_bed" | "late_unheated_bed" | "exposed_bed" | "ground";
 
@@ -63,13 +63,7 @@ export class Engine {
     private onTimeStep?: (state: GameState, kind: "start" | "step") => void,
   ) {
     this.state = state;
-    // saves from before these existed
-    this.state.today ??= {};
-    this.state.lastText ??= {};
-    this.state.events ??= { active: null, queue: [], seen: {} };
-    this.state.buildings ??= {};
-    for (const b of Object.values(this.state.buildings)) b.count ??= 1;
-    initializeTimers(reg, this.state);
+
   }
 
   static newGame(reg: Registry, seed: number): Engine {

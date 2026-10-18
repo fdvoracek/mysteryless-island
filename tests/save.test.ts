@@ -70,3 +70,44 @@ describe("saving the game", () => {
     expect(loadGame(reg)).toBeNull();
   });
 });
+
+describe("save migration boundary", () => {
+  it("repairs removed content references without losing surviving progress", () => {
+    const e = startGame(reg, 7);
+    e.state.location = "removed_area";
+    e.state.items.firewood = 12;
+    e.state.items.removed_item = 3;
+    e.state.events.active = { id: "removed_event", scene: "start", text: "An old scene." };
+    e.state.events.queue = ["removed_event"];
+    e.state.regions.beach.discoveries.push("removed_discovery");
+    writeSave(e.state);
+    const loaded = readSave(reg)!;
+    expect(loaded.location).toBe(reg.game.start.region);
+    expect(loaded.items.firewood).toBe(12);
+    expect(loaded.items.removed_item).toBeUndefined();
+    expect(loaded.events.active).toBeNull();
+    expect(loaded.events.queue).toEqual([]);
+    expect(loaded.regions.beach.discoveries).not.toContain("removed_discovery");
+    expect(() => new Engine(reg, loaded).dispatch({ type: "explore" })).not.toThrow();
+  });
+
+  it("rejects malformed numeric state and retains the original stored save", () => {
+    const e = startGame(reg, 7);
+    const bad = JSON.stringify({ saveVersion: 2, current: { ...e.state, items: { firewood: -4 } } });
+    localStorage.setItem("textisland.save", bad);
+    expect(readSave(reg)).toBeNull();
+    expect(localStorage.getItem("textisland.save")).toBe(bad);
+  });
+
+  it("upgrades version 1 defaults and drops a missing scene from a surviving event", () => {
+    const e = startGame(reg, 7);
+    const old = { ...e.state, saveVersion: 1, today: undefined, lastText: undefined, buildings: undefined };
+    old.events.active = { id: [...reg.events.keys()][0], scene: "removed_scene", text: "Old." };
+    localStorage.setItem("textisland.save", JSON.stringify({ saveVersion: 1, current: old }));
+    const loaded = readSave(reg)!;
+    expect(loaded.saveVersion).toBe(2);
+    expect(loaded.today).toEqual({});
+    expect(loaded.buildings).toEqual({});
+    expect(loaded.events.active).toBeNull();
+  });
+});

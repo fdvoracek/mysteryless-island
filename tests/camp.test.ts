@@ -1,3 +1,4 @@
+import { restoreState } from "../src/persistence/migrate";
 import { describe, expect, it } from "vitest";
 import { Engine, type SleepRecoveryReason } from "../src/core/engine";
 import { evaluate } from "../src/core/conditions";
@@ -166,7 +167,7 @@ describe("bedtime recovery and its exact summary", () => {
     const old = fresh().state;
     old.buildings["bed@beach"] = { count: 1, builtAt: 0 };
     old.timers = { fire: 0 };
-    const e = new Engine(reg, structuredClone(old));
+    const e = new Engine(reg, restoreState(old, reg)!);
     expect(e.builtHere("campfire")).toBe(0);
     expect(e.state.timers.fire).toBeUndefined();
     e.dispatch({ type: "activity", id: "sleep" });
@@ -177,7 +178,7 @@ describe("bedtime recovery and its exact summary", () => {
   it("migrates a legacy burning beach fire without spreading it to another area", () => {
     const old = fresh().state;
     old.timers = { fire: 240 };
-    const e = new Engine(reg, structuredClone(old));
+    const e = new Engine(reg, restoreState(old, reg)!);
     expect(timerValue(reg, e.state, "fire", "beach")).toBe(240);
     expect(timerValue(reg, e.state, "fire", "forest")).toBe(0);
     expect(e.builtHere("campfire")).toBe(1);

@@ -1,3 +1,4 @@
+import { restoreState } from "../src/persistence/migrate";
 import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError, type Registry } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
@@ -327,7 +328,7 @@ describe("event choices and effects", () => {
   it("loads saves made before events existed", () => {
     const old = structuredClone(startGame(reg, 9).state) as Partial<GameState>;
     delete old.events;
-    const e = new Engine(reg, old as GameState);
+    const e = new Engine(reg, restoreState(old, reg)!);
     expect(look(e).ok).toBe(true);
   });
 });

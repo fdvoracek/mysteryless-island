@@ -1,6 +1,6 @@
 import type { Registry } from "../content/registry";
 import { SAVE_VERSION, type GameState } from "../core/state";
-import { initializeTimers } from "../core/timers";
+import { restoreState } from "./migrate";
 
 /**
  * Two things are kept in the browser (localStorage):
@@ -30,51 +30,34 @@ function write(key: string, state: GameState, extra: Partial<SaveFile> = {}) {
   }
 }
 
-function read(key: string, reg: Registry): GameState | null {
+export interface SaveRead { state: GameState | null; error?: string }
+
+function read(key: string, reg: Registry): SaveRead {
+  let raw: string | null;
+  try { raw = localStorage.getItem(key); } catch { return { state: null }; }
+  if (!raw) return { state: null };
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
     const file = JSON.parse(raw) as SaveFile;
-    if (file.saveVersion !== SAVE_VERSION) return null; // future: run migrations here
-    return isCompatible(file.current, reg) ? file.current : null;
-  } catch {
-    return null;
-  }
+    if (!Number.isInteger(file.saveVersion) || file.saveVersion < 1 || file.saveVersion > SAVE_VERSION) {
+      return { state: null, error: "This save uses an unsupported version. Your saved data has been kept." };
+    }
+    const state = restoreState(file.current, reg);
+    if (state) return { state };
+  } catch { /* malformed data is reported without overwriting it */ }
+  return { state: null, error: "This save could not be loaded. Your saved data has been kept." };
 }
 
 /** The autosave: the game as it is now. */
 export const writeSave = (state: GameState) => write(AUTO, state);
-export const readSave = (reg: Registry) => read(AUTO, reg);
+export const readSaveStatus = (reg: Registry) => read(AUTO, reg);
+export const readSave = (reg: Registry) => readSaveStatus(reg).state;
 export function clearSave() {
   try { localStorage.removeItem(AUTO); } catch { /* ignore */ }
 }
 
 /** The saved game: only when the player saves. Returns false if the browser refused. */
 export const saveGame = (state: GameState) => write(SLOT, state, { savedAt: new Date().toISOString() });
-export const loadGame = (reg: Registry) => read(SLOT, reg);
+export const loadGame = (reg: Registry) => read(SLOT, reg).state;
 export function hasSavedGame(): boolean {
   try { return localStorage.getItem(SLOT) !== null; } catch { return false; }
-}
-
-/** Tolerant loading: drop unknown ids, add missing regions/timers/stats from content. */
-function isCompatible(s: GameState, reg: Registry): boolean {
-  if (!s || !reg.regions.has(s.location)) return false;
-  s.buildings ??= {};
-  for (const key of Object.keys(s.buildings)) {
-    const [id, region] = key.split("@");
-    if (!reg.buildings.has(id) || !reg.regions.has(region)) delete s.buildings[key];
-    else s.buildings[key].count ??= 1;
-  }
-  for (const id of Object.keys(s.items)) if (!reg.items.has(id)) delete s.items[id];
-  for (const id of reg.regionOrder) {
-    s.regions[id] ??= { unlocked: !reg.regions.get(id)!.unlockWhen, visited: false, explored: 0, discoveries: [] };
-    s.regions[id].explored ??= 0;
-    s.regions[id].discoveries ??= [];
-  }
-  initializeTimers(reg, s);
-  for (const st of reg.stats.stats) s.stats[st.id] ??= reg.game.start.stats[st.id];
-  s.counters ??= {};
-  s.quests ??= {};
-  for (const id of Object.keys(s.quests)) if (!reg.quests.has(id)) delete s.quests[id];
-  return true;
 }

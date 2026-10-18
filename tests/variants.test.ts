@@ -1,3 +1,4 @@
+import { restoreState } from "../src/persistence/migrate";
 import { beforeEach, describe, expect, it } from "vitest";
 import { Engine } from "../src/core/engine";
 import { seedRng } from "../src/core/rng";
@@ -62,7 +63,7 @@ describe("text variants", () => {
   it("loads saves made before variants were remembered", () => {
     const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.lastText;
-    const e = new Engine(reg, old as GameState);
+    const e = new Engine(reg, restoreState(old, reg)!);
     look(e);
     look(e);
     expect(e.state.lastText).toBeDefined();

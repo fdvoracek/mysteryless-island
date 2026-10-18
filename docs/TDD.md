@@ -870,3 +870,13 @@ and tool-adjusted work duration. Duration is rounded up to the next simulation s
 for previews and execution. Entity schemas share work fields and the registry shares their
 reference checks; JSON remains the authoring format, not an engine dependency. A future CSV
 adapter should produce the same validated content model.
+
+### Save compatibility boundary (implemented)
+
+`core/state-schema.ts` defines both runtime state types and their structural validator.
+`persistence/migrate.ts` is the only compatibility boundary: it fills legacy defaults, repairs
+removed references, and preserves surviving progress. The engine accepts normalized state.
+Version 1 saves migrate to version 2; missing areas relocate to the starting area, and missing
+pop-ups are dismissed. Unsupported or malformed saves remain on disk and show an explicit
+new-game choice. Major prototype changes may require an announced reset; ordinary content
+updates should preserve compatible progress.

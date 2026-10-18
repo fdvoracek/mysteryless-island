@@ -1,84 +1,12 @@
 import type { Registry } from "../content/registry";
-import { seedRng, type RngState } from "./rng";
+import { seedRng } from "./rng";
 import { chooseText } from "./text";
 import { timerKey } from "./timers";
 
-export const SAVE_VERSION = 1;
+import type { GameState } from "./state-schema";
+export type { GameState, LogEntry, RegionState, QuestState, EventsState } from "./state-schema";
 
-/** One line of story. `turn` groups the lines one command produced (0 = the intro). */
-export interface LogEntry { at: number; text: string; turn?: number }
-
-export interface RegionState {
-  unlocked: boolean;
-  visited: boolean;
-  /** how many times the region was explored ("look around") */
-  explored: number;
-  discoveries: string[];
-}
-
-export interface QuestState { status: "active" | "done"; startedAt: number; doneAt?: number }
-
-/** Events: the one open now (with the wording chosen for its scene), those waiting, and the history. */
-export interface EventsState {
-  /**
-   * `title` only for notes; events and look around take theirs from content. `go`: places this
-   * pop-up opened (a "go to …" button each); `hint`: the line about them under a finding.
-   */
-  active: { id: string; scene: string; text: string; title?: string; go?: string[]; hint?: string } | null;
-  /** events waiting to open after the current one (e.g. several "start" events) */
-  queue: string[];
-  /** information pop-ups waiting to open (a task done: what happened and what changed) */
-  notes?: Array<{ title: string; text: string; go?: string[] }>;
-  seen: Record<string, { count: number; lastAt: number }>;
-}
-
-/** The whole game state. Plain JSON data: no classes, no Maps. */
-export interface GameState {
-  saveVersion: number;
-  seed: number;
-  rng: RngState;
-  /** minutes since day 1, 00:00 */
-  time: number;
-  location: string;
-  stats: Record<string, number>;
-  /** index into climate.bodyBands */
-  warmth: number;
-  items: Record<string, number>;
-  seen: string[];
-  flags: string[];
-  /** how often things were done: "did:<activity id | item id | tag>" -> count */
-  counters: Record<string, number>;
-  /**
-   * What happened since you last slept, for { "today": ... } conditions (memories when you lie down):
-   * the same keys as `did` (activity, item, tag) plus discoveries, places walked to and tasks finished.
-   */
-  today: Record<string, number>;
-  /** Shortages already warned about; kept in saves so dismissing a warning is remembered. */
-  provisionWarnings?: string[];
-  /** the variant shown last per text (keyed by its first variant), so it isn't shown twice in a row */
-  lastText: Record<string, number>;
-  events: EventsState;
-  /** quests that have started; absent = not started yet */
-  quests: Record<string, QuestState>;
-  /** minutes left per timer */
-  timers: Record<string, number>;
-  regions: Record<string, RegionState>;
-  /**
-   * Buildings put up, by "<building>@<region>" (absent = not built there); `count` of them there
-   * (they share one cycle). `startedAt`: when the
-   * running cycle began counting (game minutes); absent = idle. Batches are worked out from the
-   * clock (see batchesReady), so nothing needs ticking.
-   */
-  buildings: Record<string, { count: number; builtAt: number; startedAt?: number }>;
-  /** stats before the last command, for trend arrows */
-  prevStats: Record<string, number>;
-  log: LogEntry[];
-  /** increases with every command; log lines remember it so the UI can show one paragraph per action */
-  turn?: number;
-  dead: boolean;
-  /** how the game ended (death is permanent): when, why, and the end screen's lines, chosen once */
-  death?: { time: number; cause: string; lines: string[] };
-}
+export const SAVE_VERSION = 2;
 
 export function createInitialState(reg: Registry, seed: number): GameState {
   const { start } = reg.game;

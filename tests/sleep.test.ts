@@ -1,3 +1,4 @@
+import { restoreState } from "../src/persistence/migrate";
 import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
@@ -150,7 +151,7 @@ describe("going to sleep", () => {
   it("loads saves made before day memories existed", () => {
     const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.today;
-    const e = new Engine(reg, old as GameState);
+    const e = new Engine(reg, restoreState(old, reg)!);
     look(e);
     expect(e.state.today.forest_edge).toBe(1);
   });

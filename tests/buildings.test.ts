@@ -1,3 +1,4 @@
+import { restoreState } from "../src/persistence/migrate";
 import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
@@ -208,7 +209,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
   it("old saves without buildings still load", () => {
     const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.buildings;
-    const e = new Engine(reg, old as GameState);
+    const e = new Engine(reg, restoreState(old, reg)!);
     expect(view(e).buildings).toEqual([]);
   });
 

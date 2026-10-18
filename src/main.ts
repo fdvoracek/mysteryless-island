@@ -5,7 +5,7 @@ import { Engine } from "./core/engine";
 import { prepareCommand } from "./core/commands";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
-import { clearSave, hasSavedGame, loadGame, readSave, saveGame, writeSave } from "./persistence/save";
+import { clearSave, hasSavedGame, loadGame, readSaveStatus, saveGame, writeSave } from "./persistence/save";
 import { initTheme, loadLayoutId, UI } from "./ui/render";
 
 initTheme();
@@ -26,7 +26,17 @@ try {
 if (new URLSearchParams(location.search).get("variants") === "first") setVariantMode("first");
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31); // the only Math.random: picks a seed
-const resumed = readSave(reg);
+const loaded = readSaveStatus(reg);
+if (loaded.error) {
+  const message = document.createElement("p");
+  message.textContent = loaded.error;
+  const restart = document.createElement("button");
+  restart.textContent = "start a new game";
+  restart.onclick = () => { clearSave(); location.reload(); };
+  app.replaceChildren(message, restart);
+  throw new Error(loaded.error);
+}
+const resumed = loaded.state;
 let engine = resumed ? new Engine(reg, resumed) : Engine.newGame(reg, newSeed());
 document.title = reg.game.title;
 
