@@ -12,6 +12,7 @@ export const panel = {
   /** All controls, in the same order in every layout. */
   actions: () => `<div class="action-sections">
     <div class="action-section" id="areaActions"><div class="buttons" id="actions"></div></div>
+    <div class="action-section" id="workBox" hidden><div id="work"></div></div>
     <fieldset class="box action-section" id="buildingsBox" hidden><legend>buildings</legend>
       <div id="buildings"></div>
     </fieldset>
@@ -27,7 +28,7 @@ export const panel = {
 
 /** ids that must exist in every layout skeleton (logOlder is optional) */
 export const REQUIRED_IDS = [
-  "wrap", "log", "tabs", "actions", "clock", "status",
+  "wrap", "log", "tabs", "actions", "clock", "status", "workBox", "work",
   "consumablesBox", "consumables",
   "quests", "questsBox", "buildings", "buildingsBox", "inventory", "inventoryBox",
 ] as const;

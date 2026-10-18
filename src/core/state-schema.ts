@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PendingActionSchema } from "./work";
 
 const number = z.number().finite();
 const count = number.int().nonnegative();
@@ -53,6 +54,8 @@ export const GameStateSchema = z.object({
   prevStats: z.record(number.min(0).max(100)),
   log: z.array(LogEntrySchema),
   turn: count.optional(),
+  actions: z.array(PendingActionSchema).default([]),
+  nextAction: count.default(1),
   dead: z.boolean(),
   death: z.object({ time: count, cause: z.string(), lines: strings }).optional(),
 });

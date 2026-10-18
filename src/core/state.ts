@@ -6,7 +6,7 @@ import { timerKey } from "./timers";
 import type { GameState } from "./state-schema";
 export type { GameState, LogEntry, RegionState, QuestState, EventsState } from "./state-schema";
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 export function createInitialState(reg: Registry, seed: number): GameState {
   const { start } = reg.game;
@@ -44,6 +44,8 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     // the log array is newest-first in time order; the views put each action's lines back in reading order
     log: [],
     turn: 0,
+    actions: [],
+    nextAction: 1,
     dead: false,
   };
   // with a "start" event, the opening line is written when that event ends (you reach the beach)

@@ -1,3 +1,4 @@
+import { workExists } from "../core/work";
 import type { Registry } from "../content/registry";
 import { seedRng } from "../core/rng";
 import { GameStateSchema } from "../core/state-schema";
@@ -81,6 +82,22 @@ export function restoreState(input: unknown, reg: Registry): GameState | null {
     else if (a.go) a.go = a.go.filter((id) => s.regions[id]?.unlocked);
   }
   for (const note of s.events.notes ?? []) if (note.go) note.go = note.go.filter((id) => s.regions[id]?.unlocked);
+  s.actions = s.actions.filter((action) => {
+    const exists = reg.regions.has(action.location) && workExists(reg, action.work)
+      && (action.work.kind !== "building" || action.work.step === "build" || !!s.buildings[`${action.work.id}@${action.location}`]);
+    if (!exists) {
+      for (const [item, amount] of Object.entries(action.reserved)) {
+        const def = reg.items.get(item);
+        if (def) s.items[item] = Math.min(def.max ?? Infinity, (s.items[item] ?? 0) + amount);
+      }
+    } else {
+      // Completion notes compare against this snapshot, which may predate removed content.
+      for (const id of Object.keys(action.before.items)) if (!reg.items.has(id)) delete action.before.items[id];
+      action.completedMinutes = Math.min(action.completedMinutes, action.requiredMinutes);
+      if (action.location !== s.location) action.status = "paused";
+    }
+    return exists;
+  });
   if (s.dead && !s.death) return null;
   s.log = s.log.slice(0, 100);
   return s;

@@ -441,11 +441,12 @@ test("while an action runs, the controls are locked and greyed out", async ({ pa
   await explore(page, "forest_edge"); // the way to the forest
   await tab(page, "the forest").click(); // walking: 30 game minutes takes 5 real seconds
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
-  await expect(page.locator('#tabs .tab[data-id="forest"] .cd')).toHaveCSS("transition-duration", "5s");
+  // Bars interpolate each 15-minute clock step within the full action.
+  await expect(page.locator('#tabs .tab[data-id="forest"] .cd')).toHaveCSS("transition-duration", "2.5s");
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 6_000 });
   await expect(tab(page, "the forest")).toHaveClass(/here/);
   await action(page, "collect wood").click(); // 30 min, with a progress bar
-  await expect(action(page, "collect wood").locator(".cd")).toHaveCSS("transition-duration", "5s");
+  await expect(action(page, "collect wood").locator(".cd")).toHaveCSS("transition-duration", "2.5s");
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
   // the other place is greyed out and does nothing
@@ -518,14 +519,32 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await page.clock.runFor(2_500);
   expect((await state()).time).toBe(start + 120);
   expect((await state()).location).toBe("forest");
-  // Reloading unfinished work restores its checkpoint, without rewards or spent materials.
+  // Reloading unfinished work resumes its saved progress without awarding results early.
   await action(page, "collect wood").dispatchEvent("click");
   await page.clock.runFor(2_500);
   expect((await state()).time).toBe(start + 135);
   await page.reload();
-  expect((await state()).time).toBe(start + 120);
+  expect((await state()).time).toBe(start + 135);
   expect((await state()).items.firewood ?? 0).toBe(0);
+  await expect(page.locator("#wrap")).toHaveClass(/busy/);
+  await page.clock.runFor(2_500);
+  expect((await state()).time).toBe(start + 150);
+  expect((await state()).items.firewood).toBeGreaterThan(0);
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
+  const beforePause = (await state()).time;
+  await action(page, "collect wood").dispatchEvent("click");
+  await page.clock.runFor(2_500);
+  await page.locator("#work .btn", { hasText: "pause" }).click();
+  await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
+  await page.clock.runFor(10_000);
+  expect((await state()).time).toBe(beforePause + 15);
+  await page.reload();
+  await expect(page.locator("#work .btn", { hasText: "resume" })).toBeVisible();
+  expect((await state()).time).toBe(beforePause + 15);
+  await page.locator("#work .btn", { hasText: "resume" }).click();
+  await page.clock.runFor(2_500);
+  expect((await state()).time).toBe(beforePause + 30);
+  await expect(page.locator("#workBox")).toBeHidden();
 });
 
 test("every layout can be chosen from the menu, shows all panels, plays, and is remembered", async ({ page }) => {

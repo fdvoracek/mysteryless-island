@@ -2,7 +2,7 @@ import "./ui/styles.css";
 import { loadContent } from "./content/loader";
 import { ContentError, type Registry } from "./content/registry";
 import { Engine } from "./core/engine";
-import { prepareCommand } from "./core/commands";
+import { ActionController } from "./app/action-controller";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
 import { clearSave, hasSavedGame, loadGame, readSaveStatus, saveGame, writeSave } from "./persistence/save";
@@ -47,36 +47,28 @@ const save = () => writeSave(engine.state);
 const speedParam = Number(new URLSearchParams(location.search).get("speed"));
 const speed = speedParam > 0 ? speedParam : 1;
 
-const ui = new UI(
+let ui: UI;
+const controller = new ActionController(() => engine, () => { save(); ui.render(); }, speed);
+ui = new UI(
   app,
   () => engine,
   (cmd) => {
     // going to sleep saves the game first (into the saved game), so you can load the evening again
     if (engine.willSleep(cmd)) saveGame(engine.state);
-    const started = engine;
-    // Keep the last completed state on disk while work runs; reloading cancels unfinished work.
-    save();
-    const r = prepareCommand(started, cmd);
-    if (!r.advance) { save(); return r; }
-    const advance = r.advance;
-    return { ...r, advance: () => {
-      if (engine !== started) return true;
-      const done = advance();
-      if (done) save();
-      return done;
-    } };
+    return controller.send(cmd);
   },
-  () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
+  () => { controller.stop(); clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
   // the saved game: "save." stores it; after death it can be loaded
   {
     save: () => saveGame(engine.state),
-    load: () => { const s = loadGame(reg); if (!s) return false; engine = new Engine(reg, s); save(); return true; },
+    load: () => { const s = loadGame(reg); if (!s) return false; controller.stop(); engine = new Engine(reg, s); save(); controller.sync(); return true; },
     has: () => hasSavedGame(),
   },
   speed,
   loadLayoutId(),
 );
 
-installDebug(() => engine, () => { save(); ui.render(); }, () => { ui.cancelProgress(); clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });
+installDebug(() => engine, () => { save(); ui.render(); controller.sync(); }, () => { controller.stop(); clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });
 save();
 ui.render();
+controller.sync();

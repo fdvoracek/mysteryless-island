@@ -1,3 +1,4 @@
+import { focusShare, workTarget } from "./work";
 import { clockText, day, phaseAt } from "./clock";
 import { batchesReady, buildingKey, buildingState, evaluate } from "./conditions";
 import { sentence } from "./text";
@@ -34,6 +35,8 @@ export interface StatusLine {
 
 export interface View {
   title: string;
+  work: Array<{ id: string; label: string; word: string; running: boolean; remaining: number; nextRemaining: number;
+    target: { kind: "action" | "travel"; id: string }; actions: ButtonView[] }>;
   /** the places you know (the nodes of the route map) */
   /** `icons`: one per kind of activity found there (fire, water, wood…), shown when you hover the place */
   tabs: Array<{ id: string; label: string; here: boolean; hours: number; col: number; row: number; icons: Icon[] }>;
@@ -255,6 +258,18 @@ export function view(engine: Engine): View {
 
   return {
     title: region.title,
+    work: s.actions.filter((a) => a.location === s.location).map((a) => {
+      const share = focusShare(engine.runningActions().length);
+      return {
+        id: a.id, label: a.label, word: `${a.status} · ${fmtHours(a.completedMinutes / 60)} / ${fmtHours(a.requiredMinutes / 60)}`,
+        running: a.status === "running" && !s.dead && !s.events.active,
+        remaining: 100 * (1 - a.completedMinutes / a.requiredMinutes),
+        nextRemaining: 100 * Math.max(0, 1 - (a.completedMinutes + reg.game.stepMinutes * share) / a.requiredMinutes),
+        target: workTarget(a.work),
+        actions: [{ id: `work:${a.id}`, command: { type: a.status === "running" ? "pause" : "resume", id: a.id },
+          label: a.status === "running" ? "pause" : "resume", enabled: !s.dead, tooltip: [] }],
+      };
+    }),
     tabs,
     map,
     actions,

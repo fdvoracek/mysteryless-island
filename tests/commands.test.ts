@@ -128,7 +128,8 @@ describe("paced browser commands", () => {
     const e = fresh();
     e.state.time = 23 * 60 + 45;
     const { result, expected } = plan(e, { type: "travel", region: "forest" });
-    expect(result).toMatchObject({ interrupted: true, cooldownMs: 2_500 });
+    expect(result.cooldownMs).toBe(5_000); // duration is an estimate; future collapse is not precomputed
+    expect(result.interrupted).toBeUndefined();
     expect(e.state.time).toBe(23 * 60 + 45);
     expect(result.advance!()).toBe(true);
     expect(e.state).toEqual(expected);
@@ -141,7 +142,8 @@ describe("paced browser commands", () => {
     e.state.warmth = reg.bandIds.indexOf("freezing");
     e.state.stats.health = 0.1;
     const { result, expected } = plan(e, { type: "travel", region: "forest" });
-    expect(result).toMatchObject({ died: true, cooldownMs: 2_500 });
+    expect(result.cooldownMs).toBe(5_000);
+    expect(result.died).toBeUndefined();
     expect(e.state.dead).toBe(false);
     expect(result.advance!()).toBe(true);
     expect(e.state).toEqual(expected);

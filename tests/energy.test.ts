@@ -172,7 +172,8 @@ describe("sleep always ends at 6am", () => {
     e.applyEffects([{ give: { stone: 2 } }]);
     const result = craft(e, "craft_rock_knife");
     expect(result.interrupted).toBe(true);
-    expect(e.state.items.stone).toBe(2);
+    expect(e.state.items.stone).toBe(0);
+    expect(e.state.actions[0]).toMatchObject({ status: "paused", reserved: { stone: 2 }, completedMinutes: 15 });
     expect(e.state.items.rock_knife ?? 0).toBe(0);
     expect(e.state.counters["did:craft_rock_knife"]).toBeUndefined();
     expect(e.state.time).toBe(1440 + 360);
@@ -180,13 +181,14 @@ describe("sleep always ends at 6am", () => {
     expect(e.state.dead).toBe(false);
   });
 
-  it("interrupted cooking returns the raw food without creating a cooked portion", () => {
+  it("interrupted cooking reserves its raw food without creating a cooked portion", () => {
     const e = fresh();
     e.state.stats.energy = 0.1;
     e.state.timers[`fire@${e.state.location}`] = 360;
     e.applyEffects([{ give: { raw_meat: 1 } }]);
     expect(e.dispatch({ type: "itemAction", item: "raw_meat", action: "cook" }).interrupted).toBe(true);
-    expect(e.state.items.raw_meat).toBe(1);
+    expect(e.state.items.raw_meat).toBe(0);
+    expect(e.state.actions[0]).toMatchObject({ status: "paused", reserved: { raw_meat: 1 } });
     expect(e.state.items.cooked_meat ?? 0).toBe(0);
   });
 

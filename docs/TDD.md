@@ -159,11 +159,22 @@ for each step (15 minutes):
 
 `game.sleep` defines the bed and shelter buildings, fire timer, wake time (06:00), cutoff (00:00), and six `recovery` entries. Each recovery reason owns its energy value and text: early warm sheltered bed (100), early unheated sheltered bed (80), late warm sheltered bed (80), late unheated sheltered bed (80), exposed bed (50), and ground (50). `sleepRecovery()` selects the reason once at bedtime; the journal and collapse modal use that same entry, even if fire expires overnight. The sleep activity is `global: true`; the engine and selectors can offer shared activities in any region. Its `visibleWhen: { built: "bed", here: true }` restricts voluntary sleep to a bed in the current region; UI visibility, direct command validation, and pre-sleep saves use the same condition. `{ built }` keeps its original global meaning when `here` is omitted. Map icons evaluate conditions at the represented place. Its duration is calculated to the next 06:00, including an early daytime bedtime. Midnight through 05:59 counts as late bedtime. Only the bed, shelter, and fire at the current location count. `{ sheltered: true }` checks either a local built shelter or the region’s `shelterWhen` condition; the discovered beach rocks provide natural shelter. Bed construction requires this condition, without a first-night gate. `shelterWhen` cannot itself contain `sheltered` (including nested conditions), preventing recursion. Sleeping simulates timers, production, needs, and health rules quietly, then sets morning energy and logs the new day and sleep summary. Cold remains a health hazard during sleep.
 
-Non-sleep simulation stops at zero energy or the midnight cutoff and invokes the same overnight routine at the current location. `advance` returns false on death or interrupted work; `Result.interrupted` distinguishes collapse from `Result.died`. Callers stop before applying success rewards, travel, discoveries, or counters. `work` returns reserved input costs after a surviving collapse; interrupted collection leaves its production cycle available. After-action random events are skipped for interrupted work. A surviving collapse queues a priority note from `game.sleep.collapse`, explaining the missed bedtime and location alongside the new-day and sleep summary; it opens before task-completion notes. Voluntary sleep retains the manual pre-sleep save; every completed command, including collapse, autosaves the resulting state.
+Non-sleep simulation stops at zero energy or the midnight cutoff and invokes the same overnight routine at the current location. `advance` returns false on death or interrupted work; `Result.interrupted` distinguishes collapse from `Result.died`. Callers stop before applying success rewards, travel, discoveries, or counters. Paused work retains reserved inputs after a surviving collapse; interrupted collection leaves its production cycle available. After-action random events are skipped for interrupted work. A surviving collapse queues a priority note from `game.sleep.collapse`, explaining the missed bedtime and location alongside the new-day and sleep summary; it opens before task-completion notes. Voluntary sleep retains the manual pre-sleep save; every completed command, including collapse, autosaves the resulting state.
 
 ### 4.3 Paced actions
 
-`content/game.json` → `cosmetic.msPerHour` is the shared rate, default 10000 ms per game hour, without reading-time additions or duration caps. `Engine.dispatch` remains synchronous for simulations and unit tests. The browser uses `prepareCommand` in `core/commands.ts`: an isolated engine records snapshots at each `stepMinutes` (15-minute) simulation step. The live engine receives the starting snapshot, then one recorded step every 2500 ms; the last step includes rewards, buildings, arrival, discoveries, and completion notes. Stats, provisions, local timers, and production advance with those steps. The renderer owns only the wall-clock schedule and progress bar; `main.ts` saves the completed result. Sleep snapshots are skipped, so voluntary sleep jumps instantly to the next 06:00 and collapse jumps overnight when its interrupting step is reached. Zero-time menus and event choices stay immediate. Restart/load cancels outstanding UI callbacks, and replacing the engine state invalidates prepared work. The autosave stays at the pre-command state until completion, so reloading cancels unfinished work without granting outputs or losing materials. `?speed=` multiplies real-time durations for tests. Menu/landmark bars use the persistent craft/build/look-around button; travel bars use the destination map button.
+`content/game.json` → `cosmetic.msPerHour` is the shared rate, default 10000 ms per game hour.
+`Engine.start` reserves inputs and creates a persistent player-owned work record. `stepActions`
+advances the live state one 15-minute step; rewards, arrival, discoveries and notes are applied
+once at completion. `Engine.dispatch` drains the same steps synchronously for simulations.
+`app/action-controller.ts` owns browser scheduling and persists every committed step. The UI
+only renders work/progress. Reload resumes the saved work without accounting for offline time.
+Sleep advances the clock instantly to 06:00, pausing all player work while building production
+continues. Leaving an area pauses its work; materials stay reserved until resumed. A shared
+pause/resume control is available in all six layouts. The current UI still offers one active
+player action at a time; the core scheduler supports equal focus sharing, with focus allocation
+isolated for future perks. Effort rates are weighted by each concurrent action's focus share.
+The test-speed URL multiplier changes wall-clock scheduling only.
 
 ---
 
@@ -903,3 +914,12 @@ build), exploration (area and optional discovered landmark), or note (title and 
 Only migration code interprets the old encoded popup IDs. Selectors provide display IDs,
 numeric work durations, and explicit progress targets to the renderer; labels never decide
 whether a choice advances time. Old open pop-ups migrate without replaying scene effects.
+
+### Persistent work records (implemented)
+
+State version 5 records owner, location, work identity, required/completed minutes, reserved
+inputs, and running/paused status. Completion refers to content IDs rather than callbacks or
+precomputed future snapshots. On loading, a job whose referenced content was removed is dropped
+and its surviving inputs returned; compatible jobs retain progress. Real-time callbacks are
+invalidated on restart/load. Nothing advances while the game is closed. Crop-specific batches,
+bait choices, a skill tree and a multitasking UI remain subsequent gameplay work.

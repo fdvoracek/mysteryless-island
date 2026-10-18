@@ -1,5 +1,4 @@
-import type { Engine, Command } from "../core/engine";
-import type { CommandResult } from "../core/commands";
+import type { Engine, Command, Result } from "../core/engine";
 import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
 import { getLayout, LAYOUTS, type Layout } from "./layouts";
@@ -14,8 +13,6 @@ import { iconSvg } from "./icons";
 export class UI {
   private root: HTMLElement;
   private els: Record<string, HTMLElement> = {};
-  private busyUntil = 0;
-  private progressVersion = 0;
   private layout: Layout;
   /** true while the death fade runs (nothing can be clicked) */
   private restoring = false;
@@ -29,7 +26,7 @@ export class UI {
   constructor(
     root: HTMLElement,
     private getEngine: () => Engine,
-    private onCommand: (cmd: Command) => CommandResult,
+    private onCommand: (cmd: Command) => Result,
     private onRestart: () => void,
     /** the saved game ("save." in the menu; "load" on the end screen) */
     private saves: { save(): boolean; load(): boolean; has(): boolean },
@@ -94,8 +91,8 @@ export class UI {
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !this.els.event.hidden) this.closeEvent(); });
     this.root.querySelector("#restart")!.addEventListener("click", () => this.confirmRestart());
     // the end screen's buttons: back to the saved game, or a new game from the storm
-    this.els.endRestart.addEventListener("click", () => { this.cancelProgress(); this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
-    this.els.endLoad.addEventListener("click", () => { if (this.saves.load()) { this.cancelProgress(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); } });
+    this.els.endRestart.addEventListener("click", () => { this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
+    this.els.endLoad.addEventListener("click", () => { if (this.saves.load()) { this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); } });
     // save.: store the game as it is now; a short "saved." confirms it
     this.els.saveBtn.addEventListener("click", () => {
       const e = this.getEngine();
@@ -167,6 +164,8 @@ export class UI {
 
   render() {
     const v = view(this.getEngine());
+    this.els.wrap.classList.toggle("busy", this.isBusy());
+    this.els.wrap.setAttribute("aria-busy", String(this.isBusy()));
     this.renderTabs(v);
     this.renderButtons(this.els.actions, v.environmentActions);
     this.renderConsumables(v);
@@ -177,6 +176,7 @@ export class UI {
     this.renderLog(v);
     this.renderEvent(v);
     this.renderEnd(v);
+    this.renderWork(v);
   }
 
   // ---------------------------------------------------------------- events
@@ -363,8 +363,8 @@ export class UI {
         el.className = "btn appear";
         el.dataset.id = bv.id;
         el.innerHTML = `<span class="label"></span><span class="cd"></span><span class="tip" role="tooltip"></span>`;
-        el.addEventListener("click", () => { if (!el!.classList.contains("off")) this.send(bv.command, el!); });
       }
+      el.onclick = () => { if (!el!.classList.contains("off")) this.send(bv.command, el!); };
       const label = el.querySelector(".label")!;
       label.textContent = bv.label;
       if (bv.badge) { const m = document.createElement("span"); m.className = "badge"; m.textContent = bv.badge; label.append(m); }
@@ -372,7 +372,7 @@ export class UI {
       tip.replaceChildren(...bv.tooltip.map((t) => div(t)), ...(bv.reason ? [div(bv.reason, "reason")] : []));
       el.classList.toggle("off", !bv.enabled);
       el.classList.toggle("menu-btn", !!bv.menu);
-      el.setAttribute("aria-disabled", String(!bv.enabled || this.isBusy()));
+      el.setAttribute("aria-disabled", String(!bv.enabled || (this.isBusy() && bv.command.type !== "pause")));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
     // Keep look around, craft and build together above the other controls.
@@ -573,76 +573,48 @@ export class UI {
 
   // ---------------------------------------------------------------- interaction
 
-  /** Abandon pending work when restarting or loading another game. */
-  cancelProgress() {
-    this.progressVersion++;
-    this.busyUntil = 0;
-    this.els.wrap.classList.remove("busy");
-    this.els.wrap.removeAttribute("aria-busy");
-    this.root.querySelectorAll(".running").forEach((el) => el.classList.remove("running"));
+  private isBusy() { return !this.getEngine().state.dead && this.getEngine().runningActions().length > 0; }
+
+  private send(cmd: Command, _source: HTMLElement) {
+    if (this.restoring) return;
+    const choice = cmd.type === "choose" ? view(this.getEngine()).event?.choices.find((c) => c.id === cmd.choice) : undefined;
+    if (this.isBusy() && cmd.type !== "pause" && (cmd.type !== "choose" || choice?.hours)) return;
+    if (cmd.type !== "choose") this.pulse.clear();
+    this.onCommand(cmd);
+    this.render();
   }
 
-  private isBusy() { return this.busyUntil > 0; }
-
-  private send(cmd: Command, source: HTMLElement) {
-    if (this.restoring) return;
-    // Notes and other zero-time choices remain usable during a bar; timed choices wait.
-    const before = view(this.getEngine());
-    const choice = cmd.type === "choose" ? before.event?.choices.find((c) => c.id === cmd.choice) : undefined;
-    const timedChoice = !!choice?.hours;
-    if (this.isBusy() && (cmd.type !== "choose" || timedChoice)) return;
-    if (cmd.type !== "choose") this.pulse.clear();
-    const res = this.onCommand(cmd);
-    if (!res.ok) { this.render(); return; }
-    const ms = Math.round(res.cooldownMs * this.speed);
-    const progressVersion = this.progressVersion;
-    if (ms === 0) {
-      while (res.advance && !res.advance()) { /* a test speed can round the whole action to zero */ }
-      this.render();
-      return;
-    }
-    // while the bar runs, every control is locked and greyed out; only the running one keeps its look
-    if (ms > 0) {
-      this.busyUntil = Math.max(this.busyUntil, performance.now() + ms);
-      this.els.wrap.classList.add("busy");
-      this.els.wrap.setAttribute("aria-busy", "true");
-    }
-    this.render();
-    // Menu and landmark choices replace their pop-up; animate the persistent main button.
-    if (cmd.type === "choose" && ms > 0) {
-      const selector = choice?.travelTo
-        ? `#tabs .tab[data-id="${choice.travelTo}"]`
-        : before.event?.progressId ? `#actions .btn[data-id="${before.event.progressId}"]` : "";
-      if (selector) source = this.root.querySelector<HTMLElement>(selector) ?? source;
-    }
-    source.classList.add("running");
-    const bar = source.querySelector<HTMLElement>(".cd");
-    if (bar && ms > 0) {
-      bar.style.transition = "none";
-      bar.style.width = "100%";
-      void bar.offsetWidth; // restart the transition
-      bar.style.transition = `width ${ms}ms linear`;
-      bar.style.width = "0%";
-    }
-    const startedAt = performance.now();
-    const stepMs = res.stepMs === undefined ? ms : res.stepMs * this.speed;
-    let step = 1;
-    const tick = () => {
-      if (progressVersion !== this.progressVersion) return;
-      const done = res.advance?.() ?? true;
-      if (done) {
-        this.busyUntil = 0;
-        this.els.wrap.classList.remove("busy");
-        this.els.wrap.removeAttribute("aria-busy");
-        source.classList.remove("running");
+  /** All six layouts render the same work state. CSS animates only between committed clock steps. */
+  private renderWork(v: View) {
+    this.els.workBox.hidden = !v.work.length;
+    this.renderControlRows(this.els.work, v.work);
+    this.root.querySelectorAll(".running").forEach((el) => el.classList.remove("running"));
+    for (const work of v.work) {
+      const selector = work.target.kind === "travel" ? `.tab[data-id="${work.target.id}"]` : `.btn[data-id="${work.target.id}"]`;
+      const sources = [this.root.querySelector<HTMLElement>(selector), this.els.work.querySelector<HTMLElement>(`.btn[data-id="work:${work.id}"]`)];
+      for (const source of sources) {
+        if (!source) continue;
+        source.classList.toggle("running", work.running);
+        const bar = source.querySelector<HTMLElement>(".cd");
+        if (!bar) continue;
+        const key = `${work.id}:${work.remaining}:${work.running}`;
+        if (bar.dataset.progress === key) continue;
+        bar.dataset.progress = key;
+        bar.style.transition = "none";
+        bar.style.width = `${work.remaining}%`;
+        if (work.running) {
+          void bar.offsetWidth;
+          bar.style.transition = `width ${this.getEngine().progressMs(this.getEngine().reg.game.stepMinutes / 60) * this.speed}ms linear`;
+          bar.style.width = `${work.nextRemaining}%`;
+        }
       }
-      this.render();
-      if (!done) {
-        step++;
-        window.setTimeout(tick, Math.max(0, startedAt + step * stepMs - performance.now()));
+    }
+    // Clear a completed work bar even if its main action button remains mounted.
+    for (const bar of this.root.querySelectorAll<HTMLElement>(".cd[data-progress]")) {
+      if (!v.work.some((w) => bar.dataset.progress!.startsWith(`${w.id}:`))) {
+        bar.style.transition = "none"; bar.style.width = "0%"; delete bar.dataset.progress;
       }
-    };
-    window.setTimeout(tick, stepMs);
+    }
   }
 
   /**
@@ -685,7 +657,7 @@ export class UI {
       <div class="buttons"><button class="btn" id="yes"><span class="label">restart</span></button>
       <button class="btn" id="no"><span class="label">keep going</span></button></div></div>`;
     document.body.append(box);
-    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.cancelProgress(); this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
+    box.querySelector("#yes")!.addEventListener("click", () => { box.remove(); this.onRestart(); this.els.quests.replaceChildren(); this.knownPlaces = null; this.render(); });
     box.querySelector("#no")!.addEventListener("click", () => box.remove());
   }
 }
