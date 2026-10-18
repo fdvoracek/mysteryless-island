@@ -2,6 +2,7 @@ import "./ui/styles.css";
 import { loadContent } from "./content/loader";
 import { ContentError, type Registry } from "./content/registry";
 import { Engine } from "./core/engine";
+import { prepareCommand } from "./core/commands";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
 import { clearSave, hasSavedGame, loadGame, readSave, saveGame, writeSave } from "./persistence/save";
@@ -29,7 +30,7 @@ const resumed = readSave(reg);
 let engine = resumed ? new Engine(reg, resumed) : Engine.newGame(reg, newSeed());
 document.title = reg.game.title;
 
-/** the autosave after every action (a reload continues; a death stays a death) */
+/** the autosave after every completed action (a reload continues; a death stays a death) */
 const save = () => writeSave(engine.state);
 
 // ?speed=0.2 makes progress bars 5x faster (used by the browser tests)
@@ -42,9 +43,18 @@ const ui = new UI(
   (cmd) => {
     // going to sleep saves the game first (into the saved game), so you can load the evening again
     if (engine.willSleep(cmd)) saveGame(engine.state);
-    const r = engine.dispatch(cmd);
+    const started = engine;
+    // Keep the last completed state on disk while work runs; reloading cancels unfinished work.
     save();
-    return r;
+    const r = prepareCommand(started, cmd);
+    if (!r.advance) { save(); return r; }
+    const advance = r.advance;
+    return { ...r, advance: () => {
+      if (engine !== started) return true;
+      const done = advance();
+      if (done) save();
+      return done;
+    } };
   },
   () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); },
   // the saved game: "save." stores it; after death it can be loaded
@@ -57,6 +67,6 @@ const ui = new UI(
   loadLayoutId(),
 );
 
-installDebug(() => engine, () => { save(); ui.render(); }, () => { clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });
+installDebug(() => engine, () => { save(); ui.render(); }, () => { ui.cancelProgress(); clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });
 save();
 ui.render();

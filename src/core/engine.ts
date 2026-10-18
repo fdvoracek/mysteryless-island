@@ -26,7 +26,7 @@ export interface Result {
   ok: boolean;
   /** why the command was refused */
   reason?: string;
-  /** cosmetic cooldown for the UI, in ms */
+  /** Real-time action duration for the UI, in ms. */
   cooldownMs: number;
   died?: boolean;
   /** The work stopped because the player collapsed and slept until morning. */
@@ -50,14 +50,17 @@ export class Engine {
   /** places unlocked during the current command (see offerNewPlaces) */
   private opened: string[] = [];
   private before?: { items: Record<string, number>; unlocked: string[]; location: string; possible: string[]; built: string[]; cmd: Command["type"] };
-  /** characters logged during the current command, for the progress bar duration */
-  private loggedChars = 0;
   /** something was crafted or built in the current command (its note says what is now possible) */
   private made = false;
   /** A manually chosen meal is already in progress; don't also eat during its clock step. */
   private consuming = false;
 
-  constructor(public reg: Registry, state: GameState) {
+  constructor(
+    public reg: Registry,
+    state: GameState,
+    /** Optional snapshots for paced browser commands; ordinary simulations remain synchronous. */
+    private onTimeStep?: (state: GameState, kind: "start" | "step") => void,
+  ) {
     this.state = state;
     // saves from before these existed
     this.state.today ??= {};
@@ -84,7 +87,6 @@ export class Engine {
   log(text: string | undefined) {
     if (!text || this.quiet) return;
     this.state.log.unshift({ at: this.state.time, text, turn: this.state.turn ?? 0 });
-    this.loggedChars += text.length;
     if (this.state.log.length > 100) this.state.log.length = 100;
   }
 
@@ -108,7 +110,6 @@ export class Engine {
     this.state.turn = (this.state.turn ?? 0) + 1;
     this.state.prevStats = { ...this.state.stats };
     this.damageLogged.clear();
-    this.loggedChars = 0;
     this.causeHint = undefined;
     this.before = { ...this.snapshot(), cmd: cmd.type };
     this.made = false;
@@ -179,14 +180,17 @@ export class Engine {
     const t = this.reg.game.tasks;
     const now = this.snapshot();
     const gained: string[] = [], used: string[] = [], out: string[] = [];
-    const inv = new Set<string>(this.reg.game.inventoryCategories);
     const named = (id: string, n: number) => {
       const it = this.reg.items.get(id)!;
       return n > 1 ? `${n} ${it.plural ?? it.name}` : it.name;
     };
     for (const id of new Set([...Object.keys(b.items), ...Object.keys(now.items)])) {
       const d = (now.items[id] ?? 0) - (b.items[id] ?? 0);
-      if (d > 0) gained.push(sentence(this.say(t.gained, { item: named(id, d), where: inv.has(this.reg.items.get(id)!.category) ? "inventory" : "stores" })!));
+      if (d > 0) {
+        const item = this.reg.items.get(id)!;
+        const where = item.consume || item.actions?.length ? "consumables" : "inventory";
+        gained.push(sentence(this.say(t.gained, { item: named(id, d), where })!));
+      }
       if (d < 0) used.push(sentence(this.say(t.used, { item: named(id, -d) })!));
     }
     out.push(...gained, ...used);
@@ -589,7 +593,7 @@ export class Engine {
     this.applyEffects(d.effects);
     this.postCheck();
     if (this.state.dead) this.state.events.active = null;
-    return this.chose();
+    return this.ok(hours);
   }
 
 
@@ -624,10 +628,10 @@ export class Engine {
     this.logLines(this.thoughts(a.thoughts));
     this.log(this.say(a.log));
     if (a.effort === "sleep") {
-      if (!this.sleepUntilMorning()) return this.died(hours);
+      if (!this.sleepUntilMorning()) return this.died(0);
       this.logLines(this.thoughts(a.afterwards));
       this.postCheck();
-      return this.ok(hours);
+      return this.ok(0);
     }
     if (!this.work(hours, a.effort, a.cost)) return this.stopped(hours);
 
@@ -662,8 +666,7 @@ export class Engine {
       this.logLines(this.arrivalView(to));
     }
     this.postCheck();
-    // walking takes its game time, but shows no progress bar: you arrive at once (a bar here felt like loading)
-    return this.state.dead ? this.died(hours) : { ok: true, cooldownMs: 0 };
+    return this.ok(hours);
   }
 
   /** The lines of an activity's thought groups whose conditions hold now (see Thoughts in the schema). */
@@ -906,11 +909,9 @@ export class Engine {
     return true;
   }
 
-  /** Real-time length of the progress bar: longer actions and more text to read take longer. */
+  /** One shared real-time rate for every timed command. */
   progressMs(hours: number): number {
-    const { msPerHour, msPerChar, minMs, maxMs } = this.reg.game.cosmetic;
-    const ms = hours * msPerHour + this.loggedChars * msPerChar;
-    return Math.round(Math.max(minMs, Math.min(maxMs, ms)));
+    return Math.round(hours * this.reg.game.cosmetic.msPerHour);
   }
 
 
@@ -928,6 +929,7 @@ export class Engine {
     const s = this.state;
     const ctx = this.ctx(effort);
     const { stats: sf } = this.reg;
+    if (!this.quiet && effort !== "sleep") this.onTimeStep?.(s, "start");
 
     for (let i = 0; i < steps; i++) {
       if (effort !== "sleep") {
@@ -953,7 +955,10 @@ export class Engine {
       // All rates use the same starting stats; JSON key order cannot change energy costs.
       for (const [stat, delta] of Object.entries(deltas)) s.stats[stat] = clamp((s.stats[stat] ?? 0) + delta);
       this.autoConsume();
-      if (s.dead) return false;
+      if (s.dead) {
+        if (!this.quiet && effort !== "sleep") this.onTimeStep?.(s, "step");
+        return false;
+      }
       for (const d of sf.damage) {
         if (!evaluate(d.when, ctx)) continue;
         s.stats.health = clamp(s.stats.health + d.healthPerHour * stepHours);
@@ -971,15 +976,18 @@ export class Engine {
         const causes = hurting.filter((d) => d.healthPerHour === worst).map((d) => d.cause!);
         this.quiet = false; // dying is never quiet
         this.die(causes.length ? causes.join(" and ") : this.causeHint);
+        if (effort !== "sleep") this.onTimeStep?.(s, "step");
         return false;
       }
       if (effort !== "sleep") {
         const hour = (s.time % 1440) / 60;
         if (s.stats.energy <= 0 || (hour >= this.reg.game.sleep.passOutHour && hour < this.reg.game.sleep.wakeHour)) {
           this.sleepUntilMorning(s.stats.energy <= 0 ? "exhausted" : "midnight");
+          this.onTimeStep?.(s, "step");
           return false;
         }
       }
+      if (!this.quiet && effort !== "sleep") this.onTimeStep?.(s, "step");
     }
     return true;
   }

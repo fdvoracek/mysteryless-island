@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { clockText } from "../src/core/clock";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, revealAll, startGame } from "./helpers";
+import { loadRegistry, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 /** a game with the beach and forest fully explored (exploration is tested separately) */
@@ -29,24 +29,24 @@ describe("engine: the prototype loop", () => {
     expect(v.actions.find((a) => a.id === "sleep")).toBeUndefined();
   });
 
-  it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory, not stores", () => {
+  it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory", () => {
     const v = view(startGame(reg, 1, "knife", { matches: false }));
     expect(v.inventory.map((i) => i.id)).toEqual(["knife", "summer_clothes"]);
-    expect(v.stores).toEqual([]);
+    expect(v.consumables).toEqual([]);
   });
 
   it("shells: collect, eat raw, or cook over the fire for more food", () => {
     const e = fresh(5);
     e.dispatch({ type: "activity", id: "collect_shells" });
     expect(e.state.items.shells).toBeGreaterThanOrEqual(2);
-    const cookIcon = () => view(e).stores.find((s) => s.id === "shells")?.actions.find((a) => a.label === "cook");
+    const cookIcon = () => view(e).buildings.find((b) => b.id === "campfire")?.actions.find((a) => a.label === "cook shells");
     expect(cookIcon()).toBeUndefined(); // no fire, no cook button
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "shells" });
     const rawGain = 60 - e.state.stats.hunger;
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(cookIcon()).toMatchObject({ enabled: true, label: "cook" });
+    expect(cookIcon()).toMatchObject({ enabled: true, label: "cook shells" });
     e.dispatch({ type: "itemAction", item: "shells", action: "cook" });
     e.state.stats.hunger = 60;
     e.dispatch({ type: "consume", item: "cooked_shells" });
@@ -154,34 +154,36 @@ describe("engine: the prototype loop", () => {
     expect(e.state.stats.thirst - thirst0 - perQuarter).toBeCloseTo(perQuarter * 4, 5); // an hour = 4 steps
   });
 
-  it("the progress bar runs longer for longer actions and for more text, within min/max", () => {
-    const { minMs, maxMs } = reg.game.cosmetic;
-    const e = startGame(reg, 1);
-    lookAround(e); // finds the forest
-    // walking takes its half hour but shows no bar: you arrive at once
-    const t0 = e.state.time;
-    expect(e.dispatch({ type: "travel", region: "forest" })).toMatchObject({ ok: true, cooldownMs: 0 });
-    expect(e.state.time - t0).toBe(30);
-    const look = e.dispatch({ type: "activity", id: "gather_wood" }); // 30 min and a line
-    expect(look.cooldownMs).toBeGreaterThan(minMs);
-    expect(look.cooldownMs).toBeLessThanOrEqual(maxMs);
-
-    const f = fresh();
-    f.applyEffects([{ give: { shells: 1 } }]);
-    const eat = f.dispatch({ type: "consume", item: "shells" }); // 15 min, one short line
-    expect(eat.cooldownMs).toBeGreaterThanOrEqual(minMs);
-    expect(eat.cooldownMs).toBeLessThan(look.cooldownMs);
-
-    f.applyEffects([{ give: { firewood: 3 } }]);
-    f.dispatch({ type: "activity", id: "light_fire" });
-    f.applyEffects([{ build: "bed" }]);
-    expect(f.dispatch({ type: "activity", id: "sleep" }).cooldownMs).toBe(maxMs); // 8 h is capped
+  it("times every command at the shared hourly rate, with instant menus and sleep", () => {
+    const e = fresh();
+    expect(reg.game.cosmetic.msPerHour).toBe(10_000);
+    expect(e.progressMs(0)).toBe(0);
+    expect(e.progressMs(0.25)).toBe(2_500);
+    expect(e.progressMs(1)).toBe(10_000);
+    expect(e.progressMs(8)).toBe(80_000); // no maximum duration
+    expect(e.dispatch({ type: "travel", region: "forest" })).toMatchObject({ ok: true, cooldownMs: 5_000 });
+    expect(e.dispatch({ type: "activity", id: "gather_wood" }).cooldownMs).toBe(5_000);
+    e.applyEffects([{ give: { shells: 1 } }]);
+    expect(e.dispatch({ type: "consume", item: "shells" }).cooldownMs).toBe(2_500);
+    e.applyEffects([{ build: "bed" }]);
+    expect(e.dispatch({ type: "activity", id: "sleep" })).toMatchObject({ ok: true, cooldownMs: 0 });
+    expect(e.state.time % 1440).toBe(6 * 60);
   });
 
-  it("the cook button shows only next to raw food, only while a fire burns, and only at the fire", () => {
+  it("uses the configured rate for command durations", () => {
+    const custom = loadRegistry();
+    custom.game.cosmetic.msPerHour = 2_000;
+    const e = revealAll(startGame(custom, 1));
+    expect(e.dispatch({ type: "travel", region: "forest" }).cooldownMs).toBe(1_000);
+    expect(e.dispatch({ type: "activity", id: "gather_wood" }).cooldownMs).toBe(1_000);
+    e.applyEffects([{ give: { water_can: 1 } }]);
+    expect(e.dispatch({ type: "itemAction", item: "water_can", action: "fill" }).cooldownMs).toBe(500);
+  });
+
+  it("cooking controls appear under the local campfire only while a fire burns", () => {
     const e = fresh();
     e.applyEffects([{ give: { raw_fish: 2, shells: 1, firewood: 3 } }]);
-    const withButtons = () => view(e).stores.filter((s) => s.actions.length).map((s) => s.id);
+    const withButtons = () => view(e).buildings.flatMap((b) => b.actions).filter((a) => a.command.type === "itemAction").map((a) => a.command.type === "itemAction" ? a.command.item : "");
     expect(withButtons()).toEqual([]); // fire out
     e.dispatch({ type: "activity", id: "light_fire" });
     expect(withButtons()).toEqual(["raw_fish", "shells"]); // never on cooked food or firewood

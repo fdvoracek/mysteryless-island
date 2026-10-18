@@ -153,13 +153,13 @@
   {
     "id": "build_mushroom_logs",
     "title": "grow mushrooms",
-    "hint": "Cut the fallen oak into logs and keep them wet. Needs the axe.",
-    "trigger": { "when": { "discovered": "fallen_oak" } },
+    "hint": "Cut logs into short lengths and keep them wet. Needs the axe.",
+    "trigger": { "when": { "did": "gather_wood", "gte": 3 } },
     "build": "mushroom_logs",
     "completeWhen": { "built": "mushroom_logs" },
     "doneLog": [
       "The logs lie in the shade. Keep them wet, and wait.",
-      "Oak logs in the damp. The mushrooms will come."
+      "Logs in the damp. The mushrooms will come."
     ]
   },
   {

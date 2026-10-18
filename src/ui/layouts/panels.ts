@@ -11,26 +11,23 @@ export const panel = {
   places: () => `<nav class="tabs" id="tabs" aria-label="places"></nav>`,
   /** All controls, in the same order in every layout. */
   actions: () => `<div class="action-sections">
-    <fieldset class="box action-section" id="environmentBox"><legend>environment</legend><div class="buttons" id="actions"></div></fieldset>
-    <fieldset class="box action-section" id="buildingsBox"><legend>buildings</legend>
-      <div class="buttons section-menu" id="buildActions"></div><div id="buildings"></div>
-      <p class="empty" id="buildingsEmpty">No buildings in this location yet.</p>
+    <div class="action-section" id="areaActions"><div class="buttons" id="actions"></div></div>
+    <fieldset class="box action-section" id="buildingsBox" hidden><legend>buildings</legend>
+      <div id="buildings"></div>
     </fieldset>
-    <fieldset class="box action-section" id="craftedItemsBox"><legend>crafted items</legend>
-      <div class="buttons section-menu" id="craftActions"></div><div id="craftedItems"></div>
-      <p class="empty" id="craftedItemsEmpty">No carried items yet.</p>
+    <fieldset class="box action-section" id="consumablesBox" hidden><legend>consumables</legend>
+      <div id="consumables"></div>
     </fieldset>
   </div>`,
   /** time of day and survival bars */
   status: () => `<fieldset class="box status-box"><legend id="clock"></legend><div id="status"></div></fieldset>`,
   tasks: () => `<fieldset class="box" id="questsBox"><legend>tasks</legend><div id="quests"></div></fieldset>`,
-  stores: () => `<fieldset class="box" id="storesBox"><legend>stores</legend><div id="stores"></div></fieldset>`,
   inventory: () => `<fieldset class="box" id="inventoryBox"><legend>inventory</legend><div id="inventory"></div></fieldset>`,
 };
 
 /** ids that must exist in every layout skeleton (logOlder is optional) */
 export const REQUIRED_IDS = [
   "wrap", "log", "tabs", "actions", "clock", "status",
-  "environmentBox", "buildActions", "craftActions", "craftedItemsBox", "craftedItems", "craftedItemsEmpty", "buildingsEmpty",
-  "quests", "questsBox", "buildings", "buildingsBox", "stores", "storesBox", "inventory", "inventoryBox",
+  "consumablesBox", "consumables",
+  "quests", "questsBox", "buildings", "buildingsBox", "inventory", "inventoryBox",
 ] as const;

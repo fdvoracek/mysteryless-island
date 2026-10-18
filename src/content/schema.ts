@@ -439,15 +439,12 @@ export const Game = z
       })
       .strict(),
     /**
-     * How long the progress bar runs after an action (real time; the game clock does not depend on it):
-     * hours * msPerHour + printed characters * msPerChar, clamped to [minMs, maxMs].
+     * Real-time rate for paced clock steps and the progress bar:
+     * hours * msPerHour; sleep and zero-time commands are immediate.
      */
     cosmetic: z
       .object({
         msPerHour: z.number().nonnegative(),
-        msPerChar: z.number().nonnegative(),
-        minMs: z.number().nonnegative(),
-        maxMs: z.number().nonnegative(),
       })
       .strict(),
     deathLog: Text,
@@ -481,7 +478,7 @@ export const Game = z
     }).strict(),
     /**
      * The note when a task is done: title ({task}), then the task's doneLog and what changed:
-     * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action}),
+     * gained ({item}, {where}: inventory or consumables), used ({item}), opened ({place}), possible ({action}),
      * built ({building})
      */
     tasks: z.object({ title: Text, gained: Text, used: Text, opened: Text, possible: Text, built: Text }).strict(),
@@ -526,8 +523,6 @@ export const Game = z
       })
       .strict(),
     timers: z.array(Timer),
-    /** item categories listed in the inventory box; everything else is listed under stores */
-    inventoryCategories: z.array(z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"])),
   })
   .strict();
 
@@ -625,10 +620,10 @@ export const Quest = z
     doneLog: Text.optional(),
     /** applied when the quest is done (rewards, follow-up quests) */
     effects: z.array(Effect).optional(),
-    /** the tasks panel shows progress towards this building's cost (it is built in the build menu) */
+    /** The task's building goal (it is built in the build menu). */
     build: Id.optional(),
     /**
-     * What the task needs, shown in its tooltip (marked once you have it): items or buildings; a
+     * Requirement metadata for content and simulations: items or buildings; a
      * list inside the list means any one of them, e.g. [["fishing_spear", "fish_trap"]].
      */
     needs: z.array(z.union([Id, z.array(Id).min(2)])).optional(),

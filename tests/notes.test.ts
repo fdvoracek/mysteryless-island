@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { view } from "../src/core/selectors";
-import { build, loadRegistry, lookAround, startGame } from "./helpers";
+import { build, loadRegistry, lookAround, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 const close = (e: ReturnType<typeof startGame>) => e.dispatch({ type: "choose", choice: "close" });
@@ -42,6 +42,22 @@ describe("a note when a task is done", () => {
     const v = view(e).event!;
     expect(v.title).toBe("Task done: survive the first night");
     expect(v.text).toBe("Grey light over the water. You made it through the night.");
+  });
+
+  it("names inventory and consumables consistently with the item panels", () => {
+    const e = revealAll(startGame(reg, 7, "knife", { keepNotes: true }));
+    e.applyEffects([{ give: { axe: 1, fishing_spear: 1 } }]);
+    e.state.location = "forest";
+    expect(e.dispatch({ type: "activity", id: "chop_wood" }).ok).toBe(true);
+    expect(view(e).event?.text).toContain("added to your inventory.");
+    close(e);
+    e.state.location = "beach";
+    for (let attempt = 0; attempt < 5 && !view(e).event; attempt++) {
+      e.state.stats.energy = 100;
+      expect(e.dispatch({ type: "activity", id: "catch_fish" }).ok).toBe(true);
+    }
+    expect(view(e).event?.text).toContain("added to your consumables.");
+    expect(view(e).consumables.some((i) => i.id === "raw_fish")).toBe(true);
   });
 
   it("the note does not write to the journal again (its story is already there)", () => {

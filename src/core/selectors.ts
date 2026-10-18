@@ -17,7 +17,7 @@ export interface ButtonView {
   enabled: boolean;
   reason?: string;
   tooltip: string[];
-  /** The craft and build menus, placed in their respective sections. */
+  /** The craft and build menus, placed beside look around. */
   menu?: boolean;
 }
 
@@ -49,10 +49,8 @@ export interface View {
   /** All available activity/menu buttons, also used by simulations. */
   actions: ButtonView[];
   environmentActions: ButtonView[];
-  buildMenu: ButtonView[];
-  craftMenu: ButtonView[];
-  /** Carried tools/clothing plus provisions; all portable controls live here. */
-  craftedItems: Array<{ id: string; label: string; count: number; tags: string[]; group: "gear" | "provisions"; actions: ButtonView[] }>;
+  /** Items with consume or item actions; portable controls live here. */
+  consumables: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
   status: {
     day: number;
     clock: string;
@@ -62,9 +60,9 @@ export interface View {
   /** active quests only, in content order (no buttons: things are made in the craft and build menus) */
   quests: Array<{
     id: string; title: string; hint?: string;
-    /** progress towards the cost of the building the task asks for, e.g. logs 2/4 */
+    /** Building-cost progress metadata for simulations, e.g. logs 2/4. */
     progress: Array<{ label: string; have: number; need: number }>;
-    /** what it needs (for the tooltip): each entry is one thing, or any one of several */
+    /** Requirement metadata for simulations: each entry is one thing, or any one of several. */
     needs: Array<Array<{ label: string; have: boolean }>>;
   }>;
   /**
@@ -80,15 +78,8 @@ export interface View {
     action?: ButtonView;
     actions: ButtonView[];
   }>;
-  /** tools and clothing (categories from game.json) */
-  /** `tags`: the item's tool tags, shown next to it (knife · sharp) */
+  /** All other possessions, including tools, clothing and materials. */
   inventory: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
-  stores: Array<{
-    id: string; label: string; count: number; tags: string[];
-    use?: { verb: string; tooltip: string[] };
-    /** buttons next to the item, e.g. cook over the fire */
-    actions: ButtonView[];
-  }>;
   /** story lines for a line-by-line log: newest action first, each action's lines in reading order */
   log: string[];
   /** the very last line written (e.g. "the world fades.") */
@@ -183,7 +174,7 @@ export function view(engine: Engine): View {
   }));
   for (const q of reg.quests.values()) {
     if (s.quests[q.id]?.status !== "active") continue;
-    // progress towards the building it asks for; what it needs (items, buildings) for the tooltip
+    // Building-cost and requirement metadata for simulations; the task UI shows titles only.
     const cost = q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
     const thing = (id: string) => reg.items.has(id)
       ? { label: reg.items.get(id)!.name, have: (s.items[id] ?? 0) > 0 }
@@ -192,14 +183,13 @@ export function view(engine: Engine): View {
     quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost), needs });
   }
 
-  const stores: View["stores"] = [];
+  const carried: View["consumables"] = [];
   const inventory: View["inventory"] = [];
-  const invCats = new Set<string>(reg.game.inventoryCategories);
   for (const [id, count] of Object.entries(s.items)) {
     if (count <= 0) continue;
     const item = reg.items.get(id);
     if (!item) continue;
-    // buttons next to the item (cook, fill...), in the stores and in the inventory alike
+    // Collect visible item controls before routing building-owned actions below.
     const actions: ButtonView[] = [];
     for (const a of item.actions ?? []) {
       const c = engine.checkItemAction(id, a);
@@ -210,13 +200,11 @@ export function view(engine: Engine): View {
       });
     }
     const tags = (item.tool?.tags ?? []).map((t) => reg.game.tools[t].label);
-    if (invCats.has(item.category)) { inventory.push({ id, label: item.name, count, tags, actions }); continue; }
-    const use = item.consume
-      ? { verb: item.consume.verb, tooltip: [`${fmtHours(item.consume.hours)}`] }
-      : undefined;
-    stores.push({ id, label: item.name, count, tags, use, actions });
+    const row = { id, label: item.name, count, tags, actions };
+    if (item.consume || item.actions?.length) carried.push(row);
+    else inventory.push(row);
   }
-  stores.sort((a, b) => a.label.localeCompare(b.label));
+  carried.sort((a, b) => a.label.localeCompare(b.label));
   inventory.sort((a, b) => a.label.localeCompare(b.label));
 
   const buildings: View["buildings"] = [];
@@ -239,14 +227,14 @@ export function view(engine: Engine): View {
 
   // Presentation ownership is data-driven; commands and game rules remain unchanged.
   const activityBuildings = new Map(engine.activities().map((a) => [a.id, a.building]));
-  const environmentActions = actions.filter((a) => a.command.type === "explore"
+  const environmentActions = actions.filter((a) => a.command.type === "explore" || a.command.type === "menu"
     || (a.command.type === "activity" && !activityBuildings.get(a.id)));
   for (const a of actions) {
     const owner = a.command.type === "activity" ? activityBuildings.get(a.id) : undefined;
     if (owner) buildings.find((b) => b.id === owner)?.actions.push(a);
   }
-  const craftedItems: View["craftedItems"] = [];
-  for (const item of [...inventory, ...stores]) {
+  const consumables: View["consumables"] = [];
+  for (const item of carried) {
     const portable: ButtonView[] = [];
     for (const a of item.actions) {
       const owner = reg.items.get(item.id)!.actions?.find((def) => def.id === (a.command.type === "itemAction" ? a.command.action : ""))?.building;
@@ -258,8 +246,7 @@ export function view(engine: Engine): View {
       id: `consume:${item.id}`, command: { type: "consume", item: item.id }, label: consume.verb,
       enabled: true, tooltip: [fmtHours(consume.hours)],
     });
-    const gear = invCats.has(reg.items.get(item.id)!.category);
-    if (gear || portable.length) craftedItems.push({ ...item, group: gear ? "gear" : "provisions", actions: portable });
+    consumables.push({ ...item, actions: portable });
   }
 
   const turns = groupTurns(s.log);
@@ -270,14 +257,11 @@ export function view(engine: Engine): View {
     map,
     actions,
     environmentActions,
-    buildMenu: actions.filter((a) => a.id === "menu:build"),
-    craftMenu: actions.filter((a) => a.id === "menu:craft"),
-    craftedItems,
+    consumables,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     quests,
     buildings,
     inventory,
-    stores,
     log: turns.flatMap((t) => t.lines),
     lastLine: s.log[0]?.text ?? "",
     turns,

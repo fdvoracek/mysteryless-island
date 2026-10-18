@@ -126,7 +126,7 @@ describe("automatic provisions", () => {
     e.applyEffects([{ give: { raw_meat: 2, raw_fish: 2 } }]);
     for (const item of ["raw_meat", "raw_fish"]) {
       expect(e.dispatch({ type: "consume", item }).ok).toBe(false);
-      expect(view(e).stores.find((row) => row.id === item)?.use).toBeUndefined();
+      expect(view(e).consumables.find((row) => row.id === item)?.actions.some((a) => a.command.type === "consume")).toBe(false);
     }
     travel(e);
     expect(e.state.items).toMatchObject({ raw_meat: 2, raw_fish: 2 });

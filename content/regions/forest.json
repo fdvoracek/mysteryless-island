@@ -82,10 +82,6 @@
       {
         "text": "Small trails run under the ferns.",
         "when": { "all": [{ "day": { "gte": 2 } }, { "not": { "discovered": "rabbit_runs" } }] }
-      },
-      {
-        "text": "Deeper in, something large lies across the forest floor.",
-        "when": { "all": [{ "did": "gather_wood", "gte": 3 }, { "not": { "discovered": "fallen_oak" } }] }
       }
     ],
     "nothingLeft": ["The trees all look the same now.", "Nothing here you have not seen.", "Only more trees."],
@@ -111,18 +107,6 @@
           "Narrow trails wind through the undergrowth, too small for anything but rabbits. Droppings, fresh. A snare could take one.",
           "In the morning light you see them: little paths through the ferns, worn by rabbits. Snares would catch them.",
           "Low runs under the bracken, droppings along them. Rabbits. With cord you could set snares."
-        ]
-      },
-      {
-        "id": "fallen_oak",
-        "label": "the fallen oak",
-        "hours": 0.5,
-        "effort": "work",
-        "visibleWhen": { "did": "gather_wood", "gte": 3 },
-        "text": [
-          "Deeper in, a fallen oak, soft with age. Pale mushrooms grow along its bark. Cut into logs and kept wet, it could grow more.",
-          "Collecting wood you came across it: a fallen oak, furred with moss, mushrooms all along it. Logs of it would grow them too.",
-          "An old oak lies where it fell, mushrooms in rows along the bark. Its wood could be made to grow more."
         ]
       }
     ]

@@ -5,7 +5,7 @@ import type { Layout } from "./types";
 /**
  * 5. A 19th-century castaway's journal in print. The left page is only
  * what happened: the log, entries with the hour in the margin and a heading per day. The right
- * page is everything you act on or check: places and actions, survival bars, tasks, stores and
+ * page is everything you act on or check: places and actions, survival bars, tasks and
  * inventory. (The id stays "bujo" so saved layout choices keep working.)
  */
 export const bujo: Layout = {
@@ -25,7 +25,6 @@ export const bujo: Layout = {
         ${panel.status()}
         ${panel.tasks()}
         <div class="bj-pair">
-          ${panel.stores()}
           ${panel.inventory()}
         </div>
       </section>

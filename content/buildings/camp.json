@@ -278,8 +278,8 @@
     "id": "mushroom_logs",
     "name": "mushroom logs",
     "icon": "mushrooms",
-    "hint": "Oak logs soaked at the spring grow mushrooms in 2 days.",
-    "places": [{ "region": "forest", "when": { "discovered": "fallen_oak" } }],
+    "hint": "Logs soaked at the spring grow mushrooms in 2 days.",
+    "places": [{ "region": "forest" }],
     "availableWhen": {
       "any": [
         { "quest": "build_mushroom_logs", "is": "active" },
@@ -292,9 +292,9 @@
       "effort": "heavy",
       "cost": { "timber": 2 },
       "log": [
-        "You cut the oak into lengths and stack them in the shade, where the mushrooms grew.",
-        "The axe bites into the fallen oak. You stack the lengths in the damp shade.",
-        "Short oak logs, stacked in the shade beside the old trunk."
+        "You cut logs into lengths and stack them in the damp shade.",
+        "You stack the cut logs in a shady spot among the trees.",
+        "Short logs, stacked in the shade beneath the trees."
       ]
     },
     "cycle": {

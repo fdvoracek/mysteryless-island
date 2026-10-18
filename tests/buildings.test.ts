@@ -245,7 +245,8 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     find("meadows", "bees");
     find("meadows", "river");
     find("forest", "rabbit_runs");
-    find("forest", "fallen_oak");
+    e.state.counters["did:gather_wood"] = 3;
+    e.syncQuests();
     expect(["build_bee_hive", "build_fish_trap", "first_catch", "build_snares", "build_mushroom_logs"].map(has)).toEqual([true, true, true, true, true]);
     expect(has("build_drying_rack")).toBe(false);
     e.state.counters["did:catch_river_fish"] = 1;
@@ -266,16 +267,22 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect([has("make_bed"), has("build_rain_barrel")]).toEqual([true, true]);
   });
 
-  it("the forest's trails show from the second day, the fallen oak after collecting wood a few times", () => {
+  it("the forest trails show on day two; collecting wood unlocks mushroom logs directly", () => {
     const e = startGame(reg, 7);
     e.state.regions.forest.unlocked = true;
     e.dispatch({ type: "travel", region: "forest" });
     const open = () => e.openLandmarks(e.reg.regions.get("forest")!).map((d) => d.id);
     expect(open()).toEqual(["spring"]);
-    for (let i = 0; i < 3; i++) { e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; e.dispatch({ type: "activity", id: "gather_wood" }); }
-    expect(open()).toEqual(["spring", "fallen_oak"]);
+    for (let i = 0; i < 3; i++) {
+      expect(e.state.quests.build_mushroom_logs).toBeUndefined();
+      e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 };
+      expect(e.dispatch({ type: "activity", id: "gather_wood" }).ok).toBe(true);
+    }
+    expect(e.state.quests.build_mushroom_logs?.status).toBe("active");
+    expect(buildMenu(e).map((c) => c.id)).toContain("mushroom_logs");
+    expect(open()).toEqual(["spring"]);
     e.state.time += 24 * 60;
-    expect(open()).toEqual(["spring", "rabbit_runs", "fallen_oak"]);
+    expect(open()).toEqual(["spring", "rabbit_runs"]);
   });
 });
 
@@ -428,7 +435,7 @@ describe("the craft and build menus", () => {
     expect(craft(e, "craft_rope").ok).toBe(true);
     expect(e.state.time - t0).toBe(180);
     expect(e.state.items.cordage).toBe(1);
-    expect(view(e).stores.find((x) => x.id === "cordage")).toMatchObject({ label: "rope", count: 1 });
+    expect(view(e).inventory.find((x) => x.id === "cordage")).toMatchObject({ label: "rope", count: 1 });
     // the rope stays in the menu: more can be made (the snares need one too)
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.map((c) => c.id)).toContain("craft_rope");

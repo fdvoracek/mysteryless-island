@@ -14,7 +14,7 @@
       "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees."
     ]
   },
-  "cosmetic": { "msPerHour": 800, "msPerChar": 15, "minMs": 700, "maxMs": 4500 },
+  "cosmetic": { "msPerHour": 10000 },
   "deathLog": ["The world fades.", "Everything goes grey, then dark.", "The world slips away."],
   "_sleep": "Every sleep ends at 06:00. At zero energy or 00:00, unfinished work stops and you collapse here.",
   "sleep": {
@@ -155,6 +155,5 @@
       "local": true,
       "building": "campfire"
     }
-  ],
-  "inventoryCategories": ["tool", "clothing"]
+  ]
 }

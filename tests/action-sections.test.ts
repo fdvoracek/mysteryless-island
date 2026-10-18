@@ -7,13 +7,11 @@ const reg = loadRegistry();
 const fresh = () => revealAll(startGame(reg, 7));
 
 describe("action sections", () => {
-  it("keeps exploring and gathering in environment, with menus in their own sections", () => {
+  it("keeps craft and build beside look around, above gathering", () => {
     const e = fresh();
     e.applyEffects([{ build: "campfire" }, { build: "bed" }]);
     const v = view(e);
-    expect(v.environmentActions.map((a) => a.id)).toEqual(["explore:beach", "collect_shells", "collect_stones", "catch_fish"]);
-    expect(v.buildMenu.map((a) => a.id)).toEqual(["menu:build"]);
-    expect(v.craftMenu.map((a) => a.id)).toEqual(["menu:craft"]);
+    expect(v.environmentActions.map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build", "collect_shells", "collect_stones", "catch_fish"]);
     expect(v.buildings.find((b) => b.id === "bed")?.actions.map((a) => a.id)).toEqual(["sleep"]);
     expect(v.buildings.find((b) => b.id === "campfire")?.actions.map((a) => a.id)).toEqual(["light_fire"]);
   });
@@ -26,28 +24,40 @@ describe("action sections", () => {
     expect(v.buildings.find((b) => b.id === "campfire")?.actions.map((a) => a.label)).toEqual(["stoke fire", "cook raw fish", "cook raw meat"]);
     expect(v.buildings.find((b) => b.id === "drying_rack")?.actions.map((a) => a.label)).toEqual(["hang fish", "dry raw meat"]);
     expect(v.buildings.find((b) => b.id === "fish_trap")?.actions.map((a) => a.label)).toEqual(["set"]);
-    const controls = [...v.environmentActions, ...v.buildings.flatMap((b) => b.actions), ...v.craftedItems.flatMap((i) => i.actions)];
+    const controls = [...v.environmentActions, ...v.buildings.flatMap((b) => b.actions), ...v.consumables.flatMap((i) => i.actions)];
     expect(new Set(controls.map((a) => a.id)).size).toBe(controls.length);
-    expect(v.craftedItems.map((i) => i.id)).not.toContain("raw_meat");
+    expect(v.consumables.map((i) => i.id)).toContain("raw_meat");
     const cook = v.buildings.find((b) => b.id === "campfire")!.actions.find((a) => a.label === "cook raw fish")!;
     expect(e.dispatch(cook.command).ok).toBe(true);
     expect(e.state.items.cooked_fish).toBe(1);
   });
 
-  it("keeps gear and portable controls together, including manual eating and drinking", () => {
+  it("keeps actionable items in consumables and all other possessions in inventory", () => {
     const e = fresh();
     e.state.location = "forest";
-    e.applyEffects([{ give: { water_can: 1, cooked_fish: 1, can_water: 1, fishing_spear: 1 } }]);
+    e.applyEffects([{ give: { water_can: 1, cooked_fish: 1, can_water: 1, fishing_spear: 1, stone: 2, firewood: 3 } }]);
     const v = view(e);
-    expect(v.craftedItems.find((i) => i.id === "knife")).toMatchObject({ group: "gear", tags: ["sharp"], actions: [] });
-    expect(v.craftedItems.find((i) => i.id === "fishing_spear")).toMatchObject({ group: "gear", count: 1 });
-    expect(v.craftedItems.find((i) => i.id === "water_can")?.actions.map((a) => a.label)).toEqual(["fill"]);
-    const fish = v.craftedItems.find((i) => i.id === "cooked_fish")!;
-    expect(fish.group).toBe("provisions");
+    expect(v.inventory.find((i) => i.id === "knife")).toMatchObject({ tags: ["sharp"], actions: [] });
+    expect(v.inventory.find((i) => i.id === "fishing_spear")).toMatchObject({ count: 1 });
+    expect(v.consumables.find((i) => i.id === "water_can")?.actions.map((a) => a.label)).toEqual(["fill"]);
+    const fish = v.consumables.find((i) => i.id === "cooked_fish")!;
+    expect(v.inventory.map((i) => i.id)).toEqual(["firewood", "fishing_spear", "knife", "matches", "stone", "summer_clothes"]);
+    expect(v.consumables.map((i) => i.id).sort()).toEqual(["can_water", "cooked_fish", "water_can"]);
+    expect(v.inventory.some((i) => v.consumables.some((c) => c.id === i.id))).toBe(false);
     expect(fish.actions[0].command).toEqual({ type: "consume", item: "cooked_fish" });
-    expect(v.craftedItems.find((i) => i.id === "can_water")?.actions[0].label).toBe("drink");
+    expect(v.consumables.find((i) => i.id === "can_water")?.actions[0].label).toBe("drink");
     expect(e.dispatch(fish.actions[0].command).ok).toBe(true);
     expect(e.state.items.cooked_fish ?? 0).toBe(0);
+  });
+
+  it("keeps actionable items in consumables even when their actions are unavailable here", () => {
+    const e = fresh();
+    e.applyEffects([{ give: { water_can: 1, raw_fish: 1 } }]);
+    const v = view(e);
+    for (const id of ["water_can", "raw_fish"]) {
+      expect(v.consumables.find((i) => i.id === id)?.actions).toEqual([]);
+      expect(v.inventory.some((i) => i.id === id)).toBe(false);
+    }
   });
 
   it("changes building controls with location without borrowing a remote fire or bed", () => {
@@ -58,7 +68,7 @@ describe("action sections", () => {
     const v = view(e);
     expect(v.buildings).toEqual([]);
     expect(v.environmentActions.some((a) => a.id === "sleep" || a.id === "stoke_fire")).toBe(false);
-    expect(v.craftedItems.flatMap((i) => i.actions).some((a) => a.label.includes("cook"))).toBe(false);
+    expect(v.consumables.flatMap((i) => i.actions).some((a) => a.label.includes("cook"))).toBe(false);
     expect(v.environmentActions.some((a) => a.id === "gather_wood")).toBe(true);
   });
 

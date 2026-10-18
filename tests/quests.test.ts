@@ -44,7 +44,7 @@ describe("quests", () => {
     // the spear quest is triggered by finding the fish (revealAll found everything)
     expect(active(e)).toEqual([
       "survive_first_night", "first_catch", "cut_logs", "make_bed", "build_fish_trap", "build_snares",
-      "build_mushroom_logs", "build_corn_field", "build_bee_hive", "find_water", "find_food",
+      "build_corn_field", "build_bee_hive", "find_water", "find_food",
     ]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
   });
@@ -145,12 +145,12 @@ describe("a task that needs things: catch a fish", () => {
   const reg2 = loadRegistry();
   const task = (e: Engine) => view(e).quests.find((x) => x.id === "first_catch");
 
-  it("appears when the school of fish is found; its tooltip says it needs a fishing spear or a fish trap", () => {
+  it("appears when the school of fish is found and retains requirement metadata for simulations", () => {
     const e = startGame(reg2, 1);
     expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
     for (let i = 0; i < 4; i++) lookAround(e);
     expect(task(e)).toMatchObject({ title: "catch a fish", progress: [], needs: [[{ label: "fishing spear", have: false }, { label: "fish trap", have: false }]] });
-    // made in the craft menu; the task marks it
+    // Requirement metadata follows possessions; the UI shows only the task title.
     e.applyEffects([{ give: { firewood: 10 } }]);
     craft(e, "craft_spear");
     expect(task(e)!.needs).toEqual([[{ label: "fishing spear", have: true }, { label: "fish trap", have: false }]]);

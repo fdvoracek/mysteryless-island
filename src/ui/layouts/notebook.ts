@@ -20,7 +20,6 @@ export const notebook: Layout = {
         ${panel.status()}
         ${panel.tasks()}
         <div class="n-goods">
-          ${panel.stores()}
           ${panel.inventory()}
         </div>
       </section>

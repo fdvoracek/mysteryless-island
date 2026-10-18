@@ -31,7 +31,7 @@ describe("a new place on the map: the pop-up that opened it offers to walk there
     e.dispatch({ type: "explore" });
     choose(e, "forest_edge");
     const t0 = e.state.time;
-    expect(choose(e, "go:forest")).toMatchObject({ ok: true, cooldownMs: 0 });
+    expect(choose(e, "go:forest")).toMatchObject({ ok: true, cooldownMs: 5_000 });
     expect(view(e).event).toBeNull();
     expect(e.state.location).toBe("forest");
     expect(e.state.time - t0).toBe(30);

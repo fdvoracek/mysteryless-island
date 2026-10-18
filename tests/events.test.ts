@@ -107,7 +107,7 @@ describe("what you grabbed", () => {
     expect(e.state.items.stone).toBe(2);
     expect(e.state.items.firewood ?? 0).toBe(0);
     // the items show what they are good for
-    expect(view(e).stores.find((s) => s.id === "stone")!.tags).toEqual(["fire starter"]);
+    expect(view(e).inventory.find((s) => s.id === "stone")!.tags).toEqual(["fire starter"]);
     expect(view(e).inventory.find((i) => i.id === "knife")!.tags).toEqual(["sharp"]);
   });
 
@@ -138,12 +138,12 @@ describe("what you grabbed", () => {
     }
     expect(e.state.items.can_water ?? 0).toBe(0);
     expect(e.dispatch({ type: "consume", item: "can_water" }).ok).toBe(false);
-    expect(view(e).inventory.map((i) => i.id)).toContain("water_can");
+    expect(view(e).consumables.map((i) => i.id)).toContain("water_can");
   });
 
   it("the water can: fill it at the spring once it is explored, up to 4 drinks; the can is kept", () => {
     const e = startGame(reg, 7, "water", { matches: false });
-    const fill = () => view(e).inventory.find((i) => i.id === "water_can")!.actions.find((a) => a.label === "fill");
+    const fill = () => view(e).consumables.find((i) => i.id === "water_can")!.actions.find((a) => a.label === "fill");
     for (let i = 0; i < 2; i++) e.dispatch({ type: "consume", item: "can_water" });
     expect(e.state.items.can_water).toBe(2);
     expect(fill()).toBeUndefined(); // on the beach: no water source
@@ -167,9 +167,9 @@ describe("what you grabbed", () => {
     expect(fill()).toBeUndefined();
   });
 
-  it("the rations: six meals, eaten from the stores", () => {
+  it("the rations: six meals, eaten from consumables", () => {
     const e = startGame(reg, 6, "rations", { matches: false });
-    expect(view(e).stores.find((s) => s.id === "rations")).toMatchObject({ count: 6, use: { verb: "eat" } });
+    expect(view(e).consumables.find((s) => s.id === "rations")).toMatchObject({ count: 6, actions: [expect.objectContaining({ label: "eat" })] });
     e.state.stats.hunger = 70;
     e.dispatch({ type: "consume", item: "rations" });
     expect(e.state.stats.hunger).toBeLessThan(70);

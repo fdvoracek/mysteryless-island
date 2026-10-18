@@ -5,7 +5,7 @@ import type { Layout } from "./types";
 /**
  * 1. The journal: a book page. One centred column, oldest text on top and the newest
  * paragraph at the bottom, set larger, with the actions as underlined words right after it.
- * Status is a thin strip at the top; tasks, stores and inventory sit in the margin.
+ * Status is a thin strip at the top; tasks and inventory sit in the margin.
  */
 export const journal: Layout = {
   id: "journal",
@@ -22,7 +22,6 @@ export const journal: Layout = {
       </main>
       <aside class="j-margin">
         ${panel.tasks()}
-        ${panel.stores()}
         ${panel.inventory()}
       </aside>
     </div>`,

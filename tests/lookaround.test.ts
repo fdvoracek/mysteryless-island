@@ -39,7 +39,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     const e = startGame(reg, 2);
     open(e);
     const t0 = e.state.time;
-    choose(e, "rock_shelter");
+    expect(choose(e, "rock_shelter")).toMatchObject({ ok: true, cooldownMs: 5_000 });
     expect(e.state.time - t0).toBe(30);
     const ev = view(e).event!;
     expect(ev.text).toMatch(/^At the far end of the beach, a ring of rocks breaks the sea wind/);
