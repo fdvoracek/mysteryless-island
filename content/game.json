@@ -16,6 +16,59 @@
   },
   "cosmetic": { "msPerHour": 800, "msPerChar": 15, "minMs": 700, "maxMs": 4500 },
   "deathLog": ["The world fades.", "Everything goes grey, then dark.", "The world slips away."],
+  "_sleep": "Every sleep ends at 06:00. At zero energy or 00:00, unfinished work stops and you collapse here.",
+  "sleep": {
+    "bed": "bed",
+    "wakeHour": 6,
+    "passOutHour": 0,
+    "newDay": "New day {day} is starting.",
+    "collapse": {
+      "title": "You passed out",
+      "text": "You did not get to bed in time. You passed out and had to sleep where you were, at {place}."
+    },
+    "midnight": "It is midnight. You can no longer stay awake and pass out where you are.",
+    "exhausted": "Your energy is gone. You collapse where you are and sleep until morning.",
+    "shelter": "shelter",
+    "fire": "fire",
+    "recovery": {
+      "early_warm_bed": {
+        "energy": 100,
+        "text": "You went to sleep before midnight in a sheltered bed at {place}, with a fire burning. You wake at 6am with {energy}% energy."
+      },
+      "early_unheated_bed": {
+        "energy": 80,
+        "text": "You went to sleep before midnight in a sheltered bed at {place}, without a burning fire. You wake at 6am with {energy}% energy."
+      },
+      "late_warm_bed": {
+        "energy": 80,
+        "text": "You went to bed after midnight at {place}, under shelter with a fire burning. The short night leaves you with {energy}% energy at 6am."
+      },
+      "late_unheated_bed": {
+        "energy": 80,
+        "text": "You went to bed after midnight at {place}, under shelter but without a burning fire. You wake at 6am with {energy}% energy."
+      },
+      "exposed_bed": {
+        "energy": 50,
+        "text": "The bed at {place} was exposed, without shelter. You wake at 6am with {energy}% energy."
+      },
+      "ground": {
+        "energy": 50,
+        "text": "You slept without a bed at {place}. The rough sleep restores you to {energy}% energy at 6am."
+      }
+    }
+  },
+  "_provisions": "Eat and drink from carried supplies at this hunger/thirst; warn once per shortage.",
+  "provisions": {
+    "at": 60,
+    "title": "Supplies running low",
+    "hunger": "You have no ready-to-eat food left. Eat soon, or you will collapse.",
+    "thirst": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
+    "both": "You have no ready-to-eat food or drinking water left. Eat and drink soon, or you will collapse. Prepare food and find fresh water.",
+    "preparation": {
+      "when": { "any": [{ "item": "raw_fish" }, { "item": "raw_meat" }] },
+      "text": "Raw fish and meat cannot be eaten. You can build a simple drying rack to process them, or cook them over a fire. A drying rack takes 12 hours; cook over a fire if you need food sooner."
+    }
+  },
   "_ending": "the end screen (death is permanent): {time} and {day} in survived, {cause} in cause",
   "ending": {
     "title": "The journal ends",
@@ -97,12 +150,10 @@
       ],
       "warnAtHours": 1,
       "warnLog": ["The fire is dying.", "The flames sink low.", "Only a few flames left."],
-      "expireLog": [
-        "The fire goes out. Only embers now.",
-        "The last flame dies. The embers glow, then fade.",
-        "The fire is out. A thin thread of smoke."
-      ],
-      "showInStatus": false
+      "expireLog": ["The fire goes out. Only embers now.", "The last flame dies. The embers glow, then fade.", "The fire is out. A thin thread of smoke."],
+      "showInStatus": false,
+      "local": true,
+      "building": "campfire"
     }
   ],
   "inventoryCategories": ["tool", "clothing"]

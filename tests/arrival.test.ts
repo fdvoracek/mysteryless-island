@@ -7,7 +7,7 @@ const reg = loadRegistry();
 const look = lookAround;
 const go = (e: Engine, region: string) => e.dispatch({ type: "travel", region });
 /** the lines written by the last command, in reading order */
-const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.turn).map((l) => l.text).reverse();
+const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.log[0]?.turn).map((l) => l.text).reverse();
 
 describe("arriving in a region", () => {
   it("the first visit shows the full description; coming back shows what you see now", () => {
@@ -47,6 +47,7 @@ describe("arriving in a region", () => {
     const e = startGame(reg, 3);
     for (let i = 0; i < 4; i++) look(e); // forest, rocks, cliff, fish
     e.applyEffects([{ give: { firewood: 3 } }]);
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     go(e, "forest");
     go(e, "beach");
@@ -56,7 +57,7 @@ describe("arriving in a region", () => {
     expect(lit).toContain("Fish flash in the shallows.");
     expect(lit).not.toContain("The ring of rocks waits, cold.");
 
-    e.state.timers.fire = 0; // the fire goes out
+    e.state.timers[`fire@${e.state.location}`] = 0; // the fire goes out
     go(e, "forest");
     go(e, "beach");
     expect(lastTurn(e)).toContain("The ring of rocks waits, cold.");

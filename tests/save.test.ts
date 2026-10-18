@@ -21,7 +21,8 @@ describe("saving the game", () => {
     const savedTime = e.state.time;
     lookAround(e); // the rocks: after the save
     e.state.stats.health = 1;
-    e.state.stats.thirst = 100;
+    e.state.stats.hunger = 100;
+    e.state.warmth = reg.bandIds.indexOf("freezing");
     e.advance(1, "work");
     expect(e.state.dead).toBe(true);
     writeSave(e.state); // the autosave keeps the death
@@ -48,9 +49,12 @@ describe("saving the game", () => {
     const e = startGame(reg, 3);
     lookAround(e); lookAround(e); // dunes, rocks: sleep is there
     const sleep = { type: "activity", id: "sleep" } as const;
-    expect(e.willSleep(sleep)).toBe(false); // no fire: you can't sleep, so nothing is saved
+    expect(e.willSleep(sleep)).toBe(false); // no local bed
     e.applyEffects([{ give: { firewood: 3 } }]);
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
+    expect(e.willSleep(sleep)).toBe(false); // fire alone is insufficient
+    e.applyEffects([{ build: "bed" }]);
     expect(e.willSleep(sleep)).toBe(true);
     expect(e.willSleep({ type: "activity", id: "collect_shells" })).toBe(false);
     expect(e.willSleep({ type: "explore" })).toBe(false);

@@ -3,20 +3,18 @@
     "id": "shelter",
     "name": "shelter",
     "icon": "shelter",
-    "_note": "out of the wind: 3 °C warmer on the beach, and you can sleep there without a fire",
-    "hint": "A lean-to of logs against the rocks. Warmer, and you can sleep without a fire.",
-    "places": [{ "region": "beach", "when": { "discovered": "rock_shelter" } }],
-    "availableWhen": {
-      "any": [{ "quest": "build_shelter", "is": "active" }, { "quest": "build_shelter", "is": "done" }]
-    },
+    "_note": "A built shelter is local. The discovered beach rocks already provide natural shelter.",
+    "hint": "A lean-to of logs. Build shelter before making a bed away from the beach rocks.",
+    "places": [{"region": "forest", "when": {"sheltered": false}}, {"region": "meadows", "when": {"sheltered": false}}],
+    "availableWhen": { "any": [{"at": "forest"}, {"at": "meadows"}] },
     "build": {
       "hours": 2,
       "effort": "heavy",
       "cost": { "timber": 4 },
       "log": [
-        "You lean the logs against the rocks and pack the gaps with sand and wrack.",
-        "Log by log, a lean-to rises against the rocks. You pack the gaps with wet sand.",
-        "You wedge the logs into the rocks, one beside the other, until the wind can't get in."
+        "You lean logs into a frame and pack the gaps with branches.",
+        "Log by log, a lean-to rises. You pack the gaps against the wind.",
+        "You wedge the logs together until the wind cannot get in."
       ]
     },
     "warmthC": 3,
@@ -26,11 +24,13 @@
     "id": "bed",
     "name": "bed",
     "icon": "sleep",
-    "hint": "A frame of logs with a mattress of branches. You sleep deeper in it.",
-    "places": [{ "region": "beach", "when": { "built": "shelter" } }],
-    "availableWhen": {
-      "any": [{ "quest": "make_bed", "is": "active" }, { "quest": "make_bed", "is": "done" }]
-    },
+    "hint": "A sheltered bed. Light a fire here and sleep before midnight for 100% energy.",
+    "places": [
+      { "region": "beach", "when": {"sheltered": true} },
+      { "region": "forest", "when": {"sheltered": true} },
+      { "region": "meadows", "when": {"sheltered": true} }
+    ],
+    "availableWhen": { "sheltered": true },
     "build": {
       "label": "make",
       "hours": 1,
@@ -48,7 +48,7 @@
     "id": "drying_rack",
     "name": "drying rack",
     "icon": "fish",
-    "hint": "Fish hung in the wind and the smoke dry in 12 hours, and keep.",
+    "hint": "Fish or strips of meat dry in 12 hours. One batch at a time; hang meat with its dry button.",
     "places": [{ "region": "beach", "when": { "discovered": "rock_shelter" } }],
     "availableWhen": {
       "any": [
@@ -73,6 +73,7 @@
         "hours": 0.25,
         "effort": "light",
         "cost": { "raw_fish": 2 },
+        "effects": [{ "unflag": "drying_meat" }],
         "log": [
           "You split two fish and hang them over the crossbar.",
           "Two fish, gutted and split, hang from the rack.",
@@ -85,15 +86,19 @@
         "label": "take down",
         "hours": 0.25,
         "effort": "light",
-        "yields": [{ "item": "dried_fish", "min": 2, "max": 2 }],
+        "yields": [
+          { "item": "dried_fish", "min": 2, "max": 2, "when": { "not": { "flag": "drying_meat" } } },
+          { "item": "dried_meat", "min": 2, "max": 2, "when": { "flag": "drying_meat" } }
+        ],
+        "effects": [{ "unflag": "drying_meat" }],
         "log": [
-          "The fish come off the rack stiff and dark.",
+          "The food comes off the rack stiff and dark.",
           "Dry, hard, smelling of smoke. They will keep.",
-          "You take down the fish, dry as bark."
+          "You take down the food, dry as bark."
         ]
       },
       "words": { "idle": "empty", "working": "drying", "ready": "dry" },
-      "readyLog": ["The fish on the rack are dry.", "The fish on the rack have dried."]
+      "readyLog": ["The food on the rack is dry.", "The food on the rack has dried."]
     }
   },
   {
@@ -101,7 +106,7 @@
     "name": "rain barrel",
     "icon": "water",
     "hint": "A hollowed log under the shelter's edge. It fills with rain in 12 hours.",
-    "places": [{ "region": "beach", "when": { "built": "shelter" } }],
+    "places": [{ "region": "beach", "when": { "sheltered": true } }],
     "availableWhen": {
       "any": [
         { "quest": "build_rain_barrel", "is": "active" },
@@ -136,7 +141,7 @@
         "label": "drink",
         "hours": 0.25,
         "effort": "light",
-        "effects": [{ "stat": { "thirst": -45 } }],
+        "effects": [{ "stat": { "thirst": -45, "energy": 10 } }],
         "tags": ["drink"],
         "log": [
           "Rainwater, soft and cold. You drink your fill.",
@@ -471,5 +476,21 @@
       },
       "words": { "idle": "open", "working": "closed", "ready": "full of fish" }
     }
+  }
+,
+  {
+    "id": "campfire",
+    "name": "campfire",
+    "icon": "fire",
+    "hint": "A fire site in this area. Light it with matches, stones, or dry sticks, then feed it with wood.",
+    "places": [{"region": "beach"}, {"region": "forest"}, {"region": "meadows"}],
+    "availableWhen": { "any": [{"discovered": "rock_shelter"}, {"at": "forest"}, {"at": "meadows"}] },
+    "build": {
+      "hours": 0.25,
+      "effort": "light",
+      "cost": { "stone": 2 },
+      "log": "You arrange stones in a ring and clear a safe place for a fire."
+    },
+    "timer": "fire"
   }
 ]

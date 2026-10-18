@@ -53,9 +53,14 @@ describe("the browser test matches the content", () => {
 
   it("every plain label it names (expected texts, buttons, places, tasks) exists in the content", () => {
     const strings = contentStrings();
+    // Building-owned item controls qualify the verb with the item name.
+    for (const item of reg.items.values()) for (const action of item.actions ?? []) {
+      if (action.building) strings.add(`${action.label} ${item.name}`);
+    }
     // words the UI and the test code write themselves
     const ui = new Set(["back", "map", "close", "here", "busy", "off", "new", "prologue", "ended",
       // browser and code words
+      "environment", "buildings", "crafted items",
       "pageerror", "console", "error", "meter", "style", "button", "true", "click", "italic", "title", "class"]);
     // plain lowercase labels in quotes: "catch a fish", "the forest", "pick berries"; not "firewood 0/10"
     const labels = [...spec.matchAll(/"([a-z][a-z ]*[a-z])"/g)].map((m) => m[1]);

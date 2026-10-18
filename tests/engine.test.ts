@@ -5,7 +5,11 @@ import { loadRegistry, lookAround, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 /** a game with the beach and forest fully explored (exploration is tested separately) */
-const fresh = (seed = 1) => revealAll(startGame(reg, seed));
+const fresh = (seed = 1) => {
+  const e = revealAll(startGame(reg, seed));
+  e.applyEffects([{ build: "campfire" }]);
+  return e;
+};
 
 describe("engine: the prototype loop", () => {
   it("starts at dawn on the beach with only 'look around' (craft and build appear once there is something)", () => {
@@ -19,10 +23,10 @@ describe("engine: the prototype loop", () => {
   it("once the beach is explored: fire, shells, fish, sleep", () => {
     const e = fresh();
     const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build", "light_fire", "collect_shells", "collect_stones", "catch_fish", "sleep"]);
+    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build", "light_fire", "collect_shells", "collect_stones", "catch_fish"]);
     expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
     expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
-    expect(v.actions.find((a) => a.id === "sleep")!.reason).toContain("without a fire or a shelter");
+    expect(v.actions.find((a) => a.id === "sleep")).toBeUndefined();
   });
 
   it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory, not stores", () => {
@@ -77,7 +81,7 @@ describe("engine: the prototype loop", () => {
 
     e.dispatch({ type: "travel", region: "beach" });
     expect(e.dispatch({ type: "activity", id: "light_fire" }).ok).toBe(true);
-    expect(e.state.timers.fire).toBeGreaterThan(0);
+    expect(e.state.timers[`fire@${e.state.location}`]).toBeGreaterThan(0);
 
     // fish until we have one (seeded, so deterministic)
     e.applyEffects([{ give: { fishing_spear: 1 } }]);
@@ -88,11 +92,11 @@ describe("engine: the prototype loop", () => {
     e.dispatch({ type: "consume", item: "cooked_fish" });
     expect(e.state.items.cooked_fish).toBe(0);
 
-    if (!(e.state.timers.fire > 0)) e.dispatch({ type: "activity", id: "light_fire" });
-    const energyBefore = e.state.stats.energy;
+    if (!(e.state.timers[`fire@${e.state.location}`] > 0)) e.dispatch({ type: "activity", id: "light_fire" });
+    e.applyEffects([{ build: "bed" }]);
     const sleep = e.dispatch({ type: "activity", id: "sleep" });
     expect(sleep.ok).toBe(true);
-    expect(e.state.stats.energy).toBeGreaterThan(energyBefore);
+    expect(e.state.stats.energy).toBe(100);
   });
 
   it("stoke fire appears only while the fire burns, and the fire is capped", () => {
@@ -103,7 +107,7 @@ describe("engine: the prototype loop", () => {
     expect(ids).toContain("stoke_fire");
     expect(ids).not.toContain("light_fire");
     for (let i = 0; i < 5; i++) e.dispatch({ type: "activity", id: "stoke_fire" });
-    expect(e.state.timers.fire).toBeLessThanOrEqual(12 * 60);
+    expect(e.state.timers[`fire@${e.state.location}`]).toBeLessThanOrEqual(12 * 60);
   });
 
   it("the fire burns down over time and goes out", () => {
@@ -111,7 +115,7 @@ describe("engine: the prototype loop", () => {
     e.applyEffects([{ give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     e.advance(7, "rest");
-    expect(e.state.timers.fire).toBe(0);
+    expect(e.state.timers[`fire@${e.state.location}`]).toBe(0);
     expect(e.state.log.some((l) => l.text.includes("fire goes out"))).toBe(true);
   });
 
@@ -170,6 +174,7 @@ describe("engine: the prototype loop", () => {
 
     f.applyEffects([{ give: { firewood: 3 } }]);
     f.dispatch({ type: "activity", id: "light_fire" });
+    f.applyEffects([{ build: "bed" }]);
     expect(f.dispatch({ type: "activity", id: "sleep" }).cooldownMs).toBe(maxMs); // 8 h is capped
   });
 

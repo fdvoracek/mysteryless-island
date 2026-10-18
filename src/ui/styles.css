@@ -278,3 +278,23 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .modal.event .buttons { gap: 8px; }
   .modal.event .btn { width: calc(50% - 4px); }
 }
+
+/* The three action sections stay together and in the same order in every layout. */
+.action-sections { display: grid; gap: 40px; min-width: 0; width: 100%; }
+.action-sections > .box.action-section { border: 0; padding: 0; }
+.action-sections > .box.action-section > legend { padding: 0; margin-bottom: 12px; }
+.action-section .section-menu { margin-bottom: 12px; }
+.action-section .section-menu:empty { display: none; }
+.action-section .empty { margin: 6px 0; color: var(--muted); font-size: 0.9em; }
+.action-section .control-row + .control-row { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
+.action-section .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.action-section .control-heading { flex: 1 1 130px; flex-wrap: wrap; margin: 0; min-width: 0; }
+.action-section .control-heading .val { color: var(--muted); font-size: 0.9em; }
+.action-section .control-buttons { display: contents; }
+.action-section .control-buttons .btn { width: auto; flex: 0 0 auto; padding-inline: 10px; }
+.item-group-title { font-size: 0.85em; font-weight: normal; color: var(--muted); margin: 10px 0; }
+.action-section .control-buttons:empty { display: none; }
+@media (max-width: 600px) {
+  .action-sections { gap: 32px; }
+  .action-section .control-heading { gap: 4px 8px; }
+}

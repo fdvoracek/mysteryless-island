@@ -10,6 +10,7 @@
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
+  "shelterWhen": { "discovered": "rock_shelter" },
   "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
   "map": { "x": 0, "y": 0 },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
@@ -127,9 +128,9 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "At the far end of the beach, a ring of rocks breaks the sea wind. You could light a fire here, if you find some wood.",
-          "At the end of the beach, rocks stand in a ring, out of the wind. A fire would keep here, with some wood.",
-          "A ring of rocks at the far end of the sand. The wind can't reach inside. A good place for a fire, if you had wood."
+          "At the far end of the beach, a ring of rocks breaks the sea wind. It is a natural shelter. You can make a bed here, and build a campfire for warmth.",
+          "Rocks stand in a ring, out of the wind. A natural shelter, ready for a bed and a campfire.",
+          "The wind cannot reach inside the rock formation. Shelter already made. You can build a bed and a campfire here."
         ]
       },
       {
@@ -174,25 +175,26 @@
   "activities": [
     {
       "id": "light_fire",
+      "building": "campfire",
       "name": "light fire",
       "hours": 0.25,
       "effort": "light",
       "icon": "fire",
-      "visibleWhen": {
-        "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }, { "item": "matches" }]
-      },
+      "visibleWhen": { "all": [{"built": "campfire", "here": true}, {"not": {"timer": "fire"}}, {"item": "matches"}] },
       "cost": { "firewood": 3, "matches": 1 },
-      "effects": [{ "timer": "fire", "addHours": 6 }],
+      "effects": [{"timer": "fire", "addHours": 6}],
       "log": [
         "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
         "You shield a match in your hands. The flame jumps to the kindling.",
         "One match, struck carefully. The fire is lit."
       ],
       "tags": ["kindle"],
-      "_note": "with matches: 15 min, always works, one match each time"
+      "_note": "with matches: 15 min, always works, one match each time",
+      "global": true
     },
     {
       "id": "strike_fire",
+      "building": "campfire",
       "name": "light fire",
       "_note": "without matches, with 2 stones: sparks, 1 h, catches 2 times in 3; the stones stay; the wood is only used when it catches",
       "hours": 1.0,
@@ -200,9 +202,9 @@
       "icon": "fire",
       "visibleWhen": {
         "all": [
-          { "discovered": "rock_shelter" },
-          { "not": { "timer": "fire" } },
-          { "not": { "item": "matches" } },
+          { "built": "campfire", "here": true },
+          { "not": {"timer": "fire"} },
+          { "not": {"item": "matches"} },
           { "item": "stone", "gte": 2 }
         ]
       },
@@ -220,7 +222,7 @@
             "One spark lands right. Smoke, a glow, then fire.",
             "The tinder catches at last. You feed it twig by twig."
           ],
-          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
+          "effects": [{"take": {"firewood": 3}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
@@ -231,10 +233,12 @@
           ]
         }
       ],
-      "tags": ["kindle"]
+      "tags": ["kindle"],
+      "global": true
     },
     {
       "id": "make_fire",
+      "building": "campfire",
       "name": "light fire",
       "_note": "without matches or 2 stones: friction with 2 dry sticks (firewood), 1 h, catches 2 times in 3; the wood (3 to burn, 2 sticks) is only used when it catches",
       "hours": 1.0,
@@ -242,13 +246,13 @@
       "icon": "fire",
       "visibleWhen": {
         "all": [
-          { "discovered": "rock_shelter" },
-          { "not": { "timer": "fire" } },
-          { "not": { "item": "matches" } },
-          { "not": { "item": "stone", "gte": 2 } }
+          { "built": "campfire", "here": true },
+          { "not": {"timer": "fire"} },
+          { "not": {"item": "matches"} },
+          { "not": {"item": "stone", "gte": 2} }
         ]
       },
-      "requires": { "all": [{ "tool": "fire_starter" }, { "item": "firewood", "gte": 5 }] },
+      "requires": { "all": [{"tool": "fire_starter"}, {"item": "firewood", "gte": 5}] },
       "log": [
         "You twist a dry stick against a branch, again and again, until your palms burn.",
         "No matches. You spin a stick between your hands until your arms ache.",
@@ -262,7 +266,7 @@
             "The wisp of smoke becomes an ember, then a flame.",
             "Finally, a flame. You feed it, careful as with a newborn."
           ],
-          "effects": [{ "take": { "firewood": 5 } }, { "timer": "fire", "addHours": 6 }]
+          "effects": [{"take": {"firewood": 5}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
@@ -273,17 +277,19 @@
           ]
         }
       ],
-      "tags": ["kindle"]
+      "tags": ["kindle"],
+      "global": true
     },
     {
       "id": "stoke_fire",
+      "building": "campfire",
       "name": "stoke fire",
       "hours": 0.25,
       "effort": "light",
       "icon": "fire",
-      "visibleWhen": { "timer": "fire" },
+      "visibleWhen": { "all": [{"built": "campfire", "here": true}, {"timer": "fire"}] },
       "cost": { "firewood": 2 },
-      "effects": [{ "timer": "fire", "addHours": 4 }],
+      "effects": [{"timer": "fire", "addHours": 4}],
       "log": [
         "The fire crackles.",
         "The flames climb higher.",
@@ -291,7 +297,8 @@
         "Sparks climb into the dark.",
         "Sparks drift up on the wind.",
         "The new wood catches with a hiss."
-      ]
+      ],
+      "global": true
     },
     {
       "id": "collect_shells",
@@ -369,13 +376,13 @@
     },
     {
       "id": "sleep",
+      "building": "bed",
       "name": "sleep",
+      "global": true,
+      "visibleWhen": { "built": "bed", "here": true },
       "hours": 8,
       "effort": "sleep",
       "icon": "sleep",
-      "visibleWhen": { "discovered": "rock_shelter" },
-      "requires": { "any": [{ "timer": "fire" }, { "built": "shelter" }] },
-      "requiresText": "Too cold and dark to sleep without a fire or a shelter",
       "_thoughts": "before sleeping: how tired you are (energy, same bands as the bar), then up to 3 things you remember from today, most memorable first",
       "thoughts": [
         {
@@ -383,33 +390,33 @@
           "lines": [
             {
               "text": [
-                "You drop by the fire, too exhausted to feel the cold sand.",
-                "You fall down by the fire. You can't keep your eyes open.",
-                "Your legs give way by the fire. Too tired to care."
+                "You lie down, too exhausted to think.",
+                "You fall down where you are. You can't keep your eyes open.",
+                "Your legs give way. Too tired to care."
               ],
               "when": { "stat": "energy", "lte": 20 }
             },
             {
               "text": [
-                "You curl up by the fire. Every muscle aches.",
-                "You lie down by the fire. Everything hurts.",
-                "You curl up by the warmth, aching all over."
+                "You lie down. Every muscle aches.",
+                "You lie down. Everything hurts.",
+                "You curl up, aching all over."
               ],
               "when": { "stat": "energy", "lte": 40 }
             },
             {
               "text": [
-                "You curl up by the fire, tired in a slow, heavy way.",
-                "You stretch out by the fire. A slow tiredness comes over you.",
-                "You lie by the fire, heavy and tired."
+                "You lie down, tired in a slow, heavy way.",
+                "You stretch out. A slow tiredness comes over you.",
+                "You lie down, heavy and tired."
               ],
               "when": { "stat": "energy", "lte": 80 }
             },
             {
               "text": [
-                "You lie by the fire, not really tired. Sleep is slow to come.",
-                "You lie by the fire and stare at the sky. Sleep takes its time.",
-                "You are not tired. You lie by the fire and wait for sleep."
+                "You lie down, not really tired. Sleep is slow to come.",
+                "You lie down and close your eyes. Sleep takes its time.",
+                "You are not tired. You lie down and wait for sleep."
               ]
             }
           ]
@@ -641,28 +648,8 @@
         "Sleep comes quickly.",
         "You drift off."
       ],
-      "_afterwards": "the night itself is quiet; on waking: the time, then one line on how your body is (worst first), then the fire",
+      "_afterwards": "the night itself is quiet; on waking: the engine announces the new day and sleep quality, then one line on how your body is (worst first), then the fire",
       "afterwards": [
-        {
-          "max": 1,
-          "lines": [
-            {
-              "text": [
-                "Morning comes, grey and wet.",
-                "Grey dawn, damp and cold.",
-                "The light comes back, thin and grey."
-              ],
-              "when": { "phase": ["dawn", "day"] }
-            },
-            {
-              "text": [
-                "You wake in the dark. The surf is loud.",
-                "You wake. It is still dark, and the surf roars.",
-                "Darkness still. Only the sound of the sea."
-              ]
-            }
-          ]
-        },
         {
           "max": 1,
           "lines": [
@@ -722,7 +709,7 @@
                 "Embers still glow in the rocks.",
                 "A little smoke still rises from the fire."
               ],
-              "when": { "timer": "fire" }
+              "when": { "all": [{ "at": "beach" }, { "timer": "fire" }] }
             },
             {
               "text": [
@@ -732,7 +719,8 @@
                 "The fire died in the night.",
                 "Sometime in the night, the fire went out.",
                 "The fire did not last the night."
-              ]
+              ],
+              "when": { "at": "beach" }
             }
           ]
         }

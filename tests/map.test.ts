@@ -65,13 +65,13 @@ describe("the route map (the places panel)", () => {
     const icons = (id: string) => view(e).tabs.find((t) => t.id === id)!.icons;
     expect(icons("beach")).toEqual([]);
     lookAround(e); lookAround(e); // dunes, rocks: fire and sleep
-    expect(icons("beach")).toEqual(["fire", "sleep"]);
+    expect(icons("beach")).toEqual(["shelter"]);
     expect(icons("forest")).toEqual(["wood"]); // wood from the start, the spring not found yet
     lookAround(e); lookAround(e); // cliff (shells), shallows (fish)
-    expect(icons("beach")).toEqual(["fire", "stone", "fish", "shells", "sleep"]);
-    e.applyEffects([{ give: { firewood: 3 } }]);
+    expect(icons("beach")).toEqual(["stone", "fish", "shells", "shelter"]);
+    e.applyEffects([{ build: "campfire" }, { give: { firewood: 3 } }]);
     e.dispatch({ type: "activity", id: "light_fire" });
-    expect(icons("beach")).toEqual(["fire", "stone", "fish", "shells", "sleep"]); // stoke fire: still one fire
+    expect(icons("beach")).toEqual(["fire", "stone", "fish", "shells", "shelter"]); // stoke fire: still one fire
     e.dispatch({ type: "travel", region: "forest" });
     lookAround(e);
     expect(icons("forest")).toEqual(["water", "wood"]);

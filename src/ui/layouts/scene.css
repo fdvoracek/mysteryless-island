@@ -4,8 +4,7 @@
  */
 .layout-scene .wrap {
   max-width: 1110px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 40px; align-items: start;
-  /* the shelf column: 240px of boxes + 130px for the buttons beside them */
+  display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 40px; align-items: start;
 }
 .layout-scene .s-main { display: grid; gap: 0; max-width: 600px; }
 
@@ -28,20 +27,11 @@
 .layout-scene .s-shelf { display: grid; gap: 14px; font-size: 15px; }
 .layout-scene .s-shelf .box { padding: 6px 10px 8px; }
 .layout-scene .s-shelf .bar { width: 60px; }
-/* the buttons of the stores and of tasks (cook, eat, build) stand outside their box, on its right, level with their row */
-.layout-scene .s-shelf { margin-right: 130px; }  /* keep in step with the shelf column above */
-.layout-scene #stores .row, .layout-scene #inventory .row, .layout-scene #buildings .row { position: relative; min-height: 25px; align-items: center; }  /* room for a button per row */
-.layout-scene #stores .acts, .layout-scene #inventory .acts, .layout-scene #buildings .acts {
-  position: absolute; left: calc(100% + 22px); top: 50%; transform: translateY(-50%); margin: 0; white-space: nowrap;
-}
 .layout-scene #quests .quest .head { min-height: 25px; align-items: center; }
 
 @media (max-width: 760px) {
   .layout-scene .wrap { grid-template-columns: 1fr; gap: 20px; }
   .layout-scene .log { height: 15em; }
-  /* one column: no room beside the box, so the buttons go back into their row */
-  .layout-scene .s-shelf { margin-right: 0; }
-  .layout-scene #stores .acts, .layout-scene #inventory .acts, .layout-scene #buildings .acts { position: static; transform: none; margin-left: 2px; }
   .layout-scene .s-main { max-width: none; }
   .layout-scene .s-shelf .row .tip, .layout-scene .s-shelf .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
 }

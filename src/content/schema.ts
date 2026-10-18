@@ -46,8 +46,9 @@ export type Condition =
   | { explored: string; gte?: number; lte?: number }
   /** you have something with this tool tag (game.json → tools), e.g. something sharp */
   | { tool: string }
-  /** a building stands (it was built) */
-  | { built: string }
+  /** A building stands; `here` restricts it to the current region. */
+  | { built: string; here?: boolean }
+  | { sheltered: boolean }
   /** a building's cycle: idle (built, nothing running), working (e.g. the corn is growing) or ready (to collect) */
   | { building: string; is: "idle" | "working" | "ready" };
 
@@ -76,7 +77,8 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ discovered: Id }).strict(),
     z.object({ explored: Id, ...range }).strict(),
     z.object({ tool: Id }).strict(),
-    z.object({ built: Id }).strict(),
+    z.object({ built: Id, here: z.boolean().optional() }).strict(),
+    z.object({ sheltered: z.boolean() }).strict(),
     z.object({ building: Id, is: z.enum(["idle", "working", "ready"]) }).strict(),
   ]),
 );
@@ -165,6 +167,10 @@ export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "b
 export const Activity = z
   .object({
     id: Id,
+    /** Shared actions such as sleep are available in every region. */
+    global: z.boolean().optional(),
+    /** Group this activity with a local building in the UI. */
+    building: Id.optional(),
     name: z.string(),
     hours: z.number().positive(),
     effort: Effort,
@@ -215,6 +221,8 @@ export const Region = z
     /** shown on the first visit */
     description: Text,
     climate: z.object({ baseC: z.number() }).strict(),
+    /** Natural shelter at this place, once its discovery condition is met. */
+    shelterWhen: Condition.optional(),
     travelHours: z.number().nonnegative(),
     /** where the place sits on the route map (grid cells; x to the right, y down). Default: in a row by order */
     map: z.object({ x: z.number().int(), y: z.number().int() }).strict().optional(),
@@ -307,6 +315,8 @@ export const Building = z
       .strict(),
     /** degrees added to the felt temperature in its place (e.g. a shelter out of the wind) */
     warmthC: z.number().optional(),
+    /** A timer describes this building's current state, e.g. a local campfire. */
+    timer: Id.optional(),
     /** the panel's word for a building without a cycle (default "built") */
     word: z.string().optional(),
     cycle: z
@@ -349,12 +359,14 @@ export const Consume = z
   .strict();
 
 /**
- * A small button next to an item in the stores, labelled with `label` (e.g. cook raw fish over the fire).
+ * An item control, grouped under its building or carried item (e.g. cook raw fish over the fire).
  * Each use spends `uses` of the item (default 1) plus any extra `cost`.
  */
 export const ItemAction = z
   .object({
     id: Id,
+    /** Show this action under the local building instead of carried items. */
+    building: Id.optional(),
     label: z.string(),
     hours: z.number().positive(),
     effort: Effort,
@@ -398,6 +410,8 @@ export const Timer = z
     id: Id,
     name: z.string(),
     region: Id.optional(),
+    local: z.boolean().optional(),
+    building: Id.optional(),
     maxHours: z.number().positive(),
     modifiers: z.object({ localHeatC: z.number().optional() }).strict().optional(),
     states: z.array(z.object({ upToHours: z.number(), word: z.string() }).strict()).min(1),
@@ -437,6 +451,34 @@ export const Game = z
       })
       .strict(),
     deathLog: Text,
+    sleep: z.object({
+      bed: Id,
+      shelter: Id,
+      fire: Id,
+      wakeHour: z.number().int().min(1).max(23),
+      passOutHour: z.number().int().min(0).max(23),
+      recovery: z.object({
+        early_warm_bed: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+        early_unheated_bed: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+        late_warm_bed: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+        late_unheated_bed: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+        exposed_bed: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+        ground: z.object({ energy: z.number().min(0).max(100), text: Text }).strict(),
+      }).strict(),
+      newDay: Text,
+      collapse: z.object({ title: Text, text: Text }).strict(),
+      midnight: Text,
+      exhausted: Text,
+    }).strict(),
+    /** Automatic provisions, checked during clock steps and after successful commands. */
+    provisions: z.object({
+      at: z.number().gt(0).max(100),
+      title: Text,
+      hunger: Text,
+      thirst: Text,
+      both: Text,
+      preparation: z.object({ when: Condition, text: Text }).strict(),
+    }).strict(),
     /**
      * The note when a task is done: title ({task}), then the task's doneLog and what changed:
      * gained ({item}, {where}: inventory or stores), used ({item}), opened ({place}), possible ({action}),

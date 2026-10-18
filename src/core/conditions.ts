@@ -2,6 +2,7 @@ import type { Registry } from "../content/registry";
 import type { Condition, Effort } from "../content/schema";
 import { day, phaseAt } from "./clock";
 import type { GameState } from "./state";
+import { timerValue } from "./timers";
 
 export interface Ctx {
   reg: Registry;
@@ -81,7 +82,7 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if ("flag" in c) return s.flags.includes(c.flag);
   // timer values are authored in hours; a bare { "timer": "fire" } means "running"
   if ("timer" in c) {
-    const hours = (s.timers[c.timer] ?? 0) / 60;
+    const hours = timerValue(reg, s, c.timer) / 60;
     return c.gte === undefined && c.lte === undefined ? hours > 0 : inRange(hours, c);
   }
   if ("at" in c) return s.location === c.at;
@@ -100,7 +101,15 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
     return !!region && !!s.regions[region]?.discoveries.includes(c.discovered);
   }
   if ("explored" in c) return inRange(s.regions[c.explored]?.explored ?? 0, c, 1);
-  if ("built" in c) return Object.keys(s.buildings ?? {}).some((k) => k.startsWith(`${c.built}@`));
+  if ("built" in c) return c.here
+    ? (s.buildings?.[buildingKey(c.built, s.location)]?.count ?? 0) > 0
+    : Object.keys(s.buildings ?? {}).some((k) => k.startsWith(`${c.built}@`));
+  if ("sheltered" in c) {
+    const natural = reg.regions.get(s.location)?.shelterWhen;
+    const sheltered = (s.buildings?.[buildingKey(reg.game.sleep.shelter, s.location)]?.count ?? 0) > 0
+      || (!!natural && evaluate(natural, ctx));
+    return sheltered === c.sheltered;
+  }
   if ("building" in c) return buildingState(reg, s, c.building) === c.is;
   return false;
 }
@@ -129,5 +138,6 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
   if ("warmth" in c) return `only when ${c.warmth.join(" or ")}`;
   if ("reached" in c) return `not before day ${c.reached.day}`;
   if ("built" in c) return `needs the ${reg.buildings.get(c.built)?.name ?? c.built}`;
+  if ("sheltered" in c) return c.sheltered ? "needs shelter here" : "already sheltered here";
   return "not possible now";
 }

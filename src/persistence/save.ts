@@ -1,5 +1,6 @@
 import type { Registry } from "../content/registry";
 import { SAVE_VERSION, type GameState } from "../core/state";
+import { initializeTimers } from "../core/timers";
 
 /**
  * Two things are kept in the browser (localStorage):
@@ -70,7 +71,7 @@ function isCompatible(s: GameState, reg: Registry): boolean {
     s.regions[id].explored ??= 0;
     s.regions[id].discoveries ??= [];
   }
-  for (const id of reg.timers.keys()) s.timers[id] ??= 0;
+  initializeTimers(reg, s);
   for (const st of reg.stats.stats) s.stats[st.id] ??= reg.game.start.stats[st.id];
   s.counters ??= {};
   s.quests ??= {};

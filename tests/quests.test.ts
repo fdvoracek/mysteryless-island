@@ -43,7 +43,7 @@ describe("quests", () => {
     const e = revealAll(startGame(reg, 3));
     // the spear quest is triggered by finding the fish (revealAll found everything)
     expect(active(e)).toEqual([
-      "survive_first_night", "first_catch", "cut_logs", "build_fish_trap", "build_snares",
+      "survive_first_night", "first_catch", "cut_logs", "make_bed", "build_fish_trap", "build_snares",
       "build_mushroom_logs", "build_corn_field", "build_bee_hive", "find_water", "find_food",
     ]);
     expect(e.state.quests.light_a_fire).toBeUndefined(); // not triggered yet
@@ -59,24 +59,25 @@ describe("quests", () => {
     expect(e.state.log.some((l) => l.text.includes("Fresh water. You will last"))).toBe(true);
   });
 
-  it("find food completes when eating raw or cooked food (the eat tag)", () => {
+  it("find food completes when eating prepared food (the eat tag)", () => {
     const e = fresh();
-    e.applyEffects([{ give: { raw_fish: 1 } }]);
-    e.dispatch({ type: "consume", item: "raw_fish" });
+    e.applyEffects([{ give: { cooked_fish: 1 } }]);
+    e.dispatch({ type: "consume", item: "cooked_fish" });
     expect(e.state.quests.find_food?.status).toBe("done");
-    expect(e.state.counters).toMatchObject({ "did:eat": 1, "did:raw_fish": 1 });
+    expect(e.state.counters).toMatchObject({ "did:eat": 1, "did:cooked_fish": 1 });
   });
 
   it("survive the first night completes at day 2, 06:00, not before", () => {
     const e = fresh();
     e.applyEffects([{ give: { firewood: 20 } }]);
     e.advance(13.5, "rest"); // 19:30 on day 1
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" }); // 20:00
     e.dispatch({ type: "activity", id: "stoke_fire" });
-    e.dispatch({ type: "activity", id: "sleep" }); // wakes 04:15 on day 2
     expect(e.state.quests.survive_first_night.status).toBe("active");
-    e.advance(2, "rest"); // past 06:00
-    expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true); // any command re-checks quests
+    e.applyEffects([{ build: "bed" }]);
+    e.dispatch({ type: "activity", id: "sleep" }); // always wakes at 06:00 on day 2
+    expect(e.state.time).toBe(1440 + 6 * 60);
     expect(e.state.quests.survive_first_night.status).toBe("done");
   });
 
@@ -87,6 +88,7 @@ describe("quests", () => {
     e.dispatch({ type: "activity", id: "catch_fish" }); // ends 17:30
     expect(active(e)).toContain("light_a_fire");
     expect(e.state.log.some((l) => l.text === "The sun is low. It will be cold soon.")).toBe(true);
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     expect(e.state.quests.light_a_fire.status).toBe("done");
   });
@@ -94,6 +96,7 @@ describe("quests", () => {
   it("light a fire never appears if a fire was lit earlier", () => {
     const e = fresh();
     e.applyEffects([{ give: { firewood: 3 } }]);
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     e.advance(12, "rest");
     e.dispatch({ type: "activity", id: "catch_fish" });

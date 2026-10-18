@@ -24,6 +24,8 @@ describe("a note when a task is done", () => {
     // the game waits for it, then goes on
     expect(e.dispatch({ type: "activity", id: "drink_river" })).toMatchObject({ ok: false, reason: "an event is open" });
     close(e);
+    expect(view(e).event?.title).toBe("Supplies running low");
+    close(e);
     expect(view(e).event).toBeNull();
     expect(e.dispatch({ type: "activity", id: "drink_river" }).ok).toBe(true);
   });
@@ -32,8 +34,10 @@ describe("a note when a task is done", () => {
     const e = startGame(reg, 2, "knife", { keepNotes: true });
     lookAround(e); lookAround(e); // dunes, rocks
     e.applyEffects([{ give: { firewood: 3 } }]);
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     e.state.time = 23 * 60; // late evening: eight hours of sleep reach past 06:00
+    e.applyEffects([{ build: "bed" }]);
     e.dispatch({ type: "activity", id: "sleep" });
     const v = view(e).event!;
     expect(v.title).toBe("Task done: survive the first night");

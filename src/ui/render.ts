@@ -166,7 +166,10 @@ export class UI {
   render() {
     const v = view(this.getEngine());
     this.renderTabs(v);
-    this.renderButtons(this.els.actions, v.actions);
+    this.renderButtons(this.els.actions, v.environmentActions);
+    this.renderButtons(this.els.buildActions, v.buildMenu);
+    this.renderButtons(this.els.craftActions, v.craftMenu);
+    this.renderCraftedItems(v);
     this.renderStatus(v);
     this.renderQuests(v);
     this.renderBuildings(v);
@@ -370,7 +373,7 @@ export class UI {
       el.setAttribute("aria-disabled", String(!bv.enabled || this.isBusy()));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
-    // look around, craft and build stand on their own line, above the place's buttons: they are there everywhere
+    // Give exploration (or a section menu) its own line above the other controls.
     const explore = container.querySelector<HTMLElement>('button.btn[data-id^="explore:"]');
     explore?.classList.add("explore");
     const first = [...container.querySelectorAll<HTMLElement>("button.btn")].filter((b) => b === explore || b.classList.contains("menu-btn")).at(-1);
@@ -476,12 +479,6 @@ export class UI {
         row.dataset.id = it.id;
         row.append(...this.itemKey(it.label, it.tags));
         if (it.count > 1) row.append(div(String(it.count), "val"));
-        if (it.actions.length) {
-          const acts = document.createElement("span");
-          acts.className = "acts";
-          acts.append(...this.itemButtons(it.label, it.actions));
-          row.append(acts);
-        }
         return row;
       }),
     );
@@ -493,39 +490,51 @@ export class UI {
     return tags.length ? [key, div(tags.join(" · "), "itags")] : [key];
   }
 
-  /** Small labelled buttons next to an item (cook, fill...), for the stores and the inventory. */
-  private itemButtons(itemLabel: string, actions: ButtonView[]): HTMLButtonElement[] {
-    return actions.map((a) => {
-      const b = document.createElement("button");
-      b.className = "iaction sbtn" + (a.enabled ? "" : " off");
-      b.dataset.action = a.id.split(":").at(-1)!;
-      b.textContent = a.label;
-      const label = `${a.label} ${itemLabel} (${a.tooltip.join(", ")})`;
-      b.title = a.reason ? `${label}: ${a.reason}` : label;
-      b.setAttribute("aria-label", b.title);
-      b.addEventListener("click", () => { if (a.enabled) this.send(a.command, b); });
-      return b;
+  /** Key rows and their controls so focus and progress survive refreshes. */
+  private renderControlRows(container: HTMLElement, rows: Array<{
+    id: string; label: string; hint?: string; tags?: string[]; word: string; actions: ButtonView[];
+  }>) {
+    const keep = new Set(rows.map((r) => r.id));
+    for (const el of [...container.children] as HTMLElement[]) if (!keep.has(el.dataset.id!)) el.remove();
+    rows.forEach((r, index) => {
+      let el = container.querySelector<HTMLElement>(`:scope > [data-id="${r.id}"]`);
+      if (!el) {
+        el = div("", "control-row");
+        el.dataset.id = r.id;
+        el.append(div("", "row control-heading"), div("", "buttons control-buttons"));
+      }
+      el.setAttribute("role", "group");
+      el.setAttribute("aria-label", r.label);
+      el.querySelector(".control-heading")!.replaceChildren(...this.itemKey(r.label, r.tags ?? []), div(r.word, "val"));
+      el.querySelector<HTMLElement>(".control-heading")!.title = r.hint ?? "";
+      this.renderButtons(el.querySelector<HTMLElement>(".control-buttons")!, r.actions);
+      if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
   }
 
-  /** Buildings here: name (×2), state (growing · 2d 4h, ripe…) and the cycle's button. */
+  /** Only buildings standing in the current location, with every control that uses them. */
   private renderBuildings(v: View) {
-    this.els.buildingsBox.hidden = v.buildings.length === 0;
-    this.els.buildings.replaceChildren(
-      ...v.buildings.map((b) => {
-        const row = div("", "row building");
-        row.dataset.id = b.id;
-        if (b.hint) row.title = b.hint;
-        row.append(div(b.label, "key"), div(b.word, "val"));
-        if (b.action) {
-          const acts = document.createElement("span");
-          acts.className = "acts";
-          acts.append(...this.itemButtons(b.label, [b.action]));
-          row.append(acts);
-        }
-        return row;
-      }),
-    );
+    this.els.buildingsEmpty.hidden = v.buildings.length > 0;
+    this.renderControlRows(this.els.buildings, v.buildings);
+  }
+
+  private renderCraftedItems(v: View) {
+    this.els.craftedItemsEmpty.hidden = v.craftedItems.length > 0;
+    for (const group of ["gear", "provisions"] as const) {
+      let section = this.els.craftedItems.querySelector<HTMLElement>(`[data-group="${group}"]`);
+      if (!section) {
+        section = document.createElement("section");
+        section.dataset.group = group;
+        const heading = document.createElement("h3");
+        heading.className = "item-group-title";
+        heading.textContent = group === "gear" ? "tools and equipment" : "food and drink";
+        section.append(heading, div("", "item-group-rows"));
+        this.els.craftedItems.append(section);
+      }
+      const items = v.craftedItems.filter((i) => i.group === group);
+      section.hidden = items.length === 0;
+      this.renderControlRows(section.querySelector<HTMLElement>(".item-group-rows")!, items.map((i) => ({ ...i, word: String(i.count) })));
+    }
   }
 
   private renderStores(v: View) {
@@ -535,20 +544,6 @@ export class UI {
         const row = div("", "row");
         row.dataset.id = s.id;
         row.append(...this.itemKey(s.label, s.tags), div(String(s.count), "val"));
-        // the item's buttons are grouped so a layout can place them (e.g. outside the box)
-        const acts = document.createElement("span");
-        acts.className = "acts";
-        if (s.use) {
-          const b = document.createElement("button");
-          b.className = "use sbtn";
-          b.textContent = s.use.verb;
-          b.title = s.use.tooltip.join(" · ");
-          b.disabled = this.isBusy();
-          b.addEventListener("click", () => this.send({ type: "consume", item: s.id }, b));
-          acts.append(b);
-        }
-        acts.append(...this.itemButtons(s.label, s.actions));
-        if (acts.childElementCount) row.append(acts);
         return row;
       }),
     );

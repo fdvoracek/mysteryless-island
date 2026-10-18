@@ -172,7 +172,7 @@
       "effort": "light",
       "icon": "water",
       "visibleWhen": { "discovered": "river" },
-      "effects": [{ "stat": { "thirst": -40 } }],
+      "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
       "tags": ["drink"],
       "log": [
         "You kneel at the river and drink. Cold and sweet.",

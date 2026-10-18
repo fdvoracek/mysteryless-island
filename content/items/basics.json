@@ -10,32 +10,13 @@
     "id": "raw_fish",
     "name": "raw fish",
     "category": "food",
-    "consume": {
-      "verb": "eat raw",
-      "hours": 0.25,
-      "stats": { "hunger": -12 },
-      "tags": ["eat"],
-      "log": [
-        "Cold, slippery, barely food.",
-        "Raw and cold. You chew and swallow.",
-        "Slippery and bland. Better than nothing."
-      ],
-      "outcomes": [
-        { "weight": 3 },
-        {
-          "weight": 1,
-          "text": ["Your stomach turns.", "Your stomach cramps.", "Something in it disagrees with you."],
-          "effects": [{ "stat": { "health": -6 } }]
-        }
-      ]
-    },
     "actions": [
       {
-        "id": "cook",
+        "id": "cook", "building": "campfire",
         "label": "cook",
         "hours": 0.25,
         "effort": "light",
-        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "visibleWhen": { "timer": "fire" },
         "effects": [{ "give": { "cooked_fish": 1 } }],
         "log": [
           "The fish hisses on a flat stone by the fire.",
@@ -53,7 +34,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -30, "health": 2 },
+      "stats": {"hunger": -30, "health": 2, "energy": 15},
       "tags": ["eat"],
       "log": [
         "Hot flesh, flaking from the bone.",
@@ -69,7 +50,7 @@
     "consume": {
       "verb": "eat raw",
       "hours": 0.25,
-      "stats": { "hunger": -6 },
+      "stats": {"hunger": -6, "energy": 3},
       "tags": ["eat"],
       "log": [
         "Salty and chewy. Barely a mouthful.",
@@ -79,11 +60,11 @@
     },
     "actions": [
       {
-        "id": "cook",
+        "id": "cook", "building": "campfire",
         "label": "cook",
         "hours": 0.25,
         "effort": "light",
-        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "visibleWhen": { "timer": "fire" },
         "effects": [{ "give": { "cooked_shells": 1 } }],
         "log": [
           "The shell pops open in the embers.",
@@ -101,7 +82,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -15 },
+      "stats": {"hunger": -15, "energy": 8},
       "tags": ["eat"],
       "log": [
         "Tender and hot. The smell of the sea.",
@@ -117,7 +98,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -5 },
+      "stats": {"hunger": -5, "energy": 2},
       "tags": ["eat"],
       "log": [
         "Sour, then sweet. Your mouth goes purple.",
@@ -190,7 +171,7 @@
     "consume": {
       "verb": "drink",
       "hours": 0.25,
-      "stats": { "thirst": -35 },
+      "stats": {"thirst": -35, "energy": 18},
       "tags": ["drink"],
       "log": [
         "You drink from the can. It tastes of tin, but it is water.",
@@ -208,7 +189,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -30 },
+      "stats": {"hunger": -30, "energy": 15},
       "tags": ["eat"],
       "log": [
         "Hard biscuit and salt meat, soaked with sea water. Still food.",
@@ -258,7 +239,7 @@
     "consume": {
       "verb": "eat raw",
       "hours": 0.25,
-      "stats": { "hunger": -6 },
+      "stats": {"hunger": -6, "energy": 3},
       "tags": ["eat"],
       "log": [
         "Hard, starchy kernels. You chew a long time.",
@@ -268,11 +249,11 @@
     },
     "actions": [
       {
-        "id": "cook",
+        "id": "cook", "building": "campfire",
         "label": "roast",
         "hours": 0.25,
         "effort": "light",
-        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "visibleWhen": { "timer": "fire" },
         "effects": [{ "give": { "roasted_corn": 1 } }],
         "log": [
           "You roast the ear in the embers until the kernels split.",
@@ -290,7 +271,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -16 },
+      "stats": {"hunger": -16, "energy": 8},
       "tags": ["eat"],
       "log": [
         "Hot, sweet and smoky.",
@@ -306,7 +287,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -22 },
+      "stats": {"hunger": -22, "energy": 11},
       "tags": ["eat"],
       "log": [
         "Hard and salty. You tear it with your teeth.",
@@ -319,28 +300,24 @@
     "id": "raw_meat",
     "name": "raw meat",
     "category": "food",
-    "consume": {
-      "verb": "eat raw",
-      "hours": 0.25,
-      "stats": { "hunger": -14 },
-      "tags": ["eat"],
-      "log": ["Raw and bloody. You force it down.", "You chew the raw meat, trying not to taste it."],
-      "outcomes": [
-        { "weight": 1 },
-        {
-          "weight": 1,
-          "text": ["Your stomach heaves.", "It does not stay down easily."],
-          "effects": [{ "stat": { "health": -8 } }]
-        }
-      ]
-    },
     "actions": [
       {
-        "id": "cook",
+        "id": "dry", "building": "drying_rack",
+        "label": "dry",
+        "hours": 0.25,
+        "effort": "light",
+        "uses": 2,
+        "visibleWhen": { "all": [{ "at": "beach" }, { "built": "drying_rack" }] },
+        "requires": { "all": [{ "tool": "sharp" }, { "building": "drying_rack", "is": "idle" }] },
+        "effects": [{ "flag": "drying_meat" }, { "startCycle": "drying_rack" }],
+        "log": "You cut two portions of meat into thin strips and hang them on the drying rack."
+      },
+      {
+        "id": "cook", "building": "campfire",
         "label": "cook",
         "hours": 0.5,
         "effort": "light",
-        "visibleWhen": { "all": [{ "timer": "fire" }, { "at": "beach" }] },
+        "visibleWhen": { "timer": "fire" },
         "effects": [{ "give": { "cooked_meat": 1 } }],
         "log": [
           "Meat on a stick over the fire, dripping into the flames.",
@@ -352,13 +329,25 @@
     ]
   },
   {
+    "id": "dried_meat",
+    "name": "dried meat",
+    "category": "food",
+    "consume": {
+      "verb": "eat",
+      "hours": 0.25,
+      "stats": {"hunger": -28, "energy": 14},
+      "tags": ["eat"],
+      "log": ["Tough strips of dried meat. You chew slowly.", "Smoky, chewy meat. It fills you."]
+    }
+  },
+  {
     "id": "cooked_meat",
     "name": "cooked meat",
     "category": "food",
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -35, "health": 3 },
+      "stats": {"hunger": -35, "health": 3, "energy": 18},
       "tags": ["eat"],
       "log": [
         "Hot meat, fat running down your chin.",
@@ -374,7 +363,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -7 },
+      "stats": {"hunger": -7, "energy": 4},
       "tags": ["eat"],
       "log": ["Soft, earthy, a little bitter.", "They taste of the forest floor.", "Cool and earthy."]
     }
@@ -386,7 +375,7 @@
     "consume": {
       "verb": "eat",
       "hours": 0.25,
-      "stats": { "hunger": -8, "health": 4 },
+      "stats": {"hunger": -8, "health": 4, "energy": 4},
       "tags": ["eat"],
       "log": [
         "Sweet enough to make your eyes water.",

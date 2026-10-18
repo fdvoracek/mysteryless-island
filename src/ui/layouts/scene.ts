@@ -20,7 +20,6 @@ export const scene: Layout = {
       <aside class="s-shelf">
         ${panel.status()}
         ${panel.tasks()}
-        ${panel.buildings()}
         ${panel.stores()}
         ${panel.inventory()}
       </aside>

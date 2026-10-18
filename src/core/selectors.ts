@@ -4,6 +4,7 @@ import { sentence } from "./text";
 import type { Command, Engine } from "./engine";
 import type { GameState } from "./state";
 import { Icon } from "../content/schema";
+import { timerValue } from "./timers";
 
 /** View models: everything the UI (or a simulator bot) needs, with no game logic left to do. */
 
@@ -16,7 +17,7 @@ export interface ButtonView {
   enabled: boolean;
   reason?: string;
   tooltip: string[];
-  /** the craft and build menus (on the first line with look around, everywhere) */
+  /** The craft and build menus, placed in their respective sections. */
   menu?: boolean;
 }
 
@@ -45,7 +46,13 @@ export interface View {
     unknown: Array<{ col: number; row: number }>;
     paths: Array<{ from: { col: number; row: number }; to: { col: number; row: number }; label?: string; unknown: boolean }>;
   };
+  /** All available activity/menu buttons, also used by simulations. */
   actions: ButtonView[];
+  environmentActions: ButtonView[];
+  buildMenu: ButtonView[];
+  craftMenu: ButtonView[];
+  /** Carried tools/clothing plus provisions; all portable controls live here. */
+  craftedItems: Array<{ id: string; label: string; count: number; tags: string[]; group: "gear" | "provisions"; actions: ButtonView[] }>;
   status: {
     day: number;
     clock: string;
@@ -71,6 +78,7 @@ export interface View {
     /** e.g. "growing · 2d 4h", "ripe", "2 fish in the trap" */
     word: string;
     action?: ButtonView;
+    actions: ButtonView[];
   }>;
   /** tools and clothing (categories from game.json) */
   /** `tags`: the item's tool tags, shown next to it (knife · sharp) */
@@ -120,7 +128,7 @@ export function view(engine: Engine): View {
       tooltip: ["no time", ex.open > 0 ? "something here is not explored yet" : "nothing new to explore"],
     });
   }
-  // the craft and build menus: next to look around, everywhere, once they have appeared (not at the
+  // The craft and build menus: available everywhere once they have appeared (not at the
   // start); * when something in them can be made now
   for (const menu of ["craft", "build"] as const) {
     if (!engine.menuShown(menu)) continue;
@@ -134,10 +142,10 @@ export function view(engine: Engine): View {
       tooltip: ["no time", ready ? `${ready} can be made now` : options.length ? "nothing can be made yet" : "nothing to make yet"],
     });
   }
-  for (const a of region.activities) {
+  for (const a of engine.activities()) {
     const c = engine.check(a);
     if (!c.visible) continue;
-    const tooltip = [`${fmtHours(engine.hoursFor(a.hours, [a.visibleWhen, a.requires]))} · ${a.effort}`];
+    const tooltip = [`${fmtHours(engine.activityHours(a))} · ${a.effort}`];
     for (const [k, n] of Object.entries(a.cost ?? {})) tooltip.push(`${reg.items.get(k)?.name ?? k}: ${n}`);
     actions.push({ id: a.id, command: { type: "activity", id: a.id }, label: a.name, enabled: c.enabled, reason: sentence(c.reason), tooltip });
   }
@@ -164,7 +172,7 @@ export function view(engine: Engine): View {
   });
   for (const t of reg.timers.values()) {
     if (t.showInStatus === false) continue;
-    const hours = (s.timers[t.id] ?? 0) / 60;
+    const hours = timerValue(reg, s, t.id) / 60;
     const word = t.states.find((x) => hours <= x.upToHours)?.word ?? t.states[t.states.length - 1].word;
     lines.push({ id: t.id, label: t.name, fill: null, word, trend: "", bad: false });
   }
@@ -226,7 +234,32 @@ export function view(engine: Engine): View {
         tooltip: [`${fmtHours(hours)} · ${step.def.effort}`, ...Object.entries(cost).map(([k, v]) => `${reg.items.get(k)?.name ?? k}: ${v}`)],
       };
     }
-    buildings.push({ id: b.id, label: n > 1 ? `${b.name} ×${n}` : b.name, hint: b.hint, count: n, word: buildingWord(engine, b.id), action });
+    buildings.push({ id: b.id, label: n > 1 ? `${b.name} ×${n}` : b.name, hint: b.hint, count: n, word: buildingWord(engine, b.id), action, actions: action ? [action] : [] });
+  }
+
+  // Presentation ownership is data-driven; commands and game rules remain unchanged.
+  const activityBuildings = new Map(engine.activities().map((a) => [a.id, a.building]));
+  const environmentActions = actions.filter((a) => a.command.type === "explore"
+    || (a.command.type === "activity" && !activityBuildings.get(a.id)));
+  for (const a of actions) {
+    const owner = a.command.type === "activity" ? activityBuildings.get(a.id) : undefined;
+    if (owner) buildings.find((b) => b.id === owner)?.actions.push(a);
+  }
+  const craftedItems: View["craftedItems"] = [];
+  for (const item of [...inventory, ...stores]) {
+    const portable: ButtonView[] = [];
+    for (const a of item.actions) {
+      const owner = reg.items.get(item.id)!.actions?.find((def) => def.id === (a.command.type === "itemAction" ? a.command.action : ""))?.building;
+      if (owner) buildings.find((b) => b.id === owner)?.actions.push({ ...a, label: `${a.label} ${item.label}` });
+      else portable.push(a);
+    }
+    const consume = reg.items.get(item.id)!.consume;
+    if (consume) portable.unshift({
+      id: `consume:${item.id}`, command: { type: "consume", item: item.id }, label: consume.verb,
+      enabled: true, tooltip: [fmtHours(consume.hours)],
+    });
+    const gear = invCats.has(reg.items.get(item.id)!.category);
+    if (gear || portable.length) craftedItems.push({ ...item, group: gear ? "gear" : "provisions", actions: portable });
   }
 
   const turns = groupTurns(s.log);
@@ -236,6 +269,10 @@ export function view(engine: Engine): View {
     tabs,
     map,
     actions,
+    environmentActions,
+    buildMenu: actions.filter((a) => a.id === "menu:build"),
+    craftMenu: actions.filter((a) => a.id === "menu:craft"),
+    craftedItems,
     status: { day: day(s.time), clock: clockText(s.time), phase: phaseAt(reg, s.time).id, lines },
     quests,
     buildings,
@@ -357,6 +394,11 @@ function goChoices(engine: Engine) {
 function buildingWord(engine: Engine, id: string): string {
   const { reg, state: s } = engine;
   const b = reg.buildings.get(id)!;
+  if (b.timer) {
+    const timer = reg.timers.get(b.timer)!;
+    const hours = timerValue(reg, s, b.timer) / 60;
+    return timer.states.find((band) => hours <= band.upToHours)?.word ?? timer.states[timer.states.length - 1].word;
+  }
   if (!b.cycle) return b.word ?? "built";
   const st = buildingState(reg, s, id, s.location);
   const w = b.cycle.words;
@@ -380,9 +422,10 @@ export function fmtLeft(minutes: number): string {
 
 /** What you have found to do at a place, as map icons: the activities shown there now (each kind once, in a fixed order). */
 function placeIcons(engine: Engine, regionId: string): Icon[] {
-  const ctx = engine.ctx();
-  const found = new Set(engine.reg.regions.get(regionId)!.activities
+  const ctx = { ...engine.ctx(), state: { ...engine.state, location: regionId } };
+  const found = new Set(engine.activities(regionId)
     .filter((a) => a.icon && evaluate(a.visibleWhen, ctx)).map((a) => a.icon!));
+  if (engine.reg.regions.get(regionId)?.shelterWhen && evaluate(engine.reg.regions.get(regionId)!.shelterWhen, ctx)) found.add("shelter");
   // and what you have built there
   for (const key of Object.keys(engine.state.buildings)) {
     const [id, region] = key.split("@");

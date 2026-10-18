@@ -1,6 +1,7 @@
 import type { Registry } from "../content/registry";
 import { seedRng, type RngState } from "./rng";
 import { chooseText } from "./text";
+import { timerKey } from "./timers";
 
 export const SAVE_VERSION = 1;
 
@@ -52,6 +53,8 @@ export interface GameState {
    * the same keys as `did` (activity, item, tag) plus discoveries, places walked to and tasks finished.
    */
   today: Record<string, number>;
+  /** Shortages already warned about; kept in saves so dismissing a warning is remembered. */
+  provisionWarnings?: string[];
   /** the variant shown last per text (keyed by its first variant), so it isn't shown twice in a row */
   lastText: Record<string, number>;
   events: EventsState;
@@ -85,7 +88,9 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     regions[id] = { unlocked: !r.unlockWhen || id === start.region, visited: id === start.region, explored: 0, discoveries: [] };
   }
   const timers: Record<string, number> = {};
-  for (const t of reg.timers.keys()) timers[t] = 0;
+  for (const t of reg.timers.values()) {
+    for (const region of t.local ? reg.regionOrder : [reg.game.start.region]) timers[timerKey(reg, t.id, region)] = 0;
+  }
   const time = (start.day - 1) * 1440 + Math.round(start.hour * 60);
   const state: GameState = {
     saveVersion: SAVE_VERSION,

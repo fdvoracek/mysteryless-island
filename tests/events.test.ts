@@ -57,6 +57,7 @@ describe("what you grabbed", () => {
   const atTheRocks = (choice: string) => {
     const e = startGame(reg, 3, choice, { matches: false });
     look(e); look(e); // the forest, the ring of rocks
+    e.applyEffects([{ build: "campfire" }]);
     e.applyEffects([{ give: { firewood: 3 } }]);
     return e;
   };
@@ -67,9 +68,10 @@ describe("what you grabbed", () => {
     expect(ids(e)).toContain("light_fire");
     expect(ids(e)).not.toContain("make_fire");
     const t0 = e.state.time;
+    e.applyEffects([{ build: "campfire" }]);
     e.dispatch({ type: "activity", id: "light_fire" });
     expect(e.state.time - t0).toBe(15);
-    expect(e.state.timers.fire).toBeGreaterThan(0);
+    expect(e.state.timers[`fire@${e.state.location}`]).toBeGreaterThan(0);
     expect(e.state.items.matches).toBe(9);
   });
 
@@ -84,7 +86,7 @@ describe("what you grabbed", () => {
       const t0 = e.state.time;
       e.dispatch({ type: "activity", id: "make_fire" });
       expect(e.state.time - t0).toBe(60);
-      if (e.state.timers.fire > 0) { results.add("lit"); expect(e.state.items.firewood ?? 0).toBe(0); }
+      if (e.state.timers[`fire@${e.state.location}`] > 0) { results.add("lit"); expect(e.state.items.firewood ?? 0).toBe(0); }
       else { results.add("failed"); expect(e.state.items.firewood).toBe(5); }
     }
     expect(results).toEqual(new Set(["lit", "failed"]));
@@ -92,6 +94,7 @@ describe("what you grabbed", () => {
   it("to light a fire you need something to make it with: matches, 2 stones, or 2 dry sticks", () => {
     const e = startGame(reg, 3, "knife", { matches: false });
     look(e); look(e); // the forest, the ring of rocks
+    e.applyEffects([{ build: "campfire" }]);
     const fire = () => view(e).actions.find((a) => a.label === "light fire")!;
     e.applyEffects([{ give: { firewood: 1 } }]);
     expect(fire()).toMatchObject({ id: "make_fire", enabled: false, reason: "Needs something to make a fire with" });
@@ -99,8 +102,8 @@ describe("what you grabbed", () => {
     expect(fire()).toMatchObject({ id: "make_fire", enabled: false, reason: "Needs 5 firewood" });
     e.applyEffects([{ give: { stone: 2 } }]); // two stones strike sparks: the stones stay
     expect(fire()).toMatchObject({ id: "strike_fire", enabled: true });
-    for (let i = 0; i < 6 && !e.state.timers.fire; i++) { e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; e.dispatch({ type: "activity", id: "strike_fire" }); }
-    expect(e.state.timers.fire).toBeGreaterThan(0);
+    for (let i = 0; i < 6 && !e.state.timers[`fire@${e.state.location}`]; i++) { e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 }; e.dispatch({ type: "activity", id: "strike_fire" }); }
+    expect(e.state.timers[`fire@${e.state.location}`]).toBeGreaterThan(0);
     expect(e.state.items.stone).toBe(2);
     expect(e.state.items.firewood ?? 0).toBe(0);
     // the items show what they are good for

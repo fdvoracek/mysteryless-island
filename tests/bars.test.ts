@@ -48,15 +48,16 @@ describe("ink bars", () => {
     expect(v.status.lines.map((l) => l.id)).not.toContain("fire");
   });
 
-  it("an empty health bar is death; other empty bars drain health instead", () => {
+  it("hunger and thirst do not damage health; cold still can", () => {
     const e = startGame(reg, 1);
     e.state.stats.hunger = 100;
     e.state.stats.health = 50;
     e.advance(1, "rest");
     expect(e.state.dead).toBe(false);
-    expect(e.state.stats.health).toBeLessThan(50);
+    expect(e.state.stats.health).toBe(50);
     expect(line(e, "hunger").fill).toBe(0);
 
+    e.state.warmth = reg.bandIds.indexOf("freezing");
     e.state.stats.health = 0.5;
     e.advance(1, "rest");
     expect(e.state.dead).toBe(true);

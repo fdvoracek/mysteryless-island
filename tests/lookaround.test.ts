@@ -46,7 +46,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(ev.choices).toEqual([{ id: "close", label: "back", enabled: true }]);
     expect(e.state.log.some((l) => l.text === ev.text)).toBe(true);
     choose(e, "close");
-    expect(view(e).actions.map((a) => a.id)).toContain("light_fire"); // the result: a new action
+    expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // natural shelter opens building a bed and campfire
   });
 
   it("an explored landmark is not offered again; new ones can appear later (the cliff past the rocks)", () => {
@@ -111,7 +111,8 @@ describe("look around: a pop-up with what you see and places to explore", () => 
   it("exploring can kill you; the pop-up closes with death", () => {
     const e = startGame(reg, 8);
     e.state.stats.health = 1;
-    e.state.stats.thirst = 100;
+    e.state.stats.hunger = 100;
+    e.state.warmth = reg.bandIds.indexOf("freezing");
     open(e);
     choose(e, "forest_edge");
     expect(e.state.dead).toBe(true);

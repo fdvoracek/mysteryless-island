@@ -22,7 +22,6 @@ export const stage: Layout = {
         </div>
         <div class="st-goods">
           ${panel.tasks()}
-          ${panel.buildings()}
           ${panel.stores()}
           ${panel.inventory()}
         </div>

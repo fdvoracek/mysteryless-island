@@ -127,14 +127,14 @@ flowchart LR
 
 ## 6. Survival model
 
-### 6.1 Stats **[decided: health is the only life bar; shown as ink bars]**
+### 6.1 Stats **[decided: energy drives daily work; health is the life bar]**
 
-All stats are numbers from 0 to 100 internally. The status panel shows each one as a thin **ink bar**, the same line as the button cooldown bars, where **fuller is always better** (hunger is drawn as *fullness*, thirst as *hydration*, warmth as *comfort*: freezing 20%, cold 60%, comfortable 100%). A bar at or below 20% turns red, which is also where hunger and thirst start to hurt. **Only an empty health bar ends the game**; the other stats at empty drain health. Hovering a row shows the word below and the trend. *(Prototype iterations: words → stars → ink bars, at your request; stars read as a review score.)*
+All stats are numbers from 0 to 100 internally. The status panel shows each one as a thin **ink bar**, the same line as the button cooldown bars, where **fuller is always better** (hunger is drawn as *fullness*, thirst as *hydration*, warmth as *comfort*: freezing 20%, cold 60%, comfortable 100%). A bar at or below 20% turns red, which warns that supplies or energy are low. **Only an empty health bar ends the game**; hunger and thirst change energy costs, and zero energy causes collapse. Hovering a row shows the word below and the trend. *(Prototype iterations: words → stars → ink bars, at your request; stars read as a review score.)*
 
 | Stat | Meaning | Words (low → high value) | Changes by |
 |---|---|---|---|
-| Health | Life. At 0 the player dies. | dying · badly hurt · hurt · bruised · healthy | Damage from critical stats and events; slow regeneration |
-| Energy | Ability to work | exhausted · weary · tired · rested | −per hour of work; + sleep, rest, food |
+| Health | Life. At 0 the player dies. | dying · badly hurt · hurt · bruised · healthy | Cold and other health hazards; slow regeneration |
+| Energy | Ability to work | exhausted · weary · tired · rested | −per hour of work; + sleep, food, and drinks |
 | Hunger | 0 = full, 100 = starving | fed · peckish · hungry · starving | + per hour; − eating |
 | Thirst | 0 = quenched, 100 = parched | quenched · dry · thirsty · parched | + per hour (more when hot); − drinking |
 | Comfort | Body temperature state | freezing · cold · comfortable | Moves toward the environment (§6.2) |
@@ -146,8 +146,8 @@ All stats are numbers from 0 to 100 internally. The status panel shows each one 
 | Effort levels | Every action is *heavy* (felling, hunting), *work* (gathering, exploring), *light* (crafting, eating) or *rest*. The rates below are for *work*; heavy and light scale up and down (TDD §6.11). |
 | Hunger | +3 / h working, +1.5 / h asleep |
 | Thirst | +5 / h working, +2 / h asleep |
-| Energy | −8 / h heavy, −5 / h work, −2 / h light, +4 / h rest; +11 / h sleeping by a fire, +12 / h in a shelter, +7 / h sleeping rough. (Prototype playtest: −8 / h for work left the player exhausted by mid-afternoon of day 1.) |
-| Health loss | −2 / h while *starving* or *parched*; −3 / h while *freezing*; −2 / h when working while *exhausted* |
+| Energy | −8 / h heavy, −5 / h work, −2 / h light. Costs ×1.5 when hungry or thirsty (41+); ×0.5 when both fed and hydrated (20 or below). Food and drinks restore energy. |
+| Health loss | −3 / h while *freezing*. Hunger, thirst, and exhaustion never damage health. |
 | Health regeneration | +1 / h when fed, quenched and comfortable; +3 / h while sleeping in a shelter under the same conditions |
 
 With these rates a player with no water goes from *quenched* to *parched* in about 20 hours. That's urgent but survivable.
@@ -182,9 +182,13 @@ Region bases **[proposal]:** beach 24, forest 20, lake 18, plains 25, caves 13 (
 
 ### 6.3 Food and water
 
-- Raw food is edible but gives less (raw fish restores less hunger than cooked fish). Some raw foods carry a sickness chance. Mushrooms are risky until the player learns which are safe (knowledge unlock).
+- Raw fish and meat must be cooked or dried. Other edible foods and drinking water are consumed automatically at 60 hunger/thirst; manual consumption remains available. Eating and drinking also restore energy.
 - Water sources: coconuts (early, limited), rain catcher (passive while raining), lake (unlimited; fever chance unless boiled in a clay pot), snow on the mountain.
 - Water is an item in the global stockpile ("fresh water" units). The player needs containers (coconut shells, clay jars, later barrels) to store it. **Containers act as the storage cap for water only** **[proposal]**. That keeps water a constant concern without carry logistics.
+
+### 6.3b Daily sleep [implemented]
+
+Voluntary sleep requires a bed built in the current area; the sleep button is hidden otherwise. Sleep always ends at 6am at the same place. A sheltered bed with a local fire burning at bedtime sets morning energy to 100% before midnight. Without fire, or from midnight onwards, a sheltered bed gives 80%. An exposed bed or no bed gives 50%. Discovered beach rocks count as natural shelter and allow a bed immediately; elsewhere, build a shelter first. Campfires are built separately (2 stones), then lit and fueled in their own area. Recovery uses conditions at bedtime, even if the fire expires overnight. After the first night, the “better sleep” task asks for a bed and lit fire in the same sheltered area. At midnight or zero energy the player collapses where they are and sleeps until 6am; unfinished work stops and reserved materials return. The morning journal announces the day and describes sleep quality. Production continues overnight.
 
 ### 6.4 Death and checkpoints **[decided: checkpoint / reload]**
 

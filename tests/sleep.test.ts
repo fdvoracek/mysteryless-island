@@ -6,9 +6,12 @@ import { loadRegistry, readContentFiles, startGame, lookAround, craft } from "./
 
 const reg = loadRegistry();
 const look = lookAround;
-const sleep = (e: Engine) => e.dispatch({ type: "activity", id: "sleep" });
+const sleep = (e: Engine) => {
+  e.applyEffects([{ build: "bed" }]);
+  return e.dispatch({ type: "activity", id: "sleep" });
+};
 /** the lines written by the last command, in reading order */
-const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.turn).map((l) => l.text).reverse();
+const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.log[0]?.turn).map((l) => l.text).reverse();
 
 const INTRO = ["The day comes back to you in pieces.", "Lying still, you go over the day."];
 const NOTHING = ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."];
@@ -36,6 +39,7 @@ function readyToSleep(seed: number, looks = 2): Engine {
   const e = startGame(reg, seed);
   for (let i = 0; i < looks; i++) look(e);
   e.applyEffects([{ give: { firewood: 3 } }]);
+  e.applyEffects([{ build: "campfire" }]);
   e.dispatch({ type: "activity", id: "light_fire" });
   return e;
 }
@@ -43,10 +47,10 @@ function readyToSleep(seed: number, looks = 2): Engine {
 describe("going to sleep", () => {
   it("says how tired you are, from your energy as you lie down", () => {
     const cases: Array<[number, string]> = [
-      [10, "You drop by the fire, too exhausted to feel the cold sand."],
-      [30, "You curl up by the fire. Every muscle aches."],
-      [60, "You curl up by the fire, tired in a slow, heavy way."],
-      [95, "You lie by the fire, not really tired. Sleep is slow to come."],
+      [10, "You lie down, too exhausted to think."],
+      [30, "You lie down. Every muscle aches."],
+      [60, "You lie down, tired in a slow, heavy way."],
+      [95, "You lie down, not really tired. Sleep is slow to come."],
     ];
     for (const [energy, line] of cases) {
       const e = readyToSleep(1);
@@ -54,7 +58,7 @@ describe("going to sleep", () => {
       expect(sleep(e).ok).toBe(true);
       const lines = lastTurn(e);
       expect(lines[0], `energy ${energy}`).toBe(line);
-      expect(e.state.stats.energy).toBeGreaterThan(energy); // the night restored it; the line was about before
+      expect(e.state.stats.energy).toBe(100); // the bed sets morning energy
     }
   });
 
@@ -80,11 +84,12 @@ describe("going to sleep", () => {
       e.applyEffects([{ give: { firewood: 15 } }]); // 10 for the spear, 5 for a fire by friction
       if (choice !== "knife") { e.applyEffects([{ give: { stone: 2 } }]); craft(e, "craft_rock_knife"); } // no knife from the ship: a rock knife first
       craft(e, "craft_spear");
-      for (let i = 0; i < 6 && !e.state.timers.fire; i++) { // friction can fail: keep trying
+      e.applyEffects([{ build: "campfire" }]);
+      for (let i = 0; i < 6 && !e.state.timers[`fire@${e.state.location}`]; i++) { // friction can fail: keep trying
         e.state.stats = { health: 100, energy: 50, hunger: 0, thirst: 0 };
         e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
       }
-      expect(e.state.timers.fire).toBeGreaterThan(0);
+      expect(e.state.timers[`fire@${e.state.location}`]).toBeGreaterThan(0);
       sleep(e);
       return lastTurn(e).filter((l) => MEMORIES.includes(l));
     };
@@ -99,7 +104,8 @@ describe("going to sleep", () => {
       const e = startGame(reg, 12, "rations", { matches });
       look(e); look(e); // the dunes, the ring of rocks
       e.applyEffects([{ give: { firewood: 5 } }]);
-      for (let i = 0; i < 6 && !e.state.timers.fire; i++) e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
+      e.applyEffects([{ build: "campfire" }]);
+      for (let i = 0; i < 6 && !e.state.timers[`fire@${e.state.location}`]; i++) e.dispatch({ type: "activity", id: matches ? "light_fire" : "make_fire" });
       e.state.stats.energy = 50;
       sleep(e);
       return lastTurn(e).filter((l) => MEMORIES.includes(l));
@@ -112,7 +118,7 @@ describe("going to sleep", () => {
   it("remembers only today: the next night starts with an empty day", () => {
     const e = readyToSleep(3, 4);
     sleep(e);
-    e.state.timers.fire = 6 * 60; // keep the fire going without lighting it (that would be a memory)
+    e.state.timers[`fire@${e.state.location}`] = 6 * 60; // keep the fire going without lighting it (that would be a memory)
     expect(sleep(e).ok).toBe(true); // nothing done in between
     const lines = lastTurn(e);
     expect(lines.filter((l) => MEMORIES.includes(l))).toEqual([]);
@@ -132,7 +138,7 @@ describe("going to sleep", () => {
     e.dispatch({ type: "activity", id: "drink_stream" });
     e.dispatch({ type: "travel", region: "beach" });
     e.applyEffects([{ give: { firewood: 3 } }]);
-    if (!e.state.timers.fire) e.dispatch({ type: "activity", id: "light_fire" });
+    if (!e.state.timers[`fire@${e.state.location}`]) e.dispatch({ type: "activity", id: "light_fire" });
     else e.dispatch({ type: "activity", id: "stoke_fire" });
     sleep(e);
     const remembered = lastTurn(e).filter((l) => MEMORIES.includes(l));
@@ -172,14 +178,14 @@ describe("waking up", () => {
     const e = readyToSleep(6, 2);
     e.state.stats.thirst = 70; // thirst damage would log "Your lips crack…" every night
     e.state.stats.hunger = 0; // only thirst, so the body line is about thirst
-    e.state.timers.fire = 60; // the fire dies during the night
+    e.state.timers[`fire@${e.state.location}`] = 60; // the fire dies during the night
     sleep(e);
     const m = morning(e);
     for (const quiet of ["Your lips crack. The world tilts.", "The fire is dying.", "The fire goes out. Only embers now."]) {
       expect(lastTurn(e)).not.toContain(quiet);
     }
     // instead: when you wake, how your body is, and the fire
-    expect(m[0]).toMatch(/^Morning comes|^You wake in the dark/);
+    expect(m[0]).toBe("New day 2 is starting.");
     expect(m).toContain("Your mouth is dry, your tongue thick.");
     expect(m.some((l) => l === "The fire is long out. Only cold ash." || l === "The fire died in the night.")).toBe(true);
   });
@@ -187,18 +193,20 @@ describe("waking up", () => {
   it("names the worst thing first, one line about the body", () => {
     const body = (setup: (e: Engine) => void) => {
       const e = readyToSleep(7, 2);
+      e.state.time = 22 * 60;
       setup(e);
       sleep(e);
-      return morning(e)[1];
+      return morning(e)[2];
     };
     expect(body((e) => { e.state.stats.thirst = 90; e.state.stats.hunger = 90; })).toBe("Hunger and thirst, both at once.");
     expect(body((e) => { e.state.stats.hunger = 85; e.state.stats.thirst = 0; })).toBe("Your stomach is a hollow ache.");
-    expect(body((e) => { e.state.stats.hunger = 0; e.state.stats.thirst = 0; })).toMatch(/^You feel rested\.|^You are still tired\./);
+    expect(body((e) => { e.state.stats.hunger = 0; e.state.stats.thirst = 0; })).toMatch(/^You feel rested\./);
   });
 
   it("says when the fire is still burning", () => {
     const e = readyToSleep(8, 2);
-    e.state.timers.fire = 11 * 60; // more than the night
+    e.state.time = 22 * 60;
+    e.state.timers[`fire@${e.state.location}`] = 11 * 60; // more than the night
     sleep(e);
     expect(morning(e)).toContain("The fire still smoulders in the ring of rocks.");
   });
@@ -206,7 +214,10 @@ describe("waking up", () => {
   it("dying in your sleep is never quiet", () => {
     const e = readyToSleep(9, 2);
     e.state.stats.health = 2;
-    e.state.stats.thirst = 100;
+    e.state.time = 22 * 60;
+    e.state.warmth = reg.bandIds.indexOf("freezing");
+    e.state.stats.hunger = 100;
+    e.state.timers[`fire@${e.state.location}`] = 0;
     sleep(e);
     expect(e.state.dead).toBe(true);
     expect(lastTurn(e)).toContain([reg.game.deathLog].flat()[0]);

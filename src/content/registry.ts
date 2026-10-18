@@ -188,11 +188,15 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else if ("explored" in c) ref("region", c.explored, where);
     else if ("tool" in c) { if (!(c.tool in game.tools)) problems.push(`${where}: unknown tool tag "${c.tool}"`); }
     else if ("built" in c) ref("building", c.built, where);
+    else if ("sheltered" in c) { /* local shelter is defined by region content and game.sleep.shelter */ }
     else if ("building" in c) {
       ref("building", c.building, where);
       if (buildings.has(c.building) && !buildings.get(c.building)!.cycle) problems.push(`${where}: building "${c.building}" has no cycle, so it is never ${c.is}`);
     }
   };
+  const usesShelter = (c: Condition): boolean => "sheltered" in c
+    || ("all" in c && c.all.some(usesShelter)) || ("any" in c && c.any.some(usesShelter))
+    || ("not" in c && usesShelter(c.not));
   const checkOutcomes = (os: Outcome[] | undefined, where: string) =>
     os?.forEach((o, i) => {
       if (o.when) checkCond(o.when, `${where}.outcomes[${i}].when`);
@@ -265,6 +269,10 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
   for (const r of regions.values()) {
+    if (r.shelterWhen) {
+      checkCond(r.shelterWhen, `region ${r.id}.shelterWhen`);
+      if (usesShelter(r.shelterWhen)) problems.push(`region ${r.id}.shelterWhen cannot depend on sheltered`);
+    }
     if (r.unlockWhen) checkCond(r.unlockWhen, `region ${r.id}.unlockWhen`);
     if (r.hintWhen) checkCond(r.hintWhen, `region ${r.id}.hintWhen`);
     r.arrive?.forEach((a, i) => { if (a.when) checkCond(a.when, `region ${r.id}.arrive[${i}].when`); });
@@ -277,6 +285,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
     for (const a of r.activities) {
       const w = `activity ${a.id}`;
+      if (a.building) ref("building", a.building, `${w}.building`);
       if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
       if (a.requires) checkCond(a.requires, `${w}.requires`);
       Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
@@ -289,6 +298,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
   for (const b of buildings.values()) {
+    if (b.timer) ref("timer", b.timer, `building ${b.id}.timer`);
     const w = `building ${b.id}`;
     b.places.forEach((p, i) => { ref("region", p.region, `${w}.places[${i}]`); if (p.when) checkCond(p.when, `${w}.places[${i}].when`); });
     if (b.availableWhen) checkCond(b.availableWhen, `${w}.availableWhen`);
@@ -308,6 +318,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     for (const t of it.tool?.tags ?? []) if (!(t in game.tools)) problems.push(`item ${it.id}.tool: unknown tool tag "${t}" (add it to game.json → tools)`);
     for (const a of it.actions ?? []) {
       const w = `item ${it.id}.actions.${a.id}`;
+      if (a.building) ref("building", a.building, `${w}.building`);
       if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
       if (a.requires) checkCond(a.requires, `${w}.requires`);
       Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
@@ -318,12 +329,20 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     Object.keys(it.consume.stats ?? {}).forEach((k) => ref("stat", k, `item ${it.id}.consume.stats`));
     checkOutcomes(it.consume.outcomes, `item ${it.id}.consume`);
   }
-  for (const t of timers.values()) if (t.region) ref("region", t.region, `timer ${t.id}`);
+  for (const t of timers.values()) {
+    if (t.region) ref("region", t.region, `timer ${t.id}`);
+    if (t.building) ref("building", t.building, `timer ${t.id}.building`);
+  }
   ref("region", game.start.region, "game.start.region");
   Object.keys(game.start.stats).forEach((k) => ref("stat", k, "game.start.stats"));
   Object.keys(game.start.items).forEach((k) => ref("item", k, "game.start.items"));
   ref("band", climate.startBand, "climate.startBand");
   stats.stats.forEach((s) => { if (!(s.id in game.start.stats)) problems.push(`game.start.stats: missing start value for "${s.id}"`); });
+  checkCond(game.provisions.preparation.when, "game.provisions.preparation.when");
+  ref("building", game.sleep.bed, "game.sleep.bed");
+  ref("building", game.sleep.shelter, "game.sleep.shelter");
+  ref("timer", game.sleep.fire, "game.sleep.fire");
+  if (game.sleep.passOutHour >= game.sleep.wakeHour) problems.push("game.sleep.passOutHour must precede wakeHour");
   stats.multipliers.forEach((m, i) => { checkCond(m.when, `stats.multipliers[${i}]`); ref("stat", m.stat, `stats.multipliers[${i}]`); });
   stats.damage.forEach((d, i) => checkCond(d.when, `stats.damage[${i}]`));
   stats.regen.forEach((d, i) => checkCond(d.when, `stats.regen[${i}]`));
