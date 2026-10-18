@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { indexTextKeys } from "./text-keys";
 import {
   Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
   type Activity, type BuildingStep, type Timer,
@@ -6,6 +7,7 @@ import {
 
 /** Frozen, indexed content. Systems read content only through this object. */
 export interface Registry {
+  textKeys: Map<object, string>;
   game: Game;
   stats: StatsFile;
   climate: Climate;
@@ -376,8 +378,14 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.id.localeCompare(b.id))
     .map((r) => r.id);
 
+  let textKeys: Map<object, string>;
+  try {
+    textKeys = indexTextKeys({ game, stats, climate, items: [...items.values()], regions: [...regions.values()],
+      recipes: [...recipes.values()], buildings: [...buildings.values()], quests: [...quests.values()], events: [...events.values()] });
+  } catch (error) { throw new ContentError([String(error)]); }
+
   return Object.freeze({
-    game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
+    textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
   });
 }
 

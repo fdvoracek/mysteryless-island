@@ -6,7 +6,7 @@ import { timerKey } from "./timers";
 import type { GameState } from "./state-schema";
 export type { GameState, LogEntry, RegionState, QuestState, EventsState } from "./state-schema";
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export function createInitialState(reg: Registry, seed: number): GameState {
   const { start } = reg.game;
@@ -24,6 +24,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
     saveVersion: SAVE_VERSION,
     seed,
     rng: seedRng(seed),
+    narrativeRng: seedRng(seed ^ 0x4e415252),
     time,
     location: start.region,
     stats: { ...start.stats },
@@ -47,7 +48,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
   };
   // with a "start" event, the opening line is written when that event ends (you reach the beach)
   const startEvent = [...reg.events.values()].some((e) => e.trigger === "start");
-  if (!startEvent) state.log.push({ at: time, text: chooseText(start.log, state), turn: 0 });
+  if (!startEvent) state.log.push({ at: time, text: chooseText(start.log, state, undefined, typeof start.log === "object" ? reg.textKeys.get(start.log) : undefined), turn: 0 });
   return state;
 }
 

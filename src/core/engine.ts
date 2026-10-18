@@ -1,5 +1,5 @@
 import type { Registry } from "../content/registry";
-import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Yield } from "../content/schema";
+import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Text, Yield } from "../content/schema";
 import { checkRequirements, itemActionCost, multiplyCost, workHours } from "./action-rules";
 import { phaseAt } from "./clock";
 import { batchesReady, buildingKey, buildingState, evaluate, type Ctx } from "./conditions";
@@ -86,8 +86,8 @@ export class Engine {
   }
 
   /** One variant of a content text (see chooseText); `{place}` etc. are filled from `vars`. */
-  say(t: string | readonly string[] | undefined, vars?: Record<string, string>): string | undefined {
-    return t === undefined ? undefined : chooseText(t, this.state, vars);
+  say(t: Text | undefined, vars?: Record<string, string>): string | undefined {
+    return t === undefined ? undefined : chooseText(t, this.state, vars, typeof t === "object" ? this.reg.textKeys.get(t) : undefined);
   }
 
   /** Log several lines in reading order (the view groups them into one paragraph per action). */
@@ -1027,8 +1027,8 @@ export class Engine {
     const ctx = this.ctx();
     const o = weighted(this.state.rng, os.filter((x) => evaluate(x.when, ctx)));
     if (!o) return;
-    this.log(this.say(o.text));
     this.applyEffects(o.effects);
+    this.log(this.say(o.text));
   }
 
   applyEffects(es?: Effect[]) {

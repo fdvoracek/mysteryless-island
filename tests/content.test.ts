@@ -11,7 +11,7 @@ describe("content", () => {
   it("writes every sentence with a capital letter (story, hints, reasons)", () => {
     // fields that hold sentences; labels (names, button labels, verbs, task titles) stay lowercase
     const SENTENCES = new Set(["log", "text", "description", "hint", "requiresText", "deathLog",
-      "doneLog", "startLog", "nothingLog", "warnLog", "expireLog", "intro", "otherwise"]);
+      "doneLog", "startLog", "nothingLog", "warnLog", "expireLog", "intro", "otherwise", "variants"]);
     const bad: string[] = [];
     const walk = (o: unknown, path: string, key?: string) => {
       if (Array.isArray(o)) o.forEach((v, i) => walk(v, `${path}[${i}]`, key));

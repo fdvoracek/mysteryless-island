@@ -11,7 +11,11 @@ export const Id = z.string().regex(/^[a-z][a-z0-9_]*$/, "ids are lowercase snake
  * Every text shown in the journal: one passage, or a list of variants of it. One variant is
  * shown each time, never the same one twice in a row (see chooseText in src/core/text.ts).
  */
-export const Text = z.union([z.string(), z.array(z.string()).min(1)]);
+export const Text = z.union([
+  z.string(), z.array(z.string()).min(1),
+  z.object({ id: Id, variants: z.array(z.string()).min(1) }).strict(),
+]);
+export type Text = z.infer<typeof Text>;
 export const Amounts = z.record(Id, z.number().int().positive());
 export const Effort = z.enum(["heavy", "work", "light", "rest", "sleep"]);
 export type Effort = z.infer<typeof Effort>;
@@ -92,7 +96,7 @@ export type Effect =
   | { timer: string; addHours: number }
   | { flag: string }
   | { unflag: string }
-  | { log: string | string[] }
+  | { log: Text }
   | { roll: Outcome[] }
   | { startQuest: string }
   /** open a place: its tab appears, as if its unlockWhen had come true */
@@ -102,7 +106,7 @@ export type Effect =
   /** start a building's cycle without its start step (e.g. the field is sown as it is dug) */
   | { startCycle: string };
 
-export type Outcome = { weight: number; when?: Condition; text?: string | string[]; effects?: Effect[] };
+export type Outcome = { weight: number; when?: Condition; text?: Text; effects?: Effect[] };
 
 export const Effect: z.ZodType<Effect> = z.lazy(() =>
   z.union([

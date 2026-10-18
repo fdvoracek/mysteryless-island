@@ -25,6 +25,7 @@ export const GameStateSchema = z.object({
   saveVersion: count,
   seed: number.int(),
   rng: RngSchema,
+  narrativeRng: RngSchema,
   time: count,
   location: z.string(),
   stats: z.record(number.min(0).max(100)),

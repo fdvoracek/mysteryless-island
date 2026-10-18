@@ -1,15 +1,25 @@
 import type { Registry } from "../content/registry";
+import { seedRng } from "../core/rng";
 import { GameStateSchema } from "../core/state-schema";
 import { SAVE_VERSION, type GameState } from "../core/state";
 import { initializeTimers, timerKey } from "../core/timers";
 
 /** Validate once at the loading boundary, then reconcile references with installed content. */
 export function restoreState(input: unknown, reg: Registry): GameState | null {
+  // Adding a narrative stream preserves the saved gameplay stream exactly.
+  if (input && typeof input === "object" && "seed" in input && typeof input.seed === "number"
+    && !("narrativeRng" in input)) input = { ...input, narrativeRng: seedRng(input.seed ^ 0x4e415252) };
   const parsed = GameStateSchema.safeParse(input);
   if (!parsed.success) return null;
   const s = parsed.data;
   if (s.saveVersion < 1 || s.saveVersion > SAVE_VERSION) return null;
   // Version 2 formalizes the previously scattered version-1 defaults and reference repairs.
+  if (s.saveVersion < 3) {
+    for (const [text, key] of reg.textKeys) {
+      if (Array.isArray(text) && s.lastText[text[0]] !== undefined) s.lastText[key] = s.lastText[text[0]];
+    }
+    for (const key of Object.keys(s.lastText)) if (![...reg.textKeys.values()].includes(key)) delete s.lastText[key];
+  }
   s.saveVersion = SAVE_VERSION;
   if (!reg.regions.has(s.location)) s.location = reg.game.start.region;
   for (const id of Object.keys(s.items)) {

@@ -880,3 +880,18 @@ Version 1 saves migrate to version 2; missing areas relocate to the starting are
 pop-ups are dismissed. Unsupported or malformed saves remain on disk and show an explicit
 new-game choice. Major prototype changes may require an announced reset; ordinary content
 updates should preserve compatible progress.
+
+### Outcome narration and stable text identity (implemented)
+
+State version 3 has independent gameplay and narrative random streams. Weighted outcomes are
+selected and their effects applied before choosing their narrative. Changing wording, adding
+variants, or using `?variants=first` cannot change rewards or event rolls. Old gameplay RNG
+state is preserved during migration.
+
+Existing inline strings/variant arrays remain supported. The registry indexes arrays by entity
+ID and field path (not English wording or file order). Text can also use an explicit stable ID:
+`{ "id": "hunt_success", "variants": ["You caught a rabbit.", "A rabbit hangs from your belt."] }`.
+Explicit text IDs must be unique and survive moving text between content entities. These IDs
+provide the join keys for future translation tables or CSV import; no editor or translation UI
+is required by the engine. Outcome text belongs to its outcome, rather than a generic random
+pool that might describe a different result.

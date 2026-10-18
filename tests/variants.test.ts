@@ -13,7 +13,7 @@ describe("text variants", () => {
   beforeEach(() => setVariantMode("random"));
 
   it("never shows the same variant twice in a row, and shows all of them", () => {
-    const s = { rng: seedRng(1), lastText: {} as Record<string, number> };
+    const s = { narrativeRng: seedRng(1), lastText: {} as Record<string, number> };
     const list = ["A.", "B.", "C."];
     const seen: string[] = [];
     for (let i = 0; i < 300; i++) seen.push(chooseText(list, s));
@@ -22,7 +22,7 @@ describe("text variants", () => {
   });
 
   it("a single text is always itself, and {place} is filled in", () => {
-    const s = { rng: seedRng(2), lastText: {} };
+    const s = { narrativeRng: seedRng(2), lastText: {} };
     expect(chooseText("Only one.", s)).toBe("Only one.");
     expect(chooseText(["You walk to {place}.", "You set off for {place}."], s, { place: "the forest" })).toMatch(/the forest\.$/);
   });
@@ -107,5 +107,47 @@ describe("text variants in the content", () => {
     };
     for (const [file, data] of Object.entries(readContentFiles())) walk(data, file);
     expect(bad).toEqual([]);
+  });
+});
+
+describe("independent outcome narration", () => {
+  it("wording changes and variant mode never change gameplay rolls", () => {
+    const play = (variants: boolean) => {
+      const r = loadRegistry();
+      const a = r.activities.get("gather_wood")!.activity;
+      a.log = variants ? ["You gather wood.", "You search the forest.", "You look for branches."] : "You gather wood.";
+      a.outcomes = [
+        { weight: 1, effects: [{ give: { stones: 1 } }], text: variants ? ["A stone lies nearby.", "You find a stone."] : "You find a stone." },
+        { weight: 1, text: "There is nothing else here." },
+      ];
+      setVariantMode(variants ? "random" : "first");
+      const e = startGame(r, 51);
+      e.state.location = "forest";
+      for (let i = 0; i < 20; i++) {
+        e.state.time = 8 * 60;
+        e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 };
+        e.dispatch({ type: "activity", id: "gather_wood" });
+      }
+      return { items: e.state.items, rng: e.state.rng, counters: e.state.counters };
+    };
+    expect(play(true)).toEqual(play(false));
+  });
+
+  it("remembers explicit text identity when the English wording is edited", () => {
+    setVariantMode("random");
+    const s = { narrativeRng: seedRng(8), lastText: {} as Record<string, number> };
+    chooseText({ id: "hunt_success", variants: ["First.", "Second."] }, s);
+    const last = s.lastText["text:hunt_success"];
+    chooseText({ id: "hunt_success", variants: ["Edited first.", "Edited second."] }, s);
+    expect(s.lastText["text:hunt_success"]).toBe(1 - last);
+  });
+
+  it("preserves gameplay RNG when migrating a save without a narrative stream", () => {
+    const old = structuredClone(startGame(reg, 8).state) as Partial<GameState>;
+    old.saveVersion = 2;
+    delete old.narrativeRng;
+    const loaded = restoreState(old, reg)!;
+    expect(loaded.rng).toEqual(old.rng);
+    expect(loaded.narrativeRng).toEqual(seedRng(8 ^ 0x4e415252));
   });
 });

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { SAVE_VERSION } from "../src/core/state";
 import { Engine } from "../src/core/engine";
 import { hasSavedGame, loadGame, readSave, saveGame, writeSave } from "../src/persistence/save";
 import { loadRegistry, lookAround, startGame } from "./helpers";
@@ -105,7 +106,7 @@ describe("save migration boundary", () => {
     old.events.active = { id: [...reg.events.keys()][0], scene: "removed_scene", text: "Old." };
     localStorage.setItem("textisland.save", JSON.stringify({ saveVersion: 1, current: old }));
     const loaded = readSave(reg)!;
-    expect(loaded.saveVersion).toBe(2);
+    expect(loaded.saveVersion).toBe(SAVE_VERSION);
     expect(loaded.today).toEqual({});
     expect(loaded.buildings).toEqual({});
     expect(loaded.events.active).toBeNull();
