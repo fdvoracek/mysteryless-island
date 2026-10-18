@@ -78,7 +78,7 @@ describe("save migration boundary", () => {
     e.state.location = "removed_area";
     e.state.items.firewood = 12;
     e.state.items.removed_item = 3;
-    e.state.events.active = { id: "removed_event", scene: "start", text: "An old scene." };
+    e.state.events.active = { kind: "event", event: "removed_event", scene: "start", text: "An old scene." };
     e.state.events.queue = ["removed_event"];
     e.state.regions.beach.discoveries.push("removed_discovery");
     writeSave(e.state);
@@ -103,7 +103,7 @@ describe("save migration boundary", () => {
   it("upgrades version 1 defaults and drops a missing scene from a surviving event", () => {
     const e = startGame(reg, 7);
     const old = { ...e.state, saveVersion: 1, today: undefined, lastText: undefined, buildings: undefined };
-    old.events.active = { id: [...reg.events.keys()][0], scene: "removed_scene", text: "Old." };
+    old.events.active = { kind: "event", event: [...reg.events.keys()][0], scene: "removed_scene", text: "Old." };
     localStorage.setItem("textisland.save", JSON.stringify({ saveVersion: 1, current: old }));
     const loaded = readSave(reg)!;
     expect(loaded.saveVersion).toBe(SAVE_VERSION);
@@ -111,4 +111,18 @@ describe("save migration boundary", () => {
     expect(loaded.buildings).toEqual({});
     expect(loaded.events.active).toBeNull();
   });
+});
+
+it.each([
+  [{ id: "menu:craft", scene: "menu", text: "Make something." }, { kind: "menu", menu: "craft" }],
+  [{ id: "explore:beach", scene: "found:forest_edge", text: "Trees." }, { kind: "exploration", region: "beach", landmark: "forest_edge" }],
+  [{ id: "note", scene: "note", title: "Finished.", text: "Done." }, { kind: "note", title: "Finished." }],
+])("migrates a legacy popup without replaying its effects", (active, expected) => {
+  const e = startGame(reg, 7);
+  const old = { ...e.state, saveVersion: 3, events: { ...e.state.events, active } };
+  localStorage.setItem("textisland.save", JSON.stringify({ saveVersion: 3, current: old }));
+  const loaded = readSave(reg)!;
+  expect(loaded.events.active).toMatchObject(expected);
+  expect(loaded.items).toEqual(e.state.items);
+  expect(loaded.rng).toEqual(e.state.rng);
 });

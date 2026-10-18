@@ -220,7 +220,7 @@ export class UI {
     for (const c of ev.choices) {
       const b = this.els.eventChoices.querySelector<HTMLElement>(`[data-choice="${c.id}"]`);
       if (!b) continue;
-      const disabled = !c.enabled || (this.isBusy() && !!c.time);
+      const disabled = !c.enabled || (this.isBusy() && !!c.hours);
       b.classList.toggle("off", disabled);
       // the craft and build menus: what it needs (and why not, when it can't be made yet)
       b.title = [c.tooltip, c.reason].filter(Boolean).join(": ");
@@ -588,7 +588,8 @@ export class UI {
     if (this.restoring) return;
     // Notes and other zero-time choices remain usable during a bar; timed choices wait.
     const before = view(this.getEngine());
-    const timedChoice = cmd.type === "choose" && !!before.event?.choices.find((c) => c.id === cmd.choice)?.time;
+    const choice = cmd.type === "choose" ? before.event?.choices.find((c) => c.id === cmd.choice) : undefined;
+    const timedChoice = !!choice?.hours;
     if (this.isBusy() && (cmd.type !== "choose" || timedChoice)) return;
     if (cmd.type !== "choose") this.pulse.clear();
     const res = this.onCommand(cmd);
@@ -609,12 +610,9 @@ export class UI {
     this.render();
     // Menu and landmark choices replace their pop-up; animate the persistent main button.
     if (cmd.type === "choose" && ms > 0) {
-      const selector = cmd.choice.startsWith("go:")
-        ? `#tabs .tab[data-id="${cmd.choice.slice(3)}"]`
-        : before.event?.id.startsWith("menu:")
-          ? `#actions .btn[data-id="${before.event.id}"]`
-          : before.event?.id.startsWith("explore:")
-            ? `#actions .btn[data-id="${before.event.id}"]` : "";
+      const selector = choice?.travelTo
+        ? `#tabs .tab[data-id="${choice.travelTo}"]`
+        : before.event?.progressId ? `#actions .btn[data-id="${before.event.progressId}"]` : "";
       if (selector) source = this.root.querySelector<HTMLElement>(selector) ?? source;
     }
     source.classList.add("running");

@@ -31,7 +31,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     e.dispatch({ type: "explore" });
     expect(view(e).event!.text).toContain("The cliff above them is steep. With a rope, it could be climbed.");
     // too steep without a rope
-    expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m", enabled: false, reason: "Too steep to climb without a rope" });
+    expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m", hours: 0.5, enabled: false, reason: "Too steep to climb without a rope" });
     expect(choose(e, "cliff_top").ok).toBe(false);
     expect(view(e).quests.find((q) => q.id === "climb_cliff")).toMatchObject({ title: "climb the cliff", needs: [[{ label: "rope", have: false }]] });
     e.applyEffects([{ give: { cordage: 1 } }]);
@@ -40,7 +40,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     const found = view(e).event!;
     expect(found.text).toMatch(/Meadows, an hour's walk away\./);
     expect(found.choices).toEqual([
-      { id: "go:meadows", label: "go to the meadows", enabled: true, time: "1h" },
+      { id: "go:meadows", travelTo: "meadows", label: "go to the meadows", enabled: true, time: "1h", hours: 1 },
       { id: "close", label: "back", enabled: true },
     ]);
     choose(e, "close");

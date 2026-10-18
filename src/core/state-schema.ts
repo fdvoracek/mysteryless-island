@@ -12,8 +12,16 @@ export const QuestStateSchema = z.object({
   status: z.enum(["active", "done"]), startedAt: count, doneAt: count.optional(),
 });
 export const NoteSchema = z.object({ title: z.string(), text: z.string(), go: strings.optional() });
+const PopupBase = { text: z.string(), go: strings.optional() };
+export const PopupSchema = z.discriminatedUnion("kind", [
+  z.object({ ...PopupBase, kind: z.literal("event"), event: z.string(), scene: z.string() }),
+  z.object({ ...PopupBase, kind: z.literal("menu"), menu: z.enum(["craft", "build"]) }),
+  z.object({ ...PopupBase, kind: z.literal("exploration"), region: z.string(), landmark: z.string().optional(), hint: z.string().optional() }),
+  z.object({ ...PopupBase, kind: z.literal("note"), title: z.string() }),
+]);
+export type Popup = z.infer<typeof PopupSchema>;
 export const EventsStateSchema = z.object({
-  active: z.object({ id: z.string(), scene: z.string(), text: z.string(), title: z.string().optional(), go: strings.optional(), hint: z.string().optional() }).nullable(),
+  active: PopupSchema.nullable(),
   queue: strings,
   notes: z.array(NoteSchema).optional(),
   seen: z.record(z.object({ count, lastAt: count })),

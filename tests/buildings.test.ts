@@ -302,8 +302,8 @@ describe("the craft and build menus", () => {
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event).toMatchObject({ id: "menu:craft", title: "Craft" });
     expect(view(e).event!.choices.filter((c) => c.id !== "craft_axe")).toEqual([
-      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "30m", tooltip: "10 firewood · 30m" },
-      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", tooltip: "4 bark strips · 3h" },
+      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "30m", hours: 0.5, tooltip: "10 firewood · 30m" },
+      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", hours: 3, tooltip: "4 bark strips · 3h" },
       { id: "close", label: "back", enabled: true },
     ]);
     expect(e.state.time).toBe(t0);
@@ -341,8 +341,8 @@ describe("the craft and build menus", () => {
     e.state.items.stone = 2;
     e.dispatch({ type: "menu", menu: "craft" });
     expect(view(e).event!.choices.slice(0, 2)).toEqual([
-      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", tooltip: "2 stones · 3h" },
-      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs something sharp", time: "30m", tooltip: "10 firewood · 30m" },
+      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", hours: 3, tooltip: "2 stones · 3h" },
+      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs something sharp", time: "30m", hours: 0.5, tooltip: "10 firewood · 30m" },
     ]);
     e.dispatch({ type: "choose", choice: "close" });
     let t0 = e.state.time;
@@ -353,8 +353,8 @@ describe("the craft and build menus", () => {
     e.dispatch({ type: "menu", menu: "craft" });
     // the rock knife is had (it leaves the menu); the spear now takes twice as long
     expect(view(e).event!.choices.filter((c) => c.id !== "craft_axe")).toEqual([
-      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "1h", tooltip: "10 firewood · 1h" },
-      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", tooltip: "4 bark strips · 3h" },
+      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "1h", hours: 1, tooltip: "10 firewood · 1h" },
+      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", hours: 3, tooltip: "4 bark strips · 3h" },
       { id: "close", label: "back", enabled: true },
     ]);
     e.dispatch({ type: "choose", choice: "close" });

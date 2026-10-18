@@ -895,3 +895,11 @@ Explicit text IDs must be unique and survive moving text between content entitie
 provide the join keys for future translation tables or CSV import; no editor or translation UI
 is required by the engine. Outcome text belongs to its outcome, rather than a generic random
 pool that might describe a different result.
+
+### Typed pop-ups (implemented)
+
+State version 4 stores a discriminated `Popup` union: event (event ID and scene), menu (craft or
+build), exploration (area and optional discovered landmark), or note (title and text).
+Only migration code interprets the old encoded popup IDs. Selectors provide display IDs,
+numeric work durations, and explicit progress targets to the renderer; labels never decide
+whether a choice advances time. Old open pop-ups migrate without replaying scene effects.

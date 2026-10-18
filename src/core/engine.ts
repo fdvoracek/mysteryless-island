@@ -136,7 +136,7 @@ export class Engine {
     const hint = () => ids.map((id) => this.say(np.text, { place: this.reg.regions.get(id)!.name })!).join(" ");
     const a = this.state.events.active;
     const notes = (this.state.events.notes ??= []);
-    if (a?.id.startsWith("explore:") && a.scene !== "look") Object.assign(a, { hint: hint(), go: ids });
+    if (a?.kind === "exploration" && a.landmark) Object.assign(a, { hint: hint(), go: ids });
     else if (notes.length > notesBefore) notes[notes.length - 1].go = ids;
     else notes.push({ title: this.say(np.title)!, text: hint(), go: ids });
   }
@@ -216,8 +216,8 @@ export class Engine {
   /** The open event and its scene, if any. */
   openEventScene(): { event: GameEvent; scene: GameEvent["scenes"][string]; text: string } | null {
     const a = this.state.events.active;
-    if (!a || a.id.startsWith("explore:") || a.id.startsWith("menu:") || a.id === "note") return null;
-    const event = this.reg.events.get(a.id)!;
+    if (a?.kind !== "event") return null;
+    const event = this.reg.events.get(a.event)!;
     return { event, scene: event.scenes[a.scene], text: a.text };
   }
 
@@ -227,7 +227,7 @@ export class Engine {
   }
 
   private choose(choiceId: string): Result {
-    if (this.state.events.active!.id === "note") {
+    if (this.state.events.active!.kind === "note") {
       const went = this.goFromPopup(choiceId);
       if (went) return went;
       if (choiceId !== "close") return refuse("unknown choice");
@@ -235,8 +235,8 @@ export class Engine {
       this.openNextEvent();
       return this.chose();
     }
-    if (this.state.events.active!.id.startsWith("explore:")) return this.exploreChoose(choiceId);
-    if (this.state.events.active!.id.startsWith("menu:")) return this.menuChoose(choiceId);
+    if (this.state.events.active!.kind === "exploration") return this.exploreChoose(choiceId);
+    if (this.state.events.active!.kind === "menu") return this.menuChoose(choiceId);
     const open = this.openEventScene()!;
     const { event, scene } = open;
     if (!scene.choices) {
@@ -265,7 +265,7 @@ export class Engine {
 
   private openNextEvent() {
     const note = this.state.events.notes?.shift();
-    if (note) { this.state.events.active = { id: "note", scene: "note", text: note.text, title: note.title, go: note.go }; return; }
+    if (note) { this.state.events.active = { kind: "note", ...note }; return; }
     const id = this.state.events.queue.shift();
     if (!id) return;
     const event = this.reg.events.get(id)!;
@@ -278,7 +278,7 @@ export class Engine {
   private enterScene(event: GameEvent, sceneId: string) {
     const scene = event.scenes[sceneId];
     const text = this.say(scene.text)!;
-    this.state.events.active = { id: event.id, scene: sceneId, text };
+    this.state.events.active = { kind: "event", event: event.id, scene: sceneId, text };
     // the event is part of the story: its pages go into the journal too, in the order they happen
     this.logStory(text);
     this.applyEffects(scene.effects);
@@ -431,13 +431,15 @@ export class Engine {
   private openMenu(menu: "craft" | "build"): Result {
     const m = this.reg.game.menus[menu];
     const empty = menu === "craft" ? !this.craftOptions().length : !this.buildOptions().length;
-    this.state.events.active = { id: `menu:${menu}`, scene: "menu", text: this.say(empty ? m.empty : m.text)! };
+    this.state.events.active = { kind: "menu", menu, text: this.say(empty ? m.empty : m.text)! };
     return { ok: true, cooldownMs: 0 };
   }
 
   /** A choice in a menu: close, or make it (the pop-up closes; the work takes its time and shows its bar). */
   private menuChoose(choiceId: string): Result {
-    const menu = this.state.events.active!.id.slice("menu:".length) as "craft" | "build";
+    const active = this.state.events.active;
+    if (active?.kind !== "menu") return refuse("no menu is open");
+    const menu = active.menu;
     if (choiceId === "close") { this.state.events.active = null; return this.chose(); }
     if (menu === "craft") {
       const r = this.craftOptions().find((x) => x.id === choiceId);
@@ -534,21 +536,22 @@ export class Engine {
     const ctx = this.ctx();
     const lines = ex.view.filter((v) => evaluate(v.when, ctx)).map((v) => this.say(v.text)!);
     if (!this.openLandmarks(region).length && ex.nothingLeft) lines.push(this.say(ex.nothingLeft)!);
-    this.state.events.active = { id: `explore:${region.id}`, scene: "look", text: lines.join(" ") };
+    this.state.events.active = { kind: "exploration", region: region.id, text: lines.join(" ") };
     return { ok: true, cooldownMs: 0 };
   }
 
   /** A choice in the look-around pop-up: a landmark to explore, or close. */
   private exploreChoose(choiceId: string): Result {
-    const active = this.state.events.active!;
-    const region = this.reg.regions.get(active.id.slice("explore:".length))!;
-    if (active.scene !== "look") {
+    const active = this.state.events.active;
+    if (active?.kind !== "exploration") return refuse("no exploration is open");
+    const region = this.reg.regions.get(active.region)!;
+    if (active.landmark) {
       // the finding is read: back to the game (or walk to a place it opened); "after explore" events may follow
-      const went = this.goFromPopup(choiceId, ["explore", active.scene.slice("found:".length)]);
+      const went = this.goFromPopup(choiceId, ["explore", active.landmark]);
       if (went) return went;
       if (choiceId !== "close") return refuse("unknown choice");
       this.state.events.active = null;
-      this.checkEvents(["explore", active.scene.slice("found:".length)]);
+      this.checkEvents(["explore", active.landmark]);
       return this.chose();
     }
     if (choiceId === "close") { this.state.events.active = null; return this.chose(); }
@@ -563,7 +566,7 @@ export class Engine {
     st.explored += 1;
     this.remember(d.id);
     const text = this.say(d.text)!;
-    this.state.events.active = { id: active.id, scene: `found:${d.id}`, text };
+    this.state.events.active = { kind: "exploration", region: region.id, landmark: d.id, text };
     this.logStory(text);
     this.applyEffects(d.effects);
     this.postCheck();

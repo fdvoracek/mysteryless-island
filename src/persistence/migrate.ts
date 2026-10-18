@@ -9,6 +9,19 @@ export function restoreState(input: unknown, reg: Registry): GameState | null {
   // Adding a narrative stream preserves the saved gameplay stream exactly.
   if (input && typeof input === "object" && "seed" in input && typeof input.seed === "number"
     && !("narrativeRng" in input)) input = { ...input, narrativeRng: seedRng(input.seed ^ 0x4e415252) };
+  if (input && typeof input === "object" && "events" in input && input.events && typeof input.events === "object") {
+    const events = input.events as Record<string, unknown>;
+    const a = events.active as Record<string, unknown> | null;
+    if (a && typeof a.id === "string" && !("kind" in a)) {
+      const base = { text: a.text, go: a.go };
+      const active = a.id === "note" ? { ...base, kind: "note", title: a.title ?? "" }
+        : a.id.startsWith("menu:") ? { ...base, kind: "menu", menu: a.id.slice(5) }
+        : a.id.startsWith("explore:") ? { ...base, kind: "exploration", region: a.id.slice(8),
+          landmark: typeof a.scene === "string" && a.scene.startsWith("found:") ? a.scene.slice(6) : undefined, hint: a.hint }
+        : { ...base, kind: "event", event: a.id, scene: a.scene };
+      input = { ...input, events: { ...events, active } };
+    }
+  }
   const parsed = GameStateSchema.safeParse(input);
   if (!parsed.success) return null;
   const s = parsed.data;
@@ -55,12 +68,15 @@ export function restoreState(input: unknown, reg: Registry): GameState | null {
   const a = s.events.active;
   if (a) {
     let valid: boolean;
-    if (a.id === "note") valid = true;
-    else if (a.id.startsWith("menu:")) valid = a.id === "menu:craft" || a.id === "menu:build";
-    else if (a.id.startsWith("explore:")) {
-      const region = reg.regions.get(a.id.slice(8));
-      valid = !!region?.explore && (a.scene === "look" || region.explore.landmarks.some((d) => a.scene === `found:${d.id}`));
-    } else valid = !!reg.events.get(a.id)?.scenes[a.scene];
+    switch (a.kind) {
+      case "note": case "menu": valid = true; break;
+      case "exploration": {
+        const region = reg.regions.get(a.region);
+        valid = !!region?.explore && (!a.landmark || region.explore.landmarks.some((d) => d.id === a.landmark));
+        break;
+      }
+      case "event": valid = !!reg.events.get(a.event)?.scenes[a.scene]; break;
+    }
     if (!valid) s.events.active = null;
     else if (a.go) a.go = a.go.filter((id) => s.regions[id]?.unlocked);
   }

@@ -92,13 +92,15 @@ export interface View {
   /** the open event (a modal), if any: title, the scene's text and its buttons */
   event: {
     id: string; title: string; text: string;
+    /** Persistent control to display work chosen in this popup. */
+    progressId?: string;
     /** a "start" event: the story before the island, shown without the game behind it */
     prologue: boolean;
     /**
      * `time`: how long the choice takes, shown next to it (landmarks to explore); `tooltip`: what
      * it needs (the craft and build menus)
      */
-    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string; tooltip?: string }>;
+    choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string; hours?: number; progressId?: string; travelTo?: string; tooltip?: string }>;
   } | null;
 }
 
@@ -300,9 +302,9 @@ export function fmtHours(h: number): string {
 
 function eventView(engine: Engine): View["event"] {
   const active = engine.state.events.active;
-  if (active?.id.startsWith("explore:")) return exploreView(engine);
-  if (active?.id.startsWith("menu:")) return menuView(engine);
-  if (active?.id === "note") {
+  if (active?.kind === "exploration") return exploreView(engine);
+  if (active?.kind === "menu") return menuView(engine);
+  if (active?.kind === "note") {
     return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "back", enabled: true }] };
   }
   const open = engine.openEventScene();
@@ -323,7 +325,9 @@ function eventView(engine: Engine): View["event"] {
  */
 function menuView(engine: Engine): View["event"] {
   const { reg, state: s } = engine;
-  const menu = s.events.active!.id.slice("menu:".length) as "craft" | "build";
+  const active = s.events.active;
+  if (active?.kind !== "menu") return null;
+  const menu = active.menu;
   const needs = (cost: Record<string, number> | undefined, hours: number) =>
     [...Object.entries(cost ?? {}).map(([k, n]) => `${n} ${reg.items.get(k)?.name ?? k}`), fmtHours(hours)].join(" · ");
   const choices: NonNullable<View["event"]>["choices"] = menu === "craft"
@@ -331,7 +335,7 @@ function menuView(engine: Engine): View["event"] {
       const w = engine.recipeWay(r)!;
       const c = engine.checkRecipe(r);
       const hours = engine.hoursFor(w.hours, [w.visibleWhen, w.requires]);
-      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), tooltip: needs(w.cost, hours) };
+      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), hours, tooltip: needs(w.cost, hours) };
     })
     : engine.buildOptions().map((id) => {
       const b = reg.buildings.get(id)!;
@@ -339,29 +343,31 @@ function menuView(engine: Engine): View["event"] {
       const built = engine.builtHere(id);
       const label = built ? `${b.name} (${built + 1} of ${b.max ?? 1})` : b.name;
       const hours = engine.stepCost(id, "build").hours;
-      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), tooltip: [needs(b.build.cost, hours), b.hint].filter(Boolean).join(". ") };
+      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), hours, tooltip: [needs(b.build.cost, hours), b.hint].filter(Boolean).join(". ") };
     });
   choices.push({ id: "close", label: "back", enabled: true });
-  return { id: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
+  return { id: `menu:${menu}`, progressId: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
 }
 
 /** The look-around pop-up: what you see and the landmarks left (with their time), or what you found. */
 function exploreView(engine: Engine): View["event"] {
-  const active = engine.state.events.active!;
-  const region = engine.reg.regions.get(active.id.slice("explore:".length))!;
+  const active = engine.state.events.active;
+  if (active?.kind !== "exploration") return null;
+  const region = engine.reg.regions.get(active.region)!;
   const ex = region.explore!;
   const close = [{ id: "close", label: "back", enabled: true }];
-  const choices = active.scene === "look"
+  const choices = !active.landmark
     ? [
       ...engine.openLandmarks(region).map((d) => {
         const ch = engine.checkChoice(d);
-        return { id: d.id, label: d.label, enabled: ch.enabled, reason: sentence(ch.reason), time: fmtHours(engine.hoursFor(d.hours, [d.visibleWhen, d.requires])) };
+        const hours = engine.hoursFor(d.hours, [d.visibleWhen, d.requires]);
+        return { id: d.id, label: d.label, enabled: ch.enabled, reason: sentence(ch.reason), time: fmtHours(hours), hours };
       }),
       ...close,
     ]
     : [...goChoices(engine), ...close];
   const text = active.hint ? `${active.text}\n\n${active.hint}` : active.text;
-  return { id: active.id, title: ex.title ?? region.title, text, prologue: false, choices };
+  return { id: `explore:${active.region}`, progressId: `explore:${active.region}`, title: ex.title ?? region.title, text, prologue: false, choices };
 }
 
 /** "go to the forest 30m": one button per place the open pop-up put on the map. */
@@ -370,7 +376,7 @@ function goChoices(engine: Engine) {
   const here = reg.regions.get(s.location)!;
   return (s.events.active?.go ?? []).filter((id) => id !== s.location).map((id) => {
     const r = reg.regions.get(id)!;
-    return { id: `go:${id}`, label: reg.game.newPlace.go.replace("{place}", r.name), enabled: true, time: fmtHours(here.travelHours + r.travelHours) };
+    return { id: `go:${id}`, label: reg.game.newPlace.go.replace("{place}", r.name), enabled: true, travelTo: id, hours: here.travelHours + r.travelHours, time: fmtHours(here.travelHours + r.travelHours) };
   });
 }
 

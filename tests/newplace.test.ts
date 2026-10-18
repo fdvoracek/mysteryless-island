@@ -17,7 +17,7 @@ describe("a new place on the map: the pop-up that opened it offers to walk there
     expect(v.text).toMatch(/^You climb the dunes\./);
     expect(v.text.endsWith(`\n\n${HINT}`)).toBe(true);
     expect(v.choices).toEqual([
-      { id: "go:forest", label: "go to the forest", enabled: true, time: "30m" },
+      { id: "go:forest", travelTo: "forest", label: "go to the forest", enabled: true, time: "30m", hours: 0.5 },
       { id: "close", label: "back", enabled: true },
     ]);
     expect(e.state.log.some((l) => l.text.includes("on your map"))).toBe(false); // the hint is not the story

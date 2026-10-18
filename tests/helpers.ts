@@ -42,7 +42,7 @@ function closeNotes(e: Engine) {
   const dispatch = e.dispatch.bind(e);
   e.dispatch = (cmd) => {
     const r = dispatch(cmd);
-    while (e.state.events.active?.id === "note") dispatch({ type: "choose", choice: "close" });
+    while (e.state.events.active?.kind === "note") dispatch({ type: "choose", choice: "close" });
     return r;
   };
 }
@@ -76,7 +76,7 @@ export function lookAround(e: Engine) {
   const next = e.openLandmarks(region).find((d) => e.checkChoice(d).enabled);
   if (!next) return e.dispatch({ type: "choose", choice: "close" });
   const res = e.dispatch({ type: "choose", choice: next.id });
-  if (e.state.events.active?.id.startsWith("explore:")) e.dispatch({ type: "choose", choice: "close" });
+  if (e.state.events.active?.kind === "exploration") e.dispatch({ type: "choose", choice: "close" });
   return res;
 }
 
@@ -86,7 +86,7 @@ export function craft(e: Engine, recipe: string) {
   const opened = e.dispatch({ type: "menu", menu: "craft" });
   if (!opened.ok) return opened;
   const res = e.dispatch({ type: "choose", choice: recipe });
-  if (!res.ok && e.state.events.active?.id === "menu:craft") e.dispatch({ type: "choose", choice: "close" });
+  if (!res.ok && e.state.events.active?.kind === "menu") e.dispatch({ type: "choose", choice: "close" });
   return res;
 }
 
@@ -95,6 +95,6 @@ export function build(e: Engine, building: string) {
   const opened = e.dispatch({ type: "menu", menu: "build" });
   if (!opened.ok) return opened;
   const res = e.dispatch({ type: "choose", choice: building });
-  if (!res.ok && e.state.events.active?.id === "menu:build") e.dispatch({ type: "choose", choice: "close" });
+  if (!res.ok && e.state.events.active?.kind === "menu") e.dispatch({ type: "choose", choice: "close" });
   return res;
 }
