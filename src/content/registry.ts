@@ -219,6 +219,14 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       }
     });
 
+  // The same work vocabulary is used by activities, recipes, item actions and building steps.
+  const checkWork = (a: { visibleWhen?: Condition; requires?: Condition; cost?: Record<string, number>; effects?: Effect[] }, w: string) => {
+    if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
+    if (a.requires) checkCond(a.requires, `${w}.requires`);
+    Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
+    checkEffects(a.effects, w);
+  };
+
   for (const q of quests.values()) {
     const w = `quest ${q.id}`;
     if (typeof q.trigger === "object") checkCond(q.trigger.when, `${w}.trigger.when`);
@@ -235,10 +243,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (r.availableWhen) checkCond(r.availableWhen, `${w}.availableWhen`);
     r.ways.forEach((a, i) => {
       const aw = `${w}.ways[${i}]`;
-      if (a.visibleWhen) checkCond(a.visibleWhen, `${aw}.visibleWhen`);
-      if (a.requires) checkCond(a.requires, `${aw}.requires`);
-      Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${aw}.cost`));
-      checkEffects(a.effects, aw);
+      checkWork(a, aw);
     });
   }
   for (const ev of events.values()) {
@@ -286,12 +291,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     for (const a of r.activities) {
       const w = `activity ${a.id}`;
       if (a.building) ref("building", a.building, `${w}.building`);
-      if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
-      if (a.requires) checkCond(a.requires, `${w}.requires`);
-      Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
+      checkWork(a, w);
       a.yields?.forEach((y, i) => { ref("item", y.item, `${w}.yields[${i}]`); if (y.when) checkCond(y.when, `${w}.yields[${i}].when`); });
       checkOutcomes(a.outcomes, w);
-      checkEffects(a.effects, w);
       for (const field of ["thoughts", "afterwards"] as const) {
         a[field]?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.${field}[${gi}].lines[${li}].when`); }));
       }
@@ -302,16 +304,12 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     const w = `building ${b.id}`;
     b.places.forEach((p, i) => { ref("region", p.region, `${w}.places[${i}]`); if (p.when) checkCond(p.when, `${w}.places[${i}].when`); });
     if (b.availableWhen) checkCond(b.availableWhen, `${w}.availableWhen`);
-    if (b.build.requires) checkCond(b.build.requires, `${w}.build.requires`);
-    Object.keys(b.build.cost ?? {}).forEach((k) => ref("item", k, `${w}.build.cost`));
-    checkEffects(b.build.effects, `${w}.build`);
+    checkWork(b.build, `${w}.build`);
     for (const step of b.cycle ? [b.cycle.start, b.cycle.collect] : []) {
       const sw = `${w}.cycle.${step.id}`;
-      if (step.requires) checkCond(step.requires, `${sw}.requires`);
-      Object.keys(step.cost ?? {}).forEach((k) => ref("item", k, `${sw}.cost`));
+      checkWork(step, sw);
       step.yields?.forEach((y, i) => { ref("item", y.item, `${sw}.yields[${i}]`); if (y.when) checkCond(y.when, `${sw}.yields[${i}].when`); });
       checkOutcomes(step.outcomes, sw);
-      checkEffects(step.effects, sw);
     }
   }
   for (const it of items.values()) {
@@ -319,10 +317,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     for (const a of it.actions ?? []) {
       const w = `item ${it.id}.actions.${a.id}`;
       if (a.building) ref("building", a.building, `${w}.building`);
-      if (a.visibleWhen) checkCond(a.visibleWhen, `${w}.visibleWhen`);
-      if (a.requires) checkCond(a.requires, `${w}.requires`);
-      Object.keys(a.cost ?? {}).forEach((k) => ref("item", k, `${w}.cost`));
-      checkEffects(a.effects, w);
+      checkWork(a, w);
     }
     if (new Set((it.actions ?? []).map((a) => a.id)).size !== (it.actions ?? []).length) problems.push(`item ${it.id}: duplicate action ids`);
     if (!it.consume) continue;

@@ -164,26 +164,31 @@ export type Thoughts = z.infer<typeof Thoughts>;
 /** small pictures for the map: hovering a place shows one per activity found there (src/ui/icons.ts) */
 export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "mushrooms", "honey", "shells", "shelter", "sleep"]);
 
+/** Shared work fields; entity schemas retain their own visibility, identity and rewards. */
+const WorkFields = {
+  hours: z.number().positive(),
+  effort: Effort,
+  requires: Condition.optional(),
+  requiresText: z.string().optional(),
+  cost: Amounts.optional(),
+  log: Text.optional(),
+  effects: z.array(Effect).optional(),
+};
+
 export const Activity = z
   .object({
+    ...WorkFields,
     id: Id,
     /** Shared actions such as sleep are available in every region. */
     global: z.boolean().optional(),
     /** Group this activity with a local building in the UI. */
     building: Id.optional(),
     name: z.string(),
-    hours: z.number().positive(),
-    effort: Effort,
     /** shown on the map when you hover the place, once the activity is visible (found) */
     icon: Icon.optional(),
     visibleWhen: Condition.optional(),
-    requires: Condition.optional(),
-    requiresText: z.string().optional(),
-    cost: Amounts.optional(),
     yields: z.array(Yield).optional(),
     outcomes: z.array(Outcome).optional(),
-    effects: z.array(Effect).optional(),
-    log: Text.optional(),
     /** lines logged before the activity, worked out before it changes anything (see Thoughts) */
     thoughts: z.array(Thoughts).optional(),
     /** lines logged after it, worked out from the state it left (e.g. how you wake) */
@@ -261,18 +266,12 @@ export const Region = z
 /** One step of a building's cycle: start it (sow, set the trap) or collect what it made (harvest). */
 export const BuildingStep = z
   .object({
+    ...WorkFields,
     /** counted like an activity id: { "did": id }, { "today": id }, event `after` */
     id: Id,
     label: z.string(),
-    hours: z.number().positive(),
-    effort: Effort,
-    requires: Condition.optional(),
-    requiresText: z.string().optional(),
-    cost: Amounts.optional(),
     yields: z.array(Yield).optional(),
     outcomes: z.array(Outcome).optional(),
-    effects: z.array(Effect).optional(),
-    log: Text.optional(),
     tags: z.array(Id).optional(),
   })
   .strict();
@@ -303,14 +302,8 @@ export const Building = z
     /** putting it up: label (default "build"), time, cost, extra requirements, what happens */
     build: z
       .object({
+        ...WorkFields,
         label: z.string().optional(),
-        hours: z.number().positive(),
-        effort: Effort,
-        requires: Condition.optional(),
-        requiresText: z.string().optional(),
-        cost: Amounts.optional(),
-        log: Text.optional(),
-        effects: z.array(Effect).optional(),
       })
       .strict(),
     /** degrees added to the felt temperature in its place (e.g. a shelter out of the wind) */
@@ -364,21 +357,16 @@ export const Consume = z
  */
 export const ItemAction = z
   .object({
+    ...WorkFields,
     id: Id,
     /** Show this action under the local building instead of carried items. */
     building: Id.optional(),
     label: z.string(),
-    hours: z.number().positive(),
-    effort: Effort,
     /** the button is shown only while this is true (e.g. a fire is burning here) */
     visibleWhen: Condition.optional(),
-    requires: Condition.optional(),
-    requiresText: z.string().optional(),
     /** how many of the item one use spends (default 1; 0 keeps it, e.g. filling the water can) */
     uses: z.number().int().nonnegative().optional(),
-    cost: Amounts.optional(),
     effects: z.array(Effect).min(1),
-    log: Text.optional(),
     tags: z.array(Id).optional(),
   })
   .strict();
@@ -576,14 +564,8 @@ export const QuestTrigger = z.union([
  */
 export const RecipeWay = z
   .object({
+    ...WorkFields,
     visibleWhen: Condition.optional(),
-    hours: z.number().positive(),
-    effort: Effort,
-    requires: Condition.optional(),
-    requiresText: z.string().optional(),
-    cost: Amounts.optional(),
-    log: Text.optional(),
-    effects: z.array(Effect).optional(),
   })
   .strict();
 

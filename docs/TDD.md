@@ -862,3 +862,11 @@ What **needs code**:
 2. Typeface: classic Times New Roman as in *A Dark Room*, or a webfont (for example a Garamond)?
 3. Hosting target: itch.io, GitHub Pages, or your own domain?
 4. Should the debug console be available in release builds behind `?debug`, or dev builds only?
+
+### Shared work rules (implemented)
+
+`core/action-rules.ts` owns availability checks, combined item-action input costs, cost scaling,
+and tool-adjusted work duration. Duration is rounded up to the next simulation step, identically
+for previews and execution. Entity schemas share work fields and the registry shares their
+reference checks; JSON remains the authoring format, not an engine dependency. A future CSV
+adapter should produce the same validated content model.

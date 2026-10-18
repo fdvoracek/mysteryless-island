@@ -1,7 +1,8 @@
 import type { Registry } from "../content/registry";
 import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Yield } from "../content/schema";
+import { checkRequirements, itemActionCost, multiplyCost, workHours } from "./action-rules";
 import { phaseAt } from "./clock";
-import { batchesReady, buildingKey, buildingState, evaluate, explain, toolFactor, type Ctx } from "./conditions";
+import { batchesReady, buildingKey, buildingState, evaluate, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
 import { createInitialState, type GameState } from "./state";
 import { chooseText, sentence } from "./text";
@@ -228,10 +229,7 @@ export class Engine {
 
   /** Is a choice of the open scene shown, and can it be picked now? */
   checkChoice(c: { visibleWhen?: Condition; requires?: Condition; requiresText?: string }): { visible: boolean; enabled: boolean; reason?: string } {
-    const ctx = this.ctx();
-    if (!evaluate(c.visibleWhen, ctx)) return { visible: false, enabled: false };
-    if (!evaluate(c.requires, ctx)) return { visible: true, enabled: false, reason: c.requiresText ?? explain(c.requires, ctx) ?? undefined };
-    return { visible: true, enabled: true };
+    return checkRequirements(this.ctx(), c);
   }
 
   private choose(choiceId: string): Result {
@@ -432,13 +430,7 @@ export class Engine {
   }
 
   private checkCost(requires: Condition | undefined, requiresText: string | undefined, cost: Record<string, number> | undefined): { enabled: boolean; reason?: string } {
-    const ctx = this.ctx();
-    if (!evaluate(requires, ctx)) return { enabled: false, reason: requiresText ?? explain(requires, ctx) ?? undefined };
-    for (const [item, n] of Object.entries(cost ?? {})) {
-      const have = this.state.items[item] ?? 0;
-      if (have < n) return { enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${have})` };
-    }
-    return { enabled: true };
+    return checkRequirements(this.ctx(), { requires, requiresText, cost });
   }
 
   /** Open the craft or build menu: a pop-up listing what can be made (no time passes); `empty` says when there is nothing. */
@@ -479,7 +471,7 @@ export class Engine {
    * knife as the only sharp thing) makes it take longer (see Item.tool).
    */
   hoursFor(hours: number, conds: Array<Condition | undefined>): number {
-    return hours * toolFactor(this.reg, this.state, conds);
+    return workHours(this.ctx(), hours, conds);
   }
 
   activities(region = this.state.location): Activity[] {
@@ -520,18 +512,8 @@ export class Engine {
 
   /** Is an item's action button (e.g. cook) shown, and usable now? */
   checkItemAction(itemId: string, a: ItemAction): { visible: boolean; enabled: boolean; reason?: string } {
-    const ctx = this.ctx();
-    const have = this.state.items[itemId] ?? 0;
-    if (have <= 0 || !evaluate(a.visibleWhen, ctx)) return { visible: false, enabled: false };
-    if (!evaluate(a.requires, ctx)) {
-      return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
-    }
-    const need = { [itemId]: a.uses ?? 1, ...(a.cost ?? {}) };
-    for (const [item, n] of Object.entries(need)) {
-      const got = this.state.items[item] ?? 0;
-      if (got < n) return { visible: true, enabled: false, reason: `needs ${n} ${this.reg.items.get(item)?.name ?? item} (have ${got})` };
-    }
-    return { visible: true, enabled: true };
+    if ((this.state.items[itemId] ?? 0) <= 0) return { visible: false, enabled: false };
+    return checkRequirements(this.ctx(), a, itemActionCost(itemId, a));
   }
 
   private itemAction(itemId: string, actionId: string): Result {
@@ -541,8 +523,7 @@ export class Engine {
     if (!c.visible) return refuse("not possible here");
     if (!c.enabled) return refuse(c.reason ?? "not possible now");
     const hours = this.hoursFor(a.hours, [a.visibleWhen, a.requires]);
-    const cost = { ...a.cost };
-    cost[itemId] = (cost[itemId] ?? 0) + (a.uses ?? 1);
+    const cost = itemActionCost(itemId, a);
     this.log(this.say(a.log));
     if (!this.work(hours, a.effort, cost)) return this.stopped(hours);
     this.applyEffects(a.effects);
@@ -599,19 +580,7 @@ export class Engine {
 
   /** Can this activity be shown, and can it be done now? Used by the UI and by dispatch. */
   check(a: Activity): { visible: boolean; enabled: boolean; reason?: string } {
-    const ctx = this.ctx();
-    if (!evaluate(a.visibleWhen, ctx)) return { visible: false, enabled: false };
-    if (!evaluate(a.requires, ctx)) {
-      return { visible: true, enabled: false, reason: a.requiresText ?? explain(a.requires, ctx) ?? undefined };
-    }
-    for (const [item, n] of Object.entries(a.cost ?? {})) {
-      const have = this.state.items[item] ?? 0;
-      if (have < n) {
-        const name = this.reg.items.get(item)?.name ?? item;
-        return { visible: true, enabled: false, reason: `needs ${n} ${name} (have ${have})` };
-      }
-    }
-    return { visible: true, enabled: true };
+    return checkRequirements(this.ctx(), a);
   }
 
   private doActivity(id: string): Result {
@@ -729,8 +698,7 @@ export class Engine {
     const b = this.reg.buildings.get(id)!;
     const d = step === "build" ? b.build : b.cycle![step];
     const n = step === "build" ? 1 : Math.max(1, this.builtHere(id));
-    const cost: Record<string, number> = {};
-    for (const [k, v] of Object.entries(d.cost ?? {})) cost[k] = v * n;
+    const cost = multiplyCost(d.cost, n);
     return { hours: this.hoursFor(d.hours * n, [d.requires]), cost };
   }
 
