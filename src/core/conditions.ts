@@ -2,6 +2,7 @@ import type { Registry } from "../content/registry";
 import type { Condition, Effort } from "../content/schema";
 import { day, phaseAt } from "./clock";
 import type { GameState } from "./state";
+import { readyBatches } from "./production";
 import { timerValue } from "./timers";
 
 export interface Ctx {
@@ -23,8 +24,8 @@ export const buildingKey = (id: string, region: string) => `${id}@${region}`;
 export function batchesReady(reg: Registry, s: GameState, id: string, region: string): number {
   const st = s.buildings?.[buildingKey(id, region)];
   const cycle = reg.buildings.get(id)?.cycle;
-  if (!st || st.startedAt === undefined || !cycle) return 0;
-  return Math.min(cycle.batches ?? 1, Math.floor((s.time - st.startedAt) / Math.round(cycle.hours * 60)));
+  if (!st || !cycle) return 0;
+  return Math.max(0, ...st.batches.map((batch) => readyBatches(reg.buildings.get(id)!, batch, s.time)));
 }
 
 /**
@@ -36,7 +37,7 @@ export function buildingState(reg: Registry, s: GameState, id: string, region?: 
     : Object.keys(s.buildings ?? {}).find((k) => k.startsWith(`${id}@`))?.slice(id.length + 1));
   const st = where ? s.buildings?.[buildingKey(id, where)] : undefined;
   if (!where || !st) return "none";
-  if (st.startedAt === undefined) return "idle";
+  if (!st.batches.length) return "idle";
   return batchesReady(reg, s, id, where) > 0 ? "ready" : "working";
 }
 

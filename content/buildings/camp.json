@@ -73,7 +73,6 @@
         "hours": 0.25,
         "effort": "light",
         "cost": { "raw_fish": 2 },
-        "effects": [{ "unflag": "drying_meat" }],
         "log": [
           "You split two fish and hang them over the crossbar.",
           "Two fish, gutted and split, hang from the rack.",
@@ -81,16 +80,15 @@
         ]
       },
       "hours": 12,
+      "products": { "meat": [{ "item": "dried_meat", "min": 2, "max": 2 }] },
       "collect": {
         "id": "take_dried_fish",
         "label": "take down",
         "hours": 0.25,
         "effort": "light",
         "yields": [
-          { "item": "dried_fish", "min": 2, "max": 2, "when": { "not": { "flag": "drying_meat" } } },
-          { "item": "dried_meat", "min": 2, "max": 2, "when": { "flag": "drying_meat" } }
+          { "item": "dried_fish", "min": 2, "max": 2 }
         ],
-        "effects": [{ "unflag": "drying_meat" }],
         "log": [
           "The food comes off the rack stiff and dark.",
           "Dry, hard, smelling of smoke. They will keep.",
@@ -344,7 +342,7 @@
       "requires": { "item": "hoe" },
       "requiresText": "Needs a hoe to break the ground",
       "cost": { "corn": 2 },
-      "effects": [{ "startCycle": "corn_field" }],
+      "effects": [{ "startCycle": "corn_field", "units": 1 }],
       "log": [
         "You break the ground with the hoe, row by row, and press the kernels in.",
         "Hours of hacking at the turf. Then rows of dark earth, and the kernels pressed into them.",

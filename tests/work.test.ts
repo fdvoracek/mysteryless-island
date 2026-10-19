@@ -66,7 +66,7 @@ describe("persistent player work", () => {
   it("sleep advances production time while retaining paused player progress and materials", () => {
     const e = fresh();
     e.applyEffects([{ build: "bed" }, { build: "snares" }]);
-    e.state.buildings["snares@forest"].startedAt = e.state.time;
+    e.applyEffects([{ startCycle: "snares" }]);
     e.state.items.stone = 2;
     e.state.items.knife = 0;
     e.start({ type: "menu", menu: "craft" });

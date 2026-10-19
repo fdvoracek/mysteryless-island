@@ -171,7 +171,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
       expect(build(e, b.id), `${b.id}: build`).toMatchObject({ ok: true });
       if (!b.cycle) continue;
       // the corn field is sown as it is dug; the others start with their own step
-      if (e.state.buildings[`${b.id}@${b.places[0].region}`].startedAt === undefined) {
+      if (e.state.buildings[`${b.id}@${b.places[0].region}`].batches.length === 0) {
         expect(act(e, b.id, "start"), `${b.id}: start`).toMatchObject({ ok: true });
       }
       wait(e, b.cycle.hours * (b.cycle.batches ?? 1));

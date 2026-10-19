@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CollectionSchema } from "./production";
 import { Effort } from "../content/schema";
 import type { Registry } from "../content/registry";
 
@@ -10,7 +11,7 @@ export const WorkSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("consume"), item: z.string() }),
   z.object({ kind: z.literal("travel"), destination: z.string() }),
   z.object({ kind: z.literal("explore"), region: z.string(), landmark: z.string() }),
-  z.object({ kind: z.literal("building"), id: z.string(), step: z.enum(["build", "start", "collect"]), units: z.number().int().positive(), batches: z.number().int().nonnegative() }),
+  z.object({ kind: z.literal("building"), id: z.string(), step: z.enum(["build", "start", "collect"]), units: z.number().int().positive(), collections: z.array(CollectionSchema).default([]) }),
 ]);
 export type Work = z.infer<typeof WorkSchema>;
 export const ActionSnapshotSchema = z.object({

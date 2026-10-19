@@ -217,6 +217,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       else if ("build" in e) ref("building", e.build, w);
       else if ("startCycle" in e) {
         ref("building", e.startCycle, w);
+        if (e.production && !buildings.get(e.startCycle)?.cycle?.products?.[e.production]) problems.push(`${w}: unknown production "${e.production}" for building "${e.startCycle}"`);
         if (buildings.has(e.startCycle) && !buildings.get(e.startCycle)!.cycle) problems.push(`${w}: building "${e.startCycle}" has no cycle to start`);
       }
     });
@@ -307,6 +308,13 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     b.places.forEach((p, i) => { ref("region", p.region, `${w}.places[${i}]`); if (p.when) checkCond(p.when, `${w}.places[${i}].when`); });
     if (b.availableWhen) checkCond(b.availableWhen, `${w}.availableWhen`);
     checkWork(b.build, `${w}.build`);
+    for (const [id, yields] of Object.entries(b.cycle?.products ?? {})) {
+      yields.forEach((y, i) => {
+        const yw = `${w}.cycle.products.${id}[${i}]`;
+        ref("item", y.item, yw);
+        if (y.when) checkCond(y.when, `${yw}.when`);
+      });
+    }
     for (const step of b.cycle ? [b.cycle.start, b.cycle.collect] : []) {
       const sw = `${w}.cycle.${step.id}`;
       checkWork(step, sw);

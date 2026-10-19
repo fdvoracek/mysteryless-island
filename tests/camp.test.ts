@@ -165,7 +165,7 @@ describe("bedtime recovery and its exact summary", () => {
 
   it("loads an old bed save without inventing a local fire, and gives the unheated summary", () => {
     const old = fresh().state;
-    old.buildings["bed@beach"] = { count: 1, builtAt: 0 };
+    old.buildings["bed@beach"] = { count: 1, builtAt: 0, batches: [], nextBatch: 1 };
     old.timers = { fire: 0 };
     const e = new Engine(reg, restoreState(old, reg)!);
     expect(e.builtHere("campfire")).toBe(0);

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PendingActionSchema } from "./work";
+import { BuildingStateSchema } from "./production";
 
 const number = z.number().finite();
 const count = number.int().nonnegative();
@@ -50,7 +51,7 @@ export const GameStateSchema = z.object({
   quests: z.record(QuestStateSchema).default({}),
   timers: z.record(number.nonnegative()).default({}),
   regions: z.record(RegionStateSchema),
-  buildings: z.record(z.object({ count: count.min(1).default(1), builtAt: count, startedAt: count.optional() })).default({}),
+  buildings: z.record(BuildingStateSchema).default({}),
   prevStats: z.record(number.min(0).max(100)),
   log: z.array(LogEntrySchema),
   turn: count.optional(),

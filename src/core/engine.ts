@@ -3,7 +3,8 @@ import type { Registry } from "../content/registry";
 import type { Activity, BuildingStep, Condition, Effect, Effort, GameEvent, Landmark, ItemAction, Outcome, Recipe, RecipeWay, Region, Thoughts, Text, Yield } from "../content/schema";
 import { checkRequirements, itemActionCost, multiplyCost, workHours } from "./action-rules";
 import { phaseAt } from "./clock";
-import { batchesReady, buildingKey, buildingState, evaluate, type Ctx } from "./conditions";
+import { collections, idleUnits, joinProduction, startProduction } from "./production";
+import { buildingKey, buildingState, evaluate, type Ctx } from "./conditions";
 import { int, weighted } from "./rng";
 import { createInitialState, type GameState } from "./state";
 import { chooseText, sentence } from "./text";
@@ -647,8 +648,9 @@ export class Engine {
     const b = this.reg.buildings.get(id);
     if (!b?.cycle) return null;
     const st = buildingState(this.reg, this.state, id, this.state.location);
-    if (st === "idle") return { step: "start", def: b.cycle.start };
     if (st === "ready") return { step: "collect", def: b.cycle.collect };
+    const local = this.state.buildings[buildingKey(id, this.state.location)];
+    if (local && idleUnits(local) > 0) return { step: "start", def: b.cycle.start };
     return null;
   }
 
@@ -659,7 +661,9 @@ export class Engine {
   stepCost(id: string, step: "build" | "start" | "collect"): { hours: number; cost: Record<string, number> } {
     const b = this.reg.buildings.get(id)!;
     const d = step === "build" ? b.build : b.cycle![step];
-    const n = step === "build" ? 1 : Math.max(1, this.builtHere(id));
+    const st = this.state.buildings[buildingKey(id, this.state.location)];
+    const n = step === "build" ? 1 : step === "start" ? idleUnits(st)
+      : collections(b, st, this.state.time).reduce((n, c) => n + c.units, 0);
     const cost = multiplyCost(d.cost, n);
     return { hours: this.hoursFor(d.hours * n, [d.requires]), cost };
   }
@@ -681,11 +685,12 @@ export class Engine {
     const b = this.reg.buildings.get(id)!;
     const d = step === "build" ? b.build : b.cycle![step];
     const { hours, cost } = this.stepCost(id, step);
-    const units = Math.max(1, this.builtHere(id));
-    const batches = step === "collect" ? batchesReady(this.reg, this.state, id, this.state.location) : 0;
+    const st = this.state.buildings[buildingKey(id, this.state.location)];
+    const units = step === "start" ? idleUnits(st) : 1;
+    const collect = step === "collect" ? collections(b, st, this.state.time) : [];
     this.log(this.say(d.log));
     const keys = step === "build" ? [id] : [(d as BuildingStep).id, ...((d as BuildingStep).tags ?? [])];
-    return this.startWork({ kind: "building", id, step, units, batches }, step === "build" ? `build ${b.name}` : d.label ?? b.name,
+    return this.startWork({ kind: "building", id, step, units, collections: collect }, step === "build" ? `build ${b.name}` : d.label ?? b.name,
       hours, d.effort, cost, keys);
   }
 
@@ -694,8 +699,12 @@ export class Engine {
     const key = buildingKey(id, this.state.location);
     const max = this.reg.buildings.get(id)!.max ?? 1;
     const st = this.state.buildings[key];
-    if (!st) this.state.buildings[key] = { count: 1, builtAt: this.state.time };
-    else st.count = Math.min(max, (st.count ?? 1) + 1);
+    if (!st) this.state.buildings[key] = { count: 1, builtAt: this.state.time, batches: [], nextBatch: 1 };
+    else {
+      const added = Math.min(max - st.count, 1);
+      st.count += added;
+      joinProduction(this.reg.buildings.get(id)!, st, added);
+    }
   }
 
   /** Buildings here whose first batch became ready in this clock step: say so (if you are awake). */
@@ -703,9 +712,11 @@ export class Engine {
     for (const [key, st] of Object.entries(this.state.buildings)) {
       const [id, region] = key.split("@");
       const b = this.reg.buildings.get(id);
-      if (st.startedAt === undefined || region !== this.state.location || !b?.cycle?.readyLog) continue;
-      const first = st.startedAt + Math.round(b.cycle.hours * 60);
-      if (first > from && first <= to) this.log(this.say(b.cycle.readyLog));
+      if (region !== this.state.location || !b?.cycle?.readyLog) continue;
+      if (st.batches.some((batch) => {
+        const first = batch.startedAt + Math.round(b.cycle!.hours * 60);
+        return first > from && first <= to;
+      })) this.log(this.say(b.cycle.readyLog));
     }
   }
 
@@ -912,7 +923,7 @@ export class Engine {
     this.before = action.before;
     this.made = action.work.kind === "craft" || (action.work.kind === "building" && action.work.step === "build");
     const notesBefore = this.state.events.notes?.length ?? 0;
-    this.finishWork(action.work);
+    this.finishWork(action.work, action.reserved);
     if (!this.state.dead) { this.postCheck(); this.warnProvisions(); }
     this.offerNewPlaces(notesBefore);
     if (!this.state.events.active && !this.state.dead) this.openNextEvent();
@@ -922,13 +933,13 @@ export class Engine {
   }
 
   /** The completion vocabulary is shared by browser pacing and synchronous simulations. */
-  private finishWork(work: Work) {
+  private finishWork(work: Work, inputs: Record<string, number>) {
     switch (work.kind) {
       case "activity": {
         const a = this.reg.activities.get(work.id)!.activity;
         this.applyYields(a.yields);
         this.applyOutcomes(a.outcomes);
-        this.applyEffects(a.effects);
+        this.applyEffects(a.effects, inputs);
         this.logLines(this.thoughts(a.afterwards));
         this.count(a.id, a.tags);
         break;
@@ -942,7 +953,7 @@ export class Engine {
       }
       case "item": {
         const a = this.reg.items.get(work.item)!.actions!.find((a) => a.id === work.action)!;
-        this.applyEffects(a.effects);
+        this.applyEffects(a.effects, inputs);
         this.count(`${work.item}_${a.id}`, a.tags);
         break;
       }
@@ -983,14 +994,22 @@ export class Engine {
         const b = this.reg.buildings.get(work.id)!;
         const key = buildingKey(work.id, this.state.location);
         const d = work.step === "build" ? b.build : b.cycle![work.step];
-        if (work.step === "collect") this.state.buildings[key].startedAt = undefined;
         if (work.step === "build") this.addBuilding(work.id);
-        if (work.step === "start" || (work.step === "collect" && b.cycle!.repeat)) this.state.buildings[key].startedAt = this.state.time;
+        const st = this.state.buildings[key];
+        if (work.step === "start") startProduction(st, this.state.time, work.units, inputs);
         if (work.step === "collect") {
           const cd = d as BuildingStep;
-          for (let i = 0; i < Math.max(1, work.batches) * work.units; i++) { this.applyYields(cd.yields); this.applyOutcomes(cd.outcomes); }
+          for (const claim of work.collections) {
+            const batch = st.batches.find((batch) => batch.id === claim.id);
+            if (!batch) continue;
+            const yields = batch.production ? b.cycle!.products?.[batch.production] : cd.yields;
+            for (let i = 0; i < claim.batches * claim.units; i++) { this.applyYields(yields); this.applyOutcomes(cd.outcomes); }
+            batch.units -= claim.units;
+            st.batches = st.batches.filter((other) => other.units > 0);
+            if (b.cycle!.repeat) startProduction(st, this.state.time, claim.units, batch.inputs, batch.production);
+          }
         }
-        this.applyEffects(d.effects);
+        this.applyEffects(d.effects, inputs);
         if (work.step === "build") this.count(work.id);
         else this.count((d as BuildingStep).id, (d as BuildingStep).tags);
       }
@@ -1147,7 +1166,7 @@ export class Engine {
     this.log(this.say(o.text));
   }
 
-  applyEffects(es?: Effect[]) {
+  applyEffects(es?: Effect[], inputs: Record<string, number> = {}) {
     const s = this.state;
     for (const e of es ?? []) {
       if ("give" in e) this.give(e.give);
@@ -1171,7 +1190,7 @@ export class Engine {
       } else if ("startCycle" in e) {
         // the building here (e.g. the field is sown as it is dug)
         const st = s.buildings[buildingKey(e.startCycle, s.location)];
-        if (st && st.startedAt === undefined) st.startedAt = s.time;
+        if (st) startProduction(st, s.time, e.units ?? idleUnits(st), inputs, e.production);
       }
     }
     if (s.stats.health <= 0 && !s.dead) this.die(this.causeHint);

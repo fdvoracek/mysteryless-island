@@ -409,7 +409,7 @@ function buildingWord(engine: Engine, id: string): string {
   const w = b.cycle.words;
   if (st === "idle") return w.idle;
   const per = Math.round(b.cycle.hours * 60);
-  const started = s.buildings[buildingKey(id, s.location)].startedAt!;
+  const started = Math.min(...s.buildings[buildingKey(id, s.location)].batches.map((batch) => batch.startedAt));
   const left = per - ((s.time - started) % per);
   if (st === "working") return `${w.working} · ${fmtLeft(left)}`;
   const n = batchesReady(reg, s, id, s.location);

@@ -104,7 +104,7 @@ export type Effect =
   /** put up a building where you are, without its build step (e.g. from an event) */
   | { build: string }
   /** start a building's cycle without its start step (e.g. the field is sown as it is dug) */
-  | { startCycle: string };
+  | { startCycle: string; production?: string; units?: number };
 
 export type Outcome = { weight: number; when?: Condition; text?: Text; effects?: Effect[] };
 
@@ -121,7 +121,7 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
     z.object({ startQuest: Id }).strict(),
     z.object({ unlock: Id }).strict(),
     z.object({ build: Id }).strict(),
-    z.object({ startCycle: Id }).strict(),
+    z.object({ startCycle: Id, production: Id.optional(), units: z.number().int().positive().optional() }).strict(),
   ]),
 );
 
@@ -330,6 +330,8 @@ export const Building = z
         /** after collecting, it starts again by itself (a trap stays set) */
         repeat: z.boolean().optional(),
         collect: BuildingStep,
+        /** Named output alternatives selected by a startCycle effect. */
+        products: z.record(Id, z.array(Yield)).optional(),
         /** the panel's words: nothing running, running (time left is added), ready ({n}: batches ready) */
         words: z.object({ idle: z.string(), working: z.string(), ready: z.string() }).strict(),
         /** written to the journal when the first batch is ready while you are there (and awake) */

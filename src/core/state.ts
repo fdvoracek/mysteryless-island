@@ -6,7 +6,7 @@ import { timerKey } from "./timers";
 import type { GameState } from "./state-schema";
 export type { GameState, LogEntry, RegionState, QuestState, EventsState } from "./state-schema";
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 export function createInitialState(reg: Registry, seed: number): GameState {
   const { start } = reg.game;

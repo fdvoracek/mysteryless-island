@@ -309,7 +309,7 @@
         "uses": 2,
         "visibleWhen": { "all": [{ "at": "beach" }, { "built": "drying_rack" }] },
         "requires": { "all": [{ "tool": "sharp" }, { "building": "drying_rack", "is": "idle" }] },
-        "effects": [{ "flag": "drying_meat" }, { "startCycle": "drying_rack" }],
+        "effects": [{ "startCycle": "drying_rack", "production": "meat" }],
         "log": "You cut two portions of meat into thin strips and hang them on the drying rack."
       },
       {

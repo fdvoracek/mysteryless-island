@@ -18,7 +18,7 @@ export function initializeTimers(reg: Registry, state: Pick<GameState, "timers" 
       const key = timerKey(reg, timer.id, region);
       state.timers[key] ??= state.timers[timer.id];
       if (state.timers[key] > 0 && timer.building) {
-        state.buildings[`${timer.building}@${region}`] ??= { count: 1, builtAt: 0 };
+        state.buildings[`${timer.building}@${region}`] ??= { count: 1, builtAt: 0, batches: [], nextBatch: 1 };
       }
       delete state.timers[timer.id];
     }

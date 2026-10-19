@@ -195,7 +195,8 @@ describe("sleep always ends at 6am", () => {
   it("a ready production cycle remains collectable if collection is interrupted", () => {
     const e = fresh();
     e.applyEffects([{ build: "drying_rack" }]);
-    e.state.buildings["drying_rack@beach"].startedAt = e.state.time - 720;
+    e.applyEffects([{ startCycle: "drying_rack" }]);
+    e.state.buildings["drying_rack@beach"].batches[0].startedAt = e.state.time - 720;
     e.state.time = 23 * 60 + 45;
     expect(e.dispatch({ type: "building", id: "drying_rack", step: "collect" }).interrupted).toBe(true);
     expect(e.state.items.dried_fish ?? 0).toBe(0);
