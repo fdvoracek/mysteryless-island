@@ -1,7 +1,7 @@
 import type { Engine, Command, Result } from "../core/engine";
 import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
-import { getLayout, LAYOUTS, type Layout } from "./layouts";
+import { classicSkeleton } from "./layouts/classic";
 import { REQUIRED_IDS } from "./layouts/panels";
 import type { Icon } from "../content/schema";
 import { iconSvg } from "./icons";
@@ -13,7 +13,6 @@ import { iconSvg } from "./icons";
 export class UI {
   private root: HTMLElement;
   private els: Record<string, HTMLElement> = {};
-  private layout: Layout;
   /** true while the death fade runs (nothing can be clicked) */
   private restoring = false;
   /** places shown on the map last time (null before the first render): a new one pulses */
@@ -32,13 +31,10 @@ export class UI {
     private saves: { save(): boolean; load(): boolean; has(): boolean },
     /** multiplies progress bar durations (?speed=0.2 in tests); 1 = normal */
     private speed = 1,
-    /** id of the layout to start with (see ./layouts) */
-    layoutId?: string | null,
   ) {
     this.root = root;
-    this.layout = getLayout(layoutId);
     this.build();
-    this.mountLayout(this.layout);
+    this.mountClassic();
   }
 
   /** The frame that never changes: the game area, the menu and the death fade. */
@@ -46,13 +42,9 @@ export class UI {
     this.root.innerHTML = `
       <div id="game"></div>
       <footer class="menu">
-        <div class="layout-switch">
+        <div class="font-switch">
           <button class="link" id="fontBtn" aria-haspopup="menu" aria-expanded="false"></button>
-          <div class="layout-menu" id="fontMenu" role="menu" hidden></div>
-        </div>
-        <div class="layout-switch">
-          <button class="link" id="layoutBtn" aria-haspopup="menu" aria-expanded="false"></button>
-          <div class="layout-menu" id="layoutMenu" role="menu" hidden></div>
+          <div class="font-menu" id="fontMenu" role="menu" hidden></div>
         </div>
         <button class="link" id="saveBtn">save.</button>
         <button class="link" id="lights">lights off.</button>
@@ -79,10 +71,9 @@ export class UI {
           <div class="buttons" id="eventChoices"></div>
         </div>
       </div>`;
-    for (const id of ["game", "fade", "fadeText", "layoutBtn", "layoutMenu", "fontBtn", "fontMenu", "event", "eventTitle", "eventBack", "eventText", "eventChoices", "end", "endTitle", "endText", "endLoad", "endRestart", "saveBtn"]) {
+    for (const id of ["game", "fade", "fadeText", "fontBtn", "fontMenu", "event", "eventTitle", "eventBack", "eventText", "eventChoices", "end", "endTitle", "endText", "endLoad", "endRestart", "saveBtn"]) {
       this.els[id] = this.root.querySelector<HTMLElement>(`#${id}`)!;
     }
-    this.buildLayoutMenu();
     this.buildFontMenu();
     // the back arrow closes the pop-up; so does a click next to it, or Escape (not the story before
     // the island, which fills the screen)
@@ -110,43 +101,18 @@ export class UI {
     if (document.documentElement.dataset.theme === "dark") lights.textContent = "lights on.";
   }
 
-  // ---------------------------------------------------------------- layouts
-
-  /** Put a layout's skeleton into the game area and look up its panels. */
-  private mountLayout(layout: Layout) {
-    this.layout = layout;
-    for (const l of LAYOUTS) this.root.classList.remove(`layout-${l.id}`);
-    this.root.classList.add(`layout-${layout.id}`);
-    for (const href of layout.stylesheets ?? []) loadStylesheet(href);
-    this.els.game.innerHTML = layout.skeleton();
+  /** Mount the classic panels once; the renderer owns their content. */
+  private mountClassic() {
+    this.root.classList.add("layout-classic");
+    this.els.game.innerHTML = classicSkeleton();
     for (const id of REQUIRED_IDS) {
       const el = this.els.game.querySelector<HTMLElement>(`#${id}`);
-      if (!el) throw new Error(`layout "${layout.id}" has no #${id} panel (see src/ui/layouts/panels.ts)`);
+      if (!el) throw new Error(`classic layout has no #${id} panel (see src/ui/layouts/panels.ts)`);
       this.els[id] = el;
     }
-    const older = this.els.game.querySelector<HTMLElement>("#logOlder");
-    if (older) this.els.logOlder = older;
-    else delete this.els.logOlder;
-    this.els.layoutBtn.textContent = `layout: ${layout.name}.`;
-    this.els.layoutMenu.querySelectorAll<HTMLElement>("[data-layout]").forEach((b) => {
-      b.setAttribute("aria-checked", String(b.dataset.layout === layout.id));
-    });
   }
 
-  private buildLayoutMenu() {
-    const close = popupMenu(this.els.layoutBtn, this.els.layoutMenu);
-    for (const l of LAYOUTS) {
-      this.els.layoutMenu.append(menuItem(l.name, { layout: l.id }, () => {
-        close();
-        if (this.isBusy() || this.restoring || l.id === this.layout.id) return;
-        saveLayoutId(l.id);
-        this.mountLayout(l);
-        this.render();
-      }));
-    }
-  }
-
-  /** The font switch: one font for all text in every layout (see ./fonts.ts). */
+  /** One font for all text (see ./fonts.ts). */
   private buildFontMenu() {
     const close = popupMenu(this.els.fontBtn, this.els.fontMenu);
     const pick = (f: Font) => {
@@ -511,64 +477,15 @@ export class UI {
     this.renderControlRows(this.els.consumables, v.consumables.map((i) => ({ ...i, word: String(i.count) })));
   }
 
-  /** Draw the story the way the current layout asks for (see StoryStyle in ./layouts/types.ts). */
+  /** Classic story: newest lines first, with older entries fading. */
   private renderLog(v: View) {
-    const st = this.layout.story;
-    // blocks, newest first: one per line, or one per action (a paragraph)
-    const blocks = (st.unit === "line"
-      ? v.log.map((text) => ({ text, first: text, day: 0, clock: "" }))
-      : v.turns.map((t) => ({ text: t.lines.join(" "), first: t.lines[0], day: t.day, clock: t.clock }))
-    ).slice(0, st.limit);
-
-    const make = (b: (typeof blocks)[number], age: number) => {
+    this.els.log.replaceChildren(...v.log.slice(0, 30).map((text, age) => {
       const p = document.createElement("p");
-      p.className = "entry" + (age === 0 ? (st.latestLarge ? " latest" : "") : st.older === "muted" ? " older" : "");
-      if (st.timestamps && b.clock) {
-        const t = document.createElement("span");
-        t.className = "time";
-        t.textContent = b.clock;
-        p.append(t);
-      }
-      p.append(b.text);
-      p.style.setProperty("--age", String(age));
-      if (st.older === "fade") p.style.opacity = String(Math.max(0.12, 1 - age * 0.07));
+      p.className = "entry";
+      p.textContent = text;
+      p.style.opacity = String(Math.max(0.12, 1 - age * 0.07));
       return p;
-    };
-
-    let shown = blocks;
-    const olderLine: string[] = [];
-    if (st.older === "inline") {
-      // only the newest block stays a paragraph; the rest becomes one quiet line
-      shown = blocks.slice(0, 1);
-      olderLine.push(...blocks.slice(1).map((b) => b.first));
-    }
-
-    const nodes: HTMLElement[] = shown.map((b, age) => make(b, age));
-    if (st.order === "oldest-first") nodes.reverse();
-
-    // day headings between paragraphs of different days (in reading order)
-    if (st.timestamps) {
-      const ordered = st.order === "oldest-first" ? [...shown].reverse() : shown;
-      const withDays: HTMLElement[] = [];
-      let lastDay = -1;
-      ordered.forEach((b, i) => {
-        if (b.day && b.day !== lastDay) { withDays.push(div(`day ${b.day}`, "day")); lastDay = b.day; }
-        withDays.push(nodes[i]);
-      });
-      this.els.log.replaceChildren(...withDays);
-    } else {
-      this.els.log.replaceChildren(...nodes);
-    }
-
-    if (st.older === "inline") {
-      const target = this.els.logOlder ?? this.els.log;
-      const line = div(olderLine.join(" · "), "older-line");
-      if (target === this.els.log) this.els.log.append(line);
-      else target.replaceChildren(line);
-    }
-
-    // book order: keep the newest paragraph in view
-    if (st.order === "oldest-first") this.els.log.scrollTop = this.els.log.scrollHeight;
+    }));
   }
 
   // ---------------------------------------------------------------- interaction
@@ -584,7 +501,7 @@ export class UI {
     this.render();
   }
 
-  /** All six layouts render the same work state. CSS animates only between committed clock steps. */
+  /** Render saved work state. CSS animates only between committed clock steps. */
   private renderWork(v: View) {
     this.els.workBox.hidden = !v.work.length;
     this.renderControlRows(this.els.work, v.work);
@@ -667,28 +584,6 @@ function div(text: string, cls?: string) {
   if (cls) d.className = cls;
   d.textContent = text;
   return d;
-}
-
-/** Add a <link rel="stylesheet"> once (layouts can bring their own web fonts). */
-function loadStylesheet(href: string) {
-  if (document.head.querySelector(`link[href="${href}"]`)) return;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = href;
-  document.head.append(link);
-}
-
-const LAYOUT_KEY = "textisland.layout";
-
-/** The layout to start with: ?layout=<id> in the URL, else the last one chosen. */
-export function loadLayoutId(): string | null {
-  const fromUrl = new URLSearchParams(location.search).get("layout");
-  if (fromUrl) return fromUrl;
-  try { return localStorage.getItem(LAYOUT_KEY); } catch { return null; }
-}
-
-function saveLayoutId(id: string) {
-  try { localStorage.setItem(LAYOUT_KEY, id); } catch { /* ignore */ }
 }
 
 /** Wire a menu button to its popup; returns a function that closes it. */

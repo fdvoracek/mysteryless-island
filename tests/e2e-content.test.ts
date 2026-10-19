@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadRegistry, readContentFiles } from "./helpers";
@@ -13,9 +13,9 @@ const spec = readFileSync(join(__dirname, "..", "e2e", "smoke.spec.ts"), "utf8")
   .replace(/test\(\s*"[^"]*"/g, "test(")
   .replace(/\/\/.*$/gm, "")
   .replace(/(expect\([^,()]*),\s*"[^"]*"\)/g, "$1)");
-/** layout and font ids and names (src/ui/layouts, src/ui/fonts.ts) */
+/** font ids and names (src/ui/fonts.ts) */
 const uiNames = (() => {
-  const files = [join(__dirname, "..", "src", "ui", "fonts.ts"), ...readdirSync(join(__dirname, "..", "src", "ui", "layouts")).map((f) => join(__dirname, "..", "src", "ui", "layouts", f))];
+  const files = [join(__dirname, "..", "src", "ui", "fonts.ts")];
   return new Set(files.filter((f) => f.endsWith(".ts")).flatMap((f) => [...readFileSync(f, "utf8").matchAll(/(?:id|name): "([^"]+)"/g)].map((m) => m[1])));
 })();
 const reg = loadRegistry();
@@ -65,7 +65,7 @@ describe("the browser test matches the content", () => {
     // plain lowercase labels in quotes: "catch a fish", "the forest", "pick berries"; not "firewood 0/10"
     const labels = [...spec.matchAll(/"([a-z][a-z ]*[a-z])"/g)].map((m) => m[1]);
     const texts = [...strings];
-    // a label exists, or a piece of a text (toContainText), or a layout or font
+    // a label exists, or a piece of a text (toContainText), or a font
     const known = (l: string) => strings.has(l) || ui.has(l) || uiNames.has(l) || texts.some((t) => t.includes(l));
     const missing = [...new Set(labels.filter((l) => !known(l)))];
     expect(missing).toEqual([]);

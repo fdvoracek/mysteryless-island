@@ -42,7 +42,7 @@ flowchart LR
   JSON[JSON files] --> L[Vite loader]
   L --> REG[Zod validation and Registry]
   REG --> ENG[Engine]
-  UI[Six layouts and renderer] --> CTRL[ActionController]
+  UI[Classic layout and renderer] --> CTRL[ActionController]
   CTRL -->|start and stepActions| ENG
   ENG --> STATE[Serializable GameState]
   STATE --> SEL[Selectors]
@@ -54,7 +54,7 @@ flowchart LR
 
 The engine owns simulation and command completion. `ActionController` owns browser scheduling,
 step persistence and cancellation when loading or restarting. `dispatch` runs the same work
-synchronously in tests. Layouts share the renderer and panel IDs; none owns game state.
+synchronously in tests. The classic layout supplies fixed panel IDs to the renderer and owns no game state.
 Core modules use no DOM, wall clock, or unseeded randomness. The validated registry is read-only
 by convention (its outer object is frozen); the runtime state contains plain serializable data.
 The JSON loader already acts as an adapter into `buildRegistry`. A future CSV importer should
@@ -74,7 +74,7 @@ produce the same validated entities with stable IDs; no CSV implementation is ne
 | `src/core/{clock,rng,text,selectors}.ts` | Time formatting, seeded randomness, narration and UI view models |
 | `src/app/action-controller.ts` | Browser scheduler and step persistence callback |
 | `src/persistence/{save,migrate}.ts` | Storage boundary, save validation and compatibility |
-| `src/ui/` | DOM rendering, panels, fonts, six layouts and scoped styles |
+| `src/ui/` | DOM rendering, panels, fonts, classic layout and scoped styles |
 | `src/main.ts`, `src/debug/console.ts` | Application composition and debug commands |
 | `tests/`, `e2e/` | Content/unit checks and browser smoke tests |
 
@@ -126,7 +126,7 @@ once at completion. `Engine.dispatch` drains the same steps synchronously for si
 only renders work/progress. Reload resumes the saved work without accounting for offline time.
 Sleep advances the clock instantly to 06:00, pausing all player work while building production
 continues. Leaving an area pauses its work; materials stay reserved until resumed. A shared
-pause/resume control is available in all six layouts. The current UI still offers one active
+pause/resume control is available in the classic layout. The current UI still offers one active
 player action at a time; the core scheduler supports equal focus sharing, with focus allocation
 isolated for future perks. Effort rates are weighted by each concurrent action's focus share.
 The test-speed URL multiplier changes wall-clock scheduling only.
@@ -385,7 +385,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 - **Cycles:** `start` locks materials in a player action; completion creates a local production batch with `{ id, units, startedAt, inputs, production? }`. Every `hours` one output is ready per unit, up to `cycle.batches` (default 1); readiness derives from game time without browser scheduling. Production advances while away or asleep, never while the game is closed. `collect` locks ready batch IDs, unit counts and output counts when work starts; completion applies `collect.yields` (or the batch’s named `cycle.products` yields) and `outcomes` per claimed output/unit, plus `effects`. Unready batches and units added after collection began remain; collected units become empty, or with `repeat` start again from collection completion. Drying meat selects `production: "meat"` on the local rack rather than setting a global flag. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
 - **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Conditions include `{ "built": id }` (any place), `{ "built": id, "here": true }` (current place), `{ "sheltered": true }` (local built or natural shelter), and `{ "building": id, "is": "idle" | "working" | "ready" }`. Bed health regeneration is local; morning energy comes from `game.sleep.recovery`, not hourly multipliers.
 - **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` migrates a legacy shared fire to its configured region (beach), adding a campfire only if that old fire was burning; it never invents fire for an old bed save. Timer `building` and building `timer` references are validated.
-- **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in every layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
+- **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in the classic layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
 - **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
 The 11 buildings in `content/buildings/camp.json`:
@@ -633,13 +633,21 @@ interface SaveFile {
 
 ---
 
-### 12b. Layouts **[implemented]**
+### 12b. Classic layout **[implemented]**
 
 The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build menu choices retain their costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
 
-The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around, craft and build together above other activities), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, and all six layouts share their order.
+The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around, craft and build together above other activities), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, in the classic layout.
 
-The screen arrangement is pluggable. `src/ui/layouts/` holds one `.ts` + `.css` pair per layout (`classic`, `journal`, `scene`, `notebook`, `stage`, `bujo`) and `index.ts` lists them. A layout provides a skeleton built from the shared panels in `panels.ts` (story, places, actions, status, tasks, inventory, optional older-story area; ids fixed) and a `StoryStyle`: order (newest first / oldest first), unit (lines / one paragraph per action), how older text looks (fade / muted / inline), a large latest paragraph, timestamps with day headings, and a limit. Its CSS is scoped under `.layout-<id>`; shared component styles stay in `styles.css`. The renderer mounts the skeleton, fills the panels the same way for every layout and switches layouts from the bottom menu (saved in localStorage, `?layout=<id>` overrides). Every layout has a phone block (≤600px) that puts the story, places and buttons first; shared phone rules in `styles.css` set 44px tap targets, a wrapping bottom menu with sheet popups, and on touch screens show a button's tooltip only when it is disabled. To support paragraphs, every log line carries the `turn` of the command that wrote it, and the view model groups lines into `turns` in reading order.
+Classic is the only supported layout. `src/ui/layouts/classic.ts` provides its skeleton
+from fixed-ID panels in `panels.ts`; `classic.css` scopes placement and sizing under
+`.layout-classic`. The renderer mounts it once and displays the newest 30 journal lines,
+newest first, fading older entries. Alternate layouts, the registry, layout-specific story
+modes, and the layout picker have been removed. Old layout URL parameters and localStorage
+preferences are ignored; game saves are unaffected. Font choices still use `--font` and their
+own menu/storage. Classic's responsive rules stack panels on narrow screens; shared phone
+rules provide 44px tap targets and a font-menu sheet. Log entries retain their `turn` and
+selectors group them in reading order before flattening the classic journal.
 
 ## 13. Tooling
 
@@ -715,7 +723,7 @@ What **needs code**:
 - **Unit (Vitest):** conditions (each leaf and combinators), effects, clock, stat steps, temperature bands, player work, local production, saves and weighted picks with fixed seeds.
 - **Golden tests [future]:** a fixture content pack plus a scripted command list → snapshot of the final state. Catches unintended rule changes.
 - **Content tests:** the validator runs inside `npm test`.
-- **Browser smoke tests (Playwright):** CI builds the game and tests core play, saves, pop-ups and all six layouts on desktop and phone widths. Simulator smoke tests remain future work.
+- **Browser smoke tests (Playwright):** CI builds the game and tests core play, saves, pop-ups and the classic layout on desktop and phone widths. Simulator smoke tests remain future work.
 
 ---
 

@@ -31,13 +31,12 @@ body {
 button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 :focus-visible { outline: 1px dashed var(--fg); outline-offset: 2px; }
 
-/* layout-specific rules (where panels go, story sizes) live in ./layouts/<name>.css */
+/* classic panel placement and story sizes live in ./layouts/classic.css */
 .wrap > * { min-width: 0; }
 
-/* story: shared basics; layouts set sizes and spacing */
+/* story: shared basics; classic.css sets sizes and spacing */
 .log .entry { margin: 0; }
-.log .entry:first-child, .log .entry.latest { animation: fadein 0.6s ease-out; }
-.log .older-line { font-size: 14px; color: var(--muted); }
+.log .entry:first-child { animation: fadein 0.6s ease-out; }
 
 /* places: a small route map (see renderTabs): nodes on a grid, paths from the camp with walking times.
    Centred on the place you are in: the view is as wide as its panel, the grid hangs from its middle
@@ -98,7 +97,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .buttons .btn.explore, .buttons .btn.menu-btn { border-width: 2px; padding-top: 5px; padding-bottom: 5px; }
 /* "look around *": something left to explore */
 .btn .badge { margin-left: 4px; font-weight: 700; }
-/* inline-block: layouts that underline button labels (journal) don't underline the mark or the time */
+/* Keep button marks and times together */
 .btn .badge, .btn .time { display: inline-block; text-decoration: none; }
 /* the time a choice takes, next to its label (exploring a landmark) */
 .btn .time { margin-left: 8px; font-size: 0.85em; color: var(--muted); }
@@ -176,13 +175,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); font-size: 14px; }
 .menu .link { color: var(--muted); text-decoration: none; }
 .menu .link:hover { color: var(--fg); }
-.layout-switch { position: relative; }
-.layout-menu {
+.font-switch { position: relative; }
+.font-menu {
   position: absolute; bottom: calc(100% + 8px); right: 0; z-index: 25; display: grid; gap: 4px; min-width: 120px;
   padding: 8px 12px; background: var(--bg); border: 1px solid var(--line); box-shadow: 2px 2px 0 var(--bar);
 }
-.layout-menu .link { text-align: left; }
-.layout-menu .link[aria-checked="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
+.font-menu .link { text-align: left; }
+.font-menu .link[aria-checked="true"] { color: var(--fg); text-decoration: underline; text-underline-offset: 3px; }
 
 /* death fade and modal */
 .fade { position: fixed; inset: 0; background: var(--bg); display: none; place-items: center; z-index: 20; }
@@ -218,7 +217,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
-/* narrow screens: shared bits (each layout stacks its own panels) */
+/* narrow screens: shared components */
 @media (max-width: 760px) {
   .btn { width: calc(50% - 6px); }
   .row .tip, .quest .tip { right: 0; top: calc(100% + 2px); transform: none; }
@@ -234,8 +233,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 }
 
 /*
- * Phones. Every layout puts the story, the places and the buttons first and the panels
- * below (see the phone block in each layouts/<id>.css); these rules are shared.
+ * Phones. Classic stacks its panels in layouts/classic.css; these rules size the
+ * shared controls and font menu.
  */
 @media (max-width: 600px) {
   /* room for the fixed menu, which may take two lines */
@@ -245,7 +244,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .buttons { gap: 8px; }
   .btn { width: calc(50% - 4px); min-height: 44px; padding: 8px 6px; }
   .sbtn { min-height: 34px; padding: 4px 12px; font-size: 15px; }
-  /* the map: one size in every layout, cells narrow enough to keep the next place on screen */
+  /* the map: cells narrow enough to keep the next place on screen */
   #tabs.tabs { font-size: 16px; --map-cell: min(8em, 32vw); }
   /* a phone shows less than three cells: the fog is simply the screen's edges */
   .map-view { --fog-x: linear-gradient(to right, transparent, #000 16%, #000 84%, transparent); }
@@ -258,10 +257,10 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .menu { flex-wrap: wrap; justify-content: center; gap: 0 18px; padding: 4px 12px calc(4px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--bar); }
   .menu .link { padding: 9px 2px; }
-  .layout-switch { position: static; }
-  .layout-menu { position: fixed; left: 12px; right: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px));
+  .font-switch { position: static; }
+  .font-menu { position: fixed; left: 12px; right: 12px; bottom: calc(100px + env(safe-area-inset-bottom, 0px));
     grid-template-columns: 1fr 1fr; gap: 0 12px; padding: 6px 14px; }
-  .layout-menu .link { padding: 10px 0; font-size: 16px; }
+  .font-menu .link { padding: 10px 0; font-size: 16px; }
   .modal .panel { width: calc(100vw - 32px); }
   /* events: the text a little tighter, the choices two per row, so a scene fits one screen */
   .modal.event .panel { padding: 18px; gap: 14px; }
@@ -272,7 +271,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
   .modal.event .btn { width: calc(50% - 4px); }
 }
 
-/* The three action sections stay together and in the same order in every layout. */
+/* The three action sections stay together in display order. */
 .action-sections { display: grid; gap: 40px; min-width: 0; width: 100%; }
 .action-sections > .box.action-section { border: 0; padding: 0; }
 .action-sections > .box.action-section > legend { padding: 0; margin-bottom: 12px; }

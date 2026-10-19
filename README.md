@@ -22,25 +22,18 @@ Pacing: every game hour takes 10 real seconds (`content/game.json` → `cosmetic
 
 ## Phones
 
-Every layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. On touch screens a button's tooltip shows only when the button is disabled (to say why). The e2e test checks each layout at 375×667.
+The classic layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. On touch screens a button's tooltip shows only when the button is disabled (to say why). The e2e test checks it at 375×667.
 
-## Layouts and fonts
+## Layout and fonts
 
-*font:* in the bottom menu sets one font for all text in every layout: *times* (Times New Roman, the original look), *old standard* (Old Standard TT), *fell* (IM Fell English), *garamond italic* (Cormorant Garamond). The choice is remembered; `?font=<id>` works too. Fonts are listed in `src/ui/fonts.ts`; web fonts load only when chosen, and get Times' x-height so layouts keep their sizes.
+*font:* in the bottom menu sets one font for all text: *times* (Times New Roman, the original look), *old standard* (Old Standard TT), *fell* (IM Fell English), *garamond italic* (Cormorant Garamond). The choice is remembered; `?font=<id>` works too. Fonts are listed in `src/ui/fonts.ts`; web fonts load only when chosen, and get Times' x-height so the interface keeps its sizes.
 
 
-Six screen layouts, switchable from *layout:* in the bottom menu (the choice is remembered; `?layout=<id>` in the URL also works):
-
-| id | Layout |
-|---|---|
-| `classic` | like A Dark Room: the places on their own row on top, then three columns: story (newest on top), actions, panels |
-| `journal` | a book page: story in reading order, newest paragraph large, actions as underlined words; status strip on top, notes in the margin |
-| `scene` | the last result as a large paragraph, the few before it above it fading upwards; under the text the places as signposts (*go to the forest →*), then the buttons; inventory and task panels on a shelf |
-| `notebook` | an open book: the diary with times and days on the left page, the camp on the right |
-| `stage` | story centred in the top of the screen, the camp as a strip along the bottom |
-| `bujo` | *old journal*, 19th century: a two-page spread, double rule under the title, the hour in the margin. Left page: only the log (the hour in the margin, a heading per day). Right page: places and actions, survival bars, tasks (struck through when done), inventory |
-
-Each layout is two files in `src/ui/layouts/` (`<id>.ts`: where the panels go and how the story reads; `<id>.css`: its styles, scoped to `.layout-<id>`). Panels are shared (`panels.ts`) and keep their ids in every layout. A layout may also list extra `stylesheets` that load when it is chosen. Layouts don't pick fonts: all text uses `--font`. To add one, copy a pair of files, change them, and add it to `LAYOUTS` in `index.ts`; to remove one, delete its files and its line there.
+Classic is the only layout: places above three columns containing the story (newest first),
+actions, and status/tasks/inventory. Its skeleton and scoped styles live in
+`src/ui/layouts/classic.ts` and `classic.css`; fixed panel IDs come from `panels.ts`.
+There is no layout picker. Older layout URL parameters and stored choices are ignored.
+Font selection remains independent through `--font`.
 
 ## Prototype scope
 
@@ -79,7 +72,7 @@ JSON files pass through the Vite loader, Zod schemas and reference-checked regis
 interprets that validated model; shared modules own action requirements, conditions, timers
 and local production. Player work and production are serializable state. The application
 controller schedules live steps and saves progress; selectors supply a view to the shared
-renderer and all six layouts. Loading validates and migrates saves before play resumes.
+renderer and classic layout. Loading validates and migrates saves before play resumes.
 Gameplay and narrative randomness use separate saved streams. Stable text IDs allow future
 translation tables or a CSV importer; JSON remains the current authoring format.
 

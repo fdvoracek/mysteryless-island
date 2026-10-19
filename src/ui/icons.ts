@@ -1,7 +1,7 @@
 import type { Icon } from "../content/schema";
 
 /**
- * Map icons (see Activity.icon): 16×16 line drawings in the text colour, so they suit every layout
+ * Map icons (see Activity.icon): 16×16 line drawings in the text colour, so they follow the current theme
  * and the dark theme. Each is the inside of an <svg viewBox="0 0 16 16">.
  */
 const PATHS: Record<Icon, string> = {

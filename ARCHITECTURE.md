@@ -24,7 +24,8 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Favor small, cohesive modules and shared rules; fewer lines alone is not the goal.
 - Keep JSON authoring now. Future CSV imports and editors must produce the same validated model.
 - Preserve stable content/text identities for saves, translations, and future authoring tools.
-- Keep all six layouts until the user explicitly chooses which to retire.
+- Classic is the only supported layout. Do not restore retired layouts or a layout picker
+  unless the user requests them; keep font selection independent.
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
@@ -39,7 +40,7 @@ mechanics. Update this document when an architectural decision changes, not for 
 | Real-time scheduling | `src/app/action-controller.ts` | Schedule live steps and notify the application to save/render. |
 | Save storage and compatibility | `src/persistence/` | Normalize and validate before constructing an engine. |
 | Derived presentation | `src/core/selectors.ts` | Read state and produce a view; do not execute gameplay. |
-| DOM, layouts, visual interpolation | `src/ui/` | Send commands and render views; no second gameplay state. |
+| DOM, classic layout, visual interpolation | `src/ui/` | Send commands and render views; no second gameplay state. |
 | Application wiring | `src/main.ts` | Connect engine, controller, persistence, UI, and debug tools. |
 
 Treat registry definitions as read-only during gameplay. The engine mutates serializable state;
@@ -124,7 +125,7 @@ derived view models; and an injected scheduler for deterministic controller test
 
 - Do not parse labels or prose to infer command kinds, timing, requirements, or targets.
 - Do not compute an action's entire future state and replay snapshots over the live game.
-- Do not duplicate engine calculations in the renderer or create per-layout gameplay behavior.
+- Do not duplicate engine calculations in the renderer or move gameplay behavior into layout code.
 - Do not store functions, DOM references, or wall-clock deadlines as authoritative saved work.
 - Do not silently discard unsupported saves or repair legacy shapes throughout normal engine code.
 - Do not treat documentation comments as proof that a feature exists; verify executable paths.
@@ -139,8 +140,8 @@ derived view models; and an injected scheduler for deterministic controller test
   reserved inputs when their work definition disappears. Keep unsupported/malformed saves intact
   and offer an explicit recovery choice. Major prototype resets require an announced decision.
 - Keep autosave separate from the manual/pre-sleep save slot; a death remains in the autosave.
-- Layouts share fixed panel IDs, selectors, and controls. Keep CSS scoped and mobile behavior
-  usable; font selection stays independent of layout through `--font`.
+- Classic uses fixed panel IDs, selectors, and controls. Keep its CSS scoped and desktop/phone
+  behavior usable; font selection stays independent of layout through `--font`.
 - Keep keyed control updates so focus and progress survive rendering. Progress bars display
   simulation progress; they must not determine whether work completed.
 - Keep build/craft next to look around, local buildings hidden until present, and consumables
@@ -157,7 +158,7 @@ derived view models; and an injected scheduler for deterministic controller test
 - Test observable behavior and invariants, not a duplicate of the implementation. Cover affected
   reservation/completion, pause/resume, save migration, local independence, and timing paths.
 - Use deterministic seeds/variant mode and the existing helpers. Exercise new content through
-  its real menus and account for blocking notes. Verify shared UI across supported layouts.
+  its real menus and account for blocking notes. Verify the UI at desktop and phone widths.
 - Run checks appropriate to the change and the required workflow in `AGENTS.md`; do not claim
   unrun checks passed. Documentation-only changes need link/diff review, not new behavior tests.
 - Update relevant documentation with the change. Report behavior, validation, compatibility,

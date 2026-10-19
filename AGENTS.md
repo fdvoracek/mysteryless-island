@@ -18,7 +18,7 @@ npm run test:e2e       # Playwright smoke test of dist/ (needs a build; Chromium
 npm run check          # all of it, as CI: unit tests, build, browser test (the pre-push hook runs this)
 ```
 
-URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.
+URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.
 
 ## Architecture
 
@@ -27,8 +27,8 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 - `src/app/action-controller.ts` owns browser scheduling; `Engine.start` reserves inputs, `stepActions` advances persisted work, and `dispatch` drains the same pipeline synchronously for tests. Player work pauses on travel/sleep; local production continues with game time. No offline advancement.
 - `src/persistence/migrate.ts` validates and migrates saves at the loading boundary; `state-schema.ts` defines the runtime model (currently save version 6).
 - `src/core/selectors.ts` turns state into a view model. `src/ui/render.ts` draws it and sends commands; the UI holds no game state.
-- Layouts: `src/ui/layouts/<id>.ts` + `<id>.css` (CSS scoped to `.layout-<id>`), listed in `index.ts`; shared panels with fixed ids in `panels.ts`. Every layout has a phone block (≤600px).
-- Fonts: `src/ui/fonts.ts`; all text uses `--font`. Layouts do not pick fonts.
+- Classic is the only layout: `src/ui/layouts/classic.ts` + `classic.css` (scoped to `.layout-classic`), with fixed panels in `panels.ts` and a phone block (≤600px). There is no layout registry or picker; old layout preferences/URL parameters are ignored.
+- Fonts: `src/ui/fonts.ts`; all text uses `--font`. The layout does not pick fonts.
 - The places panel is a route map (`renderTabs`): regions at their `map: { x, y }`, paths from the camp with walking times, "?" for places not found, centred on the current place (walking slides the map). Nodes are still `#tabs .tab` buttons. A pop-up that unlocks a place gets a line about it and a `go:<region>` button before *close* (`game.json` → `newPlace`; `Engine.offerNewPlaces`).
 
 ## Content rules
@@ -55,7 +55,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?layout=<id>`, `?font=<id>`,
 - Pop-ups have no close button: the `close` choice is `#eventBack` ("← back") in the title line (e2e clicks `#eventBack`); only the shipwreck keeps a button (`[data-choice="close"]`, "wash ashore").
 - `craft(e, recipe)` / `build(e, building)` (tests/helpers.ts) make things through the menus; the e2e test clicks *craft* / *build* and the choice.
 - Unit tests run with `variants: "first"` (`tests/setup.ts`); `tests/variants.test.ts` switches to random to test variety. The e2e test opens every page with `?variants=first`.
-- When a test plays through several steps, expectations must follow the game state as it changes (e.g. the spear task appears after the 4th landmark explored; layouts keep different numbers of paragraphs). `lookAround(e)` (tests/helpers.ts) and `explore(page, id?)` (e2e) explore the next landmark. Both past CI failures came from this.
+- When a test plays through several steps, expectations must follow the game state as it changes (e.g. the spear task appears after the 4th landmark explored). `lookAround(e)` (tests/helpers.ts) and `explore(page, id?)` (e2e) explore the next landmark. Both past CI failures came from this.
 
 ## Workflow
 

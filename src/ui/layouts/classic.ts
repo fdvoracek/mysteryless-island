@@ -1,12 +1,8 @@
 import "./classic.css";
 import { panel } from "./panels";
-import type { Layout } from "./types";
 
 /** The original three columns: story on the left (newest on top), actions in the middle, panels on the right. */
-export const classic: Layout = {
-  id: "classic",
-  name: "classic",
-  skeleton: () => `
+export const classicSkeleton = () => `
     <div class="wrap" id="wrap">
       ${panel.places()}
       ${panel.story()}
@@ -18,6 +14,4 @@ export const classic: Layout = {
         ${panel.tasks()}
         ${panel.inventory()}
       </aside>
-    </div>`,
-  story: { order: "newest-first", unit: "line", older: "fade", latestLarge: false, timestamps: false, limit: 30 },
-};
+    </div>`;

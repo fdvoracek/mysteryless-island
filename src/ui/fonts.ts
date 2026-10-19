@@ -1,6 +1,6 @@
 /**
  * Fonts the player can choose in the bottom menu (font: ...). One choice for the whole game:
- * it sets --font (and its style and size adjustment) on <html>, and every layout uses --font
+ * it sets --font (and its style and size adjustment) on <html>, and the UI uses --font
  * for all of its text. The first font is the default. To add one, add a line here; a web font
  * also needs its Google Fonts stylesheet, which loads only when the font is chosen.
  */
@@ -45,7 +45,7 @@ export function saveFontId(id: string) {
 
 /**
  * Apply a font to the whole page. Fonts other than the default get the same x-height as Times
- * (font-size-adjust), so every layout keeps its sizes whichever font is chosen.
+ * (font-size-adjust), so the UI keeps its sizes whichever font is chosen.
  */
 export function applyFont(f: Font) {
   const s = document.documentElement.style;

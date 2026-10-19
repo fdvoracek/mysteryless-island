@@ -547,66 +547,38 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await expect(page.locator("#workBox")).toBeHidden();
 });
 
-test("every layout can be chosen from the menu, shows all panels, plays, and is remembered", async ({ page }) => {
-  const layouts = ["journal", "scene", "notebook", "bujo", "stage", "classic"];
-  for (const [i, id] of layouts.entries()) {
-    await page.locator("#layoutBtn").click();
-    await expect(page.locator("#layoutMenu")).toBeVisible();
-    await page.locator(`#layoutMenu [data-layout="${id}"]`).click();
-    await expect(page.locator("#layoutMenu")).toBeHidden();
-    await expect(page.locator("#layoutBtn")).toHaveText(`layout: ${id === "bujo" ? "old journal" : id}.`);
-    await expect(page.locator("#app")).toHaveClass(new RegExp(`layout-${id}`));
-    await expect(page.locator(".action-sections > fieldset > legend")).toHaveText(["buildings", "consumables"]);
-    await expect(page.locator("#inventory button")).toHaveCount(0);
-    await expect(page.locator("#areaActions legend")).toHaveCount(0);
-    await expect(page.locator("#actions .btn").filter({ hasText: /look around|craft|build/ }).first()).toContainText("look around");
-    await expect(page.locator('#inventory .row[data-id="knife"]')).toBeVisible();
-    await expect(page.locator("#consumablesBox")).toBeHidden();
-    // the same panels in every layout; the story shows the newest line (older text may have
-    // scrolled out: layouts keep a different number of paragraphs)
-    const newest = await page.evaluate(() =>
-      (window as unknown as { ti: { state(): { log: Array<{ text: string }> } } }).ti.state().log[0].text);
-    await expect(page.locator("#log")).toContainText(newest);
-    await expect(page.locator("#status .row")).toHaveCount(5);
-    // the game moves on between layouts: the 3rd look finds the cliff ("climb the cliff"), the 4th the fish ("catch a fish")
-    const tasks = i < 2 ? ["survive the first night"]
-      : i < 3 ? ["survive the first night", "cut logs", "make a bed"]
-      : i < 4 ? ["survive the first night", "climb the cliff", "cut logs", "make a bed"]
-      : ["survive the first night", "catch a fish", "climb the cliff", "cut logs", "make a bed"];
-    await expect(page.locator("#quests .quest .title")).toHaveText(tasks);
-    await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
-    // and the game plays: one more landmark explored per layout (4 on the beach)
-    if (i < 4) await explore(page);
-  }
+test("classic shows all panels, ignores retired layout preferences, and remembers fonts", async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem("textisland.layout", 'notebook'));
+  await page.goto("./?speed=0.01&variants=first&layout=journal");
+  await expect(page.locator("#app")).toHaveClass("layout-classic");
+  await expect(page.locator("#layoutBtn, #layoutMenu")).toHaveCount(0);
+  await expect(page.locator(".action-sections > fieldset > legend")).toHaveText(["buildings", "consumables"]);
+  await expect(page.locator("#inventory button")).toHaveCount(0);
+  await expect(page.locator("#areaActions legend")).toHaveCount(0);
+  await expect(page.locator('#inventory .row[data-id="knife"]')).toBeVisible();
+  await expect(page.locator("#consumablesBox")).toBeHidden();
+  await expect(page.locator("#status .row")).toHaveCount(5);
+  await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
+  await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
+  for (let i = 0; i < 4; i++) await explore(page);
   await expect(page.locator("#log")).toContainText("a school of small fish");
 
-  // one font for all text in every layout; Times is the default; the choice is remembered
   const fontOf = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontFamily);
   await expect(page.locator("#fontBtn")).toHaveText("font: times.");
   await page.locator("#fontBtn").click();
   await page.locator('#fontMenu [data-font="garamond_italic"]').click();
   await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
-  for (const sel of ["#log .entry", "#actions .btn", "#status .key", "#fontBtn"]) {
+  for (const sel of ["#log .entry", "#actions .btn", "#status .key", "#fontBtn", "#clock", "#tabs .tab"]) {
     expect(await fontOf(sel), sel).toContain("Cormorant Garamond");
   }
   await expect(page.locator("#log .entry").first()).toHaveCSS("font-style", "italic");
-  await page.locator("#layoutBtn").click();
-  await page.locator('#layoutMenu [data-layout="bujo"]').click();
-  for (const sel of [".bj-title", "#log .day", "#log .entry", "#clock", "#tabs .tab"]) {
-    expect(await fontOf(sel), sel).toContain("Cormorant Garamond");
-  }
   await page.reload();
+  await expect(page.locator("#app")).toHaveClass("layout-classic");
   await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
-
-  // the choice survives a reload
-  await page.locator("#layoutBtn").click();
-  await page.locator('#layoutMenu [data-layout="notebook"]').click();
-  await page.reload();
-  await expect(page.locator("#layoutBtn")).toHaveText("layout: notebook.");
-  await expect(page.locator("#log .entry.latest")).toBeVisible();
+  await expect(page.locator("#log")).toContainText("a school of small fish");
 });
 
-test("central sections keep local building controls and portable item controls usable in every layout", async ({ page }) => {
+test("central sections keep local building controls and portable item controls usable on desktop and phone", async ({ page }) => {
   await explore(page, "forest_edge");
   await explore(page, "rock_shelter");
   await page.evaluate(() => {
@@ -627,25 +599,21 @@ test("central sections keep local building controls and portable item controls u
   await page.locator('#eventChoices [data-choice="campfire"]').click();
   await action(page, "light fire").click();
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
-  for (const id of ["classic", "journal", "scene", "notebook", "stage", "bujo"]) {
-    await page.setViewportSize({ width: 1280, height: 900 });
-    await page.locator("#layoutBtn").click();
-    await page.locator(`#layoutMenu [data-layout="${id}"]`).click();
-    await expect(page.locator(".action-sections > fieldset > legend")).toHaveText(["buildings", "consumables"]);
-    await expect(page.locator('#buildings .control-row[data-id="bed"] .btn .label')).toHaveText("sleep");
-    await expect(page.locator('#buildings .control-row[data-id="campfire"] .btn .label')).toHaveText(["stoke fire", "cook raw fish"]);
-    await expect(page.locator("#inventory button")).toHaveCount(0);
-    await expect(page.locator("#areaActions legend")).toHaveCount(0);
-    await expect(page.locator("#actions .btn").filter({ hasText: /look around|craft|build/ }).first()).toContainText("look around");
-    await page.setViewportSize({ width: 375, height: 667 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), id).toBeLessThanOrEqual(0);
-    const cook = page.locator('#buildings .control-row[data-id="campfire"] .btn', { hasText: "cook raw fish" });
-    await cook.scrollIntoViewIfNeeded();
-    const box = (await cook.boundingBox())!;
-    expect(box.x, id).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width, id).toBeLessThanOrEqual(375);
-    expect(box.height, id).toBeGreaterThanOrEqual(40);
-  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await expect(page.locator(".action-sections > fieldset > legend")).toHaveText(["buildings", "consumables"]);
+  await expect(page.locator('#buildings .control-row[data-id="bed"] .btn .label')).toHaveText("sleep");
+  await expect(page.locator('#buildings .control-row[data-id="campfire"] .btn .label')).toHaveText(["stoke fire", "cook raw fish"]);
+  await expect(page.locator("#inventory button")).toHaveCount(0);
+  await expect(page.locator("#areaActions legend")).toHaveCount(0);
+  await expect(page.locator("#actions .btn").filter({ hasText: /look around|craft|build/ }).first()).toContainText("look around");
+  await page.setViewportSize({ width: 375, height: 667 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  const cook = page.locator('#buildings .control-row[data-id="campfire"] .btn', { hasText: "cook raw fish" });
+  await cook.scrollIntoViewIfNeeded();
+  const box = (await cook.boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(375);
+  expect(box.height).toBeGreaterThanOrEqual(40);
   await page.locator('#consumables .control-row[data-id="cooked_fish"] .btn').click();
   await expect(page.locator('#consumables .control-row[data-id="cooked_fish"]')).toHaveCount(0);
   await page.locator('#consumables .control-row[data-id="can_water"] .btn').click();
@@ -658,42 +626,36 @@ test("central sections keep local building controls and portable item controls u
   await expect(page.locator('#consumables .control-row[data-id="can_water"] .val')).toHaveText("4");
 });
 
-test("on a phone screen every layout fits the width, and its buttons are on screen and usable", async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 667 }); // a small phone (iPhone SE)
-  await page.evaluate(() => localStorage.clear()); // every layout starts a new game, with the shipwreck
-  for (const id of ["classic", "journal", "scene", "notebook", "stage", "bujo"]) {
-    await page.goto(`./?speed=0.01&variants=first&layout=${id}`);
-    // a new game: the shipwreck fits the phone, every choice is a full-width button on screen
-    const panel = (await page.locator("#event .panel").boundingBox())!;
-    expect(panel.x, `${id}: event panel`).toBeGreaterThanOrEqual(0);
-    expect(panel.x + panel.width, `${id}: event panel`).toBeLessThanOrEqual(375);
-    const last = (await page.locator("#eventChoices .btn").last().boundingBox())!;
-    expect(last.y + last.height, `${id}: event choice below the screen`).toBeLessThanOrEqual(667);
-    await escapeShip(page, "knife");
-    const look = action(page, "look around");
-    await expect(look, id).toBeVisible();
-    // no sideways scrolling
-    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-    expect(overflow, `${id}: page wider than the screen`).toBeLessThanOrEqual(0);
-    // the first button is on the first screen, big enough for a finger, and nothing covers it
-    const box = (await look.boundingBox())!;
-    expect(box.y + box.height, `${id}: button below the first screen`).toBeLessThanOrEqual(667);
-    expect(box.height, `${id}: button too small to tap`).toBeGreaterThanOrEqual(40);
-    const topmost = await page.evaluate(
-      ({ x, y }) => document.elementFromPoint(x, y)?.closest(".btn")?.textContent ?? null,
-      { x: box.x + box.width / 2, y: box.y + box.height / 2 },
-    );
-    expect(topmost, `${id}: something covers the button`).toContain("look around");
-    await explore(page, "forest_edge");
-    await expect(tab(page, "the forest"), id).toBeVisible();
-    // the layout menu opens as a sheet inside the screen
-    await page.locator("#layoutBtn").click();
-    const sheet = (await page.locator("#layoutMenu").boundingBox())!;
-    expect(sheet.x, id).toBeGreaterThanOrEqual(0);
-    expect(sheet.x + sheet.width, id).toBeLessThanOrEqual(375);
-    await page.keyboard.press("Escape");
-    await page.evaluate(() => localStorage.clear());
-  }
+test("on a phone screen classic fits the width, and its buttons are on screen and usable", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.evaluate(() => localStorage.clear());
+  await page.goto("./?speed=0.01&variants=first");
+  const panel = (await page.locator("#event .panel").boundingBox())!;
+  expect(panel.x).toBeGreaterThanOrEqual(0);
+  expect(panel.x + panel.width).toBeLessThanOrEqual(375);
+  const last = (await page.locator("#eventChoices .btn").last().boundingBox())!;
+  expect(last.y + last.height).toBeLessThanOrEqual(667);
+  await escapeShip(page, "knife");
+  const look = action(page, "look around");
+  await expect(look).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+  const box = (await look.boundingBox())!;
+  expect(box.y + box.height).toBeLessThanOrEqual(667);
+  expect(box.height).toBeGreaterThanOrEqual(40);
+  const topmost = await page.evaluate(
+    ({ x, y }) => document.elementFromPoint(x, y)?.closest(".btn")?.textContent ?? null,
+    { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+  );
+  expect(topmost).toContain("look around");
+  await explore(page, "forest_edge");
+  await expect(tab(page, "the forest")).toBeVisible();
+  // Font choices remain available as a sheet within the phone screen.
+  await page.locator("#fontBtn").click();
+  const sheet = (await page.locator("#fontMenu").boundingBox())!;
+  expect(sheet.x).toBeGreaterThanOrEqual(0);
+  expect(sheet.x + sheet.width).toBeLessThanOrEqual(375);
+  await page.locator('#fontMenu [data-font="times"]').click();
+  await expect(page.locator("#fontMenu")).toBeHidden();
 });
 
 test("death is permanent: the end screen tells your story; load the saved game or start again", async ({ page }) => {

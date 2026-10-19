@@ -6,7 +6,7 @@ import { ActionController } from "./app/action-controller";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
 import { clearSave, hasSavedGame, loadGame, readSaveStatus, saveGame, writeSave } from "./persistence/save";
-import { initTheme, loadLayoutId, UI } from "./ui/render";
+import { initTheme, UI } from "./ui/render";
 
 initTheme();
 const app = document.getElementById("app")!;
@@ -65,7 +65,6 @@ ui = new UI(
     has: () => hasSavedGame(),
   },
   speed,
-  loadLayoutId(),
 );
 
 installDebug(() => engine, () => { save(); ui.render(); controller.sync(); }, () => { controller.stop(); clearSave(); engine = Engine.newGame(reg, newSeed()); save(); ui.render(); });
