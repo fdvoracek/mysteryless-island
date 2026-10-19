@@ -2,6 +2,11 @@
 
 A minimalist, data-driven text survival game (TypeScript, Vite, Zod, Vitest, Playwright). Static site on GitHub Pages. Design: `docs/GDD.md`; technical design: `docs/TDD.md`; player-facing summary: `README.md`.
 
+**Required reading:** Read [ARCHITECTURE.md](ARCHITECTURE.md) before changing gameplay, content models,
+saves, scheduling, or shared UI. It records architectural boundaries, simulation invariants,
+confirmed future mechanics, and the definition of done. Keep decisions there; use this file for
+repository workflow and authoring conventions.
+
 ## Commands
 
 ```bash
