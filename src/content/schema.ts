@@ -600,21 +600,12 @@ export const Quest = z
   .object({
     id: Id,
     title: z.string(),
-    /** shown on hover in the tasks panel */
-    hint: z.string().optional(),
     trigger: QuestTrigger,
     completeWhen: Condition,
     startLog: Text.optional(),
     doneLog: Text.optional(),
     /** applied when the quest is done (rewards, follow-up quests) */
     effects: z.array(Effect).optional(),
-    /** The task's building goal (it is built in the build menu). */
-    build: Id.optional(),
-    /**
-     * Requirement metadata for content and simulations: items or buildings; a
-     * list inside the list means any one of them, e.g. [["fishing_spear", "fish_trap"]].
-     */
-    needs: z.array(z.union([Id, z.array(Id).min(2)])).optional(),
   })
   .strict();
 

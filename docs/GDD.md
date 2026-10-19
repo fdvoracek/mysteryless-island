@@ -1,12 +1,17 @@
 # Text Island: Game Design Document
 
-Version 0.1 (draft for review) · Owner: František Dvořáček · Last updated: 2026-10-14
+Version 0.1 (draft for review) · Owner: František Dvořáček · Last updated: 2026-10-19
 
 Status markers used in this document:
 
 - **[decided]**: confirmed by you in the design Q&A.
 - **[proposal]**: my design, open for review.
 - **[open]**: needs a decision before the related milestone.
+
+This document includes the longer-term island, technology and voyage design. The current
+prototype implements the beach, forest and meadows, survival, tasks, crafting/building and
+local production. Sections marked as future or proposal are not current gameplay; `README.md`
+describes the playable scope and `docs/TDD.md` describes implemented architecture.
 
 ---
 
@@ -80,7 +85,7 @@ Each button shows its cost on hover: duration, energy, consumed items, and possi
 
 ### 4.2 Day loop (minutes)
 
-Morning: check status, plan. Day: work in regions (gather, craft, build, explore), eat and drink as needed. Evening: return to camp before it gets cold or dark. Night: sleep. Sleep restores energy, passes about 8 hours, lets running processes finish, and creates the **checkpoint** (autosave).
+Morning: check status, plan. Day: work in regions (gather, craft, build, explore), eat and drink as needed. Evening: return to camp before it gets cold or dark. Night: sleep until the next 6am. Sleep restores energy, advances local production, pauses unfinished player work, and writes the manual saved game just before sleep. Autosaves separately preserve ongoing progress.
 
 ### 4.3 Progression loop (the whole game)
 
@@ -106,7 +111,7 @@ flowchart LR
 
 ## 5. Time model **[decided: action-based clock]**
 
-- The in-game clock moves only when the player acts. Nothing happens while the player reads or thinks.
+- The in-game clock advances while a chosen action runs. Reading or thinking without active work advances no time; an open pop-up pauses active work. Nothing advances while the game is closed.
 - Time unit: minutes internally. Actions take 30 min to 8 h.
 - A day has four phases: **dawn** 05:00–07:00, **day** 07:00–18:00, **dusk** 18:00–20:00, **night** 20:00–05:00 **[proposal]**.
 - Some actions are restricted at night (no exploring without a torch; hunting has worse odds).
@@ -121,7 +126,12 @@ flowchart LR
 | Autumn | 41–60 | Harvest. Storms more common (wreckage washes up). |
 | Winter | 61–80 | Cold nights everywhere. No planting. Mountain blizzards. Bad season to sail. |
 
-**Keeping the tactile feel [proposal]:** an action-based clock has no real-time waiting. To keep *A Dark Room*'s cooldown bar feel, each button plays a short cosmetic progress bar scaled to the action's duration (about 250 ms per in-game hour, capped at 2 s). It is cosmetic only and can be turned off in settings.
+**Paced work [implemented]:** actions advance the live game in 15-minute steps at 10 real
+seconds per game hour (2.5 seconds per step). Bars show saved work progress. Outputs arrive
+when work completes. Sleep jumps immediately to 6am. Travel and sleep pause work that needs
+the player's presence; inputs stay reserved, and reload restores progress. The core supports
+equal focus sharing between concurrent actions; the current UI offers one active action.
+Multitasking controls and perks remain future work.
 
 ---
 
@@ -188,13 +198,15 @@ Region bases **[proposal]:** beach 24, forest 20, lake 18, plains 25, caves 13 (
 
 ### 6.3b Daily sleep [implemented]
 
-Voluntary sleep requires a bed built in the current area; the sleep button is hidden otherwise. Sleep always ends at 6am at the same place. A sheltered bed with a local fire burning at bedtime sets morning energy to 100% before midnight. Without fire, or from midnight onwards, a sheltered bed gives 80%. An exposed bed or no bed gives 50%. Discovered beach rocks count as natural shelter and allow a bed immediately; elsewhere, build a shelter first. Campfires are built separately (2 stones), then lit and fueled in their own area. Recovery uses conditions at bedtime, even if the fire expires overnight. After the first night, the “better sleep” task asks for a bed and lit fire in the same sheltered area. At midnight or zero energy the player collapses where they are and sleeps until 6am; unfinished work stops and reserved materials return. The morning journal announces the day and describes sleep quality. Production continues overnight.
+Voluntary sleep requires a bed built in the current area; the sleep button is hidden otherwise. Sleep always ends at 6am at the same place. A sheltered bed with a local fire burning at bedtime sets morning energy to 100% before midnight. Without fire, or from midnight onwards, a sheltered bed gives 80%. An exposed bed or no bed gives 50%. Discovered beach rocks count as natural shelter and allow a bed immediately; elsewhere, build a shelter first. Campfires are built separately (2 stones), then lit and fueled in their own area. Recovery uses conditions at bedtime, even if the fire expires overnight. After the first night, the “better sleep” task asks for a bed and lit fire in the same sheltered area. At midnight or zero energy the player collapses where they are and sleeps until 6am; unfinished player work pauses and its materials stay reserved. The morning journal announces the day and describes sleep quality. Production continues overnight.
 
-### 6.4 Death and checkpoints **[decided: checkpoint / reload]**
+### 6.4 Death and saves [implemented]
 
-- When health reaches 0: "the world fades." The game reloads the last checkpoint.
-- A checkpoint is created at every sleep and at major milestones (region unlocked, boat stage finished) **[proposal]**.
-- **Anti-save-scumming [proposal]:** the random generator state is saved with the checkpoint. The same choices after a reload give the same results. Players must change their plan, not just retry the dice.
+- Zero health ends the run permanently and opens the end screen.
+- The player may load the manual saved game or start again. Choosing *save.* and going to
+  sleep write that slot; autosaves separately preserve every completed action and work step.
+- Gameplay and narrative RNG states are saved independently. Reloading repeats the same
+  gameplay rolls for the same choices; text variants cannot change those rolls.
 
 ---
 
@@ -310,11 +322,16 @@ Your example chain is the backbone: charcoal (forest) → forge → iron (from o
 
 Some unlocks are ideas rather than items: *safe mushrooms*, *boiling water*, *smelting*, *retting flax*. Knowledge is learned through events, discoveries or first-time actions ("you notice the clay hardens near the fire" after cooking near clay). It is shown in the journal and used in conditions. This gives the Verne-style "clever engineer" feeling without a skill system.
 
-### 8.4 Buildings, upgrades and processes
+### 8.4 Buildings and production
 
-- **Build:** costs items and in-game hours. Large builds can take several actions (progress bar per build).
-- **Upgrade:** a building has levels (lean-to → hut → cabin). Each level changes effects (warmth, sleep quality, unlocks).
-- **Process:** a building can run a job. The player loads inputs, the job runs for N in-game hours, then outputs are collected (automatically when the player is in the region, or into the stockpile directly **[open]**). Examples: charcoal clamp 24 h, kiln 8 h, tanning pit 48 h, retting pond 72 h, corn field 10 days.
+- **Build [implemented]:** costs items and player work time, in the current area.
+- **Production [implemented]:** each building type in each area has independent batch state.
+  The player supplies inputs and starts production; it advances with game time while away or
+  asleep, and outputs wait for explicit collection. Multiple unbaited traps in one area share
+  a cycle; additions join immediately. Required-input units remain empty until supplied, and
+  newly sown fields start their own full growing period. Harvested fields need new seeds.
+- **Future:** bait selection, detailed crop controls, building upgrade levels and larger
+  production chains such as charcoal, kilns, tanning and retting.
 
 ---
 
@@ -378,11 +395,11 @@ The arc "survive, build, leave" works on its own. A mystery would give explorati
 
 Short goals that point the player at the next thing to learn, without explaining mechanics.
 
-- **Only active tasks are shown**, in a *tasks* box under the status panel. Hovering a task shows a one-line hint in the game's voice. A finished task is struck through for a moment, then disappears; the log gets a closing line.
+- **Only active tasks are shown**, in a *tasks* box under the status panel. Each row shows only the goal title; costs and requirements belong to action and craft/build controls. A finished task is struck through for a moment, then disappears; the log gets a closing line.
 - **Trigger** (when a task becomes active): at the start of a new game; when a condition becomes true (a time such as "day 1, 16:00", an item seen, a region unlocked, another task done, a flag set by an event); or manually, from an effect in an activity outcome, an event or another task's reward.
 - **Goal** (when it's done): any condition, such as "drank for the first time", "a fire is burning", "it's day 2 after 06:00", "a shelter is built".
 - **Rewards:** a finished task can run effects (give items, start the next task).
-- **Task actions:** a task can carry its own action, shown as a small button next to it (e.g. *build*), with progress towards the cost underneath ("firewood 4/10"). When the materials are in the stores, clicking it spends them, takes the time and gives the result. This is how simple builds work before a crafting menu exists.
+- **Making things:** tasks have no action buttons. Crafting and building happen through their menus; fulfilling `completeWhen` finishes the goal.
 - Tasks never fail in v1. Timed or failable tasks can be added later if the design needs them.
 
 Current set:
@@ -497,10 +514,10 @@ Real time is estimated by the simulator from an average cost per click (about 5 
 | Risk | Why it matters | Mitigation |
 |---|---|---|
 | Five stats shown as words only | Players can't plan precisely, and may feel cheated by sudden damage | 6-hour warning rule; trend in tooltip; first-time hints in the log |
-| Action clock loses the idle charm | *A Dark Room*'s appeal partly comes from waiting and returning | Processes running in in-game time; cosmetic cooldown bars; sleep as the "come back later" moment |
+| Action clock loses the idle charm | *A Dark Room*'s appeal partly comes from waiting and returning | Production running in game time; persisted work bars; sleep as the "come back later" moment |
 | Global stockpile + no decay = hoarding | Late game becomes trivial | Time and energy are the real limits; water storage is capped by containers; boat costs absorb surplus |
 | A deep tree in 2–4 h | Too many items make the game a checklist | ~60 items cap; every item used in at least two recipes or one boat stage |
-| Checkpoint reloads | Save-scumming random events | Seeded random state saved in the checkpoint |
+| Manual saved-game reloads | Repeating random events | Seeded gameplay RNG saved independently from narrative wording |
 | Tabs that cost travel time | Unfamiliar UX | Show cost on the tab; separate "return to camp" button |
 | Survival genre is crowded | Hard to stand out | Strong voice, art and the mystery; finite, well-paced arc |
 

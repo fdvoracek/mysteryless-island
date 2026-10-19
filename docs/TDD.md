@@ -1,8 +1,8 @@
 # Text Island: Technical Design Document
 
-Version 0.1 (draft for review) · Companion to `docs/GDD.md` · Last updated: 2026-10-14
+Version 0.1 (draft for review) · Companion to `docs/GDD.md` · Last updated: 2026-10-19
 
-Status markers: **[decided]** confirmed by you · **[proposal]** my design · **[open]** needs a decision.
+Status markers: **[implemented]** describes the current prototype · **[decided]** records design intent · **[proposal]** and **[open]** describe future work. Design examples for knowledge, weather, upgrades, standalone processes and the boat are future extensions; `src/content/schema.ts` is the authoritative supported format.
 
 ---
 
@@ -30,7 +30,7 @@ Status markers: **[decided]** confirmed by you · **[proposal]** my design · **
 | Events as JS object literals with callbacks | Events as JSON with a fixed effect vocabulary |
 | DOM holds part of the state | UI renders view models; it holds no game state |
 | Data-driven scene graph for events | **Kept**, extended with conditions, cooldowns, weights |
-| Cooldown buttons, fading log, reveal-by-unlock | **Kept** (cooldowns become cosmetic) |
+| Cooldown buttons, fading log, reveal-by-unlock | **Kept** (bars display persisted work progress) |
 | Versioned save migrations | **Kept** |
 
 ---
@@ -38,92 +38,47 @@ Status markers: **[decided]** confirmed by you · **[proposal]** my design · **
 ## 2. Architecture
 
 ```mermaid
-flowchart TB
-  subgraph Content["content/ (JSON)"]
-    J[regions · items · recipes · events · climate · stats · game]
-  end
-  subgraph Build["load + validate"]
-    L[Loader] --> Z[Zod schemas] --> REG[(Registry: frozen, indexed)]
-  end
-  subgraph Core["src/core: pure TypeScript, no DOM"]
-    ENG[Engine: dispatch command] --> SYS[Systems: clock · environment · stats · processes · events · unlocks]
-    SYS --> ST[(GameState)]
-    CE[Conditions] --- SYS
-    EF[Effects] --- SYS
-    RNG[Seeded RNG] --- SYS
-    SEL[Selectors → view models]
-  end
-  subgraph UI["src/ui: DOM"]
-    R[Renderer] --> P[Panels: log · tabs · buttons · status · inventory · consumables · event modal]
-  end
-  J --> L
-  REG --> ENG
-  ST --> SEL --> R
-  P -- commands --> ENG
-  SAVE[Persistence: localStorage] <--> ST
-  DBG[Debug console] --> ENG
-  SIM[Simulator CLI] --> ENG
-  VAL[Validator CLI] --> Z
+flowchart LR
+  JSON[JSON files] --> L[Vite loader]
+  L --> REG[Zod validation and Registry]
+  REG --> ENG[Engine]
+  UI[Six layouts and renderer] --> CTRL[ActionController]
+  CTRL -->|start and stepActions| ENG
+  ENG --> STATE[Serializable GameState]
+  STATE --> SEL[Selectors]
+  SEL --> UI
+  CTRL --> SAVE[Save storage]
+  SAVE --> MIG[Validation and migration]
+  MIG --> STATE
 ```
 
-**Rules:**
-
-1. `src/core` never touches the DOM, `window`, `Date` or `Math.random`. That's why the simulator and tests can run it in Node.
-2. The UI never changes state directly. It sends **commands** and renders **view models** from selectors.
-3. Content is loaded once, validated, and frozen into a `Registry`. Systems read content only through the registry.
+The engine owns simulation and command completion. `ActionController` owns browser scheduling,
+step persistence and cancellation when loading or restarting. `dispatch` runs the same work
+synchronously in tests. Layouts share the renderer and panel IDs; none owns game state.
+Core modules use no DOM, wall clock, or unseeded randomness. The validated registry is read-only
+by convention (its outer object is frozen); the runtime state contains plain serializable data.
+The JSON loader already acts as an adapter into `buildRegistry`. A future CSV importer should
+produce the same validated entities with stable IDs; no CSV implementation is needed now.
 
 ---
 
-## 3. Project layout **[proposal]**
+## 3. Module boundaries [implemented]
 
-```
-TextIsland/
-├─ content/
-│  ├─ game.json                  start state, constants, checkpoint rules
-│  ├─ stats.json                 stat definitions, word bands, rates, damage rules
-│  ├─ climate.json               day phases, seasons, weather, body temperature bands
-│  ├─ knowledge.json
-│  ├─ items/                     *.json, each file = array of items (grouped freely)
-│  ├─ recipes/                   *.json, camp / workbench / forge / loom recipes
-│  ├─ regions/                   one file per region (activities, buildings, events inside)
-│  │  ├─ beach.json
-│  │  ├─ forest.json
-│  │  └─ ...
-│  ├─ events/                    global.json, story.json, voyage.json
-│  ├─ endings.json
-│  └─ strings/                   en.json (generated), cs.json ... (translations)
-├─ public/illustrations/         *.webp, transparent ink drawings
-├─ schema/                       generated JSON Schemas (for VS Code + future editor)
-├─ src/
-│  ├─ core/
-│  │  ├─ engine.ts               dispatch, command pipeline
-│  │  ├─ state.ts                GameState type, createInitialState()
-│  │  ├─ clock.ts                minutes → day, hour, phase, season
-│  │  ├─ rng.ts                  seeded sfc32, serialisable
-│  │  ├─ conditions.ts           evaluate() + explain()
-│  │  ├─ effects.ts              effect handlers registry
-│  │  ├─ outcomes.ts             yields, weighted tables
-│  │  ├─ systems/                environment, stats, processes, events, unlocks, travel
-│  │  └─ selectors.ts            view models for the UI and the simulator
-│  ├─ content/
-│  │  ├─ schema.ts               Zod schemas (single source of truth)
-│  │  ├─ loader.ts               glob, merge, parse, index
-│  │  ├─ registry.ts
-│  │  └─ i18n.ts
-│  ├─ persistence/               save.ts, migrations.ts, export.ts
-│  ├─ ui/                        render.ts, components/, styles.css
-│  ├─ debug/                     console.ts, overlay.ts
-│  └─ main.ts
-├─ tools/
-│  ├─ validate.ts                npm run content:check
-│  ├─ schema-export.ts           npm run content:schema
-│  ├─ strings-extract.ts         npm run strings:extract
-│  └─ simulate.ts                npm run sim -- --seeds 50
-├─ tests/
-└─ docs/  GDD.md · TDD.md
-```
+| Location | Responsibility |
+|---|---|
+| `content/**/*.json` | Authored entities, rules and English text |
+| `src/content/{loader,schema,registry,text-keys}.ts` | JSON adaptation, validation, reference indexing and stable text identity |
+| `src/core/engine.ts` | Command checks, live simulation, rewards, events and task completion |
+| `src/core/{state,state-schema,work}.ts` | Serializable state, validation and persisted player work |
+| `src/core/{action-rules,conditions,timers,production}.ts` | Shared costs/tools, conditions, local timers and production batches |
+| `src/core/{clock,rng,text,selectors}.ts` | Time formatting, seeded randomness, narration and UI view models |
+| `src/app/action-controller.ts` | Browser scheduler and step persistence callback |
+| `src/persistence/{save,migrate}.ts` | Storage boundary, save validation and compatibility |
+| `src/ui/` | DOM rendering, panels, fonts, six layouts and scoped styles |
+| `src/main.ts`, `src/debug/console.ts` | Application composition and debug commands |
+| `tests/`, `e2e/` | Content/unit checks and browser smoke tests |
 
-**Dependencies [proposal]:** `vite`, `typescript`, `zod`, `zod-to-json-schema`, `vitest`, `tsx` (run tools). Nothing else at runtime besides Zod.
+Runtime dependency: Zod. Build/test tools: TypeScript, Vite, Vitest and Playwright.
 
 ---
 
@@ -140,7 +95,7 @@ Implemented provisions: `game.json.provisions` defines the automatic hunger/thir
 
 An unmet automatic need sets `auto_hunger_unavailable` / `auto_thirst_unavailable` flags; relief clears them. The drying-rack quest requires the hunger flag and carried raw fish or meat. Shortage notes are queued after successful commands; conditional preparation advice uses `provisions.preparation.when`. `GameState.provisionWarnings` remembers dismissed shortages across saves and rearms after relief; newly available preparation advice can also trigger a note. Raw meat and raw fish have no `consume` definition, so neither manual nor automatic consumption can eat them.
 
-The shared beach drying rack retains its fish cycle. Raw meat's `dry` item action spends two portions, requires a sharp tool and an idle rack, sets `drying_meat`, and starts that same cycle. Conditional collection yields select dried fish or dried meat; starting fish and collecting clear the flag. Existing fish-rack saves default to fish.
+The shared beach drying rack accepts two fish or two portions of meat. Meat drying requires a sharp tool and an idle local rack; its `startCycle` effect selects the named `meat` output on that rack’s production batch. Fish uses the default collection yields. Output identity and consumed inputs are local batch state; no global drying flag is used.
 
 ```
 for each step (15 minutes):
@@ -180,41 +135,16 @@ The test-speed URL multiplier changes wall-clock scheduling only.
 
 ## 5. Game state
 
-```ts
-interface GameState {
-  saveVersion: number;
-  contentHash: string;            // hash of loaded content, for migration warnings
-  seed: number;
-  rng: [number, number, number, number];   // sfc32 state
-  time: number;                   // minutes since start
-  location: RegionId;
-  stats: Record<StatId, number>;  // health, energy, hunger, thirst: 0..100
-  body: { warmthBand: number };   // index into climate.bodyBands
-  items: Record<ItemId, number>;
-  seen: ItemId[];                 // ever owned (reveal rule)
-  knowledge: KnowledgeId[];
-  flags: string[];
-  counters: Record<string, number>;
-  regions: Record<RegionId, {
-    unlocked: boolean; visited: boolean; explore: number; discoveries: DiscoveryId[];
-  }>;
-  buildings: Record<BuildingId, { level: number; count: number; progress?: number }>;
-  processes: Array<{ uid: string; processId: ProcessId; startedAt: number; endsAt: number }>;
-  activityUses: Record<ActivityId, { total: number; today: number; day: number }>;
-  weather: { id: WeatherId; until: number };
-  events: {
-    history: Record<EventId, { count: number; lastAt: number }>;
-    active: { eventId: EventId; sceneId: string } | null;
-    queue: EventId[];
-  };
-  log: Array<{ at: number; text: TextRef }>;   // capped at 100
-  ended: EndingId | null;
-}
-```
+The current `GameState` type is inferred from `src/core/state-schema.ts`; do not maintain a
+second handwritten interface. State version 6 contains gameplay and narrative RNG streams,
+time/location, stats/warmth, items, counters, flags, regions, typed pop-ups and task state,
+local timers, local building batches, player work records, journal and permanent death state.
 
-- Plain JSON-serialisable data. No classes, no Maps (simpler saves).
-- `items` doubles as the stockpile **[decided: global stockpile]**. Storage caps exist only where content defines them (water containers, GDD §6.3).
-- Clothing: the best owned item per clothing slot is worn automatically **[proposal]**. No equip UI needed for v1.
+Building keys are `building@region`; production batches retain their unit count, inputs, output
+identity and start time. Player actions retain location, reserved inputs and completed minutes.
+The model contains no callbacks or precomputed future state. Storage and migration validate it
+at loading boundaries; the engine receives normalized state. Items form the shared carried
+stockpile; only content-defined item caps apply. Clothing uses the best owned item per slot.
 
 ---
 
@@ -275,7 +205,7 @@ Example: "wearing warm clothes and not in a blizzard":
 
 The evaluator also has `explain(condition)`. It returns the first unmet leaf as a short phrase for tooltips ("needs: spear", "only in daylight"). Each leaf type has one phrase template in the strings file.
 
-### 6.4 Effects
+### 6.4 Effects [future superset; current vocabulary in schema.ts]
 
 ```ts
 type Effect =
@@ -304,7 +234,7 @@ type Outcome = { weight: number; when?: Condition; text?: Text; effects?: Effect
 
 Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by weight among those whose `when` is true.
 
-### 6.6 Region file
+### 6.6 Region file [illustrative future extensions]
 
 ```json
 {
@@ -451,12 +381,12 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 ```
 
 - **Where:** `places` lists the regions (each with an optional `when`); one can stand in each (state key `"<id>@<region>"` in `state.buildings`, `{ count, builtAt, batches, nextBatch }`). `availableWhen` gates the build button (usually: its task has started).
-- **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from the build menu where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest with `build: "<id>"` names its building goal; costs appear in the build menu, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
+- **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from the build menu where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest identifies its building goal through `completeWhen`; costs appear in the build menu, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
 - **Cycles:** `start` locks materials in a player action; completion creates a local production batch with `{ id, units, startedAt, inputs, production? }`. Every `hours` one output is ready per unit, up to `cycle.batches` (default 1); readiness derives from game time without browser scheduling. Production advances while away or asleep, never while the game is closed. `collect` locks ready batch IDs, unit counts and output counts when work starts; completion applies `collect.yields` (or the batch’s named `cycle.products` yields) and `outcomes` per claimed output/unit, plus `effects`. Unready batches and units added after collection began remain; collected units become empty, or with `repeat` start again from collection completion. Drying meat selects `production: "meat"` on the local rack rather than setting a global flag. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
 - **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Conditions include `{ "built": id }` (any place), `{ "built": id, "here": true }` (current place), `{ "sheltered": true }` (local built or natural shelter), and `{ "building": id, "is": "idle" | "working" | "ready" }`. Bed health regeneration is local; morning energy comes from `game.sleep.recovery`, not hourly multipliers.
 - **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` migrates a legacy shared fire to its configured region (beach), adding a campfire only if that old fire was burning; it never invents fire for an old bed save. Timer `building` and building `timer` references are validated.
 - **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in every layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
-- **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle; a quest's `build` must exist.
+- **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
 The 11 buildings in `content/buildings/camp.json`:
 
@@ -474,7 +404,7 @@ The 11 buildings in `content/buildings/camp.json`:
 | bee hive | meadows | you found the humming (after the bushes) | 2 logs | lure with 2 berries → 3 days → 1–2 honey (smoke: 1 firewood), repeats |
 | fish weir | the river | you emptied the trap twice | 6 stones, 2 logs | close → 12h → 2–4 fish, repeats |
 
-Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe (craft menu: 2 firewood, 2 stones) is offered once the task *cut logs* (needs: axe) starts, with any task needing logs; *stones* under the low cliff (*pick up stones*, once *cut logs*, the corn field or the weir task has started); the **hoe** (1 log, 1 stone) is offered with the corn field task (needs: hoe); *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); the **rope** (`cordage`; craft menu: 4 bark strips, 3 h; *strip bark* in the forest needs something sharp, 1 h) climbs the cliff (`cliff_top` requires it; task *climb the cliff*, needs: rope) and makes the snares; *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
+Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe (craft menu: 2 firewood, 2 stones) is offered once the task *cut logs* starts, with any task needing logs; *stones* under the low cliff (*pick up stones*, once *cut logs*, the corn field or the weir task has started); the **hoe** (1 log, 1 stone) is offered with the corn field task; *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); the **rope** (`cordage`; craft menu: 4 bark strips, 3 h; *strip bark* in the forest needs something sharp, 1 h) climbs the cliff (`cliff_top` requires it; task *climb the cliff*) and makes the snares; *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
 
 The original design (levels, modifiers) is kept below for later.
 
@@ -491,7 +421,7 @@ The original design (levels, modifiers) is kept below for later.
 | `hoursFactor: { activity, factor }` | Multiplies action time (better tools) |
 | `statRate: { stat: factor }` | Multiplies a stat's drain rate (shade, hat) |
 
-### 6.9 Items, recipes, processes, knowledge
+### 6.9 Items, recipes, processes, knowledge [future design examples]
 
 ```json
 [
@@ -525,7 +455,7 @@ The original design (levels, modifiers) is kept below for later.
 
 ### 6.10 Events
 
-**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. Each scene's text is logged when the scene opens, one journal paragraph per paragraph (blank line) of the text, before the choice's effects and whatever comes next (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark, menu, and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. Quest `action` may be a list of alternatives with `visibleWhen` (first visible wins). The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
+**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. Each scene's text is logged when the scene opens, one journal paragraph per paragraph (blank line) of the text, before the choice's effects and whatever comes next (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark, menu, and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
 
 | Field | Meaning |
 |---|---|
@@ -544,17 +474,16 @@ While an event is active, every command except `choose` is rejected. An event st
 
 ### 6.10b Quests **[decided]**
 
-**Better sleep [implemented]:** the task starts once `survive_first_night` is done. Its hint asks for a bed and a lit fire in a sheltered area; completion requires `{ sheltered: true }`, `{ built: "bed", here: true }`, and `{ timer: "fire" }` together at the current location. Separate areas cannot contribute partial facilities.
+**Better sleep [implemented]:** the task starts once `survive_first_night` is done. Completion requires `{ sheltered: true }`, `{ built: "bed", here: true }`, and `{ timer: "fire" }` together at the current location. Separate areas cannot contribute partial facilities.
 
 **Task notes [implemented]:** when a quest completes, the engine queues a note (`state.events.notes`) that opens as a pop-up when the command is over (it blocks the game like an event; `close` ends it). Title `game.tasks.title` ({task}); text: the quest's `doneLog` (already in the journal, not logged again) and what changed since the command began: items gained (`tasks.gained`, {item} {where}) and used (`tasks.used`), places opened (`tasks.opened`), buildings built (`tasks.built`), and, when crafting or building finished it, actions now possible here (`tasks.possible`). Tests: `startGame` closes notes automatically unless `{ keepNotes: true }`.
 
-Example (not shipped; the current content has only *survive the first night*):
+Example of an additional task (not shipped):
 
 ```json
 {
   "id": "light_a_fire",
   "title": "light a fire",
-  "hint": "The light is going. Gather wood and make a fire before dark.",
   "trigger": { "when": { "all": [ { "reached": { "day": 1, "hour": 16 } }, { "not": { "did": "light_fire" } } ] } },
   "completeWhen": { "timer": "fire" },
   "startLog": "The sun is low. It will be cold soon.",
@@ -564,11 +493,11 @@ Example (not shipped; the current content has only *survive the first night*):
 ```
 
 - Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
-- Tasks are goals, not recipes **[implemented]**: no task asks you to craft a tool; a task that needs tools says so in `needs` (items or buildings; a nested list = any one of them: `[["fishing_spear", "fish_trap"]]`), retained as metadata in `view.quests[].needs`. Optional `build: <building>` identifies its building goal. The task panel displays titles only; requirements and costs appear in craft/build menus. Tasks have no buttons: things are made in the craft and build menus (below). The quest finishes through its normal `completeWhen` (e.g. `{ "seen": "raw_fish" }`, `{ "built": "shelter" }`). The validator checks `needs` ids.
+- Tasks are goals, not recipes **[implemented]**: no task asks you to craft a tool; requirements belong to the activity, item action or craft/build step that fulfills the goal. Quest `hint`, `needs`, and `build` fields were removed because the title-only task panel does not use them. The task panel displays titles only; requirements and costs appear in craft/build menus. Tasks have no buttons: things are made in the craft and build menus (below). The quest finishes through its normal `completeWhen` (e.g. `{ "seen": "raw_fish" }`, `{ "built": "shelter" }`).
 
 **Tool tags [implemented]:** requirements name a use, not an item. `game.json` → `tools` defines the tags (`sharp`, `fire_starter`) with a `label` (shown next to items that have it: *knife · sharp*) and `needs` (what `explain` says: "needs something sharp"). An item has `tool: { tags, amount?, hoursFactor? }`: knife `sharp`; rock knife `sharp`, ×2; matches `fire_starter`; stones and firewood `fire_starter` with `amount: 2`. The condition `{ "tool": tag }` holds when you have `amount` of any item with the tag. An action whose `visibleWhen` / `requires` ask for a tool (not under `not`) takes the quickest such item's `hoursFactor` times as long (`toolFactor`, `Engine.hoursFor`; activities, recipe ways, item actions, landmarks, building steps; the shown times too). When the way differs by item (texts, chance), content uses separate activities or recipe ways with item conditions: the three *light fire* activities (`light_fire` matches, `strike_fire` 2 stones, `make_fire` friction, which requires `{ "tool": "fire_starter" }` and 5 firewood: 3 to burn, 2 sticks), the spear's two ways (rock knife texts when it is the only sharp thing).
 
-**Craft and build menus [implemented]:** `{ type: "menu", menu: "craft" | "build" }` opens a pop-up (`events.active.id = "menu:craft"`; no time; with nothing in it, the text is `menus.<menu>.empty` and only *close*). Its choices: for craft, the recipes (`content/recipes/*.json`: `{ id, item, count?, label?, availableWhen?, multiple?, ways: [{ visibleWhen?, hours, effort, requires?, requiresText?, cost?, log?, effects? }], tags? }`; the first way whose `visibleWhen` holds is used, e.g. the spear with the knife or a stone) that are available and not had yet (unless `multiple`); for build, the buildings `buildable` here (available, a place here, fewer than `max` here). Each choice has its `time` and a `tooltip` (cost, time; the building's hint), and is disabled with the reason when it can't be made. Choosing one closes the pop-up and makes it like an action (time, progress bar, `did`/`today` with the recipe or building id, event `after` keys); the task note then lists what is now possible. The view places both menus beside look around in the main action row (`menu: true`; badge `*` when something can be made now), from the moment it has something (`Engine.menuShown`: a recipe available, or a building available anywhere) and from then on in every place (flag `menu_craft` / `menu_build`). The classic layout is 1040px wide (slimmer side columns below 1080px) so the three fit in its middle column down to about 900px.
+**Craft and build menus [implemented]:** `{ type: "menu", menu: "craft" | "build" }` opens a pop-up (`events.active = { kind: "menu", menu: "craft", text }`; no time; with nothing in it, the text is `menus.<menu>.empty` and only *close*). Its choices: for craft, the recipes (`content/recipes/*.json`: `{ id, item, count?, label?, availableWhen?, multiple?, ways: [{ visibleWhen?, hours, effort, requires?, requiresText?, cost?, log?, effects? }], tags? }`; the first way whose `visibleWhen` holds is used, e.g. the spear with the knife or a stone) that are available and not had yet (unless `multiple`); for build, the buildings `buildable` here (available, a place here, fewer than `max` here). Each choice has its `time` and a `tooltip` (cost, time; the building's hint), and is disabled with the reason when it can't be made. Choosing one closes the pop-up and makes it like an action (time, progress bar, `did`/`today` with the recipe or building id, event `after` keys); the task note then lists what is now possible. The view places both menus beside look around in the main action row (`menu: true`; badge `*` when something can be made now), from the moment it has something (`Engine.menuShown`: a recipe available, or a building available anywhere) and from then on in every place (flag `menu_craft` / `menu_build`). The classic layout is 1040px wide (slimmer side columns below 1080px) so the three fit in its middle column down to about 900px.
 - Item grouping follows capabilities: `consume` or a nonempty `actions` list places an item in consumables; other items go in inventory. Task-gain notes name the same section.
 - `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
 - New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.
@@ -628,86 +557,50 @@ Damage, regeneration and multipliers are themselves conditions. New survival rul
 
 ## 7. Command pipeline
 
-```mermaid
-sequenceDiagram
-  participant UI
-  participant Engine
-  participant Systems
-  participant State
-  UI->>Engine: dispatch({type:"activity", id:"hunt"})
-  Engine->>Engine: guard (game ended? event active? at region?)
-  Engine->>Engine: check visibleWhen, requires, cost, limit
-  Engine->>State: take cost
-  Engine->>Systems: advance(hours, effort)
-  Systems->>State: per 15-min step: clock, environment, stats, damage, processes, hooks
-  Engine->>State: apply yields / outcomes / effects
-  Engine->>Systems: roll events (trigger "activity", tags)
-  Engine->>Systems: post-checks (unlocks, knowledge, condition events)
-  Engine->>State: autosave
-  Engine-->>UI: result {log lines, changed, cosmetic cooldown ms}
-  UI->>UI: render(selectors(state))
-```
+1. The UI sends a command through `ActionController.send` to `Engine.start`.
+2. The engine guards death/open pop-ups, checks requirements, reserves costs, and creates work
+   for a timed action. Menus and ordinary choices resolve without advancing time.
+3. The controller schedules `stepActions` at `cosmetic.msPerHour` (the retained configuration
+   name). Each step advances live simulation and persists the result.
+4. Completion removes the work record before applying rewards, arrival or discoveries. Task
+   checks, unlocks, notes and eligible events run against the resulting state.
+5. The controller renders selector output and schedules the next step when work can continue.
 
-**Commands:** `activity`, `explore`, `travel`, `returnToCamp`, `build`, `craft`, `startProcess`, `collect`, `consume`, `rest`, `sleep`, `choose` (event choice), plus debug commands. Each command is a small handler. All share the `guard → check → pay → advance → resolve → events → post-check → save` pipeline.
-
-**Post-checks** run after every command:
-
-1. Regions whose `unlockWhen` became true → unlock, log, image.
-2. Knowledge whose `learnWhen` became true → learn.
-3. `condition` events whose `when` became true → queue (respecting `once`).
-4. Newly owned items → add to `seen` (drives the reveal rule).
-
-These are evaluated over the whole registry after every command. With a few hundred entities that's well under a millisecond, so no dependency tracking is needed.
+`dispatch` drains this same pipeline synchronously for headless tests. Commands are `activity`,
+`travel`, `consume`, `explore`, `menu`, `itemAction`, `building`, `choose`, `pause`, and `resume`.
+Crafting is chosen in its menu; sleep/rest are activities. Pop-ups pause scheduled work, travel
+and sleep pause work requiring presence, and reserved inputs survive those interruptions.
 
 ---
 
 ## 8. Selectors and view models
 
-The UI and the simulator read the same view models.
-
-```ts
-interface RegionView {
-  id: RegionId; name: string; title: string; description: string[];
-  travelHours: number; isHere: boolean;
-  actions: ButtonView[];     // explore + activities
-  build: ButtonView[];       // buildings and next upgrade level
-  craft: ButtonView[];       // recipes for stations in this region
-  running: Array<{ name: string; hoursLeft: number; ready: boolean }>;
-}
-interface ButtonView {
-  id: string; label: string; enabled: boolean;
-  reason?: string;           // explain() of the first unmet requirement
-  tooltip: { hours: number; effort: Effort; cost: Amounts; outputs?: string[] };
-  cooldownMs: number;
-}
-interface StatusView {
-  day: number; time: string; phase: string; season: string; weather: string;
-  words: Record<StatId, { word: string; trend: "up" | "down" | "steady" }>;
-  inventory: Array<{ id: ItemId; label: string; count: number; tags: string[] }>;
-  consumables: Array<{ id: ItemId; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
-}
-```
-
-**Reveal rule [proposal, GDD §13]:** a recipe or building is visible when `visibleWhen` is true **or**, if it has no `visibleWhen`, when every cost item is in `seen`. It is enabled when `requires` is true and the cost is affordable.
+`src/core/selectors.ts` defines the current `View` and `ButtonView` types. The view includes
+route-map nodes/paths, available controls, grouped building and item actions, status bars,
+active task IDs/titles, inventory, journal turns, typed pop-up choices and persisted work
+progress. The renderer owns DOM updates and presentation, not gameplay checks or durations.
+Costs and disabled reasons appear on action/menu controls; task rows contain titles only.
+Tests and headless callers can read the same view. Recipe/building visibility comes from
+content `availableWhen` and place conditions; requirements/costs determine enabled state.
 
 ---
 
 ## 9. Randomness and determinism
 
 - `rng.ts` implements **sfc32**, seeded at new game. The 4-number state is saved in `GameState`.
-- All game randomness goes through `ctx.rng`. Lint rule: `Math.random` is forbidden in `src/core`.
-- Because checkpoints contain the RNG state, a reload replays the same rolls for the same choices (anti-save-scum, GDD §6.4).
-- The simulator runs many seeds; any bug report can include the seed and the command log to reproduce it exactly.
+- Gameplay uses `state.rng`; wording uses the independent `state.narrativeRng`. All random draws use `rng.ts`; core code does not call `Math.random`.
+- Because saves contain the RNG state, a reload replays the same rolls for the same choices (anti-save-scum, GDD §6.4).
+- A future simulator can run many seeds; current bug reports can include the seed and command log for deterministic reproduction.
 
 ---
 
-## 10. Localisation **[decided: English now, more later]**
+## 10. Localisation **[future; stable text IDs implemented]**
 
 - Authors write English inline. They never manage keys.
-- `npm run strings:extract` walks the registry and writes `content/strings/en.json`. Keys are derived from the content path, for example `region.forest.description.0` or `event.wild_boar.scenes.start.choices.fight.text`.
-- A translation file (`cs.json`) uses the same keys. At runtime `t(key, inlineText)` returns the translation if one exists, else the inline English.
+- Planned `strings:extract` tooling will walk the registry and write `content/strings/en.json`. Keys are derived from the content path, for example `region.forest.description.0` or `event.wild_boar.scenes.start.choices.fight.text`.
+- A translation file (`cs.json`) uses the same keys. A future runtime `t(key, inlineText)` would return the translation if one exists, else the inline English.
 - Placeholders use `{name}` syntax (`"you collect {count} {item}"`). Plurals: items have `name` and `plural`. More complex plural rules (Czech has three forms) can be added later with `Intl.PluralRules` and a `{count, plural, ...}` form **[open: needed only when a second language starts]**.
-- Risk: renaming an id breaks its translation keys. The validator warns about orphaned translation keys.
+- Risk: renaming an id breaks its translation keys. Orphaned translation checks remain future work.
 
 ---
 
@@ -716,15 +609,15 @@ interface StatusView {
 ```ts
 interface SaveFile {
   saveVersion: number;
-  current: GameState;       // the autosave: after every command; the saved game: on save. and before sleep
+  current: GameState;       // autosave after commands/work steps; manual slot on save. and before sleep
   savedAt?: string;         // the saved game only
 }
 ```
 
-- Storage: `localStorage["textisland.save"]` (autosave) and `localStorage["textisland.saved"]` (the saved game). Export and import as base64 JSON text (a menu item, like *A Dark Room*).
-- **[implemented, replaces checkpoints]** Death is permanent: the engine sets `state.death = { time, cause, lines }` (the end screen's lines, chosen once: `game.ending.survived` with `{time}`/`{day}`, and `ending.cause` with `{cause}`). The cause is the damage rule hurting most when health hits 0 (`cause` on `stats.damage`; ties are joined with "and"), else what the command was (an event's title, "bad <food>"), else `ending.defaultCause`. Storage (src/persistence/save.ts): the autosave `textisland.save` after every action (a reload continues; a death stays), and the saved game `textisland.saved`, written by *save.* in the menu and just before every sleep (`engine.willSleep(cmd)`); the end screen offers *load the saved game* and *start again*.
-- **Migrations:** an ordered list `migrations[n](save) → save`. Run on load until `saveVersion` matches.
-- **Content drift:** if `contentHash` changed, the loader drops ids that no longer exist (with a console warning) and fills new stats with their start values. Content changes during development don't break saves.
+- Storage: `localStorage["textisland.save"]` (autosave) and `localStorage["textisland.saved"]` (the saved game). Export/import UI remains future work.
+- **[implemented, replaces checkpoints]** Death is permanent: the engine sets `state.death = { time, cause, lines }` (the end screen's lines, chosen once: `game.ending.survived` with `{time}`/`{day}`, and `ending.cause` with `{cause}`). The cause is the damage rule hurting most when health hits 0 (`cause` on `stats.damage`; ties are joined with "and"), else what the command was (an event's title, "bad <food>"), else `ending.defaultCause`. Storage (src/persistence/save.ts): the autosave `textisland.save` after every action and committed work step (a reload continues; a death stays), and the saved game `textisland.saved`, written by *save.* in the menu and just before every sleep (`engine.willSleep(cmd)`); the end screen offers *load the saved game* and *start again*.
+- **Migrations:** `restoreState` converts legacy shapes, validates against `GameStateSchema`, reconciles installed-content references, and sets `SAVE_VERSION` (currently 6). Unsupported or malformed data is preserved and reported.
+- **Content drift:** loading reconciles current registry IDs, clamps content-defined limits and supplies missing stats. Removed work targets return surviving reserved inputs; compatible work keeps progress. There is no content hash dependency.
 
 ---
 
@@ -732,17 +625,17 @@ interface SaveFile {
 
 
 **Pop-ups [implemented]:** events, look around, the menus and notes share `#event`. The `close` choice is not a button under the text: `renderEvent` shows it as `#eventBack` ("← back", the choice's label; default "back") in the title line (`.title-row`, right-aligned, the title's height), and hides `#eventChoices` when nothing else is left. In the prologue (the shipwreck) it stays a button under the text (`scene.close`: "wash ashore"). The back arrow, a click on the backdrop (`#event` itself) or Escape sends `close`; not in the prologue.
-- **No framework [decided].** `render.ts` has a ~150-line keyed `patch(container, items, key, create, update)` helper so buttons keep their DOM node (hover, focus and cooldown animation survive re-renders). If this grows painful, `lit-html` (a templating library, ~3 kB) is a drop-in fallback **[proposal]**.
-- Panels: `LogPanel` (prepend, fade, cap), `RegionTabs`, `ButtonGroup` (actions, build, craft, running), `StatusPanel`, `StoresPanel` (possession counts), `EventModal`, `Tooltip`, `Illustration`.
+- **No framework [decided].** `render.ts` keeps keyed control rows and buttons so focus and progress animations survive refreshes. If this grows painful, `lit-html` (a templating library, ~3 kB) is a drop-in fallback **[proposal]**.
+- Shared panel skeletons in `src/ui/layouts/panels.ts` supply fixed DOM IDs; `render.ts` fills story, route map, actions, status, tasks, stores and pop-ups.
 - **Styles:** CSS custom properties; one serif typeface; light and dark themes; fixed max width (~980 px) centred; keyboard focus visible.
-- **Illustrations:** content references an image id. The UI loads `/illustrations/{id}.webp` lazily, with required `alt` text from content. Dark mode applies `filter: invert(1)` to ink drawings, so one file serves both themes.
+- **Illustrations [future]:** content would reference an image id. The UI loads `/illustrations/{id}.webp` lazily, with required `alt` text from content. Dark mode applies `filter: invert(1)` to ink drawings, so one file serves both themes.
 - **Input:** mouse first; keyboard shortcuts for tabs (1–7) and for event choices (1–4) **[proposal]**.
 
 ---
 
 ### 12b. Layouts **[implemented]**
 
-The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build menu choices retain their costs and requirement explanations. Quest `needs`, `hint`, and building-cost metadata remain available in content/selectors for simulations.
+The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build menu choices retain their costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
 
 The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around, craft and build together above other activities), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, and all six layouts share their order.
 
@@ -750,39 +643,25 @@ The screen arrangement is pluggable. `src/ui/layouts/` holds one `.ts` + `.css` 
 
 ## 13. Tooling
 
-### 13.1 Content validator: `npm run content:check`
+### 13.1 Content validator: `npm run content:check` [implemented]
 
-| Check | Severity |
-|---|---|
-| JSON syntax and Zod schema | error |
-| Duplicate ids across all kinds | error |
-| Unknown references (item in a cost, region in a condition, scene in `next`, image file, station) | error |
-| Events: every scene reachable from `start`; every scene can reach `end` | error |
-| **Reachability:** a fixpoint over recipes, yields, discoveries and unlock conditions (ignoring amounts and probabilities above 0) proves every region, building, boat stage and ending can be reached from the start state | error |
-| Items never used in any cost, condition or boat stage | warning |
-| Activities with yields but `hours: 0`, outcomes with all weights 0 | warning |
-| Missing or orphaned translation keys | warning |
+The command runs `tests/content.test.ts`: Zod structure validation, registry reference and
+ID checks, sentence capitalization and content invariants. `registry.ts` explicitly checks
+conditions, costs, effects, yields, tool tags, building production outputs and step durations.
+General progression reachability, unused-item warnings and translation validation are future
+tooling; they are not current guarantees.
 
-References are declared in the Zod schema with a helper (`ref("item")`, `ref("region")`), so the checker finds every reference without hand-written lists.
+### 13.2 JSON Schemas for authoring [future]
 
-### 13.2 JSON Schemas for authoring: `npm run content:schema`
+Planned generation from the Zod schemas into `schema/`. A `.vscode/settings.json` maps them to `content/**` by glob, so VS Code gives autocomplete, hover docs and red squiggles while you type. The same schemas will drive the future editor.
 
-Generated from the Zod schemas into `schema/`. A `.vscode/settings.json` maps them to `content/**` by glob, so VS Code gives autocomplete, hover docs and red squiggles while you type. The same schemas will drive the future editor.
+### 13.3 Debug console [implemented]
 
-### 13.3 Debug console (dev builds or `?debug`)
+`src/debug/console.ts` installs `window.ti` in development or with `?debug`. It can give items,
+adjust stats, advance game time, unlock areas, start tasks and inspect state. See the current
+commands in `README.md`; a debug overlay is future work.
 
-`window.ti` in the browser console plus an overlay toggled with the backtick key:
-
-```
-ti.give("iron_ingot", 10)     ti.stat("thirst", 0)       ti.time(24)
-ti.unlock("mountain")         ti.learn("smelting")        ti.event("wild_boar")
-ti.build("forge", 1)          ti.where()                  ti.check({ "item": "spear" })
-ti.seed(42)                   ti.save() / ti.load()       ti.reset()
-```
-
-The overlay shows the live state as JSON, the event queue and the active processes. `ti.check()` evaluates a condition against the current state, which helps when writing content.
-
-### 13.4 Balance simulator: `npm run sim -- --seeds 50`
+### 13.4 Balance simulator [future]
 
 - Runs the real engine headless in Node with a scripted player (no UI).
 - **Bot policy [proposal]:** (1) survival rules first (drink, eat, sleep at night or when tired, warm up); (2) otherwise follow a target list: the next unmet region unlock, then the next boat stage; a small dependency resolver walks the content (recipes, yields, discoveries) to pick the action that moves toward the target.
@@ -833,10 +712,10 @@ What **needs code**:
 
 ## 15. Testing
 
-- **Unit (Vitest):** conditions (each leaf and combinators), effects, clock and season maths, stat steps, temperature bands, process timing, weighted picks with a fixed seed.
-- **Golden tests:** a fixture content pack plus a scripted command list → snapshot of the final state. Catches unintended rule changes.
+- **Unit (Vitest):** conditions (each leaf and combinators), effects, clock, stat steps, temperature bands, player work, local production, saves and weighted picks with fixed seeds.
+- **Golden tests [future]:** a fixture content pack plus a scripted command list → snapshot of the final state. Catches unintended rule changes.
 - **Content tests:** the validator runs inside `npm test`.
-- **Simulator smoke test** in CI: 10 seeds must reach the launch before day 90 without unexplained deaths.
+- **Browser smoke tests (Playwright):** CI builds the game and tests core play, saves, pop-ups and all six layouts on desktop and phone widths. Simulator smoke tests remain future work.
 
 ---
 
@@ -887,7 +766,7 @@ adapter should produce the same validated content model.
 `core/state-schema.ts` defines both runtime state types and their structural validator.
 `persistence/migrate.ts` is the only compatibility boundary: it fills legacy defaults, repairs
 removed references, and preserves surviving progress. The engine accepts normalized state.
-Version 1 saves migrate to version 2; missing areas relocate to the starting area, and missing
+Versions 1–5 migrate to the current version 6; missing areas relocate to the starting area, and missing
 pop-ups are dismissed. Unsupported or malformed saves remain on disk and show an explicit
 new-game choice. Major prototype changes may require an announced reset; ordinary content
 updates should preserve compatible progress.

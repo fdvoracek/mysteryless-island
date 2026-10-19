@@ -61,13 +61,7 @@ export interface View {
     lines: StatusLine[];
   };
   /** active quests only, in content order (no buttons: things are made in the craft and build menus) */
-  quests: Array<{
-    id: string; title: string; hint?: string;
-    /** Building-cost progress metadata for simulations, e.g. logs 2/4. */
-    progress: Array<{ label: string; have: number; need: number }>;
-    /** Requirement metadata for simulations: each entry is one thing, or any one of several. */
-    needs: Array<Array<{ label: string; have: boolean }>>;
-  }>;
+  quests: Array<{ id: string; title: string }>;
   /**
    * Buildings standing in this place, in content order, with their state and the cycle's button
    * (sow, harvest…). New ones are built from the build menu.
@@ -173,20 +167,9 @@ export function view(engine: Engine): View {
     lines.push({ id: t.id, label: t.name, fill: null, word, trend: "", bad: false });
   }
 
-  const quests: View["quests"] = [];
-  const progressOf = (need?: Record<string, number>) => Object.entries(need ?? {}).map(([item, n]) => ({
-    label: reg.items.get(item)?.name ?? item, have: Math.min(n, s.items[item] ?? 0), need: n,
-  }));
-  for (const q of reg.quests.values()) {
-    if (s.quests[q.id]?.status !== "active") continue;
-    // Building-cost and requirement metadata for simulations; the task UI shows titles only.
-    const cost = q.build ? reg.buildings.get(q.build)!.build.cost : undefined;
-    const thing = (id: string) => reg.items.has(id)
-      ? { label: reg.items.get(id)!.name, have: (s.items[id] ?? 0) > 0 }
-      : { label: reg.buildings.get(id)!.name, have: Object.keys(s.buildings).some((k) => k.startsWith(`${id}@`)) };
-    const needs = (q.needs ?? []).map((n) => (Array.isArray(n) ? n : [n]).map(thing));
-    quests.push({ id: q.id, title: q.title, hint: q.hint, progress: progressOf(cost), needs });
-  }
+  const quests = [...reg.quests.values()]
+    .filter((q) => s.quests[q.id]?.status === "active")
+    .map((q) => ({ id: q.id, title: q.title }));
 
   const carried: View["consumables"] = [];
   const inventory: View["inventory"] = [];

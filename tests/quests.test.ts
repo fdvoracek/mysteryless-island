@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, readContentFiles, revealAll, startGame, craft } from "./helpers";
+import { loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
-/** Test-only quests (the shipped content has just "survive the first night"). */
+/** Test-only quests for triggers, rewards and follow-up goals. */
 const EXTRA = [
   { id: "find_water", title: "find water", trigger: "start", completeWhen: { did: "drink" }, doneLog: "Fresh water. You will last a while longer." },
   { id: "find_food", title: "find food", trigger: "start", completeWhen: { did: "eat" } },
@@ -145,15 +145,11 @@ describe("a task that needs things: catch a fish", () => {
   const reg2 = loadRegistry();
   const task = (e: Engine) => view(e).quests.find((x) => x.id === "first_catch");
 
-  it("appears when the school of fish is found and retains requirement metadata for simulations", () => {
+  it("appears as a goal title when the school of fish is found", () => {
     const e = startGame(reg2, 1);
     expect(view(e).quests.map((q) => q.id)).toEqual(["survive_first_night"]);
     for (let i = 0; i < 4; i++) lookAround(e);
-    expect(task(e)).toMatchObject({ title: "catch a fish", progress: [], needs: [[{ label: "fishing spear", have: false }, { label: "fish trap", have: false }]] });
-    // Requirement metadata follows possessions; the UI shows only the task title.
-    e.applyEffects([{ give: { firewood: 10 } }]);
-    craft(e, "craft_spear");
-    expect(task(e)!.needs).toEqual([[{ label: "fishing spear", have: true }, { label: "fish trap", have: false }]]);
+    expect(task(e)).toEqual({ id: "first_catch", title: "catch a fish" });
   });
 
   it("is done with the first fish caught, whichever way", () => {

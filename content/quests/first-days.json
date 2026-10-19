@@ -3,7 +3,6 @@
     "_note": "Quests are listed in the tasks panel while active, in this order. trigger: \"start\" (new game), \"manual\" (only via a { \"startQuest\": id } effect) or { \"when\": condition }.",
     "id": "survive_first_night",
     "title": "survive the first night",
-    "hint": "The dark comes early here, and cold with it.",
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
     "doneLog": [
@@ -15,9 +14,7 @@
   {
     "id": "first_catch",
     "title": "catch a fish",
-    "hint": "Fish in the shallows, and in the river. Too quick for bare hands.",
     "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
-    "needs": [["fishing_spear", "fish_trap"]],
     "completeWhen": { "seen": "raw_fish" },
     "doneLog": [
       "A fish, cold and slippery, and yours.",
@@ -28,9 +25,7 @@
   {
     "id": "climb_cliff",
     "title": "climb the cliff",
-    "hint": "Too steep for bare hands. Bark from the forest, twisted into a rope, would do.",
     "trigger": { "when": { "discovered": "cliff_shells" } },
-    "needs": ["cordage"],
     "completeWhen": { "discovered": "cliff_top" },
     "doneLog": [
       "You stand on the cliff top, the rope coiled at your feet, and look inland.",
@@ -40,7 +35,6 @@
   {
     "id": "build_shelter",
     "title": "build a shelter",
-    "hint": "Away from the beach rocks, build a local shelter before making a bed. Needs 4 logs.",
     "trigger": {
       "when": {
         "all": [{"quest": "survive_first_night", "is": "done"}, {"sheltered": false}, {"not": {"at": "beach"}}]
@@ -50,7 +44,6 @@
       "The wind found you all night. A shelter against the rocks would keep it off.",
       "Another night like that and the cold will win. You need a shelter."
     ],
-    "build": "shelter",
     "completeWhen": { "built": "shelter" },
     "doneLog": [
       "The wind breaks on the logs. Inside, it is almost still.",
@@ -60,7 +53,6 @@
   {
     "id": "cut_logs",
     "title": "cut logs",
-    "hint": "Firewood won't hold a building together. Logs will, but they need an axe.",
     "trigger": {
       "when": {
         "any": [
@@ -75,16 +67,13 @@
         ]
       }
     },
-    "needs": ["axe"],
     "completeWhen": { "did": "chop_wood" },
     "doneLog": ["Real logs, heavy and straight.", "Logs at last: wood to build with."]
   },
   {
     "id": "make_bed",
     "title": "make a bed",
-    "hint": "Make a bed under shelter. The beach rocks already count; elsewhere build a shelter first.",
     "trigger": { "when": {"sheltered": true} },
-    "build": "bed",
     "completeWhen": { "built": "bed" },
     "doneLog": [
       "You lie down to try it. Off the sand, for the first time.",
@@ -94,7 +83,6 @@
   {
     "id": "build_rain_barrel",
     "title": "build a rain barrel",
-    "hint": "A hollowed log where the shelter drips. Water without the walk to the spring.",
     "trigger": {
       "when": {
         "any": [
@@ -103,7 +91,6 @@
         ]
       }
     },
-    "build": "rain_barrel",
     "completeWhen": { "built": "rain_barrel" },
     "doneLog": [
       "The barrel stands under the shelter's edge, waiting for rain.",
@@ -113,7 +100,6 @@
   {
     "id": "build_drying_rack",
     "title": "build a drying rack",
-    "hint": "Raw fish and meat must be prepared. Build a drying rack with 2 logs, or cook over a fire for food sooner.",
     "trigger": {
       "when": {
         "all": [
@@ -122,7 +108,6 @@
         ]
       }
     },
-    "build": "drying_rack",
     "completeWhen": { "built": "drying_rack" },
     "doneLog": [
       "The rack stands by the fire, ready for fish or meat.",
@@ -132,9 +117,7 @@
   {
     "id": "build_fish_trap",
     "title": "build a fish trap",
-    "hint": "20 willow twigs from the river. It can stand wherever there are fish: the shallows or the river.",
     "trigger": { "when": { "discovered": "river" } },
-    "build": "fish_trap",
     "completeWhen": { "built": "fish_trap" },
     "doneLog": [
       "The trap is set. The fish will come to it.",
@@ -144,18 +127,14 @@
   {
     "id": "build_snares",
     "title": "set snares",
-    "hint": "Rope nooses on the small trails. Rope is twisted from bark strips (craft menu).",
     "trigger": { "when": { "discovered": "rabbit_runs" } },
-    "build": "snares",
     "completeWhen": { "built": "snares" },
     "doneLog": ["The snares wait along the trails.", "Nooses on the runs. Now leave them alone."]
   },
   {
     "id": "build_mushroom_logs",
     "title": "grow mushrooms",
-    "hint": "Cut logs into short lengths and keep them wet. Needs the axe.",
     "trigger": { "when": { "did": "gather_wood", "gte": 3 } },
-    "build": "mushroom_logs",
     "completeWhen": { "built": "mushroom_logs" },
     "doneLog": [
       "The logs lie in the shade. Keep them wet, and wait.",
@@ -165,10 +144,7 @@
   {
     "id": "build_corn_field",
     "title": "dig a corn field",
-    "hint": "Break the flat ground with a hoe and sow wild corn: 2 ears for the first rows.",
     "trigger": { "when": { "discovered": "field_site" } },
-    "needs": ["hoe"],
-    "build": "corn_field",
     "completeWhen": { "built": "corn_field" },
     "doneLog": [
       "Rows of dark earth, sown. Three days, if the weather holds.",
@@ -178,18 +154,14 @@
   {
     "id": "build_bee_hive",
     "title": "build a bee hive",
-    "hint": "A hollow log among the flowers, for the wild bees.",
     "trigger": { "when": { "discovered": "bees" } },
-    "build": "bee_hive",
     "completeWhen": { "built": "bee_hive" },
     "doneLog": ["The hive log stands among the flowers.", "A home for the bees, if they want it."]
   },
   {
     "id": "build_fish_weir",
     "title": "build a fish weir",
-    "hint": "A wall of stones and stakes across the river: more fish than a trap. Stones from the beach.",
     "trigger": { "when": { "did": "empty_trap", "gte": 2 } },
-    "build": "fish_weir",
     "completeWhen": { "built": "fish_weir" },
     "doneLog": [
       "The weir stretches across the river. The water runs through; the fish don't.",
@@ -199,9 +171,7 @@
   {
     "id": "better_sleep",
     "title": "better sleep",
-    "hint": "Make a bed and light a fire in the same sheltered area for better sleep. The beach rock formation counts as shelter.",
     "trigger": { "when": {"quest": "survive_first_night", "is": "done"} },
-    "needs": ["bed", "campfire"],
     "completeWhen": { "all": [{"sheltered": true}, {"built": "bed", "here": true}, {"timer": "fire"}] },
     "startLog": "For better sleep, make a bed and light a fire under shelter. The beach rocks already shelter you.",
     "doneLog": "A sheltered bed and a fire in the same place. Sleep before midnight for a full recovery."

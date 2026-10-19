@@ -47,9 +47,6 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     const ids = view(e).quests.map((q) => q.id);
     expect(ids).toContain("build_shelter");
     expect(ids).toContain("cut_logs"); // the shelter needs logs, logs need an axe
-    expect(view(e).quests.find((q) => q.id === "cut_logs")!.needs).toEqual([[{ label: "axe", have: false }]]);
-    const task = view(e).quests.find((q) => q.id === "build_shelter")!;
-    expect(task.progress).toEqual([{ label: "logs", have: 0, need: 4 }]);
     // the task has no button: the shelter is in the build menu, with what it needs
     expect(buildMenu(e).find((c) => c.id === "shelter")).toMatchObject({ enabled: false, reason: "Needs 4 logs (have 0)" });
     // stones under the cliff, firewood from the forest, then the axe
@@ -102,7 +99,6 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect(e.state.items.willow_twigs).toBe(10);
     e.dispatch({ type: "activity", id: "cut_willow" });
     expect(row(e, "fish_trap")).toBeUndefined(); // not built yet: it is in the build menu
-    expect(view(e).quests.find((q) => q.id === "build_fish_trap")).toMatchObject({ progress: [{ label: "willow twigs", have: 20, need: 20 }] });
     expect(buildMenu(e).find((c) => c.id === "fish_trap")).toMatchObject({ label: "fish trap", enabled: true, tooltip: expect.stringMatching(/^20 willow twigs · 1h/) });
     expect(build(e, "fish_trap").ok).toBe(true);
     expect(e.state.items.willow_twigs ?? 0).toBe(0);
@@ -219,9 +215,8 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     list[0].places = [{ region: "atlantis" }];
     files["content/buildings/camp.json"] = list;
     const quests = structuredClone(files["content/quests/first-days.json"]) as Array<Record<string, unknown>>;
-    quests.find((q) => q.id === "build_shelter")!.build = "castle";
+    quests.find((q) => q.id === "build_shelter")!.completeWhen = { built: "castle" };
     quests.find((q) => q.id === "make_bed")!.completeWhen = { building: "shelter", is: "ready" }; // the shelter has no cycle
-    quests.find((q) => q.id === "cut_logs")!.needs = ["castle"];
     files["content/quests/first-days.json"] = quests;
     const recipes = structuredClone(files["content/recipes/tools.json"]) as Array<Record<string, unknown>>;
     recipes.find((r) => r.id === "craft_spear")!.item = "unobtainium";
@@ -230,9 +225,8 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
       expect(err).toBeInstanceOf(ContentError);
       const msg = (err as ContentError).problems.join("\n");
       expect(msg).toMatch(/building shelter\.places\[0\]: unknown region "atlantis"/);
-      expect(msg).toMatch(/quest build_shelter\.build: unknown building "castle"/);
+      expect(msg).toMatch(/quest build_shelter\.completeWhen: unknown building "castle"/);
       expect(msg).toMatch(/building "shelter" has no cycle, so it is never ready/);
-      expect(msg).toMatch(/quest cut_logs\.needs: unknown item or building "castle"/);
       expect(msg).toMatch(/recipe craft_spear\.item: unknown item "unobtainium"/);
     }
   });
@@ -414,7 +408,7 @@ describe("the craft and build menus", () => {
     craft(e, "craft_spear");
     expect(view(e).event).toBeNull(); // no note
     expect(e.state.quests.first_catch.status).toBe("active");
-    expect(view(e).quests.find((q) => q.id === "first_catch")!.needs[0][0]).toEqual({ label: "fishing spear", have: true });
+    expect(view(e).quests.find((q) => q.id === "first_catch")!.title).toBe("catch a fish");
   });
 
 

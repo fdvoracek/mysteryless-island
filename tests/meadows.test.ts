@@ -33,7 +33,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     // too steep without a rope
     expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m", hours: 0.5, enabled: false, reason: "Too steep to climb without a rope" });
     expect(choose(e, "cliff_top").ok).toBe(false);
-    expect(view(e).quests.find((q) => q.id === "climb_cliff")).toMatchObject({ title: "climb the cliff", needs: [[{ label: "rope", have: false }]] });
+    expect(view(e).quests.find((q) => q.id === "climb_cliff")).toMatchObject({ title: "climb the cliff" });
     e.applyEffects([{ give: { cordage: 1 } }]);
     expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ enabled: true });
     choose(e, "cliff_top");

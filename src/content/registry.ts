@@ -235,10 +235,6 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     if (typeof q.trigger === "object") checkCond(q.trigger.when, `${w}.trigger.when`);
     checkCond(q.completeWhen, `${w}.completeWhen`);
     checkEffects(q.effects, w);
-    if (q.build) ref("building", q.build, `${w}.build`);
-    for (const n of (q.needs ?? []).flat()) {
-      if (!items.has(n) && !buildings.has(n)) problems.push(`${w}.needs: unknown item or building "${n}"`);
-    }
   }
   for (const r of recipes.values()) {
     const w = `recipe ${r.id}`;

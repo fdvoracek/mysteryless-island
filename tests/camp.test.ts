@@ -192,7 +192,7 @@ describe("better sleep task", () => {
     e.state.quests.survive_first_night.status = "done";
     e.syncQuests();
     expect(e.state.quests.better_sleep.status).toBe("active");
-    expect(view(e).quests.find((q) => q.id === "better_sleep")?.hint).toContain("Make a bed and light a fire");
+    expect(view(e).quests.find((q) => q.id === "better_sleep")?.title).toBe("better sleep");
     e.applyEffects([{ build: "bed" }]);
     e.state.location = "forest";
     e.applyEffects([{ build: "campfire" }, { timer: "fire", addHours: 6 }]);
