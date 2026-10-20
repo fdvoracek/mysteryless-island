@@ -1,7 +1,7 @@
 import type { Engine, Command, Result } from "../core/engine";
 import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
-import { renderTree } from "./tree";
+import { renderTree, TreeTooltip } from "./tree";
 import { classicSkeleton } from "./layouts/classic";
 import { REQUIRED_IDS } from "./layouts/panels";
 import type { Icon } from "../content/schema";
@@ -22,6 +22,8 @@ export class UI {
   private pulse = new Set<string>();
   /** whether this page has shown the game alive (then a death gets the fade first) */
   private wasAlive = false;
+  private treeTooltip: TreeTooltip;
+  private treeEngine?: Engine;
   private centreTab: "area" | "craft" | "build" = "area";
 
   constructor(
@@ -37,6 +39,7 @@ export class UI {
     this.root = root;
     this.build();
     this.mountClassic();
+    this.treeTooltip = new TreeTooltip(root);
   }
 
   /** The frame that never changes: the game area, the menu and the death fade. */
@@ -124,6 +127,7 @@ export class UI {
   }
 
   private selectCentreTab(tab: "area" | "craft" | "build") {
+    if (this.centreTab !== tab) this.treeTooltip?.hide();
     this.centreTab = tab;
     for (const id of ["area", "craft", "build"]) {
       this.els[`${id}Panel`].hidden = id !== tab;
@@ -150,7 +154,11 @@ export class UI {
 
   render() {
     this.selectCentreTab(this.centreTab);
-    const v = view(this.getEngine());
+    const engine = this.getEngine();
+    if (this.treeEngine !== engine) this.treeTooltip.hide();
+    this.treeEngine = engine;
+    const v = view(engine);
+    if (v.event || v.dead) this.treeTooltip.hide();
     this.els.wrap.classList.toggle("busy", this.isBusy());
     this.els.wrap.setAttribute("aria-busy", String(this.isBusy()));
     this.renderTabs(v);
@@ -163,8 +171,8 @@ export class UI {
     this.renderLog(v);
     this.renderEvent(v);
     this.renderEnd(v);
-    renderTree(this.els.craftTree, v.trees.craft, this.renderButtons.bind(this));
-    renderTree(this.els.buildTree, v.trees.build, this.renderButtons.bind(this));
+    renderTree(this.els.craftTree, v.trees.craft, this.renderButtons.bind(this), this.treeTooltip);
+    renderTree(this.els.buildTree, v.trees.build, this.renderButtons.bind(this), this.treeTooltip);
     this.renderWork(v);
   }
 

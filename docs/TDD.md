@@ -514,9 +514,24 @@ buildings retain their construction and local production definitions. Availabili
 share requirements with engine checks. A non-repeatable recipe may be personally crafted
 once even while its output is owned, consuming normal materials/time and leaving one copy.
 The centre's area/crafting/building tabs keep the map, journal, status and shared work summary
-available. Switching tabs does not pause work. All nodes stay visible, show prerequisites and
-current requirements, and display persisted node-specific progress. Craft/build popups and
-their menu commands are removed; local building operations remain in the area panel.
+available. Switching tabs does not pause work. All nodes stay visible as compact name chips
+with state marks and persisted node-specific progress. `ui/tree-layout.ts` packs complete depth
+generations into at most three columns using the panel's actual width, wrapping wide generations
+downwards before placing their descendants. Connections that skip wrapped rows use outer
+gutters so they do not pass behind unrelated chips. The tree viewport scrolls vertically without
+horizontal overflow. Categories do not own columns or headings: `TreeNodeView.category` carries
+the authored branch name into the item's tooltip tag.
+
+`ui/tree.ts` keeps controls keyed and owns one floating tooltip outside the scroll viewport.
+Hover/focus or a dedicated state/inspection control shows category, prerequisites, current
+requirements, duration and progress; clicking the item name still creates/resumes directly.
+The inspection control pins and focuses the tooltip so long requirement lists can scroll by
+touch, wheel or keyboard. Hover hints do not intercept neighbouring controls; Escape closes
+a pinned hint and returns focus to its inspection control.
+Hints remain inspectable during work while the existing command lock prevents extra starts.
+Tooltips are clamped to the viewport and dismissed on navigation, popups and engine replacement.
+Craft/build popups and their menu commands are removed; local building operations remain in the
+area panel.
 - Item grouping follows capabilities: `consume` or a nonempty `actions` list places an item in consumables; other items go in inventory. Task-gain notes name the same section.
 - `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
 - New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.
@@ -654,7 +669,7 @@ interface SaveFile {
 
 ### 12b. Classic layout **[implemented]**
 
-The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build tree nodes show costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
+The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build tree tooltips show costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
 
 The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around above other activities; creation is in the separate crafting/building tabs), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, in the classic layout.
 

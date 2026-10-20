@@ -42,23 +42,27 @@
 .layout-classic .centre-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
 .layout-classic .centre-tabs button { font: inherit; color: inherit; background: none; border: 0; padding: .3rem 0; cursor: pointer; }
 .layout-classic .centre-tabs [aria-selected="true"] { border-bottom: 1px solid currentColor; }
-.layout-classic [role="tabpanel"] { min-width: 0; overflow-x: auto; }
-.layout-classic .creation-tree { display: grid; grid-template-columns: repeat(var(--branches), minmax(10rem, 1fr)); align-items: start; gap: .8rem; padding: .2rem; }
-.layout-classic .creation-tree h3 { font: inherit; margin: 0; opacity: .65; }
-.layout-classic .tree-node { border: 1px solid currentColor; padding: .6rem; min-width: 0; }
+/* Tree geometry follows actual panel width; only the vertical tree viewport scrolls. */
+.layout-classic .tree-scroll { min-width: 0; max-height: min(68vh, 640px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.layout-classic .creation-tree { position: relative; width: 100%; min-width: 0; }
+.layout-classic .tree-node { position: absolute; height: 46px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); display: flex; align-items: stretch; z-index: 1; }
 .layout-classic .tree-node.locked { border-style: dashed; }
-.layout-classic .tree-node .node-state { font-size: .75em; opacity: .65; }
-.layout-classic .tree-node .btn { width: 100%; margin: .3rem 0; }
-/* Availability uses borders and explicit labels; every node name stays readable. */
+.layout-classic .tree-node .node-control { flex: 1; min-width: 0; }
+.layout-classic .tree-node .btn { display: block; width: 100%; height: 100%; min-height: 0; border: 0; border-radius: 0 10px 10px 0; padding: 3px 6px 3px 1px; margin: 0; overflow: hidden; font-size: 14px; color: var(--fg); background: transparent; }
+.layout-classic .tree-node .btn .label { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .layout-classic .tree-node .btn[aria-disabled="true"] { color: var(--fg); }
-.layout-classic .tree-node .tip { pointer-events: none; }
-.layout-classic .tree-node details { font-size: .75em; }
-.layout-classic .tree-node summary { cursor: pointer; }
-.layout-classic .tree-node ul { padding-left: 1rem; margin-bottom: 0; }
-.layout-classic .tree-node.completed .node-state { font-weight: bold; }
-.layout-classic .creation-tree { position: relative; row-gap: 2.5rem; }
-.layout-classic .tree-cell { display: flex; flex-direction: column; gap: .8rem; min-width: 0; z-index: 1; }
-.layout-classic .tree-node { background: var(--bg, #f5f2e9); }
-.layout-classic .tree-edges { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
-.layout-classic .tree-edges path { fill: none; stroke: currentColor; opacity: .35; stroke-width: 1; }
-.layout-classic .node-parents { font-size: .7em; }
+.layout-classic .tree-node .tip { display: none !important; }
+.layout-classic .tree-info { width: 25px; flex: 0 0 25px; border: 0; border-radius: 10px 0 0 10px; background: transparent; padding: 0; cursor: help; font: inherit; font-size: 13px; color: var(--fg); }
+.layout-classic .tree-node.completed .tree-info { font-weight: bold; }
+.layout-classic .busy .tree-node .btn { pointer-events: auto; cursor: help; }
+.layout-classic .tree-edges { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.layout-classic .tree-edges path { fill: none; stroke: var(--fg); opacity: .45; stroke-width: 1; }
+.layout-classic .tree-tooltip { position: fixed; z-index: 120; width: max-content; max-width: 300px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); box-shadow: 2px 3px 10px #0002; font-size: 14px; overflow-y: auto; pointer-events: none; overflow-wrap: anywhere; }
+.layout-classic .tree-tooltip-title { font-size: 16px; }
+.layout-classic .tree-category { display: inline-block; border: 1px solid var(--bar); border-radius: 8px; padding: 0 6px; margin: 4px 0; font-size: 12px; }
+.layout-classic .tree-tooltip-state { font-size: 12px; margin-bottom: 4px; }
+.layout-classic .tree-tooltip ul { padding-left: 16px; margin: 5px 0 0; }
+.layout-classic .tree-tooltip .reason { color: var(--bad); }
+
+/* Explicit inspection can scroll long details; hover never intercepts another chip. */
+.layout-classic .tree-tooltip.pinned { pointer-events: auto; }

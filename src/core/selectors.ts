@@ -34,7 +34,7 @@ export interface StatusLine {
 }
 
 export interface TreeNodeView extends ButtonView {
-  target: string; branch: string; depth: number; after: string[]; completed: boolean; unlocked: boolean;
+  target: string; branch: string; category: string; depth: number; after: string[]; completed: boolean; unlocked: boolean;
   requirements: RequirementEntry[]; hints: string[];
   count: number; limit?: number;
   work?: { id: string; status: "running" | "paused"; completed: number; required: number };
@@ -462,7 +462,7 @@ export function treeView(engine: Engine, kind: TreeKind): TreeView {
     if (!work && limit !== undefined) requirements.push({ kind: "limit", label: b ? "local buildings" : "inventory", required: limit, available: count,
       met: r && !r.multiple && !state.technology.craft.completed.includes(r.id) ? true
         : r?.multiple ? count + (r.count ?? 1) <= limit : count < limit });
-    return { id: `${kind}:${node.target}`, target: node.target, branch: node.branch, depth: tree.depth.get(node.target)!, after: node.after,
+    return { id: `${kind}:${node.target}`, target: node.target, branch: node.branch, category: tree.definition.branches.find((branch) => branch.id === node.branch)!.name, depth: tree.depth.get(node.target)!, after: node.after,
       label: r ? r.label ?? reg.items.get(r.item)!.name : b!.name,
       command: r ? { type: "craft", recipe: node.target } : { type: "build", building: node.target },
       enabled: work ? work.status === "paused" && !engine.resumeReason(work) : check.enabled,
