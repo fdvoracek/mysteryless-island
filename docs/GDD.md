@@ -532,7 +532,92 @@ Real time is estimated by the simulator from an average cost per click (about 5 
 
 ---
 
-## 19. Open questions
+
+## 19. Progression design: main backbone and optional branches **[proposal — review before implementation]**
+
+This section records the progression direction discussed on 20 October 2026. It refines §§3, 7–9 without replacing implemented crafting/building behavior or silently changing earlier [decided] rules. The specific recipes, costs, timings, and graph edges remain proposals.
+
+### 19.1 Progression principles
+
+- **Main technology backbone + optional branches.** A short, understandable chain of inventions leads from empty hands to a ship. Side branches improve food, water, rest, safety and efficiency; they should not be hidden prerequisites for escape.
+- **Crafting plus discovery.** Personally completing a recipe teaches a reusable technique; discovering materials, sites, and useful phenomena opens opportunities to use it. Inventory possession, permanent technology progress, and current site/tool availability remain distinct (see `CRAFTING_BUILDING_DESIGN.md`).
+- **Every important invention has an immediate payoff.** An axe allows timber harvesting; pottery improves water handling; iron tools enable precision woodworking. Avoid recipes made solely to tick off prerequisite nodes.
+- **Survival creates soft pressure, not unrelated technology gates.** Energy, hunger, thirst, warmth, time, and expedition supplies matter; optional cottages or traps need not be prerequisites for an axe or a forge.
+- **Manual production vs infrastructure.** When sensible, provide slower manual methods alongside faster, time-based workshops (e.g. hand-grinding grain vs windmill). Some processes, such as substantial iron smelting, still require specialized buildings. All processes advance in *in-game* time, not real-world idle time.
+- **No artificial mandatory checklist.** Optional branches must be genuinely optional; alternative paths should meet the same functional need when appropriate.
+
+### 19.2 Technology ages (design grouping, not a new UI or engine system)
+
+| Age | Essential capability gained | Optional investment | Transition |
+|---|---|---|---|
+| I. Stone and first camp | Rock knife → fibre/cordage → stone axe → timber | Fire, beds, shelter, spear, traps, drying rack, rain collection | Explore toward water and clay |
+| II. Fire and clay | Clay containers → firing/kiln → bricks and charcoal | Food preservation, farming, more reliable water, improved shelter | Materials and fuel for metallurgy |
+| III. Iron | Accessible ore → bloomery/forge → ingots → iron saw and other necessary tools | Better axe and pickaxe, extraction-efficiency improvements | Precision woodworking and components |
+| IV. Manufacturing | Planks, pitch, cordage/rope, sailcloth, iron fittings and provisions | Windmill, larger-scale food processing, improved production sites | Materials for ship stages |
+| V. Shipbuilding | Shipyard, hull, mast, rigging, sail and departure supplies | Compass, route knowledge and voyage safety improvements | Launch and sail away |
+
+These ages can overlap. They are planning aids rather than global unlock flags. The existing §9 staged ship project remains the end goal; reconcile any newly proposed alternatives with its costs during balancing.
+
+### 19.3 Node types and gating
+
+| Type | Rule | Example |
+|---|---|---|
+| Required | One indispensable *capability* on the escape path | Obtain a cutting tool capable of producing planks |
+| Optional | Helpful but never required by a downstream mandatory recipe | A better bed, an iron axe for efficient logging |
+| Alternative | Multiple methods satisfy a functional requirement | Hunt/fish/grow provisions; potentially hand-grind or mill grain |
+
+The crafting and building graphs remain separate, following `CRAFTING_BUILDING_DESIGN.md`. A recipe's permanent craft predecessors belong to the craft tree; current site, tool, material and discovery checks belong to creation/activity requirements. Avoid fake cross-tree edges: a building that uses cordage should test the needed item/knowledge rather than making an arbitrary crafting node its tree predecessor. Displayed nodes may remain visible while discovery and material requirements prevent use.
+
+Progress-critical region/resource discoveries should be reliably obtainable through sufficient exploration, not indefinitely blocked by random rolls. Optional rich sites or bonuses can be less predictable. A **known region** and a **productive region** need not be the same: a player can enter a forest before owning an axe and see trees they cannot yet fell.
+
+### 19.4 Stone Age, detailed proposal
+
+**Goal:** go from empty hands on the beach to a rock knife, bound stone axe, first timber and a basic camp, with exploration opening the route to new materials. Target roughly 20–30 minutes for main early milestones, subject to the existing 2–4-hour playthrough balance target.
+
+**Required backbone:**
+
+1. Discover suitable stones on the beach; gather two and **craft a rock knife**. The knife enables cutting vegetation and shaping wood.
+2. Discover workable vegetation/bark; use the knife to collect strips or fibre, and **craft cordage**.
+3. Gather a shaped branch, a stone head and cordage; **craft a stone axe**.
+4. Discover suitable trees in the forest; use the axe to **harvest timber**.
+5. Explore farther to discover freshwater and eventually a clay source, starting the next age.
+
+**Early optional crafting:** fishing spear (after finding fish and knowing cutting), stone hoe (after discovering cultivable soil), torch (after learning about darkness/fire), and possibly a club, wooden mallet or basket *only if each gets a meaningful gameplay use*. The spear and hoe must not be mandatory predecessors for the axe.
+
+**Early optional buildings:** campfire, basic bed, lean-to, rain catcher, fish trap, drying rack, snares and later simple workbench. Their thematic branches are not automatic strict prerequisite chains. In particular, a drying rack should not gate a fish trap, a fish trap should not gate snares or a fish weir, and a campfire alone should not be the technological reason farming becomes available. Let appropriate local site discoveries and tools gate those activities.
+
+**Simple fire-making [selected direction]:** construct a stone campfire with gathered stones and fuel, then light it using tinder/fuel. No separately crafted fire drill or fire-starting-tool technology is required. Constructing a fire and lighting it remain different interactions. Fire is an early survival convenience and milestone, not a laborious crafting puzzle.
+
+**First-night survival:** the player can find simple food/water, build a fire, and get basic sleep without crafting an axe. An exposed or rudimentary bed gives weaker recovery; sheltered bed plus fire is better. This is a design intention and needs reconciling with the *implemented* bed-in-area and collapse rules in §6.3b, rather than assuming sleeping rough is implemented.
+
+**Suggested first days, not hard deadlines:** day 1 discover stone, make knife, obtain food, light fire and rest; day 2 explore nearby forest/meadows, gather fibre, craft cordage/axe; day 3 harvest timber, improve camp if desired and explore farther. Players may prioritize fishing, shelter or early axes without making any of those choices invalid.
+
+**Potential first-discovery narrative:** “Long strands peel from the bark. They twist together without breaking.” This can unlock fibre collection/cordage availability when its technological predecessors are met. Clay hardened by the fire can provide a similarly understated transition into pottery. Story log prose should follow the established voice guide in §10.
+
+### 19.5 Resource vocabulary and efficiency
+
+Use distinct materials when their transformation is meaningful, not for redundant busywork. Candidates: gathered branches/firewood (consider merging if processing adds no decision), logs/timber → planks (significant), bark/fibre → cordage → ship rope (justify each tier), clay → fired pottery/bricks, wood → charcoal, ore → iron ingots. Before implementing new recipes, create a source → extraction tool → processing method → uses table and remove unhelpful intermediate resources.
+
+The balance goal is for manual survival upkeep to consume much of the first days, then decline as shelter, renewable food and water, and processing infrastructure improve. Expeditions should still need preparation. Avoid hard-gating forest access behind owning an axe or cottage: discovery reveals the place; tools enable efficient extraction.
+
+### 19.6 Reconciliation with current implemented content **[not yet changed]**
+
+Current content lives in `content/trees/crafting.json`, `content/trees/building.json`, `content/recipes/tools.json`, `content/buildings/camp.json`, and the beach/forest/meadows region files. The implemented craft graph currently unlocks axe, spear and cordage directly after the rock knife; this proposal suggests cordage before axe. The implemented building graph has campfire → bed → shelter → rain barrel, fish trap → snares/fish weir, and campfire → corn field; review these edges to separate meaningful knowledge from arbitrary unlock order. Existing rock-knife discovery and recipe costs, bed resource requirements, and survival rules also differ from some of the aspirational early-game examples above.
+
+Keep current region identities (beach, forest, meadows) as implemented and reconcile the GDD's proposed future lake/plains sequence before adding regions. **No code, recipes, building definitions, or balance values change as a result of this GDD-only proposal.**
+
+### 19.7 Questions for the next design pass
+
+1. Settle a coherent Stone Age inventory vocabulary, extraction tools, conversions, and recipe costs.
+2. Decide whether the axe needs physically consumed cordage and exactly which discovery enables its ingredients.
+3. Reconcile the first night's grass-bed intention with the current bed/shelter mechanics and costs.
+4. Define benefits for candidate club, mallet, basket and workbench—or omit them.
+5. Decide which manual-vs-building production alternatives are desirable for the mid/late game.
+6. Simulate early-day survival and resource timings before adopting new milestone dates.
+
+---
+
+## 20. Open questions
 
 1. Mystery: option A, B, C, or a mix (§10).
 2. ~~Working title~~ → *Mysteryless Island* (decided).
