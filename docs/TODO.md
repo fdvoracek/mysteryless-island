@@ -17,6 +17,13 @@ Project backlog for Mysteryless Island. Tasks are grouped by area and are not ne
 
 ## Development
 
+- [ ] Design and implement practice-based skills and automatic efficiency progression.
+- [ ] Design and implement selectable, reversible milestone perks.
+- [ ] Add crafted-tool quality and refinement.
+- [ ] Add personal survival reserves, camp storage, and automatic resupply transfers.
+- [ ] Implement environment-aware passive gathering perks.
+- [ ] Rebalance survival, progression pacing, and overall playtime after new systems are integrated.
+
 - [ ] Add localization support.
 - [ ] Integrate and use generated graphics in the game.
 
