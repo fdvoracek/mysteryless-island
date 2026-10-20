@@ -739,7 +739,12 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
       await expect(cards).toHaveCount(kind === "build" ? 10 : 5);
       await expect(tree.locator(".tree-edges path")).toHaveCount(kind === "build" ? 9 : 4);
       await expect(tree.locator("h3, details, .node-state, .node-parents")).toHaveCount(0);
-      expect(await tree.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+      const scroller = page.locator(`#${kind}Panel.tree-scroll`);
+      if (width <= 600) expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(0);
+      expect(await scroller.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThanOrEqual(width);
+      for (const path of await tree.locator(".tree-edges path").all()) {
+        expect(await path.getAttribute("d")).not.toMatch(/[CQAS]/i);
+      }
       const boxes = await cards.evaluateAll((els) => els.map((el) => {
         const box = el.getBoundingClientRect();
         return { x: box.x, y: box.y, right: box.right, bottom: box.bottom };
@@ -767,11 +772,51 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
         return intersections;
       });
       expect(crossings).toEqual([]);
+      // Siblings never wrap: each complete predecessor group shares one row and
+      // stays centred on its parents, independent of content IDs or canvas overflow.
+      const misaligned = await tree.evaluate((el) => {
+        const chips = new Map([...el.querySelectorAll<HTMLElement>(".tree-node")].map((chip) => [chip.dataset.target!, chip.getBoundingClientRect()]));
+        const parents = new Map<string, string[]>();
+        for (const edge of el.querySelectorAll<SVGPathElement>(".tree-edges path")) {
+          const ids = parents.get(edge.dataset.target!) ?? [];
+          ids.push(edge.dataset.parent!); parents.set(edge.dataset.target!, ids);
+        }
+        const rows = new Map<string, { parents: string[]; ids: string[] }>();
+        for (const [id, ids] of parents) {
+          const key = [...ids].sort().join(",");
+          const row = rows.get(key) ?? { parents: ids, ids: [] };
+          row.ids.push(id); rows.set(key, row);
+        }
+        const failures: string[] = [];
+        for (const row of rows.values()) {
+          const expected = row.parents.reduce((sum, id) => {
+            const rect = chips.get(id)!; return sum + (rect.left + rect.right) / 2;
+          }, 0) / row.parents.length;
+          const rects = row.ids.map((id) => chips.get(id)!);
+          if (Math.max(...rects.map((r) => r.top)) - Math.min(...rects.map((r) => r.top)) > 1) failures.push(`${row.ids.join(",")} wrapped`);
+          const actual = (Math.min(...rects.map((r) => r.left)) + Math.max(...rects.map((r) => r.right))) / 2;
+          if (Math.abs(actual - expected) > 1) failures.push(`${row.ids.join(",")} offset ${actual - expected}`);
+        }
+        return failures;
+      });
+      expect(misaligned).toEqual([]);
+      await page.screenshot({ path: `test-results/compact-tree-${kind}-${width}-clean.png`, fullPage: false, animations: "disabled" });
+      if (kind === "build" && width === 1280) {
+        // Inspect a static clone of the whole canvas without resizing the live game or its scroll state.
+        await tree.evaluate((el) => {
+          const capture = document.createElement("div");
+          capture.id = "treeCanvasCapture"; capture.className = "layout-classic";
+          Object.assign(capture.style, { position: "fixed", left: "0", top: "0", zIndex: "9999", background: "var(--bg)", width: `${el.clientWidth}px`, height: `${el.clientHeight}px` });
+          capture.append(el.cloneNode(true)); document.body.append(capture);
+        });
+        await page.locator("#treeCanvasCapture").screenshot({ path: "test-results/compact-tree-build-full-canvas.png", animations: "disabled" });
+        await page.locator("#treeCanvasCapture").evaluate((el) => el.remove());
+      }
       const target = kind === "build" ? "bed" : "craft_spear";
       const chip = node(page, kind, target);
       const button = chip.locator(".btn");
       for (const control of [button, chip.locator(".tree-info")]) {
-        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(width <= 600 ? 44 : 34);
+        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(38);
       }
       await button.focus();
       await expect(button).toBeFocused();
@@ -803,31 +848,172 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
   }
 });
 
-test("compact tree inspection survives rendering and stays inside the viewport after vertical scrolling", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 450 });
+test("compact tree inspection preserves both scroll axes and stays inside the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 320 });
   await page.locator("#buildTab").click();
   const scroller = page.locator("#buildPanel.tree-scroll");
   expect(await scroller.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
-  const info = node(page, "build", "rain_barrel").locator(".tree-info");
+  expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(0);
+  await scroller.evaluate((el) => { el.scrollLeft = 0; el.scrollTop = 0; });
+  await scroller.hover();
+  await page.mouse.wheel(150, 150);
+  await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  const info = node(page, "build", "bee_hive").locator(".tree-info");
   await info.scrollIntoViewIfNeeded();
   await info.click();
   await expect(tooltip(page)).toBeVisible();
-  const before = await scroller.evaluate((el) => el.scrollTop);
-  expect(before).toBeGreaterThan(0);
+  const before = await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+  expect(before.x).toBeGreaterThan(0);
+  expect(before.y).toBeGreaterThan(0);
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("stone", 1));
   await expect(tooltip(page)).toBeFocused();
-  expect(await scroller.evaluate((el) => el.scrollTop)).toBe(before);
+  expect(await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }))).toEqual(before);
   const box = (await tooltip(page).boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(320);
-  expect(box.y + box.height).toBeLessThanOrEqual(450);
+  expect(box.y + box.height).toBeLessThanOrEqual(320);
   // Opening a real blocking popup must clear inspection, including an anchor in a visible tree.
   await action(page, "look around").dispatchEvent("click");
   await expect(page.locator("#event")).toBeVisible();
   await expect(tooltip(page)).toBeHidden();
   await page.locator("#eventBack").click();
   await expect(tooltip(page)).toBeHidden();
+});
+
+for (const kind of ["craft", "build"] as const) {
+  test(`${kind} tree drags pan without activating ready nodes and small movement still clicks`, async ({ page }) => {
+    await explore(page, "rock_shelter");
+    if (kind === "craft") await explore(page, "cliff_shells");
+    await page.evaluate(() => {
+      const ti = (window as unknown as { ti: { give(i: string, n: number): void; stat(s: string, v: number): void } }).ti;
+      ti.give("stone", 20); ti.stat("hunger", 0); ti.stat("thirst", 0);
+    });
+    await page.setViewportSize({ width: 320, height: 250 });
+    await page.locator(`#${kind}Tab`).click();
+    const scroller = page.locator(`#${kind}Panel.tree-scroll`);
+    const button = node(page, kind, kind === "craft" ? "craft_rock_knife" : "campfire").locator(".btn");
+    await button.scrollIntoViewIfNeeded();
+    await expect(button).toHaveAttribute("aria-disabled", "false");
+    await expect(scroller).toHaveCSS("scrollbar-width", "none");
+    expect(await scroller.evaluate((el) => getComputedStyle(el, "::-webkit-scrollbar").display)).toBe("none");
+    const before = await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+    const state = () => page.evaluate(() => (window as unknown as { ti: { state(): { actions: unknown[]; items: Record<string, number> } } }).ti.state());
+    const materials = (await state()).items.stone;
+    let box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 55, box.y + box.height / 2 - 50, { steps: 8 });
+    await expect(scroller).toHaveClass(/tree-panning/);
+    await expect(scroller).toHaveCSS("cursor", "grabbing");
+    await expect(tooltip(page)).toBeHidden();
+    await page.mouse.up();
+    await expect(scroller).not.toHaveClass(/tree-panning/);
+    await expect(scroller).toHaveCSS("cursor", "grab");
+    const after = await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+    expect(after.x).toBeGreaterThan(before.x);
+    expect(after.y).toBeGreaterThan(before.y);
+    expect((await state()).actions).toEqual([]);
+    expect((await state()).items.stone).toBe(materials);
+    await expect(tooltip(page)).toBeHidden();
+    await page.evaluate(() => (window as unknown as { ti: { stat(s: string, v: number): void } }).ti.stat("thirst", 0));
+    expect(await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }))).toEqual(after);
+
+    // Dragging the separate inspection control must not pin its tooltip on release.
+    const info = node(page, kind, kind === "craft" ? "craft_rock_knife" : "campfire").locator(".tree-info");
+    await info.scrollIntoViewIfNeeded();
+    box = (await info.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 20, box.y + box.height / 2 - 20, { steps: 4 });
+    await expect(scroller).toHaveClass(/tree-panning/);
+    await page.mouse.up();
+    await expect(tooltip(page)).toBeHidden();
+    expect((await state()).items.stone).toBe(materials);
+
+    // Capture must end even when the release happens outside the tree viewport.
+    await button.scrollIntoViewIfNeeded();
+    box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(1, 1, { steps: 8 });
+    await expect(scroller).toHaveClass(/tree-panning/);
+    await page.mouse.up();
+    await expect(scroller).not.toHaveClass(/tree-panning/);
+    expect((await state()).items.stone).toBe(materials);
+
+    // Browser pointer cancellation resets the gesture and does not turn it into a click.
+    await button.scrollIntoViewIfNeeded();
+    await scroller.evaluate((el) => el.addEventListener("pointerdown", (event) => {
+      (el as HTMLElement).dataset.testPointer = String((event as PointerEvent).pointerId);
+    }, { once: true }));
+    box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 - 20, box.y + box.height / 2 - 20, { steps: 4 });
+    await expect(scroller).toHaveClass(/tree-panning/);
+    await scroller.evaluate((el) => el.dispatchEvent(new PointerEvent("pointercancel", {
+      bubbles: true, pointerId: Number((el as HTMLElement).dataset.testPointer), pointerType: "mouse",
+    })));
+    await expect(scroller).not.toHaveClass(/tree-panning/);
+    await expect(scroller).toHaveCSS("cursor", "grab");
+    await page.mouse.up();
+    expect((await state()).items.stone).toBe(materials);
+
+    // Keyboard scrolling remains native, and a movement below the threshold still creates normally.
+    await scroller.evaluate((el) => { el.scrollTop = 0; });
+    await button.focus();
+    await button.press("ArrowDown");
+    await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await button.scrollIntoViewIfNeeded();
+    box = (await button.boundingBox())!;
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width / 2 + 2, box.y + box.height / 2 + 1);
+    await page.mouse.up();
+    await expect.poll(async () => (await state()).items.stone).toBe(materials - 2);
+    await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 20_000 });
+    // The completed root unlocks its actual child; keyboard activation still uses the same pipeline.
+    await dismissProvisionWarning(page);
+    await page.evaluate(() => {
+      const ti = (window as unknown as { ti: { give(i: string, n: number): void } }).ti;
+      ti.give("firewood", 4); ti.give("timber", 2);
+    });
+    const child = node(page, kind, kind === "craft" ? "craft_axe" : "bed").locator(".btn");
+    await child.focus();
+    await expect(child).toHaveAttribute("aria-disabled", "false");
+    await child.press("Enter");
+    await expect.poll(async () => (await state()).items.firewood).toBe(kind === "craft" ? 2 : 0);
+    await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 20_000 });
+  });
+}
+
+test("touch swipes keep native tree scrolling without activating a ready node", async ({ page }) => {
+  await explore(page, "rock_shelter");
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("stone", 2));
+  await page.setViewportSize({ width: 320, height: 250 });
+  await page.locator("#buildTab").click();
+  const scroller = page.locator("#buildPanel.tree-scroll");
+  const button = node(page, "build", "campfire").locator(".btn");
+  await button.scrollIntoViewIfNeeded();
+  await expect(button).toHaveAttribute("aria-disabled", "false");
+  const before = await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+  const box = (await button.boundingBox())!;
+  const touch = await page.context().newCDPSession(page);
+  await touch.send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 1 });
+  const start = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [start] });
+  for (let step = 1; step <= 8; step++) await touch.send("Input.dispatchTouchEvent", {
+    type: "touchMove", touchPoints: [{ x: start.x - step * 7, y: start.y - step * 6 }],
+  });
+  await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(before.x);
+  await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(before.y);
+  await expect(scroller).not.toHaveClass(/tree-panning/);
+  const state = await page.evaluate(() => (window as unknown as { ti: { state(): { actions: unknown[]; items: Record<string, number> } } }).ti.state());
+  expect(state.actions).toEqual([]);
+  expect(state.items.stone).toBe(2);
 });
 
 test("a pinned tall tree tooltip scrolls its full requirements without dismissing", async ({ page }) => {

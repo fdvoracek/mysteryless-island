@@ -255,13 +255,22 @@ For a first personal craft whose output is already owned, the hint states that c
 completes the node while inventory remains at one copy; normal materials and duration are shown.
 Completion feedback must acknowledge the node completion even when no inventory count increased.
 
-The shared renderer uses compact HTML chips, thin SVG connections and depth-based placement.
-A pure layout helper uses the actual centre-panel width to fit at most three columns; wider
-generations wrap downwards before their descendants. All parents remain above their children,
-including multi-parent nodes. Category metadata does not reserve a lane or add a heading.
-Each chip shows only its name, state mark/inspection control and work progress; the tree viewport
-scrolls vertically without widening the page. Keep native keyboard activation, labelled tab
-panels and usable phone touch targets.
+The shared renderer uses 120 × 40 px HTML chips and thin SVG stems and horizontal forks.
+Crafting and building use the same pure layout and connection helpers; a rule change applies
+to both trees. Reserve enough horizontal space for complete descendant branches before placing
+nodes. A lone child stays on its parent's horizontal centre; all siblings stay on one row whose
+outermost node centres have their midpoint on the common parent. Multi-parent groups centre
+on the mean of their predecessor centres and retain every prerequisite connection. Grow the
+canvas instead of wrapping siblings, shrinking nodes, or routing lines around obstacles. There
+are no panel-border detours. Category metadata does not reserve a lane or heading. Never add
+item-ID offsets or separate craft/build placement rules to fix individual examples.
+Each chip shows only its name, state mark/inspection control and work progress. The tree panel
+scrolls horizontally and vertically without widening the page. Initially show the root centrally;
+normal state updates retain both scroll offsets. Keep native keyboard activation, labelled tab
+panels and separate creation/inspection controls on phones.
+Hide scrollbars and support grab-and-drag panning in both trees, preserving native swipe,
+wheel/trackpad and keyboard scrolling. A movement threshold distinguishes clicking from dragging;
+dragging hides hints and must never start creation or open inspection.
 
 A single floating tooltip outside the scroll viewport contains the authored category-name tag,
 textual prerequisites, materials, tools, local site requirements, duration and progress. Hover
