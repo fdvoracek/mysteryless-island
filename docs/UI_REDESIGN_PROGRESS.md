@@ -13,7 +13,7 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
 
 1. **Visual foundation — verified.** Shared spacing, typography hierarchy, thin borders,
    buttons, panel treatment, readable disabled/focus states, and coherent light/dark tokens.
-2. **Classic layout — pending.** Global panorama frame, route map, journal area heading,
+2. **Classic layout — verified.** Global panorama frame, route map, journal area heading,
    flexible three-column workspace and sidebar, responsive phone stack, persistent work summary.
 3. **Validated artwork support — pending.** Optional content-driven illustration metadata,
    validated references, selector views, shared image rendering, reserved dimensions, alt-text
@@ -41,3 +41,9 @@ are complete.
   keyboard focus, disabled controls, and both creation trees. No horizontal page overflow.
   Fixed an Escape-dismissal regression exposed by the new spacing: removing an overlapping
   tree tooltip no longer reopens it under a stationary pointer; explicit inspection still works.
+  Delivered as `be0a27a` on `feature/illustrated-book-ui`; remote commit verified.
+- Milestone 2: `npm run check` passed (322 unit tests, production build, 23 Chromium tests).
+  Independent review checked desktop and 375/320 px phone layouts in both themes, selected
+  fonts, and creation-tree interactions without page overflow. New browser coverage confirms
+  the global slot stays outside tabpanels and the journal heading changes only after arrival.
+  The panorama scaffold is genuinely empty/hidden; approved production artwork is still pending.

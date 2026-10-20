@@ -30,9 +30,11 @@ mechanics. Update this document when an architectural decision changes, not for 
   follows [the art direction](docs/ART_DIRECTION.md) and its approved references. These describe
   the adopted direction, not a claim that all reference imagery is implemented. Keep detailed
   visual guidance in those task-specific documents; the loading rules live in `AGENTS.md`.
-- **Future agreement, illustrated UI redesign:** the large current-area panorama stays above
-  the route map and all three centre tabs. Preserve its presence when switching Area, Crafting,
-  and Building. Delivery sequence and acceptance evidence live in
+- **Foundation implemented, illustrated UI redesign:** the shared panorama slot sits above
+  the route map and all three centre tabs, remaining hidden until real artwork is available.
+  Preserve the large current-area panorama when switching Area, Crafting, and Building.
+  The journal heading comes from the current region view, never parsed log text; work controls
+  remain outside tabpanels. Delivery sequence and acceptance evidence live in
   [the milestone record](docs/UI_REDESIGN_PROGRESS.md).
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.

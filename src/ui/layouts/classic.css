@@ -1,15 +1,18 @@
-/* classic: like A Dark Room: the places on their own row on top, then three columns */
+/* A shared panorama and route map introduce the three reading columns. */
+.layout-classic .page { max-width: 1280px; margin: 0 auto; padding: var(--space-6) var(--space-5) 88px; }
+.layout-classic .area-panorama { width: 100%; aspect-ratio: 40 / 11; margin-bottom: var(--space-5); overflow: hidden; }
 .layout-classic .wrap {
-  /* Keep the journal, central action panel, and status readable side by side. */
-  max-width: 1040px; margin: 0 auto; padding: var(--space-6) 20px 88px;
-  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: var(--space-6); align-items: start;
-  grid-template-areas: "places places places" "log centre side";
+  margin: 0; padding: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-6); align-items: start;
+  grid-template-areas: "places places places" "journal centre side";
 }
 .layout-classic .tabs {
   grid-area: places; margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--line);
   font-size: 18px; gap: 4px 14px;
 }
-.layout-classic .log { grid-area: log; }
+.layout-classic .journal { grid-area: journal; min-width: 0; }
+.layout-classic .region-title { margin: 0 0 var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); font: inherit; font-size: 17px; font-variant-caps: small-caps; letter-spacing: .055em; }
 .layout-classic .centre { grid-area: centre; }
 .layout-classic .side { grid-area: side; }
 .layout-classic .log {
@@ -19,20 +22,15 @@
 .layout-classic .log .entry { font-size: 16px; line-height: 1.6; }
 .layout-classic .side { display: grid; gap: var(--space-5); }
 
-/* Narrower windows leave more room for the central action panel. */
-@media (max-width: 1080px) {
-  .layout-classic .wrap { grid-template-columns: 170px minmax(0, 1fr) 200px; gap: 24px 20px; }
-}
-@media (max-width: 760px) {
-  .layout-classic .wrap { grid-template-columns: 1fr; grid-template-areas: none; gap: 20px; }
-  .layout-classic .tabs, .layout-classic .log, .layout-classic .centre, .layout-classic .side { grid-area: auto; }
-  .layout-classic .tabs { order: 0; }
-  .layout-classic .centre { order: 1; }
-  .layout-classic .log { order: 2; max-height: 42vh; }
-  .layout-classic .side { order: 3; }
+/* Keep the action controls before the journal when the reading columns stack. */
+@media (max-width: 900px) {
+  .layout-classic .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "places" "centre" "journal" "side"; gap: var(--space-5); }
+  .layout-classic .log { max-height: 42vh; }
 }
 @media (max-width: 600px) {
-  .layout-classic .wrap { padding: 14px 14px 0; gap: 16px; }
+  .layout-classic .page { padding: 14px 14px 0; }
+  .layout-classic .wrap { gap: var(--space-4); }
+  .layout-classic .area-panorama { margin-bottom: var(--space-4); }
   .layout-classic .tabs { padding-bottom: 10px; }
   .layout-classic .log .entry { font-size: 16px; }
 }

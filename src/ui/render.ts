@@ -168,6 +168,7 @@ export class UI {
     this.renderQuests(v);
     this.renderBuildings(v);
     this.renderInventory(v);
+    this.els.regionTitle.textContent = v.title;
     this.renderLog(v);
     this.renderEvent(v);
     this.renderEnd(v);
