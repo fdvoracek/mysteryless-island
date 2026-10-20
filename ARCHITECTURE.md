@@ -207,6 +207,11 @@ derived view models; and an injected scheduler for deterministic controller test
   behavior usable; font selection stays independent of layout through `--font`.
 - Keep keyed control updates so focus and progress survive rendering. Progress bars display
   simulation progress; they must not determine whether work completed.
+- Optional artwork belongs to validated content and derived views, never saved state.
+  Regions/items/buildings reference the shared artwork catalog; region metadata uses the
+  agreed 1600 × 440 panorama size. The shared UI image updater owns Pages-relative URLs,
+  dimensions, alt/decorative treatment, and missing-image fallback. Labels and controls remain
+  usable when pictures are absent. Preserve keyed image slots through normal view updates.
 - Keep area/crafting/building navigation separate from travel. Local buildings stay hidden
   until present, and consumables stay hidden until qualifying carried items exist. Items with consumption/actions go in consumables;
   other items stay in inventory. Building-associated actions belong under the local building.

@@ -4,7 +4,8 @@ import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./
 import { renderTree, TreeTooltip } from "./tree";
 import { classicSkeleton } from "./layouts/classic";
 import { REQUIRED_IDS } from "./layouts/panels";
-import type { Icon } from "../content/schema";
+import type { Artwork, Icon } from "../content/schema";
+import { updateIllustration } from "./illustration";
 import { iconSvg } from "./icons";
 
 /**
@@ -168,6 +169,7 @@ export class UI {
     this.renderQuests(v);
     this.renderBuildings(v);
     this.renderInventory(v);
+    updateIllustration(this.els.areaPanorama, v.panorama, { eager: true });
     this.els.regionTitle.textContent = v.title;
     this.renderLog(v);
     this.renderEvent(v);
@@ -458,15 +460,21 @@ export class UI {
 
   private renderInventory(v: View) {
     this.els.inventoryBox.hidden = v.inventory.length === 0;
-    this.els.inventory.replaceChildren(
-      ...v.inventory.map((it) => {
-        const row = div("", "row");
-        row.dataset.id = it.id;
-        row.append(...this.itemKey(it.label, it.tags));
-        if (it.count > 1) row.append(div(String(it.count), "val"));
-        return row;
-      }),
-    );
+    const keep = new Set(v.inventory.map((item) => item.id));
+    for (const row of [...this.els.inventory.children] as HTMLElement[]) if (!keep.has(row.dataset.id!)) row.remove();
+    v.inventory.forEach((item, index) => {
+      let row = this.els.inventory.querySelector<HTMLElement>(`:scope > [data-id="${item.id}"]`);
+      if (!row) {
+        row = div("", "row"); row.dataset.id = item.id;
+        row.append(div("", "item-illustration"), div("", "item-label"));
+      }
+      updateIllustration(row.querySelector<HTMLElement>(".item-illustration")!, item.artwork, { decorative: true });
+      row.querySelector(".item-label")!.replaceChildren(...this.itemKey(item.label, item.tags));
+      let count = row.querySelector<HTMLElement>(":scope > .val");
+      if (item.count > 1) { if (!count) { count = div("", "val"); row.append(count); } count.textContent = String(item.count); }
+      else count?.remove();
+      if (this.els.inventory.children[index] !== row) this.els.inventory.insertBefore(row, this.els.inventory.children[index] ?? null);
+    });
   }
 
   /** An item's name, and its tool tags next to it (knife · sharp). */
@@ -477,7 +485,7 @@ export class UI {
 
   /** Key rows and their controls so focus and progress survive refreshes. */
   private renderControlRows(container: HTMLElement, rows: Array<{
-    id: string; label: string; hint?: string; tags?: string[]; word: string; actions: ButtonView[];
+    id: string; label: string; hint?: string; tags?: string[]; word: string; actions: ButtonView[]; artwork?: Artwork;
   }>) {
     const keep = new Set(rows.map((r) => r.id));
     for (const el of [...container.children] as HTMLElement[]) if (!keep.has(el.dataset.id!)) el.remove();
@@ -486,8 +494,9 @@ export class UI {
       if (!el) {
         el = div("", "control-row");
         el.dataset.id = r.id;
-        el.append(div("", "row control-heading"), div("", "buttons control-buttons"));
+        el.append(div("", "item-illustration"), div("", "row control-heading"), div("", "buttons control-buttons"));
       }
+      updateIllustration(el.querySelector<HTMLElement>(".item-illustration")!, r.artwork, { decorative: true });
       el.setAttribute("role", "group");
       el.setAttribute("aria-label", r.label);
       el.querySelector(".control-heading")!.replaceChildren(...this.itemKey(r.label, r.tags ?? []), div(r.word, "val"));

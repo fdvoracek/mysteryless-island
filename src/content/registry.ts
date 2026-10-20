@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { indexTextKeys } from "./text-keys";
 import {
-  CreationTree, Site, type TreeKind, Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
+  Artwork, CreationTree, Site, type TreeKind, Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
   type Activity, type BuildingStep, type Timer,
 } from "./schema";
 
@@ -9,6 +9,7 @@ import {
 export interface Registry {
   textKeys: Map<object, string>;
   sites: Map<string, Site>;
+  artwork: Map<string, Artwork>;
   trees: Map<TreeKind, TreeIndex>;
   game: Game;
   stats: StatsFile;
@@ -92,6 +93,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const stats = statsPath ? parse(StatsFile, files[statsPath], statsPath, problems) : undefined;
   const climate = climatePath ? parse(Climate, files[climatePath], climatePath, problems) : undefined;
 
+  const artwork = new Map<string, Artwork>();
   const sites = new Map<string, Site>();
   const treeDefs: Array<{ def: CreationTree; path: string }> = [];
   const trees = new Map<TreeKind, TreeIndex>();
@@ -113,7 +115,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   };
 
   for (const [path, data] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
-    if (/content\/sites\.json$/.test(path)) {
+    if (/content\/artwork\.json$/.test(path)) {
+      for (const art of parse(z.array(Artwork), data, path, problems) ?? []) { claim(art.id, path); artwork.set(art.id, art); }
+    } else if (/content\/sites\.json$/.test(path)) {
       for (const site of parse(z.array(Site), data, path, problems) ?? []) { claim(site.id, path); sites.set(site.id, site); }
     } else if (/content\/trees\/[^/]+\.json$/.test(path)) {
       const def = parse(CreationTree, data, path, problems);
@@ -170,6 +174,18 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   }
   for (const t of tags) if (allIds.has(t)) problems.push(`tag "${t}" has the same name as an id (${allIds.get(t)}); { "did": "${t}" } would be ambiguous`);
   const startedByEffect = new Set<string>();
+
+  // Artwork belongs to presentation, never runtime save state or narrative identity.
+  const checkArtwork = (entity: { id: string; artwork?: string }, region = false) => {
+    if (!entity.artwork) return;
+    const where = `${allIds.get(entity.id)}.${entity.id}.artwork`;
+    const art = artwork.get(entity.artwork);
+    if (!art) problems.push(`${where}: unknown artwork "${entity.artwork}"`);
+    else if (region && (art.width !== 1600 || art.height !== 440)) problems.push(`${where}: region artwork must declare 1600 × 440 pixels`);
+  };
+  for (const entity of regions.values()) checkArtwork(entity, true);
+  for (const entity of items.values()) checkArtwork(entity);
+  for (const entity of buildings.values()) checkArtwork(entity);
 
   // ---------- reference checks ----------
   const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery" | "today" | "building" | "recipe", id: string, where: string) => {
@@ -473,7 +489,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   } catch (error) { throw new ContentError([String(error)]); }
 
   return Object.freeze({
-    trees, sites, textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
+    artwork, trees, sites, textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
   });
 }
 

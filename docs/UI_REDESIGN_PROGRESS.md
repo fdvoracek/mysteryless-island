@@ -15,7 +15,7 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
    buttons, panel treatment, readable disabled/focus states, and coherent light/dark tokens.
 2. **Classic layout — verified.** Global panorama frame, route map, journal area heading,
    flexible three-column workspace and sidebar, responsive phone stack, persistent work summary.
-3. **Validated artwork support — pending.** Optional content-driven illustration metadata,
+3. **Validated artwork support — verified.** Optional content-driven illustration metadata,
    validated references, selector views, shared image rendering, reserved dimensions, alt-text
    policy, missing-image fallback, and GitHub Pages base-path compatibility. No save migration.
 4. **Coordinated region artwork — pending.** Locate the actual approved simpler beach master,
@@ -47,3 +47,10 @@ are complete.
   fonts, and creation-tree interactions without page overflow. New browser coverage confirms
   the global slot stays outside tabpanels and the journal heading changes only after arrival.
   The panorama scaffold is genuinely empty/hidden; approved production artwork is still pending.
+  Delivered as `a07c465` on `feature/illustrated-book-ui`; remote commit verified.
+- Milestone 3: `npm run check` passed (347 unit tests, production build, 28 Chromium tests).
+  New authoring/selector tests verify references, dimensions, alt text, safe local paths,
+  optional metadata, unchanged game state, and panorama changes only upon arrival.
+  Five real-browser helper tests exercise Pages subpaths, actual loads, stable image elements,
+  cached failures, stale callbacks, and removing metadata. Independent source and integration
+  review found no material issues. No production assets or save changes were introduced.

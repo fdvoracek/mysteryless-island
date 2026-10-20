@@ -1,5 +1,5 @@
 import { requirementEntries, conditionEntry, toolRequirementEntry, type RequirementEntry } from "./action-rules";
-import type { TreeKind } from "../content/schema";
+import type { Artwork, TreeKind } from "../content/schema";
 import { focusShare, workTarget } from "./work";
 import { clockText, day, phaseAt } from "./clock";
 import { batchesReady, buildingKey, buildingState, evaluate } from "./conditions";
@@ -34,6 +34,7 @@ export interface StatusLine {
 }
 
 export interface TreeNodeView extends ButtonView {
+  artwork?: Artwork;
   target: string; branch: string; category: string; depth: number; after: string[]; completed: boolean; unlocked: boolean;
   requirements: RequirementEntry[]; hints: string[];
   count: number; limit?: number;
@@ -47,6 +48,7 @@ export interface TreeView {
 export interface View {
   trees: Record<TreeKind, TreeView>;
   title: string;
+  panorama?: Artwork;
   work: Array<{ id: string; label: string; word: string; running: boolean; remaining: number; nextRemaining: number;
     target: { kind: "action" | "travel"; id: string }; actions: ButtonView[] }>;
   /** the places you know (the nodes of the route map) */
@@ -65,7 +67,7 @@ export interface View {
   actions: ButtonView[];
   environmentActions: ButtonView[];
   /** Items with consume or item actions; portable controls live here. */
-  consumables: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
+  consumables: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[]; artwork?: Artwork }>;
   status: {
     day: number;
     clock: string;
@@ -79,7 +81,7 @@ export interface View {
    * (sow, harvest…). New ones are built from the building tree.
    */
   buildings: Array<{
-    id: string; label: string; hint?: string;
+    id: string; label: string; hint?: string; artwork?: Artwork;
     /** how many stand here ("fish trap ×2" in the label) */
     count: number;
     /** e.g. "growing · 2d 4h", "ripe", "2 fish in the trap" */
@@ -88,7 +90,7 @@ export interface View {
     actions: ButtonView[];
   }>;
   /** All other possessions, including tools, clothing and materials. */
-  inventory: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[] }>;
+  inventory: Array<{ id: string; label: string; count: number; tags: string[]; actions: ButtonView[]; artwork?: Artwork }>;
   /** story lines for a line-by-line log: newest action first, each action's lines in reading order */
   log: string[];
   /** the very last line written (e.g. "the world fades.") */
@@ -186,7 +188,7 @@ export function view(engine: Engine): View {
       });
     }
     const tags = (item.tool?.tags ?? []).map((t) => reg.game.tools[t].label);
-    const row = { id, label: item.name, count, tags, actions };
+    const row = { id, label: item.name, count, tags, actions, artwork: item.artwork ? reg.artwork.get(item.artwork) : undefined };
     if (item.consume || item.actions?.length) carried.push(row);
     else inventory.push(row);
   }
@@ -208,7 +210,7 @@ export function view(engine: Engine): View {
         tooltip: [`${fmtHours(hours)} · ${step.def.effort}`, ...Object.entries(cost).map(([k, v]) => `${reg.items.get(k)?.name ?? k}: ${v}`)],
       };
     }
-    buildings.push({ id: b.id, label: n > 1 ? `${b.name} ×${n}` : b.name, hint: b.hint, count: n, word: buildingWord(engine, b.id), action, actions: action ? [action] : [] });
+    buildings.push({ artwork: b.artwork ? reg.artwork.get(b.artwork) : undefined, id: b.id, label: n > 1 ? `${b.name} ×${n}` : b.name, hint: b.hint, count: n, word: buildingWord(engine, b.id), action, actions: action ? [action] : [] });
   }
 
   // Presentation ownership is data-driven; commands and game rules remain unchanged.
@@ -239,6 +241,7 @@ export function view(engine: Engine): View {
 
   return {
     title: region.title,
+    panorama: region.artwork ? reg.artwork.get(region.artwork) : undefined,
     trees: { craft: treeView(engine, "craft"), build: treeView(engine, "build") },
     work: s.actions.filter((a) => a.location === s.location).map((a) => {
       const share = focusShare(engine.runningActions().length);
@@ -462,7 +465,9 @@ export function treeView(engine: Engine, kind: TreeKind): TreeView {
     if (!work && limit !== undefined) requirements.push({ kind: "limit", label: b ? "local buildings" : "inventory", required: limit, available: count,
       met: r && !r.multiple && !state.technology.craft.completed.includes(r.id) ? true
         : r?.multiple ? count + (r.count ?? 1) <= limit : count < limit });
+    const artworkId = r ? reg.items.get(r.item)!.artwork : b!.artwork;
     return { id: `${kind}:${node.target}`, target: node.target, branch: node.branch, category: tree.definition.branches.find((branch) => branch.id === node.branch)!.name, depth: tree.depth.get(node.target)!, after: node.after,
+      artwork: artworkId ? reg.artwork.get(artworkId) : undefined,
       label: r ? r.label ?? reg.items.get(r.item)!.name : b!.name,
       command: r ? { type: "craft", recipe: node.target } : { type: "build", building: node.target },
       enabled: work ? work.status === "paused" && !engine.resumeReason(work) : check.enabled,

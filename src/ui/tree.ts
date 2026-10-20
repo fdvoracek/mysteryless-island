@@ -1,5 +1,6 @@
 import type { ButtonView, TreeNodeView, TreeView } from "../core/selectors";
 import type { RequirementEntry } from "../core/action-rules";
+import { updateIllustration } from "./illustration";
 import { compactTreeLayout, treeConnections, CHIP_HEIGHT } from "./tree-layout";
 
 function describe(entry: RequirementEntry): string {
@@ -20,6 +21,8 @@ const stateLabel = (node: TreeNodeView) => node.work?.status ?? (node.completed 
 /** One floating inspection surface for both trees, outside their scroll containers. */
 export class TreeTooltip {
   private element: HTMLElement;
+  private artwork: HTMLElement;
+  private content: HTMLElement;
   private anchor?: HTMLElement;
   private target?: string;
   private kind?: string;
@@ -31,6 +34,8 @@ export class TreeTooltip {
     this.element = document.createElement("div");
     this.element.id = "treeTooltip"; this.element.className = "tree-tooltip";
     this.element.setAttribute("role", "tooltip"); this.element.hidden = true;
+    this.artwork = document.createElement("div"); this.artwork.className = "tooltip-illustration";
+    this.content = document.createElement("div"); this.element.append(this.artwork, this.content);
     root.append(this.element);
     document.addEventListener("pointerdown", (event) => {
       if (this.pinned && this.element.contains(event.target as Node)) return;
@@ -103,7 +108,8 @@ export class TreeTooltip {
     const parents = node.after.map((id) => tree.nodes.find((other) => other.target === id)?.label ?? id);
     const requirements = document.createElement("ul");
     requirements.replaceChildren(...node.requirements.map((entry) => text("li", `${entry.met ? "✓" : "○"} ${describe(entry)}`)));
-    this.element.replaceChildren(text("div", node.label, "tree-tooltip-title"), text("span", node.category, "tree-category"),
+    updateIllustration(this.artwork, node.artwork, { decorative: true, eager: true });
+    this.content.replaceChildren(text("div", node.label, "tree-tooltip-title"), text("span", node.category, "tree-category"),
       text("div", stateLabel(node), "tree-tooltip-state"), ...(parents.length ? [text("div", `after ${parents.join(" + ")}`)] : []),
       ...node.hints.map((hint) => text("div", hint)), ...(node.reason ? [text("div", node.reason, "reason")] : []),
       ...(node.work ? [text("div", `${Math.round(100 * node.work.completed / node.work.required)}% complete`)] : []), requirements);

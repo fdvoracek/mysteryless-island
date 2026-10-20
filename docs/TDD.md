@@ -686,7 +686,21 @@ interface SaveFile {
 - **Book-page foundation [implemented]:** shared surface, ink, outline, spacing, and selection
   tokens in `ui/styles.css` give controls and panels a restrained hierarchy in both themes.
   All typography retains the selected `--font`; classic placement stays in its scoped CSS.
-- **Illustrations [future]:** content would reference an image id. The UI loads `/illustrations/{id}.webp` lazily, with required `alt` text from content. Dark mode applies `filter: invert(1)` to ink drawings, so one file serves both themes.
+- **Illustration support [implemented; production assets pending]:** optional
+  `content/artwork.json` entries define `{ id, src, width, height, alt }`. Regions, items, and
+  buildings reference them with `artwork: id`; the registry validates IDs, nonblank alt text,
+  local `illustrations/` paths, positive integer dimensions, and 1600 × 440 region metadata.
+  Files belong in `public/illustrations/`; paths in content omit `public/` and a leading slash.
+  Selectors resolve metadata for the current panorama, possession/building rows, and tree
+  tooltips. Creation nodes retain their compact dimensions.
+  `ui/illustration.ts` supplies one keyed image updater using Vite's base URL, explicit image
+  dimensions, eager panorama/tooltips and lazy item pictures. Semantically described panoramas
+  keep authored alt text; pictures paired with visible item labels are explicitly decorative.
+  Missing metadata or a failed load hides only the image slot. Failed sources are remembered
+  per slot to avoid repeated requests; stale image events cannot replace a newer image.
+  Monochrome ink uses multiply blending in light mode and inverted screen blending in dark
+  mode. No artwork enters saves or changes gameplay. The initial catalog is empty; production
+  assets still require the art guide's approval, physical-file checks, and coordinated review.
 - **Input:** mouse first; keyboard shortcuts for tabs (1–7) and for event choices (1–4) **[proposal]**.
 
 ---
