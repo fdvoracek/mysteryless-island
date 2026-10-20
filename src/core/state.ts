@@ -1,4 +1,5 @@
 import type { Registry } from "../content/registry";
+import { initialTechnology } from "./technology";
 import { seedRng } from "./rng";
 import { chooseText } from "./text";
 import { timerKey } from "./timers";
@@ -6,7 +7,7 @@ import { timerKey } from "./timers";
 import type { GameState } from "./state-schema";
 export type { GameState, LogEntry, RegionState, QuestState, EventsState } from "./state-schema";
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 export function createInitialState(reg: Registry, seed: number): GameState {
   const { start } = reg.game;
@@ -22,6 +23,7 @@ export function createInitialState(reg: Registry, seed: number): GameState {
   const time = (start.day - 1) * 1440 + Math.round(start.hour * 60);
   const state: GameState = {
     saveVersion: SAVE_VERSION,
+    technology: initialTechnology(reg),
     seed,
     rng: seedRng(seed),
     narrativeRng: seedRng(seed ^ 0x4e415252),

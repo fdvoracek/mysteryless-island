@@ -79,6 +79,7 @@ export function evaluate(c: Condition | undefined, ctx: Ctx): boolean {
   if ("not" in c) return !evaluate(c.not, ctx);
   if ("item" in c) return inRange(s.items[c.item] ?? 0, c, 1);
   if ("tool" in c) return toolsFor(reg, s, c.tool).length > 0;
+  if ("site" in c) return localSites(ctx).has(c.site);
   if ("seen" in c) return s.seen.includes(c.seen);
   if ("flag" in c) return s.flags.includes(c.flag);
   // timer values are authored in hours; a bare { "timer": "fire" } means "running"
@@ -132,6 +133,7 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
     return c.lte !== undefined ? `too much ${name}` : `needs ${c.gte ?? 1} ${name}`;
   }
   // a tool: what it is for, not which item ("needs something sharp")
+  if ("site" in c) return `needs ${reg.sites.get(c.site)?.needs ?? c.site} here`;
   if ("tool" in c) return `needs ${reg.game.tools[c.tool]?.needs ?? c.tool}`;
   if ("timer" in c) return `the ${reg.timers.get(c.timer)?.name ?? c.timer} is out`;
   if ("phase" in c) return `only at ${c.phase.join(", ")}`;
@@ -141,4 +143,38 @@ export function explain(c: Condition | undefined, ctx: Ctx): string | null {
   if ("built" in c) return `needs the ${reg.buildings.get(c.built)?.name ?? c.built}`;
   if ("sheltered" in c) return c.sheltered ? "needs shelter here" : "already sheltered here";
   return "not possible now";
+}
+
+/** Capabilities belong to this area and its locally discovered landmarks. */
+export function localSites({ reg, state }: Ctx): Set<string> {
+  const region = reg.regions.get(state.location);
+  const sites = new Set(region?.siteCapabilities ?? []);
+  for (const landmark of region?.explore?.landmarks ?? []) {
+    if (state.regions[state.location]?.discoveries.includes(landmark.id)) landmark.siteCapabilities?.forEach((id) => sites.add(id));
+  }
+  return sites;
+}
+
+/** Freeze non-tool decisions when work starts while retaining capability alternatives. */
+export function captureTools(c: Condition | undefined, ctx: Ctx): import("./work").ToolPredicate {
+  if (!c) return true;
+  if ("tool" in c) return c;
+  if ("all" in c) return { all: c.all.map((x) => captureTools(x, ctx)) };
+  if ("any" in c) return { any: c.any.map((x) => captureTools(x, ctx)) };
+  if ("not" in c) return { not: captureTools(c.not, ctx) };
+  return evaluate(c, ctx);
+}
+export function evaluateTools(c: import("./work").ToolPredicate, ctx: Ctx): boolean {
+  if (typeof c === "boolean") return c;
+  if ("tool" in c) return toolsFor(ctx.reg, ctx.state, c.tool).length > 0;
+  if ("all" in c) return c.all.every((x) => evaluateTools(x, ctx));
+  if ("any" in c) return c.any.some((x) => evaluateTools(x, ctx));
+  return !evaluateTools(c.not, ctx);
+}
+export function explainTools(c: import("./work").ToolPredicate, ctx: Ctx): string {
+  if (typeof c === "boolean") return c ? "available" : "unavailable";
+  if ("tool" in c) return `needs ${ctx.reg.game.tools[c.tool]?.needs ?? c.tool}`;
+  if ("all" in c) return c.all.filter((x) => !evaluateTools(x, ctx)).map((x) => explainTools(x, ctx)).join(" and ");
+  if ("any" in c) return c.any.map((x) => explainTools(x, ctx)).join(" or ");
+  return `requires not (${explainTools(c.not, ctx)})`;
 }

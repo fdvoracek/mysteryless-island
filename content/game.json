@@ -83,6 +83,7 @@
   },
   "_journal": "lines the engine writes itself; {place} is the name of the place",
   "journal": {
+    "crafted": "You finish crafting {item}.",
     "walkTo": ["You walk to {place}.", "You set off for {place}.", "You make your way to {place}."],
     "wayOpens": [
       "A way to {place} opens.",
@@ -110,30 +111,6 @@
   "tools": {
     "sharp": { "label": "sharp", "needs": "something sharp" },
     "fire_starter": { "label": "fire starter", "needs": "something to make a fire with" }
-  },
-  "_menus": "the craft and build menus: the button next to look around, the pop-up's title, its text, and the text when it offers nothing",
-  "menus": {
-    "craft": {
-      "button": "craft",
-      "title": "Craft",
-      "text": [
-        "What could you make with your hands and what you carry?",
-        "You turn over what you have. What could it become?"
-      ],
-      "empty": [
-        "Nothing comes to mind that you could make yet.",
-        "You turn over what you have. Nothing to make from it yet."
-      ]
-    },
-    "build": {
-      "button": "build",
-      "title": "Build",
-      "text": ["What could you build here?", "You look around for a place to build."],
-      "empty": [
-        "There is nothing you could build here yet.",
-        "You look around. Nothing to build here, not yet."
-      ]
-    }
   },
   "timers": [
     {

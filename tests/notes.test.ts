@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { view } from "../src/core/selectors";
-import { build, loadRegistry, lookAround, revealAll, startGame } from "./helpers";
+import { build, loadRegistry, lookAround, revealAll, startGame, unlockTechnology } from "./helpers";
 
 const reg = loadRegistry();
 const close = (e: ReturnType<typeof startGame>) => e.dispatch({ type: "choose", choice: "close" });
 /** In the meadows with the river found (the fish trap task) and 20 willow twigs. */
 function atTheRiver(seed: number) {
-  const e = startGame(reg, seed, "knife", { keepNotes: true });
+  const e = unlockTechnology(startGame(reg, seed, "knife", { keepNotes: true }));
   e.state.regions.meadows.unlocked = true;
   e.dispatch({ type: "travel", region: "meadows" });
   for (const id of ["berry_bushes", "river"]) { e.dispatch({ type: "explore" }); e.dispatch({ type: "choose", choice: id }); e.dispatch({ type: "choose", choice: "close" }); }

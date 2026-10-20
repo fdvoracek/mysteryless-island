@@ -81,20 +81,12 @@ export function lookAround(e: Engine) {
 }
 
 
-/** Make something from the craft menu: open it, pick the recipe (the pop-up closes, the work takes its time). */
-export function craft(e: Engine, recipe: string) {
-  const opened = e.dispatch({ type: "menu", menu: "craft" });
-  if (!opened.ok) return opened;
-  const res = e.dispatch({ type: "choose", choice: recipe });
-  if (!res.ok && e.state.events.active?.kind === "menu") e.dispatch({ type: "choose", choice: "close" });
-  return res;
-}
+/** Direct creation commands use the same persisted pipeline as browser work. */
+export function craft(e: Engine, recipe: string) { return e.dispatch({ type: "craft", recipe }); }
+export function build(e: Engine, building: string) { return e.dispatch({ type: "build", building }); }
 
-/** Build something here from the build menu. */
-export function build(e: Engine, building: string) {
-  const opened = e.dispatch({ type: "menu", menu: "build" });
-  if (!opened.ok) return opened;
-  const res = e.dispatch({ type: "choose", choice: building });
-  if (!res.ok && e.state.events.active?.kind === "menu") e.dispatch({ type: "choose", choice: "close" });
-  return res;
+/** Explicit late-game fixture for tests isolating production/scheduling from progression. */
+export function unlockTechnology(e: Engine): Engine {
+  for (const kind of ["craft", "build"] as const) e.state.technology[kind].unlocked = [...e.reg.trees.get(kind)!.nodes.keys()];
+  return e;
 }

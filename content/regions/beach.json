@@ -131,7 +131,8 @@
           "At the far end of the beach, a ring of rocks breaks the sea wind. It is a natural shelter. You can make a bed here, and build a campfire for warmth.",
           "Rocks stand in a ring, out of the wind. A natural shelter, ready for a bed and a campfire.",
           "The wind cannot reach inside the rock formation. Shelter already made. You can build a bed and a campfire here."
-        ]
+        ],
+        "siteCapabilities": ["camp_ground", "coastal_camp"]
       },
       {
         "id": "cliff_shells",
@@ -154,7 +155,8 @@
           "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
           "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",
           "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them."
-        ]
+        ],
+        "siteCapabilities": ["fishable_water"]
       },
       {
         "id": "cliff_top",
@@ -446,7 +448,7 @@
                 "The knife turning a branch into a spear.",
                 "The spear you carved, its point sharp under your thumb."
               ],
-              "when": { "all": [{ "today": "craft_spear" }, { "not": { "item": "rock_knife" } }] }
+              "when": { "all": [{ "today": "craft_spear" }, { "item": "knife" }] }
             },
             {
               "text": [
@@ -454,7 +456,9 @@
                 "The blunt rock knife, and the spear it made, slowly.",
                 "A spear made with a blade of stone."
               ],
-              "when": { "all": [{ "today": "craft_spear" }, { "item": "rock_knife" }] }
+              "when": {
+                "all": [{ "today": "craft_spear" }, { "item": "rock_knife" }, { "not": { "item": "knife" } }]
+              }
             },
             {
               "text": [

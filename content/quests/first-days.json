@@ -116,7 +116,7 @@
   {
     "id": "build_fish_trap",
     "title": "build a fish trap",
-    "trigger": { "when": { "discovered": "river" } },
+    "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
     "completeWhen": { "built": "fish_trap" },
     "doneLog": [
       "The trap is set. The fish will come to it.",

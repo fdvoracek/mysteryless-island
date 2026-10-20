@@ -5,11 +5,11 @@ import { evaluate } from "../src/core/conditions";
 import { timerValue } from "../src/core/timers";
 import { view } from "../src/core/selectors";
 import { buildRegistry } from "../src/content/registry";
-import { build, loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
+import { build, loadRegistry, lookAround, readContentFiles, revealAll, startGame, unlockTechnology } from "./helpers";
 
 const reg = loadRegistry();
 const fresh = (keepNotes = false) => {
-  const e = revealAll(startGame(reg, 7, "knife", { keepNotes }));
+  const e = unlockTechnology(revealAll(startGame(reg, 7, "knife", { keepNotes })));
   e.state.time = 22 * 60;
   e.state.stats = { health: 100, energy: 10, hunger: 0, thirst: 0 };
   return e;
@@ -20,11 +20,12 @@ describe("local shelter and buildings", () => {
     const e = startGame(reg, 1);
     lookAround(e); lookAround(e);
     expect(evaluate({ sheltered: true }, e.ctx())).toBe(true);
-    expect(e.buildOptions()).toContain("bed");
-    expect(e.buildOptions()).not.toContain("shelter");
+    expect(view(e).trees.build.nodes.map((n) => n.target)).toContain("bed");
+    expect(e.checkBuildingStep("shelter", "build").enabled).toBe(false);
     expect(e.state.quests.survive_first_night.status).toBe("active");
     expect(e.state.quests.better_sleep).toBeUndefined();
-    e.applyEffects([{ give: { timber: 2, firewood: 4 } }]);
+    e.applyEffects([{ give: { stone: 2, timber: 2, firewood: 4 } }]);
+    expect(build(e, "campfire").ok).toBe(true);
     expect(build(e, "bed").ok).toBe(true);
     expect(e.builtHere("shelter")).toBe(0);
     expect(view(e).actions.find((a) => a.id === "sleep")?.enabled).toBe(true);
@@ -36,7 +37,7 @@ describe("local shelter and buildings", () => {
     e.state.time = 12 * 60;
     e.state.stats.energy = 100;
     expect(evaluate({ sheltered: false }, e.ctx())).toBe(true);
-    expect(e.buildOptions()).not.toContain("bed");
+    expect(e.checkBuildingStep("bed", "build").enabled).toBe(false);
     e.applyEffects([{ give: { timber: 6, firewood: 4 } }]);
     expect(build(e, "shelter").ok).toBe(true);
     expect(evaluate({ sheltered: true }, e.ctx())).toBe(true);
@@ -44,7 +45,7 @@ describe("local shelter and buildings", () => {
     expect(e.builtHere("bed")).toBe(1);
     e.state.location = region === "forest" ? "meadows" : "forest";
     expect(evaluate({ sheltered: true }, e.ctx())).toBe(false);
-    expect(e.buildOptions()).not.toContain("bed");
+    expect(e.checkBuildingStep("bed", "build").enabled).toBe(false);
   });
 
   it("builds and lights a campfire locally; remote fire cannot warm the beach or cook food there", () => {

@@ -1,0 +1,17 @@
+{
+  "id": "crafting_tree",
+  "kind": "craft",
+  "name": "crafting",
+  "branches": [
+    { "id": "craft_tools", "name": "tools", "order": 0 },
+    { "id": "craft_weapons", "name": "weapons", "order": 1 },
+    { "id": "craft_materials", "name": "materials", "order": 2 }
+  ],
+  "nodes": [
+    { "target": "craft_rock_knife", "branch": "craft_tools", "after": [], "order": 0 },
+    { "target": "craft_axe", "branch": "craft_tools", "after": ["craft_rock_knife"], "order": 1 },
+    { "target": "craft_hoe", "branch": "craft_tools", "after": ["craft_axe"], "order": 2 },
+    { "target": "craft_spear", "branch": "craft_weapons", "after": ["craft_rock_knife"], "order": 3 },
+    { "target": "craft_rope", "branch": "craft_materials", "after": ["craft_rock_knife"], "order": 4 }
+  ]
+}

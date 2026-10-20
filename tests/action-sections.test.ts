@@ -11,7 +11,7 @@ describe("action sections", () => {
     const e = fresh();
     e.applyEffects([{ build: "campfire" }, { build: "bed" }]);
     const v = view(e);
-    expect(v.environmentActions.map((a) => a.id)).toEqual(["explore:beach", "menu:craft", "menu:build", "collect_shells", "collect_stones", "catch_fish"]);
+    expect(v.environmentActions.map((a) => a.id)).toEqual(["explore:beach", "collect_shells", "collect_stones", "catch_fish"]);
     expect(v.buildings.find((b) => b.id === "bed")?.actions.map((a) => a.id)).toEqual(["sleep"]);
     expect(v.buildings.find((b) => b.id === "campfire")?.actions.map((a) => a.id)).toEqual(["light_fire"]);
   });

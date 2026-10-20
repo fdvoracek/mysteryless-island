@@ -24,21 +24,21 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e); look(e);
     expect(logHas(e, "a ring of rocks breaks the sea wind")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "craft", "build"]);
+    expect(labels(e)).toEqual(["look around"]);
   });
 
   it("beach step 3: the cliff with shells reveals collect shells", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e);
     expect(logHas(e, "Shells cling to the wet stone")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "craft", "build", "collect shells", "pick up stones"]); // craft: the rope for the cliff
+    expect(labels(e)).toEqual(["look around", "collect shells", "pick up stones"]); // craft: the rope for the cliff
   });
 
   it("beach step 4: the fish need a spear; the cliff is still left (*)", () => {
     const e = startGame(reg, 1);
     look(e); look(e); look(e); look(e);
     expect(logHas(e, "With a sharp stick you might spear one")).toBe(true);
-    expect(labels(e)).toEqual(["look around", "craft", "build", "collect shells", "pick up stones", "catch fish"]); // the spear can be crafted now: the craft button appears; nothing to build yet
+    expect(labels(e)).toEqual(["look around", "collect shells", "pick up stones", "catch fish"]); // the spear can be crafted now: the craft button appears; nothing to build yet
     expect(view(e).actions[0].badge).toBe("*");
     expect(view(e).quests.map((q) => q.id)).toContain("first_catch"); // catching one is a task now
   });
@@ -56,9 +56,9 @@ describe("exploration", () => {
     const e = startGame(reg, 1);
     look(e);
     e.dispatch({ type: "travel", region: "forest" });
-    expect(labels(e)).toEqual(["look around", "build", "collect wood"]);
+    expect(labels(e)).toEqual(["look around", "collect wood"]);
     look(e);
-    expect(labels(e)).toEqual(["look around", "build", "collect wood", "drink water"]);
+    expect(labels(e)).toEqual(["look around", "collect wood", "drink water"]);
   });
 
   it("each region keeps its own progress; the * shows where something is left", () => {

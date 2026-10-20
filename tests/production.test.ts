@@ -97,25 +97,10 @@ describe("local production batches", () => {
     expect(batchesReady(reg, e.state, "fish_trap", "beach")).toBe(1);
   });
 
-  it("migrates version-5 production and interrupted collection without losing the selected output", () => {
-    const e = fresh();
-    e.applyEffects([{ build: "drying_rack" }, { startCycle: "drying_rack", production: "meat" }]);
-    e.state.time += 720;
-    e.start({ type: "building", id: "drying_rack", step: "collect" });
-    const old = JSON.parse(JSON.stringify(e.state));
+  it("requires a fresh game for version-5 production instead of inventing personal history", () => {
+    const old = structuredClone(fresh().state);
     old.saveVersion = 5;
-    old.flags.push("drying_meat");
-    old.buildings["drying_rack@beach"] = { count: 1, builtAt: 480, startedAt: 480 };
-    delete old.actions[0].work.collections;
-    old.actions[0].work.batches = 1;
-    const loaded = new Engine(reg, restoreState(old, reg)!);
-    expect(loaded.state.flags).not.toContain("drying_meat");
-    expect(loaded.state.buildings["drying_rack@beach"].batches[0].production).toBe("meat");
-    loaded.stepActions();
-    expect(loaded.state.items.dried_meat).toBe(2);
-    expect(loaded.state.buildings["drying_rack@beach"].batches).toEqual([]);
-    loaded.stepActions();
-    expect(loaded.state.items.dried_meat).toBe(2);
+    expect(restoreState(old, reg)).toBeNull();
   });
 
   it("rejects invalid batch identities and overallocated units at the save boundary", () => {
@@ -145,19 +130,14 @@ describe("local production batches", () => {
   });
 });
 
-it("preserves a legacy collection's original batch and unit claim after a long pause", () => {
+it("preserves a collection's original batch and unit claim after saving a long pause", () => {
   const e = fresh();
   e.applyEffects([{ build: "fish_trap" }, { startCycle: "fish_trap" }]);
   e.state.time += 120;
   e.start({ type: "building", id: "fish_trap", step: "collect" });
-  const old = JSON.parse(JSON.stringify(e.state));
-  old.saveVersion = 5;
-  old.time += 240;
-  old.buildings["fish_trap@beach"] = { count: 2, builtAt: 480, startedAt: 480 };
-  delete old.actions[0].work.collections;
-  old.actions[0].work.units = 1;
-  old.actions[0].work.batches = 1;
-  const loaded = new Engine(reg, restoreState(old, reg)!);
+  e.applyEffects([{ build: "fish_trap" }]);
+  e.state.time += 240;
+  const loaded = new Engine(reg, restoreState(structuredClone(e.state), reg)!);
   expect(loaded.state.actions[0].work).toMatchObject({ collections: [{ id: 1, units: 1, batches: 1 }] });
   loaded.stepActions();
   expect(loaded.state.items.raw_fish).toBe(1);

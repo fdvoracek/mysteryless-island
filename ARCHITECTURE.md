@@ -29,6 +29,41 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
+## Crafting and building trees — implemented
+
+**Implemented:** shared creation trees replace craft/build popups and quest-gated creation.
+Design rationale and content-authoring model:
+[crafting and building design](docs/CRAFTING_BUILDING_DESIGN.md).
+
+- One shared data-driven graph model and UI serves two independent trees, crafting and building.
+  Category branches group nodes; explicit prerequisites determine depth. All nodes remain visible.
+- All prerequisite nodes must be personally crafted/built to completion. Found, granted, or
+  equivalent items do not count. Unlocks are permanent and global; tools, materials, limits,
+  and local site requirements still determine whether work can start now.
+- Paused creation work requires its tool capabilities again before resuming. Missing tools
+  leave it paused with its progress and reserved materials intact; resume never charges twice.
+- An owned non-repeatable item does not block its first personal craft for progression.
+  That craft uses the normal materials and time, completes the node, and leaves exactly one
+  copy of its output item in inventory. Repeatable recipes retain their normal output quantities.
+- Quests remain goals but no longer unlock recipes/buildings. Discoveries can start quests and
+  provide local site capabilities. Buildings require capabilities rather than region allowlists;
+  fish traps need a discovered fishing site in the current area, including beach shallows or river.
+- `area`, `crafting`, and `building` tabs switch the centre panel while retaining the map,
+  journal, and status. Tab changes do not pause work. Node clicks start creation using the
+  existing persisted work/progress pipeline. Items enter inventory; buildings appear locally.
+  Building use and production controls stay in the area tab; creation trees only create things.
+- Initial content edges are rock knife to axe and rope independently, fire site to bed to
+  shelter, and fire site to fish trap to rabbit trap. Completing construction of the fire site
+  is sufficient; lighting it is not a progression requirement. Further initial links are
+  confirmed in the detailed design and `content/trees/`; edges remain editable data.
+- A fresh game is acceptable for this redesign. Implement an explicit incompatible-save
+  boundary rather than inferring personal completion from pre-redesign possessions.
+
+Keep permanent progression, current action requirements, and local production state separate.
+Preserve existing reservation, scheduling, pause, completion, and local production invariants
+except for the confirmed changes above. Dependency/category/site mappings live in validated
+content; adding a node or editing an edge does not require engine or UI special cases.
+
 ## Responsibility boundaries
 
 | Responsibility | Owner | Boundary |
@@ -109,7 +144,7 @@ and unit totals. Named outputs belong in local batch state, as with fish/meat dr
   the method or narrative truly differs. Alternative methods need matching, exclusive text.
 - Tasks define goals through `completeWhen`, logs, and effects. Keep their rows title-only.
   Do not restore duplicate quest costs, `needs`, `hint`, or `build` metadata; executable actions
-  and craft/build menus own requirements.
+  and craft/build tree nodes own requirements.
 - Gameplay selects an eligible outcome and applies its effects before choosing its narrative.
   Use the separate narrative RNG for wording. Adding variants must not alter gameplay rolls.
 - `Text` arrays are variants, not sequential lines. Preserve explicit text IDs when moving
@@ -144,8 +179,8 @@ derived view models; and an injected scheduler for deterministic controller test
   behavior usable; font selection stays independent of layout through `--font`.
 - Keep keyed control updates so focus and progress survive rendering. Progress bars display
   simulation progress; they must not determine whether work completed.
-- Keep build/craft next to look around, local buildings hidden until present, and consumables
-  hidden until qualifying carried items exist. Items with consumption/actions go in consumables;
+- Keep area/crafting/building navigation separate from travel. Local buildings stay hidden
+  until present, and consumables stay hidden until qualifying carried items exist. Items with consumption/actions go in consumables;
   other items stay in inventory. Building-associated actions belong under the local building.
 
 ## Definition of done and decisions requiring questions
@@ -158,7 +193,7 @@ derived view models; and an injected scheduler for deterministic controller test
 - Test observable behavior and invariants, not a duplicate of the implementation. Cover affected
   reservation/completion, pause/resume, save migration, local independence, and timing paths.
 - Use deterministic seeds/variant mode and the existing helpers. Exercise new content through
-  its real menus and account for blocking notes. Verify the UI at desktop and phone widths.
+  its real commands/tree nodes and account for blocking notes. Verify the UI at desktop and phone widths.
 - Run checks appropriate to the change and the required workflow in `AGENTS.md`; do not claim
   unrun checks passed. Documentation-only changes need link/diff review, not new behavior tests.
 - Update relevant documentation with the change. Report behavior, validation, compatibility,

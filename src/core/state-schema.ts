@@ -17,7 +17,6 @@ export const NoteSchema = z.object({ title: z.string(), text: z.string(), go: st
 const PopupBase = { text: z.string(), go: strings.optional() };
 export const PopupSchema = z.discriminatedUnion("kind", [
   z.object({ ...PopupBase, kind: z.literal("event"), event: z.string(), scene: z.string() }),
-  z.object({ ...PopupBase, kind: z.literal("menu"), menu: z.enum(["craft", "build"]) }),
   z.object({ ...PopupBase, kind: z.literal("exploration"), region: z.string(), landmark: z.string().optional(), hint: z.string().optional() }),
   z.object({ ...PopupBase, kind: z.literal("note"), title: z.string() }),
 ]);
@@ -33,6 +32,10 @@ export const LogEntrySchema = z.object({ at: count, text: z.string(), turn: coun
 /** The serializable runtime model is also the save validator; types are inferred from it. */
 export const GameStateSchema = z.object({
   saveVersion: count,
+  technology: z.object({
+    craft: z.object({ completed: strings, unlocked: strings }).strict(),
+    build: z.object({ completed: strings, unlocked: strings }).strict(),
+  }).strict(),
   seed: number.int(),
   rng: RngSchema,
   narrativeRng: RngSchema,

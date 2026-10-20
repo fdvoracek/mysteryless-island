@@ -198,7 +198,7 @@ Region bases **[proposal]:** beach 24, forest 20, lake 18, plains 25, caves 13 (
 
 ### 6.3b Daily sleep [implemented]
 
-Voluntary sleep requires a bed built in the current area; the sleep button is hidden otherwise. Sleep always ends at 6am at the same place. A sheltered bed with a local fire burning at bedtime sets morning energy to 100% before midnight. Without fire, or from midnight onwards, a sheltered bed gives 80%. An exposed bed or no bed gives 50%. Discovered beach rocks count as natural shelter and allow a bed immediately; elsewhere, build a shelter first. Campfires are built separately (2 stones), then lit and fueled in their own area. Recovery uses conditions at bedtime, even if the fire expires overnight. After the first night, the “better sleep” task asks for a bed and lit fire in the same sheltered area. At midnight or zero energy the player collapses where they are and sleeps until 6am; unfinished player work pauses and its materials stay reserved. The morning journal announces the day and describes sleep quality. Production continues overnight.
+Voluntary sleep requires a bed built in the current area; the sleep button is hidden otherwise. Sleep always ends at 6am at the same place. A sheltered bed with a local fire burning at bedtime sets morning energy to 100% before midnight. Without fire, or from midnight onwards, a sheltered bed gives 80%. An exposed bed or no bed gives 50%. Discovered beach rocks count as natural shelter for the first bed, once campfire construction unlocks its node; elsewhere, build a shelter first. Campfires are built separately (2 stones), then lit and fueled in their own area. Recovery uses conditions at bedtime, even if the fire expires overnight. After the first night, the “better sleep” task asks for a bed and lit fire in the same sheltered area. At midnight or zero energy the player collapses where they are and sleeps until 6am; unfinished player work pauses and its materials stay reserved. The morning journal announces the day and describes sleep quality. Production continues overnight.
 
 ### 6.4 Death and saves [implemented]
 
@@ -287,7 +287,12 @@ A region is one data file (TDD §6). New regions should hook into the existing u
 
 ### 8.1 Tiers **[proposal]**
 
-The "technology tree" is not a separate screen at first. It emerges from what recipes and buildings require. An optional *journal* screen can later list known techniques.
+**Creation trees [implemented]:** crafting and building have separate centre-panel
+tabs with independent trees using the same system. All nodes are visible, grouped by category;
+personally completing all predecessors permanently unlocks a node. Current tools/materials
+and discovered local site capabilities still gate creation. Quests remain goals rather than
+unlocks. This replaces the earlier proposal for implicit technology progression without its
+own screen. See [the redesign](CRAFTING_BUILDING_DESIGN.md); the tiers below remain proposals.
 
 | Tier | Theme | Key items and buildings | Gate to next tier |
 |---|---|---|---|
@@ -399,7 +404,7 @@ Short goals that point the player at the next thing to learn, without explaining
 - **Trigger** (when a task becomes active): at the start of a new game; when a condition becomes true (a time such as "day 1, 16:00", an item seen, a region unlocked, another task done, a flag set by an event); or manually, from an effect in an activity outcome, an event or another task's reward.
 - **Goal** (when it's done): any condition, such as "drank for the first time", "a fire is burning", "it's day 2 after 06:00", "a shelter is built".
 - **Rewards:** a finished task can run effects (give items, start the next task).
-- **Making things:** tasks have no action buttons. Crafting and building happen through their menus; fulfilling `completeWhen` finishes the goal.
+- **Making things:** tasks have no action buttons. Crafting and building happen through their creation-tree tabs; quests do not unlock nodes; fulfilling `completeWhen` finishes the goal.
 - Tasks never fail in v1. Timed or failable tasks can be added later if the design needs them.
 
 Current set:
@@ -451,7 +456,11 @@ Same visual language as *A Dark Room*: one serif typeface, black on white (and a
 - **Right:** time, day phase, season, weather; five status words; stores.
 - **Event modal:** title, text, optional illustration, choice buttons.
 - **Tooltips:** duration, energy, inputs, known outputs; for a disabled button, the missing requirement ("needs: spear"). Hidden requirements stay hidden (the button isn't shown at all yet).
-- **Reveal rule [proposal]:** a recipe or building appears once the player has seen every ingredient at least once. It is enabled once the player can afford it. This is *A Dark Room*'s rule, simplified.
+- **Creation visibility [implemented]:** the crafting/building tabs show all nodes,
+  including locked and completed ones. Prerequisites, current resources/tools, and discovered
+  local sites determine eligibility; see [the redesign](CRAFTING_BUILDING_DESIGN.md). This
+  supersedes the earlier ingredient-based reveal proposal and the creation controls in the
+  illustrative layout above. Map, journal, and status stay visible when changing centre tabs.
 
 ---
 

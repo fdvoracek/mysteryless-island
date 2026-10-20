@@ -46,7 +46,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(ev.choices).toEqual([{ id: "close", label: "back", enabled: true }]);
     expect(e.state.log.some((l) => l.text === ev.text)).toBe(true);
     choose(e, "close");
-    expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // natural shelter opens building a bed and campfire
+    expect(view(e).trees.build.nodes.find((n) => n.target === "campfire")!.unlocked).toBe(true); // natural shelter opens building a bed and campfire
   });
 
   it("an explored landmark is not offered again; new ones can appear later (the cliff past the rocks)", () => {

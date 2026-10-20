@@ -1,6 +1,7 @@
 import type { Engine, Command, Result } from "../core/engine";
 import { fmtHours, view, type ButtonView, type View } from "../core/selectors";
 import { applyFont, FONTS, getFont, loadFontId, saveFontId, type Font } from "./fonts";
+import { renderTree } from "./tree";
 import { classicSkeleton } from "./layouts/classic";
 import { REQUIRED_IDS } from "./layouts/panels";
 import type { Icon } from "../content/schema";
@@ -21,6 +22,7 @@ export class UI {
   private pulse = new Set<string>();
   /** whether this page has shown the game alive (then a death gets the fade first) */
   private wasAlive = false;
+  private centreTab: "area" | "craft" | "build" = "area";
 
   constructor(
     root: HTMLElement,
@@ -110,6 +112,24 @@ export class UI {
       if (!el) throw new Error(`classic layout has no #${id} panel (see src/ui/layouts/panels.ts)`);
       this.els[id] = el;
     }
+    const tabs = ["area", "craft", "build"] as const;
+    tabs.forEach((tab, index) => {
+      this.els[`${tab}Tab`].onclick = () => { this.selectCentreTab(tab); this.render(); };
+      this.els[`${tab}Tab`].onkeydown = (event) => {
+        const next = event.key === "ArrowRight" ? (index + 1) % 3 : event.key === "ArrowLeft" ? (index + 2) % 3 : event.key === "Home" ? 0 : event.key === "End" ? 2 : -1;
+        if (next < 0) return;
+        event.preventDefault(); this.selectCentreTab(tabs[next]); this.els[`${tabs[next]}Tab`].focus(); this.render();
+      };
+    });
+  }
+
+  private selectCentreTab(tab: "area" | "craft" | "build") {
+    this.centreTab = tab;
+    for (const id of ["area", "craft", "build"]) {
+      this.els[`${id}Panel`].hidden = id !== tab;
+      this.els[`${id}Tab`].setAttribute("aria-selected", String(id === tab));
+      this.els[`${id}Tab`].tabIndex = id === tab ? 0 : -1;
+    }
   }
 
   /** One font for all text (see ./fonts.ts). */
@@ -129,6 +149,7 @@ export class UI {
   }
 
   render() {
+    this.selectCentreTab(this.centreTab);
     const v = view(this.getEngine());
     this.els.wrap.classList.toggle("busy", this.isBusy());
     this.els.wrap.setAttribute("aria-busy", String(this.isBusy()));
@@ -142,6 +163,8 @@ export class UI {
     this.renderLog(v);
     this.renderEvent(v);
     this.renderEnd(v);
+    renderTree(this.els.craftTree, v.trees.craft, this.renderButtons.bind(this));
+    renderTree(this.els.buildTree, v.trees.build, this.renderButtons.bind(this));
     this.renderWork(v);
   }
 
@@ -337,14 +360,13 @@ export class UI {
       const tip = el.querySelector(".tip")!;
       tip.replaceChildren(...bv.tooltip.map((t) => div(t)), ...(bv.reason ? [div(bv.reason, "reason")] : []));
       el.classList.toggle("off", !bv.enabled);
-      el.classList.toggle("menu-btn", !!bv.menu);
       el.setAttribute("aria-disabled", String(!bv.enabled || (this.isBusy() && bv.command.type !== "pause")));
       if (container.children[index] !== el) container.insertBefore(el, container.children[index] ?? null);
     });
-    // Keep look around, craft and build together above the other controls.
+    // Keep exploration above the other area controls.
     const explore = container.querySelector<HTMLElement>('button.btn[data-id^="explore:"]');
     explore?.classList.add("explore");
-    const first = [...container.querySelectorAll<HTMLElement>("button.btn")].filter((b) => b === explore || b.classList.contains("menu-btn")).at(-1);
+    const first = [...container.querySelectorAll<HTMLElement>("button.btn")].filter((b) => b === explore).at(-1);
     if (first?.nextElementSibling) first.after(div("", "break"));
   }
 
