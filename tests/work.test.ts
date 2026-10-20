@@ -18,8 +18,7 @@ describe("persistent player work", () => {
     const e = fresh();
     e.state.items.stone = 2;
     e.state.items.knife = 0;
-    e.start({ type: "menu", menu: "craft" });
-    e.start({ type: "choose", choice: "craft_rock_knife" });
+    e.start({ type: "craft", recipe: "craft_rock_knife" });
     e.stepActions();
     expect(e.state.items.stone).toBe(0);
     expect(e.state.actions[0]).toMatchObject({ completedMinutes: 15, reserved: { stone: 2 } });
@@ -69,8 +68,7 @@ describe("persistent player work", () => {
     e.applyEffects([{ startCycle: "snares" }]);
     e.state.items.stone = 2;
     e.state.items.knife = 0;
-    e.start({ type: "menu", menu: "craft" });
-    e.start({ type: "choose", choice: "craft_rock_knife" });
+    e.start({ type: "craft", recipe: "craft_rock_knife" });
     e.stepActions();
     e.dispatch({ type: "activity", id: "sleep" });
     expect(e.state.time % 1440).toBe(360);
@@ -104,8 +102,7 @@ describe("persistent player work", () => {
     const e = fresh();
     e.state.items.stone = 2;
     e.state.items.knife = 0;
-    e.start({ type: "menu", menu: "craft" });
-    e.start({ type: "choose", choice: "craft_rock_knife" });
+    e.start({ type: "craft", recipe: "craft_rock_knife" });
     e.stepActions();
     e.reg.recipes.delete("craft_rock_knife");
     const loaded = restoreState(e.state, e.reg)!;

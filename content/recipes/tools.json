@@ -2,8 +2,7 @@
   {
     "id": "craft_rock_knife",
     "item": "rock_knife",
-    "_note": "for when you have nothing sharp: 2 stones and 3 hours of grinding; offered once the cliff is found (the stones lie there; the bark and the spear need something sharp)",
-    "availableWhen": { "all": [{ "discovered": "cliff_shells" }, { "not": { "tool": "sharp" } }] },
+    "_note": "The root craft: 2 stones and 3 hours of grinding after discovering the cliff; personal completion unlocks descendants even when another sharp tool is already owned.",
     "ways": [
       {
         "hours": 3,
@@ -15,12 +14,12 @@
           "You knock flakes off one stone with the other, then grind the edge. It will never be a knife, but it will do."
         ]
       }
-    ]
+    ],
+    "requires": { "discovered": "cliff_shells" }
   },
   {
     "id": "craft_spear",
     "item": "fishing_spear",
-    "availableWhen": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] },
     "ways": [
       {
         "visibleWhen": { "all": [{ "item": "rock_knife" }, { "not": { "item": "knife" } }] },
@@ -46,14 +45,12 @@
         ]
       }
     ],
-    "_note": "needs something sharp: the knife 30 min; the rock knife is slower (its tool.hoursFactor 2), with its own texts"
+    "_note": "needs something sharp: the knife 30 min; the rock knife is slower (its tool.hoursFactor 2), with its own texts",
+    "requires": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] }
   },
   {
     "id": "craft_axe",
     "item": "axe",
-    "availableWhen": {
-      "any": [{ "quest": "cut_logs", "is": "active" }, { "quest": "cut_logs", "is": "done" }]
-    },
     "ways": [
       {
         "hours": 1,
@@ -70,9 +67,6 @@
   {
     "id": "craft_hoe",
     "item": "hoe",
-    "availableWhen": {
-      "any": [{ "quest": "build_corn_field", "is": "active" }, { "quest": "build_corn_field", "is": "done" }]
-    },
     "ways": [
       {
         "hours": 1,
@@ -90,13 +84,7 @@
     "id": "craft_rope",
     "item": "cordage",
     "multiple": true,
-    "_note": "4 bark strips, 3 h; offered once a rope is needed (the cliff, the snares); more than one can be made",
-    "availableWhen": {
-      "any": [
-        { "discovered": "cliff_shells" },
-        { "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }] }
-      ]
-    },
+    "_note": "Four bark strips twisted into rope; personal rock knife completion unlocks the recipe.",
     "ways": [
       {
         "hours": 3,

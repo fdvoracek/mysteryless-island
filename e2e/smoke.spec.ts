@@ -27,6 +27,14 @@ test.afterEach(() => {
 
 const action = (page: Page, name: string) => page.locator(".action-sections .btn", { hasText: name });
 
+const node = (page: Page, kind: "craft" | "build", target: string) => page.locator(`#${kind}Tree .tree-node[data-target="${target}"]`);
+async function create(page: Page, kind: "craft" | "build", target: string) {
+  await page.locator(`#${kind}Tab`).click();
+  await node(page, kind, target).locator(".node-control .btn").click();
+  await page.locator("#areaTab").dispatchEvent("click");
+  await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 20_000 });
+}
+
 /** Long playthroughs can run out of provisions; acknowledge their warning before continuing. */
 async function dismissProvisionWarning(page: Page) {
   if (await page.locator("#event").isVisible() && await page.locator("#eventTitle").textContent() === "Supplies running low") {
@@ -102,12 +110,9 @@ test("at midnight the player collapses where they are and wakes at 6am with a ne
     ti.give("matches", 1);
   });
   await expect(page.locator('#quests .quest[data-id="better_sleep"]')).toBeVisible();
-  await action(page, "build").click();
-  await expect(page.locator('#eventChoices [data-choice="shelter"]')).toHaveCount(0);
-  await page.locator('#eventChoices [data-choice="bed"]').click();
+  await create(page, "build", "campfire");
+  await create(page, "build", "bed");
   await page.locator("#eventBack").click();
-  await action(page, "build").click();
-  await page.locator('#eventChoices [data-choice="campfire"]').click();
   await action(page, "light fire").click();
   await expect(page.locator("#eventTitle")).toHaveText("Task done: better sleep");
   await page.locator("#eventBack").click();
@@ -128,6 +133,7 @@ test("automatic provisions warn about raw meat, unlock the shared rack, and cons
     const ti = (window as unknown as { ti: { give(i: string, n: number): void; stat(s: string, v: number): void } }).ti;
     ti.give("raw_meat", 2);
     ti.give("timber", 2);
+    ti.give("stone", 2);
     ti.stat("hunger", 60);
     ti.stat("thirst", 70);
   });
@@ -140,8 +146,8 @@ test("automatic provisions warn about raw meat, unlock the shared rack, and cons
   await expect(page.locator('#consumables .control-row[data-id="raw_meat"] .use')).toHaveCount(0);
   await expect(page.locator('#quests .quest[data-id="build_drying_rack"]')).toBeVisible();
   await page.locator("#eventBack").click();
-  await action(page, "build").click();
-  await page.locator('#eventChoices [data-choice="drying_rack"]').click();
+  await create(page, "build", "campfire");
+  await create(page, "build", "drying_rack");
   await expect(page.locator("#eventTitle")).toHaveText("Task done: build a drying rack");
   await page.locator("#eventBack").click();
   const rack = page.locator('#buildings .control-row[data-id="drying_rack"]');
@@ -210,19 +216,16 @@ test("the meadows: a ? to the west from the start; climbing the cliff with a rop
   await explore(page, "berry_bushes");
   await explore(page, "river");
   for (const a of ["pick berries", "drink water", "catch fish"]) await expect(action(page, a)).toBeVisible();
-  // Main activities share a row in every area.
-  const y = async (name: string) => (await action(page, name).boundingBox())!.y;
-  expect(await y("build")).toBe(await y("look around"));
-  expect(await y("craft")).toBe(await y("build"));
-  // the river starts the fish trap task: 20 willow twigs; built from the build menu; then it is in the buildings panel
+  await expect(page.getByRole("tab", { name: "building", exact: true })).toBeVisible();
+  // the river starts the fish trap task: 20 willow twigs; built from the building tree; then it is in the buildings panel
   const task = page.locator('#quests .quest[data-id="build_fish_trap"]');
   await expect(task).toBeVisible();
   await action(page, "cut willow twigs").click();
   await action(page, "cut willow twigs").click();
   await expect(task.locator(".progress")).toHaveCount(0);
-  await action(page, "build").click();
-  await expect(page.locator("#eventTitle")).toHaveText("Build");
-  await page.locator('#eventChoices [data-choice="fish_trap"]').click();
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("stone", 2));
+  await create(page, "build", "campfire");
+  await create(page, "build", "fish_trap");
   const trap = page.locator('#buildings .control-row[data-id="fish_trap"]');
   await expect(page.locator("#eventTitle")).toHaveText("Task done: build a fish trap");
   await expect(page.locator("#eventText")).toContainText("Fish trap built.");
@@ -348,7 +351,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator("#mapTip .map-icon-name")).toHaveText(["wood"]);
   await page.mouse.move(0, 0);
   await expect(page.locator("#mapTip")).toBeHidden();
-  await expect(action(page, "build")).toBeVisible();
+  await expect(page.locator("#buildTab")).toBeVisible();
   // an explored landmark is not offered again
   await action(page, "look around").click();
   await expect(page.locator('#eventChoices [data-choice="rock_shelter"]')).toHaveCount(0);
@@ -379,8 +382,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   });
   const cook = page.locator('#buildings .control-row[data-id="campfire"] .btn', { hasText: "cook raw fish" });
   await expect(cook).toHaveCount(0);
-  await action(page, "build").click();
-  await page.locator('#eventChoices [data-choice="campfire"]').click();
+  await create(page, "build", "campfire");
   await action(page, "light fire").click();
   await expect(page.locator("#log")).toContainText("The fire takes");
   await expect(action(page, "stoke fire")).toBeVisible();
@@ -390,49 +392,51 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(page.locator('#consumables .control-row[data-id="cooked_fish"]')).toBeVisible();
 });
 
-test("finding the fish starts 'catch a fish' (it needs a spear or a trap); the spear comes from the craft menu", async ({ page }) => {
-  for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
+test("finding fish starts a goal while the spear still requires personal rock knife completion", async ({ page }) => {
+  for (let i = 0; i < 4; i++) await explore(page);
   const quest = page.locator('#quests .quest[data-id="first_catch"]');
   await expect(quest.locator(".title")).toHaveText("catch a fish");
-  await expect(quest.locator("button")).toHaveCount(0); // tasks have no buttons
-  await expect(quest.locator(".needs, .progress, .tip")).toHaveCount(0);
-  // the craft menu: a pop-up with the spear, what it needs in its tooltip
-  await action(page, "craft").click();
-  await expect(page.locator("#eventTitle")).toHaveText("Craft");
-  const spear = page.locator('#eventChoices [data-choice="craft_spear"]');
-  await expect(spear).toHaveClass(/off/);
-  await expect(spear).toHaveAttribute("title", "10 firewood · 30m: Needs 10 firewood (have 0)");
-  await page.locator("#eventBack").click();
-
-  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
-  await expect(action(page, "craft").locator(".label")).toHaveText("craft*"); // something can be made now
-  await action(page, "craft").click();
-  await spear.click();
-  await expect(page.locator("#event")).toBeHidden(); // the menu closes; no task is done by crafting
+  await expect(quest.locator("button, .needs, .progress, .tip")).toHaveCount(0);
+  await page.locator("#craftTab").click();
+  const spear = node(page, "craft", "craft_spear");
+  await expect(spear.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
+  await spear.locator("summary").click();
+  await expect(spear).toContainText("personally craft rock knife");
+  await page.evaluate(() => {
+    const ti = (window as unknown as { ti: { give(i: string, n: number): void } }).ti;
+    ti.give("stone", 2); ti.give("firewood", 10);
+  });
+  await create(page, "craft", "craft_rock_knife");
+  await dismissProvisionWarning(page);
+  await create(page, "craft", "craft_spear");
   await expect(page.locator("#inventory")).toContainText("fishing spear");
-  await expect(quest.locator(".needs, .progress, .tip")).toHaveCount(0);
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
-  await expect(action(page, "craft").locator(".label")).toHaveText("craft"); // no *: one spear is enough
+  await page.locator("#craftTab").click();
+  await expect(spear).toHaveClass(/completed/);
+  await expect(spear.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
 });
 
-test("without the knife: a rock knife first (2 stones, 3 hours), then the spear takes twice as long", async ({ page }) => {
+test("without the knife a personal rock knife unlocks a spear that takes twice as long", async ({ page }) => {
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await escapeShip(page, "matches");
-  for (let i = 0; i < 4; i++) await explore(page); // dunes, rocks, cliff, shallows
+  for (let i = 0; i < 4; i++) await explore(page);
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("firewood", 10));
-  await action(page, "pick up stones").click(); // under the cliff: 2 or 3 stones
-  await action(page, "craft").click();
-  await expect(page.locator('#eventChoices [data-choice="craft_rock_knife"]')).toHaveText("rock knife3h");
-  await expect(page.locator('#eventChoices [data-choice="craft_rock_knife"]')).toHaveAttribute("title", "2 stones · 3h");
-  await expect(page.locator('#eventChoices [data-choice="craft_spear"]')).toHaveClass(/off/);
-  await page.locator('#eventChoices [data-choice="craft_rock_knife"]').click();
-  await expect(page.locator("#inventory")).toContainText("rock knife");
+  await action(page, "pick up stones").click();
+  await page.locator("#craftTab").click();
+  const knife = node(page, "craft", "craft_rock_knife");
+  await knife.locator("summary").click();
+  await expect(knife).toContainText("3h");
+  await expect(knife).toContainText("2 required");
+  await create(page, "craft", "craft_rock_knife");
   await dismissProvisionWarning(page);
-  await action(page, "craft").click();
-  await expect(page.locator('#eventChoices [data-choice="craft_rock_knife"]')).toHaveCount(0);
-  await expect(page.locator('#eventChoices [data-choice="craft_spear"]')).toHaveText("fishing spear1h");
-  await page.locator('#eventChoices [data-choice="craft_spear"]').click();
+  await page.locator("#craftTab").click();
+  await expect(knife).toHaveClass(/completed/);
+  await expect(knife.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
+  const spear = node(page, "craft", "craft_spear");
+  await spear.locator("summary").click();
+  await expect(spear).toContainText("1h");
+  await create(page, "craft", "craft_spear");
   await expect(page.locator("#inventory")).toContainText("fishing spear");
 });
 
@@ -464,6 +468,13 @@ test("while an action runs, the controls are locked and greyed out", async ({ pa
 
 test("the clock ticks by quarters while work runs, with crafted items and buildings delivered at the end", async ({ page }) => {
   for (let i = 0; i < 4; i++) await explore(page);
+  await page.evaluate(() => {
+    const ti = (window as unknown as { ti: { give(i: string, n: number): void } }).ti;
+    ti.give("stone", 4);
+  });
+  await create(page, "craft", "craft_rock_knife");
+  await dismissProvisionWarning(page);
+  await create(page, "build", "campfire");
   await page.goto("./?variants=first");
   await page.evaluate(() => {
     const ti = (window as unknown as { ti: { give(i: string, n: number): void; stat(s: string, v: number): void } }).ti;
@@ -479,8 +490,12 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   const wallTime = new Date("2030-01-01T06:00:00Z");
   await page.clock.install({ time: wallTime });
   await page.clock.pauseAt(wallTime);
-  await action(page, "craft").dispatchEvent("click");
-  await page.locator('#eventChoices [data-choice="craft_spear"]').dispatchEvent("click");
+  await page.locator("#craftTab").dispatchEvent("click");
+  await node(page, "craft", "craft_spear").locator(".node-control .btn").dispatchEvent("click");
+  await expect(node(page, "craft", "craft_spear").locator(".cd")).toHaveCSS("transition-duration", "2.5s");
+  await page.locator("#buildTab").dispatchEvent("click");
+  await page.locator("#areaTab").dispatchEvent("click");
+  await expect(page.locator("#workBox")).toBeVisible();
   expect((await state()).time).toBe(start);
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator('#inventory [data-id="fishing_spear"]')).toHaveCount(0);
@@ -496,14 +511,15 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await expect(page.locator('#inventory [data-id="fishing_spear"]')).toBeVisible();
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
 
-  await action(page, "build").dispatchEvent("click");
-  await page.locator('#eventChoices [data-choice="bed"]').dispatchEvent("click");
-  await expect(page.locator("#buildingsBox")).toBeHidden();
+  await page.locator("#buildTab").dispatchEvent("click");
+  await node(page, "build", "bed").locator(".node-control .btn").dispatchEvent("click");
+  await page.locator("#areaTab").dispatchEvent("click");
+  await expect(page.locator('#buildings [data-id="bed"]')).toHaveCount(0);
   await expect(page.locator("#event")).toBeHidden();
   await page.clock.runFor(7_500);
   expect((await state()).time).toBe(start + 75);
   expect((await state()).buildings["bed@beach"]).toBeUndefined();
-  await expect(page.locator("#buildingsBox")).toBeHidden();
+  await expect(page.locator('#buildings [data-id="bed"]')).toHaveCount(0);
   await page.clock.runFor(2_500);
   expect((await state()).time).toBe(start + 90);
   await expect(page.locator('#buildings [data-id="bed"]')).toBeVisible();
@@ -588,15 +604,12 @@ test("central sections keep local building controls and portable item controls u
   await expect(page.locator("#buildingsBox")).toBeHidden();
   await expect(page.locator("#consumablesBox")).toBeVisible();
   const main = page.locator("#actions .btn");
-  await expect(main.locator(".label").filter({ hasText: /look around|craft|build/ })).toHaveText([/look around/, /craft/, /build/]);
-  const positions = await main.evaluateAll((buttons) => buttons.slice(0, 3).map((b) => b.getBoundingClientRect().top));
-  expect(new Set(positions).size).toBe(1);
-  await action(page, "build").click();
-  await page.locator('#eventChoices [data-choice="bed"]').click();
+  await expect(main.locator(".label").filter({ hasText: /look around/ })).toHaveText([/look around/]);
+  await expect(page.getByRole("tab")).toHaveText(["area", "crafting", "building"]);
+  await create(page, "build", "campfire");
+  await create(page, "build", "bed");
   await expect(page.locator("#buildingsBox")).toBeVisible();
   await page.locator("#eventBack").click();
-  await action(page, "build").click();
-  await page.locator('#eventChoices [data-choice="campfire"]').click();
   await action(page, "light fire").click();
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -702,3 +715,60 @@ test("death is permanent: the end screen tells your story; load the saved game o
   await expect(page.locator("#eventTitle")).toHaveText("The storm");
 });
 
+
+
+test("complete trees show accessible requirements and nonoverlapping nodes on desktop and phone", async ({ page }) => {
+  for (const width of [1280, 375]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.locator("#buildTab").click();
+    const cards = page.locator("#buildTree .tree-node");
+    await expect(cards).toHaveCount(10);
+    await expect(page.locator("#buildTree .tree-edges path")).toHaveCount(9);
+    const boxes = await cards.evaluateAll((els) => els.map((el) => {
+      const box = el.getBoundingClientRect();
+      return { x: box.x, y: box.y, right: box.right, bottom: box.bottom };
+    }));
+    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+      const a = boxes[i], b = boxes[j];
+      expect(a.right <= b.x || b.right <= a.x || a.bottom <= b.y || b.bottom <= a.y).toBe(true);
+    }
+    const bed = node(page, "build", "bed");
+    const button = bed.locator(".node-control .btn");
+    await button.focus();
+    await expect(button).toBeFocused();
+    await expect(button).toHaveAttribute("aria-disabled", "true");
+    await button.press("Enter");
+    await expect(page.locator("#workBox")).toBeHidden();
+    const summary = bed.locator("summary");
+    await summary.scrollIntoViewIfNeeded();
+    await summary.click();
+    await expect(bed.locator("details")).toHaveAttribute("open", "");
+    await expect(bed).toContainText("personally build campfire");
+    await page.screenshot({ path: `test-results/tree-review-building-${width}.png`, fullPage: true, animations: "disabled" });
+    await expect(button).toHaveCSS("color", await page.locator("body").evaluate((el) => getComputedStyle(el).color));
+    await expect(button).toHaveCSS("opacity", "1");
+    await summary.click();
+    const lastColumn = node(page, "build", "rain_barrel").locator("summary");
+    await lastColumn.scrollIntoViewIfNeeded();
+    await lastColumn.click();
+    await expect(node(page, "build", "rain_barrel").locator("details")).toHaveAttribute("open", "");
+    await lastColumn.click();
+    await page.locator("#craftTab").click();
+    await node(page, "craft", "craft_rock_knife").locator("summary").click();
+    await page.screenshot({ path: `test-results/tree-review-crafting-${width}.png`, fullPage: true, animations: "disabled" });
+    await node(page, "craft", "craft_rock_knife").locator("summary").click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+  }
+});
+
+test("an incompatible save stays intact until the player chooses a new game", async ({ page }) => {
+  const old = JSON.stringify({ saveVersion: 6, current: { saveVersion: 6 } });
+  await page.evaluate((raw) => localStorage.setItem("textisland.save", raw), old);
+  await page.reload();
+  await expect(page.locator("#app")).toContainText("This save predates crafting and building progression.");
+  expect(await page.evaluate(() => localStorage.getItem("textisland.save"))).toBe(old);
+  // The recovery screen deliberately reports the rejected save as a script error.
+  for (let i = errors.length - 1; i >= 0; i--) if (errors[i].includes("This save predates crafting and building progression.")) errors.splice(i, 1);
+  await page.getByRole("button", { name: "start a new game" }).click();
+  await expect(page.locator("#eventTitle")).toHaveText("The storm");
+});

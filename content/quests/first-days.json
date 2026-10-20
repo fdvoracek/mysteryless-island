@@ -59,7 +59,6 @@
           { "quest": "build_shelter", "is": "active" },
           { "quest": "build_drying_rack", "is": "active" },
           { "quest": "build_rain_barrel", "is": "active" },
-          { "quest": "build_mushroom_logs", "is": "active" },
           { "quest": "build_corn_field", "is": "active" },
           { "quest": "build_bee_hive", "is": "active" },
           { "quest": "build_fish_weir", "is": "active" },
@@ -117,7 +116,7 @@
   {
     "id": "build_fish_trap",
     "title": "build a fish trap",
-    "trigger": { "when": { "discovered": "river" } },
+    "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
     "completeWhen": { "built": "fish_trap" },
     "doneLog": [
       "The trap is set. The fish will come to it.",
@@ -130,16 +129,6 @@
     "trigger": { "when": { "discovered": "rabbit_runs" } },
     "completeWhen": { "built": "snares" },
     "doneLog": ["The snares wait along the trails.", "Nooses on the runs. Now leave them alone."]
-  },
-  {
-    "id": "build_mushroom_logs",
-    "title": "grow mushrooms",
-    "trigger": { "when": { "did": "gather_wood", "gte": 3 } },
-    "completeWhen": { "built": "mushroom_logs" },
-    "doneLog": [
-      "The logs lie in the shade. Keep them wet, and wait.",
-      "Logs in the damp. The mushrooms will come."
-    ]
   },
   {
     "id": "build_corn_field",

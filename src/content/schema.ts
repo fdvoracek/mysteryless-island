@@ -50,6 +50,7 @@ export type Condition =
   | { explored: string; gte?: number; lte?: number }
   /** you have something with this tool tag (game.json → tools), e.g. something sharp */
   | { tool: string }
+  | { site: string }
   /** A building stands; `here` restricts it to the current region. */
   | { built: string; here?: boolean }
   | { sheltered: boolean }
@@ -81,6 +82,7 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ discovered: Id }).strict(),
     z.object({ explored: Id, ...range }).strict(),
     z.object({ tool: Id }).strict(),
+    z.object({ site: Id }).strict(),
     z.object({ built: Id, here: z.boolean().optional() }).strict(),
     z.object({ sheltered: z.boolean() }).strict(),
     z.object({ building: Id, is: z.enum(["idle", "working", "ready"]) }).strict(),
@@ -166,7 +168,7 @@ export const Thoughts = z
 export type Thoughts = z.infer<typeof Thoughts>;
 
 /** small pictures for the map: hovering a place shows one per activity found there (src/ui/icons.ts) */
-export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "mushrooms", "honey", "shells", "shelter", "sleep"]);
+export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "honey", "shells", "shelter", "sleep"]);
 
 /** Shared work fields; entity schemas retain their own visibility, identity and rewards. */
 const WorkFields = {
@@ -206,6 +208,7 @@ export const Activity = z
 export const Landmark = z
   .object({
     id: Id,
+    siteCapabilities: z.array(Id).optional(),
     /** the button in the pop-up, e.g. "the dunes"; its time is shown next to it */
     label: z.string(),
     hours: z.number().positive(),
@@ -224,6 +227,7 @@ export type Landmark = z.infer<typeof Landmark>;
 export const Region = z
   .object({
     id: Id,
+    siteCapabilities: z.array(Id).optional(),
     name: z.string(),
     title: z.string(),
     order: z.number().optional(),
@@ -280,15 +284,8 @@ export const BuildingStep = z
   })
   .strict();
 
-/**
- * Something you build in a place. It is offered (a "build" button in that place's buildings panel,
- * and on a task with `build`) once `availableWhen` holds, in each of its `places` whose `when`
- * holds; it can stand once in each of them (a fish trap on the beach and one in the river).
- * A building can warm its place (`warmthC`) and be named in conditions ({ "built": id }), e.g.
- * the bed makes sleep better (a stats multiplier). With a `cycle` it produces over time: `start`
- * begins it; every `hours` one batch is ready, up to `batches` (default 1); `collect` gives the
- * yield once per batch ready. Then it is idle again, or with `repeat` it goes on by itself.
- */
+/** Local structures: creation requirements use site capabilities; production stays local.
+ * Input-free additions can join a shared clock, while supplied units keep separate batches. */
 export const Building = z
   .object({
     id: Id,
@@ -297,10 +294,6 @@ export const Building = z
     hint: z.string().optional(),
     /** shown on the map when you hover the place */
     icon: Icon.optional(),
-    /** where it can be built; `when`: only once this holds there (e.g. the river is found) */
-    places: z.array(z.object({ region: Id, when: Condition.optional() }).strict()).min(1),
-    /** when it is offered in the build menu (e.g. once its task has started); default always */
-    availableWhen: Condition.optional(),
     /** how many can stand in one place (default 1): several fish traps, several fields */
     max: z.number().int().positive().optional(),
     /** putting it up: label (default "build"), time, cost, extra requirements, what happens */
@@ -486,11 +479,6 @@ export const Game = z
      * a requirement { "tool": tag } asks for, without naming an item ("something sharp").
      */
     tools: z.record(Id, z.object({ label: z.string(), needs: z.string() }).strict()),
-    /** the craft and build menus: the button, the pop-up's title, its text, and the text when it offers nothing */
-    menus: z.object({
-      craft: z.object({ button: z.string(), title: z.string(), text: Text, empty: Text }).strict(),
-      build: z.object({ button: z.string(), title: z.string(), text: Text, empty: Text }).strict(),
-    }).strict(),
     /**
      * The end screen when you die (death is permanent): how long you lasted ({time}, {day}) and why
      * ({cause}: the damage rule's cause, an event's title, or defaultCause). `load` and `restart`
@@ -510,6 +498,7 @@ export const Game = z
     /** journal lines the engine writes itself; {place} is the name of the place */
     journal: z
       .object({
+        crafted: Text,
         walkTo: Text,
         wayOpens: Text,
         /** when looking around finds nothing (a region can set its own nothingLog) */
@@ -575,10 +564,8 @@ export const RecipeWay = z
   })
   .strict();
 
-/**
- * Something you can make, offered in the craft menu (a pop-up) once `availableWhen` holds. Making it
- * gives `count` of `item` (default 1). It leaves the menu once you have it, unless `multiple`.
- */
+/** A tree creation target. Common requirements combine with its automatically selected way.
+ * Non-repeatable output stays at one copy; personal completion is independent of possessions. */
 export const Recipe = z
   .object({
     id: Id,
@@ -586,7 +573,7 @@ export const Recipe = z
     count: z.number().int().positive().optional(),
     /** the button (default: the item's name) */
     label: z.string().optional(),
-    availableWhen: Condition.optional(),
+    requires: Condition.optional(),
     /** can be made again while you have one (default: only while you have none) */
     multiple: z.boolean().optional(),
     ways: z.array(RecipeWay).min(1),
@@ -682,3 +669,13 @@ export type Game = z.infer<typeof Game>;
 export type StatsFile = z.infer<typeof StatsFile>;
 export type Climate = z.infer<typeof Climate>;
 export type Yield = z.infer<typeof Yield>;
+
+export const Site = z.object({ id: Id, name: z.string(), needs: z.string() }).strict();
+export type Site = z.infer<typeof Site>;
+export const CreationTree = z.object({
+  id: Id, kind: z.enum(["craft", "build"]), name: z.string(),
+  branches: z.array(z.object({ id: Id, name: z.string(), order: z.number().int() }).strict()).min(1),
+  nodes: z.array(z.object({ target: Id, branch: Id, after: z.array(Id), order: z.number().int() }).strict()).min(1),
+}).strict();
+export type CreationTree = z.infer<typeof CreationTree>;
+export type TreeKind = CreationTree["kind"];

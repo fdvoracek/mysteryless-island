@@ -1,3 +1,5 @@
+import { requirementEntries, conditionEntry, toolRequirementEntry, type RequirementEntry } from "./action-rules";
+import type { TreeKind } from "../content/schema";
 import { focusShare, workTarget } from "./work";
 import { clockText, day, phaseAt } from "./clock";
 import { batchesReady, buildingKey, buildingState, evaluate } from "./conditions";
@@ -18,8 +20,6 @@ export interface ButtonView {
   enabled: boolean;
   reason?: string;
   tooltip: string[];
-  /** The craft and build menus, placed beside look around. */
-  menu?: boolean;
 }
 
 export interface StatusLine {
@@ -33,7 +33,19 @@ export interface StatusLine {
   bad: boolean;
 }
 
+export interface TreeNodeView extends ButtonView {
+  target: string; branch: string; depth: number; after: string[]; completed: boolean; unlocked: boolean;
+  requirements: RequirementEntry[]; hints: string[];
+  count: number; limit?: number;
+  work?: { id: string; status: "running" | "paused"; completed: number; required: number };
+}
+export interface TreeView {
+  kind: TreeKind; name: string;
+  branches: Array<{ id: string; name: string; order: number }>;
+  nodes: TreeNodeView[];
+}
 export interface View {
+  trees: Record<TreeKind, TreeView>;
   title: string;
   work: Array<{ id: string; label: string; word: string; running: boolean; remaining: number; nextRemaining: number;
     target: { kind: "action" | "travel"; id: string }; actions: ButtonView[] }>;
@@ -49,7 +61,7 @@ export interface View {
     unknown: Array<{ col: number; row: number }>;
     paths: Array<{ from: { col: number; row: number }; to: { col: number; row: number }; label?: string; unknown: boolean }>;
   };
-  /** All available activity/menu buttons, also used by simulations. */
+  /** All available area activity buttons, also used by simulations. */
   actions: ButtonView[];
   environmentActions: ButtonView[];
   /** Items with consume or item actions; portable controls live here. */
@@ -60,11 +72,11 @@ export interface View {
     phase: string;
     lines: StatusLine[];
   };
-  /** active quests only, in content order (no buttons: things are made in the craft and build menus) */
+  /** active quests only, in content order (no buttons: things are made in the creation trees) */
   quests: Array<{ id: string; title: string }>;
   /**
    * Buildings standing in this place, in content order, with their state and the cycle's button
-   * (sow, harvest…). New ones are built from the build menu.
+   * (sow, harvest…). New ones are built from the building tree.
    */
   buildings: Array<{
     id: string; label: string; hint?: string;
@@ -95,7 +107,7 @@ export interface View {
     prologue: boolean;
     /**
      * `time`: how long the choice takes, shown next to it (landmarks to explore); `tooltip`: what
-     * it needs (the craft and build menus)
+     * it needs
      */
     choices: Array<{ id: string; label: string; enabled: boolean; reason?: string; time?: string; hours?: number; progressId?: string; travelTo?: string; tooltip?: string }>;
   } | null;
@@ -116,20 +128,6 @@ export function view(engine: Engine): View {
       badge: ex.open > 0 ? "*" : undefined,
       enabled: true,
       tooltip: ["no time", ex.open > 0 ? "something here is not explored yet" : "nothing new to explore"],
-    });
-  }
-  // The craft and build menus: available everywhere once they have appeared (not at the
-  // start); * when something in them can be made now
-  for (const menu of ["craft", "build"] as const) {
-    if (!engine.menuShown(menu)) continue;
-    const options = menu === "craft"
-      ? engine.craftOptions().map((r) => engine.checkRecipe(r).enabled)
-      : engine.buildOptions().map((id) => engine.checkBuildingStep(id, "build").enabled);
-    const ready = options.filter(Boolean).length;
-    actions.push({
-      id: `menu:${menu}`, command: { type: "menu", menu }, label: reg.game.menus[menu].button,
-      badge: ready ? "*" : undefined, enabled: true, menu: true,
-      tooltip: ["no time", ready ? `${ready} can be made now` : options.length ? "nothing can be made yet" : "nothing to make yet"],
     });
   }
   for (const a of engine.activities()) {
@@ -215,7 +213,7 @@ export function view(engine: Engine): View {
 
   // Presentation ownership is data-driven; commands and game rules remain unchanged.
   const activityBuildings = new Map(engine.activities().map((a) => [a.id, a.building]));
-  const environmentActions = actions.filter((a) => a.command.type === "explore" || a.command.type === "menu"
+  const environmentActions = actions.filter((a) => a.command.type === "explore"
     || (a.command.type === "activity" && !activityBuildings.get(a.id)));
   for (const a of actions) {
     const owner = a.command.type === "activity" ? activityBuildings.get(a.id) : undefined;
@@ -241,6 +239,7 @@ export function view(engine: Engine): View {
 
   return {
     title: region.title,
+    trees: { craft: treeView(engine, "craft"), build: treeView(engine, "build") },
     work: s.actions.filter((a) => a.location === s.location).map((a) => {
       const share = focusShare(engine.runningActions().length);
       return {
@@ -250,7 +249,7 @@ export function view(engine: Engine): View {
         nextRemaining: 100 * Math.max(0, 1 - (a.completedMinutes + reg.game.stepMinutes * share) / a.requiredMinutes),
         target: workTarget(a.work),
         actions: [{ id: `work:${a.id}`, command: { type: a.status === "running" ? "pause" : "resume", id: a.id },
-          label: a.status === "running" ? "pause" : "resume", enabled: !s.dead, tooltip: [] }],
+          label: a.status === "running" ? "pause" : "resume", enabled: !s.dead && (a.status === "running" || !engine.resumeReason(a)), reason: a.status === "paused" ? engine.resumeReason(a) : undefined, tooltip: a.status === "paused" && engine.resumeReason(a) ? [engine.resumeReason(a)!] : [] }],
       };
     }),
     tabs,
@@ -301,7 +300,6 @@ export function fmtHours(h: number): string {
 function eventView(engine: Engine): View["event"] {
   const active = engine.state.events.active;
   if (active?.kind === "exploration") return exploreView(engine);
-  if (active?.kind === "menu") return menuView(engine);
   if (active?.kind === "note") {
     return { id: "note", title: active.title ?? "", text: active.text, prologue: false, choices: [...goChoices(engine), { id: "close", label: "back", enabled: true }] };
   }
@@ -315,36 +313,6 @@ function eventView(engine: Engine): View["event"] {
     })
     : [{ id: "close", label: scene.close ?? "back", enabled: true }];
   return { id: event.id, title: event.title, text, prologue: event.trigger === "start", choices };
-}
-
-/**
- * The craft or build menu: one button per thing you can make (here), with its time; the tooltip
- * says what it needs. What can't be made yet is shown, disabled, with the reason.
- */
-function menuView(engine: Engine): View["event"] {
-  const { reg, state: s } = engine;
-  const active = s.events.active;
-  if (active?.kind !== "menu") return null;
-  const menu = active.menu;
-  const needs = (cost: Record<string, number> | undefined, hours: number) =>
-    [...Object.entries(cost ?? {}).map(([k, n]) => `${n} ${reg.items.get(k)?.name ?? k}`), fmtHours(hours)].join(" · ");
-  const choices: NonNullable<View["event"]>["choices"] = menu === "craft"
-    ? engine.craftOptions().map((r) => {
-      const w = engine.recipeWay(r)!;
-      const c = engine.checkRecipe(r);
-      const hours = engine.hoursFor(w.hours, [w.visibleWhen, w.requires]);
-      return { id: r.id, label: r.label ?? reg.items.get(r.item)!.name, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), hours, tooltip: needs(w.cost, hours) };
-    })
-    : engine.buildOptions().map((id) => {
-      const b = reg.buildings.get(id)!;
-      const c = engine.checkBuildingStep(id, "build");
-      const built = engine.builtHere(id);
-      const label = built ? `${b.name} (${built + 1} of ${b.max ?? 1})` : b.name;
-      const hours = engine.stepCost(id, "build").hours;
-      return { id, label, enabled: c.enabled, reason: sentence(c.reason), time: fmtHours(hours), hours, tooltip: [needs(b.build.cost, hours), b.hint].filter(Boolean).join(". ") };
-    });
-  choices.push({ id: "close", label: "back", enabled: true });
-  return { id: `menu:${menu}`, progressId: `menu:${menu}`, title: reg.game.menus[menu].title, text: s.events.active!.text, prologue: false, choices };
 }
 
 /** The look-around pop-up: what you see and the landmarks left (with their time), or what you found. */
@@ -456,3 +424,52 @@ function routeMap(engine: Engine): Pick<View, "tabs" | "map"> {
   };
 }
 
+
+/** Both creation tabs consume the same graph and rule vocabulary. */
+export function treeView(engine: Engine, kind: TreeKind): TreeView {
+  const { reg, state } = engine;
+  const tree = reg.trees.get(kind)!;
+  const branches = [...tree.definition.branches].sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+  const branchOrder = new Map(branches.map((b, i) => [b.id, i]));
+  const nodes = [...tree.nodes.values()].sort((a, b) => (tree.depth.get(a.target)! - tree.depth.get(b.target)!)
+    || branchOrder.get(a.branch)! - branchOrder.get(b.branch)! || a.order - b.order || a.target.localeCompare(b.target)).map((node): TreeNodeView => {
+    const r = kind === "craft" ? reg.recipes.get(node.target)! : undefined;
+    const b = kind === "build" ? reg.buildings.get(node.target)! : undefined;
+    const check = r ? engine.checkRecipe(r) : engine.checkBuildingStep(node.target, "build");
+    const work = state.actions.find((a) => a.location === state.location && (kind === "craft"
+      ? a.work.kind === "craft" && a.work.recipe === node.target
+      : a.work.kind === "building" && a.work.step === "build" && a.work.id === node.target));
+    const way = r ? work?.work.kind === "craft" ? r.ways[work.work.way] : engine.recipeWay(r) : undefined;
+    const def = way ?? b?.build;
+    const requirements: RequirementEntry[] = node.after.map((id) => {
+      const recipe = reg.recipes.get(id);
+      return { kind: "prerequisite", label: `personally ${kind === "craft" ? "craft" : "build"} ${recipe ? recipe.label ?? reg.items.get(recipe.item)!.name : reg.buildings.get(id)!.name}`,
+        met: state.technology[kind].completed.includes(id) };
+    });
+    if (work) {
+      requirements.push(toolRequirementEntry(work.toolRequirements, engine.ctx()));
+      requirements.push(...Object.entries(work.reserved).map(([id, n]): RequirementEntry => ({ kind: "material", label: `${reg.items.get(id)?.name ?? id} (reserved)`, required: n, available: n, met: true })));
+    } else {
+      if (r?.requires) requirements.push(conditionEntry(r.requires, engine.ctx()));
+      if (def) requirements.push(...requirementEntries(engine.ctx(), def));
+    }
+    if (r && !way) r.ways.forEach((method) => { if (method.visibleWhen) requirements.push(conditionEntry(method.visibleWhen, engine.ctx())); requirements.push(...requirementEntries(engine.ctx(), method)); });
+    const hints: string[] = [];
+    if (def) hints.push(`${fmtHours(work ? work.requiredMinutes / 60 : engine.hoursFor(def.hours, [r?.requires, way?.visibleWhen, def.requires]))} · ${work?.effort ?? def.effort}`);
+    if (r && !r.multiple && !state.technology.craft.completed.includes(r.id) && (state.items[r.item] ?? 0) > 0) hints.push("Personal crafting completes this node; inventory stays at one copy.");
+    const count = r ? state.items[r.item] ?? 0 : engine.builtHere(node.target);
+    const limit = b ? b.max ?? 1 : !r?.multiple ? 1 : reg.items.get(r.item)?.max;
+    if (!work && limit !== undefined) requirements.push({ kind: "limit", label: b ? "local buildings" : "inventory", required: limit, available: count,
+      met: r && !r.multiple && !state.technology.craft.completed.includes(r.id) ? true
+        : r?.multiple ? count + (r.count ?? 1) <= limit : count < limit });
+    return { id: `${kind}:${node.target}`, target: node.target, branch: node.branch, depth: tree.depth.get(node.target)!, after: node.after,
+      label: r ? r.label ?? reg.items.get(r.item)!.name : b!.name,
+      command: r ? { type: "craft", recipe: node.target } : { type: "build", building: node.target },
+      enabled: work ? work.status === "paused" && !engine.resumeReason(work) : check.enabled,
+      reason: work ? work.status === "running" ? "already running" : engine.resumeReason(work) : check.reason,
+      tooltip: hints, hints, requirements, count, limit,
+      completed: state.technology[kind].completed.includes(node.target), unlocked: state.technology[kind].unlocked.includes(node.target),
+      work: work ? { id: work.id, status: work.status, completed: work.completedMinutes, required: work.requiredMinutes } : undefined };
+  });
+  return { kind, name: tree.definition.name, branches, nodes };
+}

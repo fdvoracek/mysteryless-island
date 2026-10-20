@@ -110,7 +110,8 @@
           "Under the willows runs a river, quick and clear over stones. You drink, and it is sweet. In the slow pools, fish hang in the current. With a spear you might take one.",
           "The willows lean over a clear river. The water is cold and good to drink. Where it slows, fish hold still against the current. A spear could reach them.",
           "A river, hidden by the willows: clear, cold, drinkable. In the deep bends, fish turn slowly. Too quick for hands, but not for a spear."
-        ]
+        ],
+        "siteCapabilities": ["fishable_water", "flowing_water"]
       },
       {
         "id": "field_site",
@@ -121,7 +122,8 @@
           "Near the river the ground is flat and dark, the grass soft. Good earth. With a hoe, a field could grow here.",
           "A flat stretch by the river, deep soil under the grass. A field would do well here, if you could break the ground.",
           "Level ground near the water, black soil when you dig your fingers in. A place for a field."
-        ]
+        ],
+        "siteCapabilities": ["cultivable_ground"]
       },
       {
         "id": "wild_corn",
@@ -144,7 +146,8 @@
           "Bees, working the flowers past the bushes. Wild ones, nesting somewhere. A hollow log might bring them to you.",
           "The humming is bees, hundreds of them, in the flowers. Give them a hollow log and they might stay.",
           "A swarm of wild bees in the flowers. A hive would keep them, and their honey."
-        ]
+        ],
+        "siteCapabilities": ["bee_habitat"]
       }
     ]
   },
@@ -250,5 +253,6 @@
         "Wild corn, thin ears, hard kernels."
       ]
     }
-  ]
+  ],
+  "siteCapabilities": ["camp_ground", "shelter_ground"]
 }

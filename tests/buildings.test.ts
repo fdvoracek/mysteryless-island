@@ -4,19 +4,14 @@ import { buildRegistry, ContentError } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, lookAround, readContentFiles, revealAll, startGame, craft, build } from "./helpers";
+import { loadRegistry, lookAround, readContentFiles, revealAll, startGame, unlockTechnology, craft, build } from "./helpers";
 
 const reg = loadRegistry();
 type Step = "start" | "collect";
 const act = (e: Engine, id: string, step: Step) => e.dispatch({ type: "building", id, step });
 const row = (e: Engine, id: string) => view(e).buildings.find((b) => b.id === id);
-/** The build menu here: what it offers (opened and closed again; no time passes). */
-function buildMenu(e: Engine) {
-  if (!e.dispatch({ type: "menu", menu: "build" }).ok) return [];
-  const choices = view(e).event!.choices.filter((c) => c.id !== "close");
-  e.dispatch({ type: "choose", choice: "close" });
-  return choices;
-}
+/** Complete tree stays visible, including unavailable local sites and limits. */
+function buildMenu(e: Engine) { return view(e).trees.build.nodes; }
 /** Let game hours pass, staying fed and watered (a long wait would kill you otherwise). */
 function wait(e: Engine, hours: number) {
   for (let left = hours; left > 0; left -= Math.min(left, 6)) {
@@ -28,7 +23,7 @@ const plenty = { timber: 20, stone: 20, firewood: 20, willow_twigs: 80, cordage:
 
 /** Everything found and every task started, standing in `region` with plenty of materials. */
 function ready(region: string, seed = 1) {
-  const e = revealAll(startGame(reg, seed));
+  const e = unlockTechnology(revealAll(startGame(reg, seed)));
   e.applyEffects([{ give: plenty }]);
   for (const q of reg.quests.keys()) if (!e.state.quests[q]) e.startQuest(q);
   e.state.location = region;
@@ -47,8 +42,17 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     const ids = view(e).quests.map((q) => q.id);
     expect(ids).toContain("build_shelter");
     expect(ids).toContain("cut_logs"); // the shelter needs logs, logs need an axe
+    e.applyEffects([{ give: { stone: 6, timber: 2, firewood: 8 } }]);
+    e.state.location = "beach";
+    expect(build(e, "campfire").ok).toBe(true);
+    expect(build(e, "bed").ok).toBe(true);
+    expect(craft(e, "craft_rock_knife").ok).toBe(true);
+    e.state.location = "forest";
+    e.state.items.timber = 0;
+    e.state.time = 8 * 60;
+    e.state.stats.energy = 100;
     // the task has no button: the shelter is in the build menu, with what it needs
-    expect(buildMenu(e).find((c) => c.id === "shelter")).toMatchObject({ enabled: false, reason: "Needs 4 logs (have 0)" });
+    expect(buildMenu(e).find((c) => c.target === "shelter")).toMatchObject({ enabled: false, reason: "needs 4 logs (have 0)" });
     // stones under the cliff, firewood from the forest, then the axe
     expect(view(e).actions.map((a) => a.id)).toContain("gather_wood");
     e.applyEffects([{ give: { stone: 2, firewood: 2 } }]);
@@ -59,10 +63,10 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     e.dispatch({ type: "activity", id: "chop_wood" });
     expect(e.state.items.timber).toBeGreaterThanOrEqual(4);
     // it is built where it belongs: not in the forest
-    expect(buildMenu(e).map((c) => c.id)).toContain("shelter");
+    expect(buildMenu(e).map((c) => c.target)).toContain("shelter");
     const cold = e.feltTemperature();
     expect(build(e, "shelter").ok).toBe(true);
-    expect(buildMenu(e).map((c) => c.id)).not.toContain("shelter"); // one is enough: it leaves the menu
+    expect(buildMenu(e).find((c) => c.target === "shelter")!.enabled).toBe(false); // one is enough: it leaves the menu
     expect(e.feltTemperature()).toBe(cold + 3);
     expect(row(e, "shelter")).toMatchObject({ label: "shelter", count: 1, word: "standing" });
     expect(e.state.quests.build_shelter.status).toBe("done");
@@ -93,13 +97,15 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     e.dispatch({ type: "travel", region: "meadows" });
     for (const id of ["berry_bushes", "river"]) { e.dispatch({ type: "explore" }); e.dispatch({ type: "choose", choice: id }); e.dispatch({ type: "choose", choice: "close" }); }
     expect(view(e).quests.map((q) => q.id)).toContain("build_fish_trap");
+    e.applyEffects([{ give: { stone: 2 } }]);
+    expect(build(e, "campfire").ok).toBe(true);
     const t0 = e.state.time;
     e.dispatch({ type: "activity", id: "cut_willow" });
     expect(e.state.time - t0).toBe(30);
     expect(e.state.items.willow_twigs).toBe(10);
     e.dispatch({ type: "activity", id: "cut_willow" });
     expect(row(e, "fish_trap")).toBeUndefined(); // not built yet: it is in the build menu
-    expect(buildMenu(e).find((c) => c.id === "fish_trap")).toMatchObject({ label: "fish trap", enabled: true, tooltip: expect.stringMatching(/^20 willow twigs · 1h/) });
+    expect(buildMenu(e).find((c) => c.target === "fish_trap")).toMatchObject({ label: "fish trap", enabled: true, hints: ["1h · work"] });
     expect(build(e, "fish_trap").ok).toBe(true);
     expect(e.state.items.willow_twigs ?? 0).toBe(0);
     expect(row(e, "fish_trap")).toMatchObject({ word: "not set", action: { label: "set" } });
@@ -119,11 +125,11 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
   it("fish traps can stand wherever you can fish, up to 3 in a place; they work together", () => {
     const e = ready("meadows");
     build(e, "fish_trap");
-    expect(buildMenu(e).find((c) => c.id === "fish_trap")).toMatchObject({ label: "fish trap (2 of 3)" });
+    expect(buildMenu(e).find((c) => c.target === "fish_trap")).toMatchObject({ label: "fish trap", count: 1, limit: 3 });
     build(e, "fish_trap");
     build(e, "fish_trap");
     expect(row(e, "fish_trap")).toMatchObject({ label: "fish trap ×3", count: 3 });
-    expect(buildMenu(e).map((c) => c.id)).not.toContain("fish_trap"); // 3 is the most: it leaves the menu
+    expect(buildMenu(e).find((c) => c.target === "fish_trap")!.enabled).toBe(false); // 3 is the most: it leaves the menu
     // setting and emptying all three takes three times as long; each batch is a fish per trap
     const t0 = e.state.time;
     act(e, "fish_trap", "start");
@@ -133,17 +139,17 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     act(e, "fish_trap", "collect");
     expect(e.state.items.raw_fish).toBe(fish + 6); // 2 batches x 3 traps
     e.state.location = "beach";
-    expect(buildMenu(e).find((c) => c.id === "fish_trap")).toMatchObject({ label: "fish trap" }); // another place, its own
+    expect(buildMenu(e).find((c) => c.target === "fish_trap")).toMatchObject({ label: "fish trap" }); // another place, its own
     build(e, "fish_trap");
     expect(Object.keys(e.state.buildings).filter((k) => k.startsWith("fish_trap@")).sort()).toEqual(["fish_trap@beach", "fish_trap@meadows"]);
     e.state.location = "forest";
-    expect(buildMenu(e).map((c) => c.id)).not.toContain("fish_trap"); // no fish here
+    expect(buildMenu(e).find((c) => c.target === "fish_trap")!.enabled).toBe(false); // no fish here
   });
 
   it("the corn field: dug with a hoe and sown with wild corn; ripe in 3 days; harvest, then sow again", () => {
     const e = ready("meadows");
     e.state.items.hoe = 0;
-    expect(buildMenu(e).find((c) => c.id === "corn_field")).toMatchObject({ enabled: false, reason: "Needs a hoe to break the ground" });
+    expect(buildMenu(e).find((c) => c.target === "corn_field")).toMatchObject({ enabled: false, reason: "needs 1 hoe" });
     e.state.items.hoe = 1;
     e.state.items.corn = 2;
     build(e, "corn_field");
@@ -162,12 +168,13 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 
   it("every building of the game can be built where it belongs, and its cycle started and collected", () => {
     for (const b of reg.buildings.values()) {
-      const e = ready(b.places[0].region);
-      if (b.places[0].region === "beach" && b.id !== "shelter") e.applyEffects([{ build: "shelter" }]); // the bed and the barrel go by the shelter
+      const place = ({ shelter: "forest", snares: "forest", corn_field: "meadows", bee_hive: "meadows", fish_weir: "meadows" } as Record<string, string>)[b.id] ?? "beach";
+      const e = ready(place);
+      if (place === "beach" && b.id !== "shelter") e.applyEffects([{ build: "shelter" }]); // the bed and the barrel go by the shelter
       expect(build(e, b.id), `${b.id}: build`).toMatchObject({ ok: true });
       if (!b.cycle) continue;
       // the corn field is sown as it is dug; the others start with their own step
-      if (e.state.buildings[`${b.id}@${b.places[0].region}`].batches.length === 0) {
+      if (e.state.buildings[`${b.id}@${place}`].batches.length === 0) {
         expect(act(e, b.id, "start"), `${b.id}: start`).toMatchObject({ ok: true });
       }
       wait(e, b.cycle.hours * (b.cycle.batches ?? 1));
@@ -181,7 +188,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 
   it("built places show on the map's hover icons", () => {
     const e = ready("beach");
-    build(e, "shelter");
+    e.applyEffects([{ build: "shelter" }]);
     expect(view(e).tabs.find((t) => t.id === "beach")!.icons).toContain("shelter");
   });
 
@@ -212,7 +219,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
   it("the validator checks buildings, their conditions and tasks that build them", () => {
     const files = readContentFiles();
     const list = structuredClone(files["content/buildings/camp.json"]) as Array<Record<string, unknown>>;
-    list[0].places = [{ region: "atlantis" }];
+    (list[0].build as Record<string, unknown>).requires = { site: "atlantis" };
     files["content/buildings/camp.json"] = list;
     const quests = structuredClone(files["content/quests/first-days.json"]) as Array<Record<string, unknown>>;
     quests.find((q) => q.id === "build_shelter")!.completeWhen = { built: "castle" };
@@ -224,7 +231,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     try { buildRegistry(files); throw new Error("expected a ContentError"); } catch (err) {
       expect(err).toBeInstanceOf(ContentError);
       const msg = (err as ContentError).problems.join("\n");
-      expect(msg).toMatch(/building shelter\.places\[0\]: unknown region "atlantis"/);
+      expect(msg).toMatch(/building shelter\.build.requires: unknown site "atlantis"/);
       expect(msg).toMatch(/quest build_shelter\.completeWhen: unknown building "castle"/);
       expect(msg).toMatch(/building "shelter" has no cycle, so it is never ready/);
       expect(msg).toMatch(/recipe craft_spear\.item: unknown item "unobtainium"/);
@@ -240,9 +247,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     find("meadows", "bees");
     find("meadows", "river");
     find("forest", "rabbit_runs");
-    e.state.counters["did:gather_wood"] = 3;
-    e.syncQuests();
-    expect(["build_bee_hive", "build_fish_trap", "first_catch", "build_snares", "build_mushroom_logs"].map(has)).toEqual([true, true, true, true, true]);
+    expect(["build_bee_hive", "build_fish_trap", "first_catch", "build_snares"].map(has)).toEqual([true, true, true, true]);
     expect(has("build_drying_rack")).toBe(false);
     e.state.counters["did:catch_river_fish"] = 1;
     e.syncQuests();
@@ -262,109 +267,18 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect([has("make_bed"), has("build_rain_barrel")]).toEqual([true, true]);
   });
 
-  it("the forest trails show on day two; collecting wood unlocks mushroom logs directly", () => {
+  it("the forest trails show on day two", () => {
     const e = startGame(reg, 7);
     e.state.regions.forest.unlocked = true;
     e.dispatch({ type: "travel", region: "forest" });
     const open = () => e.openLandmarks(e.reg.regions.get("forest")!).map((d) => d.id);
-    expect(open()).toEqual(["spring"]);
-    for (let i = 0; i < 3; i++) {
-      expect(e.state.quests.build_mushroom_logs).toBeUndefined();
-      e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 };
-      expect(e.dispatch({ type: "activity", id: "gather_wood" }).ok).toBe(true);
-    }
-    expect(e.state.quests.build_mushroom_logs?.status).toBe("active");
-    expect(buildMenu(e).map((c) => c.id)).toContain("mushroom_logs");
     expect(open()).toEqual(["spring"]);
     e.state.time += 24 * 60;
     expect(open()).toEqual(["spring", "rabbit_runs"]);
   });
 });
 
-describe("the craft and build menus", () => {
-  it("craft and build: hidden at first; they appear next to look around once there is something, then stay everywhere", () => {
-    const e = startGame(reg, 8);
-    const menu = () => view(e).actions.find((a) => a.id === "menu:craft");
-    expect(view(e).actions.map((a) => a.id)).toEqual(["explore:beach"]); // nothing to make yet
-    for (let i = 0; i < 4; i++) lookAround(e); // the shallows: fish, so the spear recipe
-    expect(view(e).actions.slice(0, 2).map((a) => a.id)).toEqual(["explore:beach", "menu:craft"]);
-    expect(menu()).toMatchObject({ label: "craft", menu: true, badge: undefined });
-    e.applyEffects([{ give: { firewood: 10 } }]);
-    expect(menu()!.badge).toBe("*");
-    // the pop-up: one button per thing, with its time; what it needs is in the tooltip; no time passes
-    const t0 = e.state.time;
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event).toMatchObject({ id: "menu:craft", title: "Craft" });
-    expect(view(e).event!.choices.filter((c) => c.id !== "craft_axe")).toEqual([
-      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "30m", hours: 0.5, tooltip: "10 firewood · 30m" },
-      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", hours: 3, tooltip: "4 bark strips · 3h" },
-      { id: "close", label: "back", enabled: true },
-    ]);
-    expect(e.state.time).toBe(t0);
-    // making it closes the pop-up and takes its time; the spear leaves the menu (one is enough)
-    const res = e.dispatch({ type: "choose", choice: "craft_spear" });
-    expect(res.ok).toBe(true);
-    expect(res.cooldownMs).toBeGreaterThan(0); // the progress bar runs, as for any action
-    expect(e.state.time - t0).toBe(30);
-    expect(e.state.items.fishing_spear).toBe(1);
-    expect(menu()!.badge).toBeUndefined();
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_axe", "craft_rope", "close"]); // the spear has left the menu
-    e.dispatch({ type: "choose", choice: "close" });
-    e.state.regions.forest.unlocked = true;
-    e.dispatch({ type: "travel", region: "forest" });
-    expect(menu()).toBeDefined(); // it stays, everywhere
-    expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // campfires and shelters can be built here
-    e.state.quests.survive_first_night.status = "done"; // the shelter task: something to build (on the beach)
-    e.syncQuests();
-    e.dispatch({ type: "activity", id: "gather_wood" });
-    expect(view(e).actions.map((a) => a.id)).toContain("menu:build"); // shown in the forest too: it says there is nothing here
-  });
-
-  it("without a knife: the spear needs one; a rock knife (2 stones, 3 hours) stands in for it, at half the speed", () => {
-    const e = startGame(reg, 9, "matches");
-    for (let i = 0; i < 4; i++) lookAround(e);
-    e.applyEffects([{ give: { firewood: 10 } }]);
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices[0]).toMatchObject({ id: "craft_rock_knife", enabled: false, reason: "Needs 2 stones (have 0)" });
-    e.dispatch({ type: "choose", choice: "close" });
-    // the stones lie under the cliff
-    expect(view(e).actions.map((a) => a.id)).toContain("collect_stones");
-    e.dispatch({ type: "activity", id: "collect_stones" });
-    expect(e.state.items.stone).toBeGreaterThanOrEqual(2);
-    e.state.items.stone = 2;
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.slice(0, 2)).toEqual([
-      { id: "craft_rock_knife", label: "rock knife", enabled: true, reason: undefined, time: "3h", hours: 3, tooltip: "2 stones · 3h" },
-      { id: "craft_spear", label: "fishing spear", enabled: false, reason: "Needs something sharp", time: "30m", hours: 0.5, tooltip: "10 firewood · 30m" },
-    ]);
-    e.dispatch({ type: "choose", choice: "close" });
-    let t0 = e.state.time;
-    craft(e, "craft_rock_knife");
-    expect(e.state.time - t0).toBe(180);
-    expect(e.state.items.stone).toBe(0);
-    expect(view(e).inventory.map((i) => i.id)).toContain("rock_knife");
-    e.dispatch({ type: "menu", menu: "craft" });
-    // the rock knife is had (it leaves the menu); the spear now takes twice as long
-    expect(view(e).event!.choices.filter((c) => c.id !== "craft_axe")).toEqual([
-      { id: "craft_spear", label: "fishing spear", enabled: true, reason: undefined, time: "1h", hours: 1, tooltip: "10 firewood · 1h" },
-      { id: "craft_rope", label: "rope", enabled: false, reason: "Needs 4 bark strips (have 0)", time: "3h", hours: 3, tooltip: "4 bark strips · 3h" },
-      { id: "close", label: "back", enabled: true },
-    ]);
-    e.dispatch({ type: "choose", choice: "close" });
-    t0 = e.state.time;
-    craft(e, "craft_spear");
-    expect(e.state.time - t0).toBe(60);
-    expect(e.state.log.some((l) => /rock knife|stone blade/.test(l.text))).toBe(true);
-  });
-
-  it("with the knife from the ship, the rock knife is never offered (you have something sharp)", () => {
-    const e = startGame(reg, 9, "knife");
-    for (let i = 0; i < 4; i++) lookAround(e);
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.map((c) => c.id)).toEqual(["craft_spear", "craft_axe", "craft_rope", "close"]);
-  });
-
+describe("tool capability duration", () => {
   it("anything sharp does for 'something sharp'; the rock knife doubles the time (activities too)", () => {
     const files = readContentFiles();
     const forest = structuredClone(files["content/regions/forest.json"]) as { activities: unknown[] };
@@ -384,63 +298,44 @@ describe("the craft and build menus", () => {
     e.applyEffects([{ give: { knife: 1 } }]); // the knife is quicker: it is used
     expect(whittle().tooltip).toEqual(["1h · light"]);
   });
+});
 
-
-  it("a menu with nothing in it says so (only close); while it is open nothing else works", () => {
-    const e = startGame(reg, 10);
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event).toMatchObject({ title: "Craft", text: "Nothing comes to mind that you could make yet.", choices: [{ id: "close" }] });
-    e.dispatch({ type: "choose", choice: "close" });
-    e.dispatch({ type: "menu", menu: "build" });
-    expect(view(e).event).toMatchObject({ title: "Build", text: "There is nothing you could build here yet.", choices: [{ id: "close" }] });
-    e.dispatch({ type: "choose", choice: "close" });
-    const f = ready("beach");
-    f.dispatch({ type: "menu", menu: "build" });
-    expect(f.dispatch({ type: "activity", id: "collect_shells" })).toMatchObject({ ok: false, reason: "an event is open" });
-    expect(f.dispatch({ type: "choose", choice: "castle" }).ok).toBe(false);
-  });
-
-  it("crafting finishes no task by itself: the tools serve tasks that need them", () => {
-    const e = startGame(reg, 11, "knife", { keepNotes: true });
-    for (let i = 0; i < 4; i++) lookAround(e);
-    e.state.events.notes = [];
-    e.applyEffects([{ give: { firewood: 10 } }]);
-    craft(e, "craft_spear");
-    expect(view(e).event).toBeNull(); // no note
-    expect(e.state.quests.first_catch.status).toBe("active");
-    expect(view(e).quests.find((q) => q.id === "first_catch")!.title).toBe("catch a fish");
-  });
-
-
-  it("the rope: bark strips from the forest (something sharp, 1 hour), twisted for 3 hours; it climbs the cliff", () => {
-    const e = startGame(reg, 13, "matches"); // nothing sharp
-    for (let i = 0; i < 3; i++) lookAround(e); // dunes, rocks, cliff: the climb waits for a rope
-    expect(view(e).quests.map((q) => q.id)).toContain("climb_cliff");
-    e.dispatch({ type: "travel", region: "forest" });
+describe("rope creation and the cliff route", () => {
+  it("strips bark with the available sharp tool, personally crafts rope, and keeps it after climbing", () => {
+    const e = startGame(reg, 13, "matches");
+    for (let i = 0; i < 3; i++) lookAround(e); // dunes, natural shelter, cliff
+    expect(e.state.quests.climb_cliff.status).toBe("active");
+    expect(e.dispatch({ type: "activity", id: "collect_stones" }).ok).toBe(true);
+    expect(craft(e, "craft_rock_knife").ok).toBe(true);
+    expect(e.state.technology.craft.unlocked).toContain("craft_rope");
+    expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);
     const strip = () => view(e).actions.find((a) => a.id === "strip_bark")!;
-    expect(strip()).toMatchObject({ label: "strip bark", enabled: false, reason: "Needs something sharp" });
-    e.applyEffects([{ give: { rock_knife: 1 } }]);
-    expect(strip()).toMatchObject({ enabled: true, tooltip: ["2h · work"] }); // the rock knife: twice as long
+    expect(strip()).toMatchObject({ enabled: true, tooltip: ["2h · work"] });
     e.applyEffects([{ give: { knife: 1 } }]);
-    let t0 = e.state.time;
-    e.dispatch({ type: "activity", id: "strip_bark" });
-    expect(e.state.time - t0).toBe(60);
+    expect(strip().tooltip).toEqual(["1h · work"]);
+    e.state.stats.energy = 100;
+    let start = e.state.time;
+    expect(e.dispatch({ type: "activity", id: "strip_bark" }).ok).toBe(true);
+    expect(e.state.time - start).toBe(60);
     expect(e.state.items.bark_strips).toBe(4);
-    t0 = e.state.time;
+    const recipe = () => view(e).trees.craft.nodes.find((n) => n.target === "craft_rope")!;
+    expect(recipe()).toMatchObject({ enabled: true, completed: false });
+    start = e.state.time;
     expect(craft(e, "craft_rope").ok).toBe(true);
-    expect(e.state.time - t0).toBe(180);
+    expect(e.state.time - start).toBe(180);
+    expect(e.state.items.bark_strips).toBe(0);
     expect(e.state.items.cordage).toBe(1);
-    expect(view(e).inventory.find((x) => x.id === "cordage")).toMatchObject({ label: "rope", count: 1 });
-    // the rope stays in the menu: more can be made (the snares need one too)
-    e.dispatch({ type: "menu", menu: "craft" });
-    expect(view(e).event!.choices.map((c) => c.id)).toContain("craft_rope");
-    e.dispatch({ type: "choose", choice: "close" });
-    // with it, the cliff can be climbed; the rope is kept
-    e.dispatch({ type: "travel", region: "beach" });
-    lookAround(e); // the shallows come first in the list
-    lookAround(e); // then the cliff top
+    expect(recipe()).toMatchObject({ completed: true, unlocked: true, enabled: false });
+    expect(view(e).inventory.find((item) => item.id === "cordage")).toMatchObject({ label: "rope", count: 1 });
+    expect(e.dispatch({ type: "activity", id: "strip_bark" }).ok).toBe(true);
+    expect(recipe()).toMatchObject({ completed: true, enabled: true });
+    e.state.stats.energy = 100;
+    expect(e.dispatch({ type: "travel", region: "beach" }).ok).toBe(true);
+    lookAround(e); // the shallows precede the cliff top
+    lookAround(e);
     expect(e.state.regions.meadows.unlocked).toBe(true);
     expect(e.state.items.cordage).toBe(1);
     expect(e.state.quests.climb_cliff.status).toBe("done");
+    expect(e.state.technology.craft.completed).toEqual(["craft_rock_knife", "craft_rope"]);
   });
 });

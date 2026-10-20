@@ -33,7 +33,7 @@ function contentStrings(): Set<string> {
 }
 
 describe("the browser test matches the content", () => {
-  it("every id it uses (data-id, data-choice) exists", () => {
+  it("every id it uses (data-id, data-choice, tree targets) exists", () => {
     const ids = new Set<string>([
       ...reg.items.keys(), ...reg.regions.keys(), ...reg.activities.keys(), ...reg.quests.keys(),
       ...reg.buildings.keys(), ...reg.recipes.keys(), ...reg.discoveries.keys(), ...reg.events.keys(),
@@ -41,11 +41,14 @@ describe("the browser test matches the content", () => {
     ]);
     // event choices of the shipwreck, and the pop-ups' own ids
     for (const ev of reg.events.values()) for (const sc of Object.values(ev.scenes)) sc.choices?.forEach((c) => ids.add(c.id));
-    const used = [...spec.matchAll(/data-(?:id|choice)="([^"$]+)"/g)].map((m) => m[1]);
+    const used = [
+      ...[...spec.matchAll(/data-(?:id|choice|target)="([^"$]+)"/g)].map((m) => m[1]),
+      ...[...spec.matchAll(/(?:create|node)\(page, "(?:craft|build)", "([^"]+)"\)/g)].map((m) => m[1]),
+    ];
     const unknown = used.filter((id) => {
       const [kind, rest] = id.includes(":") ? id.split(":") : ["", id];
       if (id === "close") return false;
-      if (["go", "explore", "menu"].includes(kind)) return kind === "menu" ? !["craft", "build"].includes(rest) : !ids.has(rest);
+      if (["go", "explore", "craft", "build"].includes(kind)) return !ids.has(rest);
       return !ids.has(id);
     });
     expect(unknown).toEqual([]);
@@ -57,11 +60,14 @@ describe("the browser test matches the content", () => {
     for (const item of reg.items.values()) for (const action of item.actions ?? []) {
       if (action.building) strings.add(`${action.label} ${item.name}`);
     }
+    for (const building of reg.buildings.values()) strings.add(`personally build ${building.name}`);
+    for (const recipe of reg.recipes.values()) strings.add(`personally craft ${recipe.label ?? reg.items.get(recipe.item)!.name}`);
     // words the UI and the test code write themselves
     const ui = new Set(["back", "map", "close", "here", "busy", "off", "new", "prologue", "ended",
       // browser and code words
       "buildings", "consumables", "pause", "resume",
-      "pageerror", "console", "error", "meter", "style", "button", "true", "click", "italic", "title", "class"]);
+      "pageerror", "console", "error", "meter", "style", "button", "true", "click", "italic", "title", "class",
+      "start a new game", "craft", "build", "completed", "open", "details", "summary"]);
     // plain lowercase labels in quotes: "catch a fish", "the forest", "pick berries"; not "firewood 0/10"
     const labels = [...spec.matchAll(/"([a-z][a-z ]*[a-z])"/g)].map((m) => m[1]);
     const texts = [...strings];

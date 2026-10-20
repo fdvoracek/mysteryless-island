@@ -18,10 +18,16 @@ export const ActionSnapshotSchema = z.object({
   items: z.record(z.number()), unlocked: z.array(z.string()), location: z.string(), possible: z.array(z.string()), built: z.array(z.string()),
 });
 export type ActionSnapshot = z.infer<typeof ActionSnapshotSchema>;
+export type ToolPredicate = boolean | { tool: string } | { all: ToolPredicate[] } | { any: ToolPredicate[] } | { not: ToolPredicate };
+export const ToolPredicateSchema: z.ZodType<ToolPredicate> = z.lazy(() => z.union([
+  z.boolean(), z.object({ tool: z.string() }).strict(), z.object({ all: z.array(ToolPredicateSchema) }).strict(),
+  z.object({ any: z.array(ToolPredicateSchema) }).strict(), z.object({ not: ToolPredicateSchema }).strict(),
+]));
 export const PendingActionSchema = z.object({
   id: z.string(), owner: z.literal("player"), location: z.string(), label: z.string(), work: WorkSchema,
   requiredMinutes: z.number().finite().positive(), completedMinutes: z.number().finite().nonnegative(),
   effort: Effort, status: z.enum(["running", "paused"]),
+  toolRequirements: ToolPredicateSchema,
   reserved: z.record(z.number().int().nonnegative()), eventKeys: z.array(z.string()),
   before: ActionSnapshotSchema, damageLogged: z.array(z.string()).default([]),
 });
@@ -44,13 +50,13 @@ export function workExists(reg: Registry, work: Work): boolean {
   }
 }
 
-/** Stable presentation target for work whose original menu has already closed. */
+/** Stable node/action presentation target, separate from persisted work identity. */
 export function workTarget(work: Work): { kind: "action" | "travel"; id: string } {
   switch (work.kind) {
     case "travel": return { kind: "travel", id: work.destination };
-    case "craft": return { kind: "action", id: "menu:craft" };
+    case "craft": return { kind: "action", id: `craft:${work.recipe}` };
     case "explore": return { kind: "action", id: `explore:${work.region}` };
-    case "building": return { kind: "action", id: work.step === "build" ? "menu:build" : `building:${work.id}:${work.step}` };
+    case "building": return { kind: "action", id: work.step === "build" ? `build:${work.id}` : `building:${work.id}:${work.step}` };
     case "item": return { kind: "action", id: `item:${work.item}:${work.action}` };
     case "consume": return { kind: "action", id: `consume:${work.item}` };
     case "activity": return { kind: "action", id: work.id };

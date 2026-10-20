@@ -1,3 +1,4 @@
+import { GameStateSchema } from "../core/state-schema";
 import type { Registry } from "../content/registry";
 import { SAVE_VERSION, type GameState } from "../core/state";
 import { restoreState } from "./migrate";
@@ -32,13 +33,20 @@ function write(key: string, state: GameState, extra: Partial<SaveFile> = {}) {
 
 export interface SaveRead { state: GameState | null; error?: string }
 
+function requiresFreshGame(version: unknown): boolean {
+  return typeof version === "number" && Number.isInteger(version) && version >= 1 && version < SAVE_VERSION;
+}
+
 function read(key: string, reg: Registry): SaveRead {
   let raw: string | null;
   try { raw = localStorage.getItem(key); } catch { return { state: null }; }
   if (!raw) return { state: null };
   try {
     const file = JSON.parse(raw) as SaveFile;
-    if (!Number.isInteger(file.saveVersion) || file.saveVersion < 1 || file.saveVersion > SAVE_VERSION) {
+    if (requiresFreshGame(file.saveVersion) || requiresFreshGame(file.current?.saveVersion)) {
+      return { state: null, error: "This save predates crafting and building progression. Start a new game to continue. Your saved data has been kept." };
+    }
+    if (!Number.isInteger(file.saveVersion) || file.saveVersion !== SAVE_VERSION) {
       return { state: null, error: "This save uses an unsupported version. Your saved data has been kept." };
     }
     const state = restoreState(file.current, reg);
@@ -59,5 +67,11 @@ export function clearSave() {
 export const saveGame = (state: GameState) => write(SLOT, state, { savedAt: new Date().toISOString() });
 export const loadGame = (reg: Registry) => read(SLOT, reg).state;
 export function hasSavedGame(): boolean {
-  try { return localStorage.getItem(SLOT) !== null; } catch { return false; }
+  try {
+    const raw = localStorage.getItem(SLOT);
+    if (!raw) return false;
+    const file = JSON.parse(raw) as SaveFile;
+    return file.saveVersion === SAVE_VERSION && file.current?.saveVersion === SAVE_VERSION
+      && GameStateSchema.safeParse(file.current).success;
+  } catch { return false; }
 }

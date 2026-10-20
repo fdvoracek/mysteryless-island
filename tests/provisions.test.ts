@@ -154,7 +154,8 @@ describe("one drying rack for fish and meat", () => {
     expect(view(e).event!.text).toContain("cook them over a fire");
     close(e);
     travel(e);
-    expect(e.buildable("drying_rack")).toBe(true);
+    expect(e.buildable("drying_rack")).toBe(false); // quest does not bypass the personal campfire prerequisite
+    expect(view(e).trees.build.nodes.find((n) => n.target === "drying_rack")!.reason).toContain("first build campfire");
   });
 
   it("does not offer a rack just for carrying raw food, or when edible food meets the need", () => {
@@ -181,12 +182,13 @@ describe("one drying rack for fish and meat", () => {
   it("plays through building, drying meat, collecting, then drying fish on the same rack", () => {
     const e = startGame(reg, 11);
     lookAround(e); lookAround(e); // dunes and the sheltered rocks
-    e.applyEffects([{ give: { raw_meat: 2, raw_fish: 2, timber: 2 } }]);
+    e.applyEffects([{ give: { raw_meat: 2, raw_fish: 2, timber: 2, stone: 2 } }]);
     e.state.stats.hunger = 60;
     e.state.stats.thirst = 0;
     // Automatic eating fails with only raw food, unlocking the drying-rack task.
     e.dispatch({ type: "explore" }); close(e);
     e.state.stats.hunger = 0;
+    expect(build(e, "campfire").ok).toBe(true);
     expect(build(e, "drying_rack").ok).toBe(true);
     expect(e.dispatch({ type: "itemAction", item: "raw_meat", action: "dry" }).ok).toBe(true);
     expect(e.state.items.raw_meat).toBe(0);
@@ -208,6 +210,6 @@ describe("one drying rack for fish and meat", () => {
     expect(e.dispatch({ type: "building", id: "drying_rack", step: "collect" }).ok).toBe(true);
     expect(e.state.items.dried_fish).toBe(2);
     expect(e.state.items.dried_meat).toBe(2);
-    expect(Object.keys(e.state.buildings)).toEqual(["drying_rack@beach"]);
+    expect(Object.keys(e.state.buildings)).toEqual(["campfire@beach", "drying_rack@beach"]);
   });
 });

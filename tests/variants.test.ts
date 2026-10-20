@@ -85,6 +85,7 @@ describe("text variants in the content", () => {
       else if (typeof o === "string" && /\{\w+\}/.test(o)) {
         // which fields the engine fills, and with what
         const allowed: Array<[RegExp, string[]]> = [
+          [/\.journal\.crafted/, ["{item}"]],
           [/\.journal\.(walkTo|wayOpens)/, ["{place}"]],
           [/\.ending\.survived/, ["{time}", "{day}"]],
           [/\.ending\.cause/, ["{cause}"]],
@@ -142,12 +143,10 @@ describe("independent outcome narration", () => {
     expect(s.lastText["text:hunt_success"]).toBe(1 - last);
   });
 
-  it("preserves gameplay RNG when migrating a save without a narrative stream", () => {
+  it("rejects pre-redesign saves instead of guessing missing narrative and progression history", () => {
     const old = structuredClone(startGame(reg, 8).state) as Partial<GameState>;
     old.saveVersion = 2;
     delete old.narrativeRng;
-    const loaded = restoreState(old, reg)!;
-    expect(loaded.rng).toEqual(old.rng);
-    expect(loaded.narrativeRng).toEqual(seedRng(8 ^ 0x4e415252));
+    expect(restoreState(old, reg)).toBeNull();
   });
 });

@@ -107,7 +107,8 @@
           "Narrow trails wind through the undergrowth, too small for anything but rabbits. Droppings, fresh. A snare could take one.",
           "In the morning light you see them: little paths through the ferns, worn by rabbits. Snares would catch them.",
           "Low runs under the bracken, droppings along them. Rabbits. With cord you could set snares."
-        ]
+        ],
+        "siteCapabilities": ["small_game_trails"]
       }
     ]
   },
@@ -183,5 +184,6 @@
         "Cold water, as much as you want."
       ]
     }
-  ]
+  ],
+  "siteCapabilities": ["camp_ground", "shelter_ground"]
 }

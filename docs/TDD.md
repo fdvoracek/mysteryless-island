@@ -4,6 +4,14 @@ Version 0.1 (draft for review) · Companion to `docs/GDD.md` · Last updated: 20
 
 Status markers: **[implemented]** describes the current prototype · **[decided]** records design intent · **[proposal]** and **[open]** describe future work. Design examples for knowledge, weather, upgrades, standalone processes and the boat are future extensions; `src/content/schema.ts` is the authoritative supported format.
 
+**Crafting/building trees [implemented]:** separate centre-panel tabs use one shared graph
+model and renderer. Personal completion of all prerequisites permanently unlocks nodes;
+current resources/tools and discovered local site capabilities still control creation.
+Quests remain goals, not creation gates. Version 7 requires a fresh game for older saves.
+Paused creation requires its tools again to resume. A first personal craft of an already-owned
+non-repeatable item completes its node but leaves only one inventory copy. See
+[the detailed design](CRAFTING_BUILDING_DESIGN.md) for schemas, saved progression, and validation.
+
 ---
 
 ## 1. Goals and constraints
@@ -136,7 +144,7 @@ The test-speed URL multiplier changes wall-clock scheduling only.
 ## 5. Game state
 
 The current `GameState` type is inferred from `src/core/state-schema.ts`; do not maintain a
-second handwritten interface. State version 6 contains gameplay and narrative RNG streams,
+second handwritten interface. State version 7 contains permanent craft/build progression, gameplay and narrative RNG streams,
 time/location, stats/warmth, items, counters, flags, regions, typed pop-ups and task state,
 local timers, local building batches, player work records, journal and permanent death state.
 
@@ -367,9 +375,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 ```json
 {
   "id": "fish_trap", "name": "fish trap", "icon": "fish", "hint": "…",
-  "places": [{ "region": "beach", "when": { "discovered": "school_of_fish" } }, { "region": "meadows", "when": { "discovered": "river" } }],
-  "availableWhen": { "any": [{ "quest": "build_fish_trap", "is": "active" }, { "quest": "build_fish_trap", "is": "done" }] },
-  "build": { "hours": 1, "effort": "work", "cost": { "willow_twigs": 20 }, "log": "…" },
+  "build": { "hours": 1, "effort": "work", "requires": { "site": "fishable_water" }, "cost": { "willow_twigs": 20 }, "log": "…" },
   "cycle": {
     "start": { "id": "set_trap", "label": "set", "hours": 0.25, "effort": "light", "log": "…" },
     "hours": 2, "batches": 3, "repeat": true,
@@ -380,31 +386,30 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 }
 ```
 
-- **Where:** `places` lists the regions (each with an optional `when`); one can stand in each (state key `"<id>@<region>"` in `state.buildings`, `{ count, builtAt, batches, nextBatch }`). `availableWhen` gates the build button (usually: its task has started).
-- **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from the build menu where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest identifies its building goal through `completeWhen`; costs appear in the build menu, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
+- **Where:** `build.requires` uses `{ "site": capabilityId }` and other current requirements. `content/sites.json` defines capabilities; region and landmark `siteCapabilities` grant them locally, with landmark grants available only after discovery. The state key remains `"<id>@<region>"` with `{ count, builtAt, batches, nextBatch }`. Tree completion unlocks the building globally; capabilities determine whether the current area permits it.
+- **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from its tree node where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest identifies its building goal through `completeWhen`; costs appear on the tree node, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
 - **Cycles:** `start` locks materials in a player action; completion creates a local production batch with `{ id, units, startedAt, inputs, production? }`. Every `hours` one output is ready per unit, up to `cycle.batches` (default 1); readiness derives from game time without browser scheduling. Production advances while away or asleep, never while the game is closed. `collect` locks ready batch IDs, unit counts and output counts when work starts; completion applies `collect.yields` (or the batch’s named `cycle.products` yields) and `outcomes` per claimed output/unit, plus `effects`. Unready batches and units added after collection began remain; collected units become empty, or with `repeat` start again from collection completion. Drying meat selects `production: "meat"` on the local rack rather than setting a global flag. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
 - **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Conditions include `{ "built": id }` (any place), `{ "built": id, "here": true }` (current place), `{ "sheltered": true }` (local built or natural shelter), and `{ "building": id, "is": "idle" | "working" | "ready" }`. Bed health regeneration is local; morning energy comes from `game.sleep.recovery`, not hourly multipliers.
-- **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` migrates a legacy shared fire to its configured region (beach), adding a campfire only if that old fire was burning; it never invents fire for an old bed save. Timer `building` and building `timer` references are validated.
+- **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` ensures the configured timer slots exist; pre-version-7 saves are rejected at the loading boundary. Timer `building` and building `timer` references are validated.
 - **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in the classic layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
-- **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
+- **Validator:** site capabilities, tree membership, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
-The 11 buildings in `content/buildings/camp.json`:
+The 10 buildings in `content/buildings/camp.json`:
 
 | Building | Place | Task starts when | Build | Cycle |
 |---|---|---|---|---|
 | campfire | beach, forest, meadows | beach rocks discovered, or either other area reached | 2 stones, 15m | none; build unlit, light and stoke locally |
-| shelter | forest, meadows | build available immediately; task after first night outside shelter | 4 logs, 2h | none; +3 °C, allows a bed |
+| shelter | forest, meadows | task after first night outside shelter; construction requires the bed node | 4 logs, 2h | none; +3 °C, allows a bed |
 | bed | any sheltered area | built or natural shelter available | 2 logs, 4 firewood, 1h | none; enables sleep, +1 health/h while sleeping |
 | drying rack | beach | automatic eating fails with raw fish or meat carried | 2 logs | hang 2 raw fish or dry 2 raw meat → 12h → dried food |
 | rain barrel | sheltered beach | built shelter, or natural shelter after the first night | 3 logs | set out → 12h → drink (thirst −45), repeats |
-| fish trap | beach shallows or the river | you found the river | 20 willow twigs | set → 1 fish / 2h, up to 3, stays set |
+| fish trap | beach shallows or the river | you found fishing water | 20 willow twigs | set → 1 fish / 2h, up to 3, stays set |
 | snares | forest | you found the small trails (day 2+) | 1 rope, 2 firewood | set → 12h → maybe a rabbit (raw meat), repeats |
-| mushroom logs | forest | after collecting wood 3 times | 2 logs | soak (needs the spring) → 2 days → 3–5 mushrooms |
 | corn field | meadows | you found the flat ground | needs a hoe, 2 corn (sown at once) | sow 2 corn → 3 days → 6–10 corn |
 | bee hive | meadows | you found the humming (after the bushes) | 2 logs | lure with 2 berries → 3 days → 1–2 honey (smoke: 1 firewood), repeats |
 | fish weir | the river | you emptied the trap twice | 6 stones, 2 logs | close → 12h → 2–4 fish, repeats |
 
-Materials and tools: *logs* (`timber`) only with the **axe** (*chop wood* in the forest); the axe (craft menu: 2 firewood, 2 stones) is offered once the task *cut logs* starts, with any task needing logs; *stones* under the low cliff (*pick up stones*, once *cut logs*, the corn field or the weir task has started); the **hoe** (1 log, 1 stone) is offered with the corn field task; *willow twigs* by the river (*cut willow twigs*: 10 in 30 min); the **rope** (`cordage`; craft menu: 4 bark strips, 3 h; *strip bark* in the forest needs something sharp, 1 h) climbs the cliff (`cliff_top` requires it; task *climb the cliff*) and makes the snares; *corn* from the wild corn (*gather corn*), roasted at the fire; raw meat cooked at the fire.
+Materials and tools: logs (`timber`) require an axe for chopping in the forest. Craft the rock knife to unlock the axe and rope; the axe unlocks the hoe. Stones are gathered under the discovered low cliff. Willow twigs come from the discovered river. Rope (`cordage`) uses four bark strips; stripping bark requires something sharp. These material/tool chains are independent of quest status; quests describe goals rather than opening recipes.
 
 The original design (levels, modifiers) is kept below for later.
 
@@ -449,13 +454,13 @@ The original design (levels, modifiers) is kept below for later.
 **A new place [implemented]:** regions unlocked during a command (by `unlockWhen` or an `unlock` effect) are offered in the pop-up that opened them (`Engine.offerNewPlaces`): a look-around finding gets `game.newPlace.text` ({place}) as an extra paragraph (`active.hint`, not written to the journal) and a `go:<region>` button per place (`active.go`, label `newPlace.go`, with the walking time) before *close*; a task note from the same command gets the buttons (its text already says the way opens); otherwise a note titled `newPlace.title` with the text and the buttons. `go:<region>` closes the pop-up and travels there (after-explore events then follow).
 - **Arrival view [implemented]:** a region can list `arrive` lines, `{ "text": Text, "when"?: Condition }`. On every arrival after the first (which logs `description` and `firstVisit.log`), the engine logs each line whose `when` holds, in order, so the view reflects time of day, discoveries and timers, e.g. `{ "text": "Smoke rises from the ring of rocks.", "when": { "all": [ { "discovered": "rock_shelter" }, { "timer": "fire" } ] } }`. The validator checks the conditions.
 - **Item actions [implemented]:** an item can list `actions` — controls labelled with the action's `label`, grouped by building or carried item, e.g. raw fish → `{ "id": "cook", "building": "campfire", "label": "cook", "hours": 0.5, "visibleWhen": { "timer": "fire" }, "effects": [ { "give": { "cooked_fish": 1 } } ] }`. Each use spends one of the item (`uses`, default 1; `0` keeps it, e.g. the water can's *fill*) plus any `cost`; the `itemAction` command runs it. An optional validated `building` id on an item action places it under that local building, with the item name in its label (e.g. “cook raw fish”). Actions without a building, such as filling the water can, appear under the carried item in the consumables section. All items with `consume` or `actions` are listed in consumables, even when their controls are unavailable at the current location. Other possessions are listed in inventory with counts only. An item can have `max` (e.g. 4 drinks of `can_water`): getting more stops there. Eating (`consume`) is a button of the same kind.
-- `station` is `camp` (always available at the beach) or a building id (`workbench`, `forge`, `loom`). The craft menu is shown in the region where the station is.
+- **Future station proposal:** stations such as a workbench, forge or loom could add local creation requirements; no station field is implemented.
 - Processes (§6.6) belong to a building. Several processes per building are allowed (the kiln fires pots *or* bricks).
 - Knowledge: `{ "id": "boiling_water", "name": "boiling water", "learnWhen": { "item": "clay_pot" }, "log": "Water boiled in clay will not make you sick." }`. It can also be granted by the `learn` effect.
 
 ### 6.10 Events
 
-**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. Each scene's text is logged when the scene opens, one journal paragraph per paragraph (blank line) of the text, before the choice's effects and whatever comes next (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark, menu, and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
+**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. Each scene's text is logged when the scene opens, one journal paragraph per paragraph (blank line) of the text, before the choice's effects and whatever comes next (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
 
 | Field | Meaning |
 |---|---|
@@ -493,11 +498,25 @@ Example of an additional task (not shipped):
 ```
 
 - Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
-- Tasks are goals, not recipes **[implemented]**: no task asks you to craft a tool; requirements belong to the activity, item action or craft/build step that fulfills the goal. Quest `hint`, `needs`, and `build` fields were removed because the title-only task panel does not use them. The task panel displays titles only; requirements and costs appear in craft/build menus. Tasks have no buttons: things are made in the craft and build menus (below). The quest finishes through its normal `completeWhen` (e.g. `{ "seen": "raw_fish" }`, `{ "built": "shelter" }`).
+- Tasks are goals, not recipes **[implemented]**: no task asks you to craft a tool; requirements belong to the activity, item action or craft/build step that fulfills the goal. Quest `hint`, `needs`, and `build` fields were removed because the title-only task panel does not use them. The task panel displays titles only; requirements and costs appear on creation-tree nodes. Tasks have no buttons and never unlock creation; things are made in the crafting and building tabs (below). The quest finishes through its normal `completeWhen` (e.g. `{ "seen": "raw_fish" }`, `{ "built": "shelter" }`).
 
 **Tool tags [implemented]:** requirements name a use, not an item. `game.json` → `tools` defines the tags (`sharp`, `fire_starter`) with a `label` (shown next to items that have it: *knife · sharp*) and `needs` (what `explain` says: "needs something sharp"). An item has `tool: { tags, amount?, hoursFactor? }`: knife `sharp`; rock knife `sharp`, ×2; matches `fire_starter`; stones and firewood `fire_starter` with `amount: 2`. The condition `{ "tool": tag }` holds when you have `amount` of any item with the tag. An action whose `visibleWhen` / `requires` ask for a tool (not under `not`) takes the quickest such item's `hoursFactor` times as long (`toolFactor`, `Engine.hoursFor`; activities, recipe ways, item actions, landmarks, building steps; the shown times too). When the way differs by item (texts, chance), content uses separate activities or recipe ways with item conditions: the three *light fire* activities (`light_fire` matches, `strike_fire` 2 stones, `make_fire` friction, which requires `{ "tool": "fire_starter" }` and 5 firewood: 3 to burn, 2 sticks), the spear's two ways (rock knife texts when it is the only sharp thing).
 
-**Craft and build menus [implemented]:** `{ type: "menu", menu: "craft" | "build" }` opens a pop-up (`events.active = { kind: "menu", menu: "craft", text }`; no time; with nothing in it, the text is `menus.<menu>.empty` and only *close*). Its choices: for craft, the recipes (`content/recipes/*.json`: `{ id, item, count?, label?, availableWhen?, multiple?, ways: [{ visibleWhen?, hours, effort, requires?, requiresText?, cost?, log?, effects? }], tags? }`; the first way whose `visibleWhen` holds is used, e.g. the spear with the knife or a stone) that are available and not had yet (unless `multiple`); for build, the buildings `buildable` here (available, a place here, fewer than `max` here). Each choice has its `time` and a `tooltip` (cost, time; the building's hint), and is disabled with the reason when it can't be made. Choosing one closes the pop-up and makes it like an action (time, progress bar, `did`/`today` with the recipe or building id, event `after` keys); the task note then lists what is now possible. The view places both menus beside look around in the main action row (`menu: true`; badge `*` when something can be made now), from the moment it has something (`Engine.menuShown`: a recipe available, or a building available anywhere) and from then on in every place (flag `menu_craft` / `menu_build`). The classic layout is 1040px wide (slimmer side columns below 1080px) so the three fit in its middle column down to about 900px.
+**Crafting and building trees [implemented]:** `content/trees/*.json` defines one graph of each
+kind, with category branches and nodes referencing recipes or buildings. `after` requires all
+parents personally completed; roots have an empty list. Registry validation rejects missing
+references, missing nodes, duplicate parents, quest gates, and cycles. Depth derives from the
+longest parent path. `technology.craft/build` persist separate `completed` and `unlocked` sets;
+found items and granted buildings do not complete nodes, and later dependency edits retain
+surviving unlocks. Creation uses direct `{ type: "craft", recipe }` and `{ type: "build", building }`
+commands. Recipes retain common `requires`, method `ways`, costs, duration and narrative;
+buildings retain their construction and local production definitions. Availability and hints
+share requirements with engine checks. A non-repeatable recipe may be personally crafted
+once even while its output is owned, consuming normal materials/time and leaving one copy.
+The centre's area/crafting/building tabs keep the map, journal, status and shared work summary
+available. Switching tabs does not pause work. All nodes stay visible, show prerequisites and
+current requirements, and display persisted node-specific progress. Craft/build popups and
+their menu commands are removed; local building operations remain in the area panel.
 - Item grouping follows capabilities: `consume` or a nonempty `actions` list places an item in consumables; other items go in inventory. Task-gain notes name the same section.
 - `trigger`: `"start"`, `"manual"` (only via the `{ "startQuest": id }` effect) or `{ "when": Condition }`.
 - New condition leaves: `{ "did": id, "gte"? }` counts finished activities, item uses and **tags** (`"tags": ["drink"]` on an activity or a `consume` block); `{ "reached": { "day", "hour"? } }` compares the clock; `{ "quest": id, "is": "active" | "done" }` chains quests.
@@ -567,8 +586,8 @@ Damage, regeneration and multipliers are themselves conditions. New survival rul
 5. The controller renders selector output and schedules the next step when work can continue.
 
 `dispatch` drains this same pipeline synchronously for headless tests. Commands are `activity`,
-`travel`, `consume`, `explore`, `menu`, `itemAction`, `building`, `choose`, `pause`, and `resume`.
-Crafting is chosen in its menu; sleep/rest are activities. Pop-ups pause scheduled work, travel
+`travel`, `consume`, `explore`, `craft`, `build`, `itemAction`, `building`, `choose`, `pause`, and `resume`.
+Crafting/building nodes send direct creation commands; sleep/rest are activities. Pop-ups pause scheduled work, travel
 and sleep pause work requiring presence, and reserved inputs survive those interruptions.
 
 ---
@@ -579,7 +598,7 @@ and sleep pause work requiring presence, and reserved inputs survive those inter
 route-map nodes/paths, available controls, grouped building and item actions, status bars,
 active task IDs/titles, inventory, journal turns, typed pop-up choices and persisted work
 progress. The renderer owns DOM updates and presentation, not gameplay checks or durations.
-Costs and disabled reasons appear on action/menu controls; task rows contain titles only.
+Costs and disabled reasons appear on action controls and creation nodes; task rows contain titles only.
 Tests and headless callers can read the same view. Recipe/building visibility comes from
 content `availableWhen` and place conditions; requirements/costs determine enabled state.
 
@@ -616,7 +635,7 @@ interface SaveFile {
 
 - Storage: `localStorage["textisland.save"]` (autosave) and `localStorage["textisland.saved"]` (the saved game). Export/import UI remains future work.
 - **[implemented, replaces checkpoints]** Death is permanent: the engine sets `state.death = { time, cause, lines }` (the end screen's lines, chosen once: `game.ending.survived` with `{time}`/`{day}`, and `ending.cause` with `{cause}`). The cause is the damage rule hurting most when health hits 0 (`cause` on `stats.damage`; ties are joined with "and"), else what the command was (an event's title, "bad <food>"), else `ending.defaultCause`. Storage (src/persistence/save.ts): the autosave `textisland.save` after every action and committed work step (a reload continues; a death stays), and the saved game `textisland.saved`, written by *save.* in the menu and just before every sleep (`engine.willSleep(cmd)`); the end screen offers *load the saved game* and *start again*.
-- **Migrations:** `restoreState` converts legacy shapes, validates against `GameStateSchema`, reconciles installed-content references, and sets `SAVE_VERSION` (currently 6). Unsupported or malformed data is preserved and reported.
+- **Save boundary:** version 7 is required in both the envelope and state. `restoreState` validates against `GameStateSchema` and reconciles installed-content references. Earlier saves require a fresh game; unsupported or malformed data is preserved and reported until the player chooses recovery.
 - **Content drift:** loading reconciles current registry IDs, clamps content-defined limits and supplies missing stats. Removed work targets return surviving reserved inputs; compatible work keeps progress. There is no content hash dependency.
 
 ---
@@ -624,7 +643,7 @@ interface SaveFile {
 ## 12. UI layer
 
 
-**Pop-ups [implemented]:** events, look around, the menus and notes share `#event`. The `close` choice is not a button under the text: `renderEvent` shows it as `#eventBack` ("← back", the choice's label; default "back") in the title line (`.title-row`, right-aligned, the title's height), and hides `#eventChoices` when nothing else is left. In the prologue (the shipwreck) it stays a button under the text (`scene.close`: "wash ashore"). The back arrow, a click on the backdrop (`#event` itself) or Escape sends `close`; not in the prologue.
+**Pop-ups [implemented]:** events, look around and notes share `#event`. The `close` choice is not a button under the text: `renderEvent` shows it as `#eventBack` ("← back", the choice's label; default "back") in the title line (`.title-row`, right-aligned, the title's height), and hides `#eventChoices` when nothing else is left. In the prologue (the shipwreck) it stays a button under the text (`scene.close`: "wash ashore"). The back arrow, a click on the backdrop (`#event` itself) or Escape sends `close`; not in the prologue.
 - **No framework [decided].** `render.ts` keeps keyed control rows and buttons so focus and progress animations survive refreshes. If this grows painful, `lit-html` (a templating library, ~3 kB) is a drop-in fallback **[proposal]**.
 - Shared panel skeletons in `src/ui/layouts/panels.ts` supply fixed DOM IDs; `render.ts` fills story, route map, actions, status, tasks, stores and pop-ups.
 - **Styles:** CSS custom properties; one serif typeface; light and dark themes; fixed max width (~980 px) centred; keyboard focus visible.
@@ -635,9 +654,9 @@ interface SaveFile {
 
 ### 12b. Classic layout **[implemented]**
 
-The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build menu choices retain their costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
+The task list displays goal titles only: no material counts, requirement rows, or requirement tooltips. Craft/build tree nodes show costs and requirement explanations. Quest content contains the goal conditions, logs and effects; obsolete requirement/progress/hint metadata has been removed from content and selectors.
 
-The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around, craft and build together above other activities), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, in the classic layout.
+The action area is one shared `panel.actions()` block: untitled local activities (`#actions`, with look around above other activities; creation is in the separate crafting/building tabs), local buildings (`#buildings`), and consumables (`#consumables`). `View.environmentActions`, `buildings[].actions`, and `consumables` own presentation grouping; the existing flat `actions` list remains available for simulations. Optional validated `building` ids on activities and item actions route them to a building standing here. Fire activities and cooking belong to campfire, sleep to bed, and meat drying to drying rack; production keeps its existing building command. Items with `consume` or any `actions` definition go in consumables, including when no portable control is currently available; everything else goes in the read-only inventory, including materials, passive tools, and clothing. The renderer keys building/item rows and their buttons so focus and cooldown bars survive refreshes. Buildings and consumables are hidden when empty, in the classic layout.
 
 Classic is the only supported layout. `src/ui/layouts/classic.ts` provides its skeleton
 from fixed-ID panels in `panels.ts`; `classic.css` scopes placement and sizing under
@@ -772,19 +791,18 @@ adapter should produce the same validated content model.
 ### Save compatibility boundary (implemented)
 
 `core/state-schema.ts` defines both runtime state types and their structural validator.
-`persistence/migrate.ts` is the only compatibility boundary: it fills legacy defaults, repairs
+`persistence/migrate.ts` is the only compatibility boundary: it rejects pre-redesign saves, repairs
 removed references, and preserves surviving progress. The engine accepts normalized state.
-Versions 1–5 migrate to the current version 6; missing areas relocate to the starting area, and missing
+Version 7 requires a fresh game for all pre-redesign saves. Missing areas relocate to the starting area, and missing
 pop-ups are dismissed. Unsupported or malformed saves remain on disk and show an explicit
 new-game choice. Major prototype changes may require an announced reset; ordinary content
-updates should preserve compatible progress.
+updates preserve compatible progress, including earned technology unlocks after dependency edits. Envelope and inner-state versions must agree; both autosave and manual slots respect the version boundary. Incompatible or malformed manual slots are not offered for loading.
 
 ### Outcome narration and stable text identity (implemented)
 
-State version 3 has independent gameplay and narrative random streams. Weighted outcomes are
+Introduced in version 3, current saves retain independent gameplay and narrative random streams. Weighted outcomes are
 selected and their effects applied before choosing their narrative. Changing wording, adding
-variants, or using `?variants=first` cannot change rewards or event rolls. Old gameplay RNG
-state is preserved during migration.
+variants, or using `?variants=first` cannot change rewards or event rolls. Supported saves retain both RNG streams exactly.
 
 Existing inline strings/variant arrays remain supported. The registry indexes arrays by entity
 ID and field path (not English wording or file order). Text can also use an explicit stable ID:
@@ -796,15 +814,15 @@ pool that might describe a different result.
 
 ### Typed pop-ups (implemented)
 
-State version 4 stores a discriminated `Popup` union: event (event ID and scene), menu (craft or
-build), exploration (area and optional discovered landmark), or note (title and text).
-Only migration code interprets the old encoded popup IDs. Selectors provide display IDs,
+The version-7 state stores a discriminated `Popup` union: event (event ID and scene),
+exploration (area and optional discovered landmark), or note (title and text).
+Old encoded IDs and creation menu popups are not accepted across the fresh-game boundary. Selectors provide display IDs,
 numeric work durations, and explicit progress targets to the renderer; labels never decide
-whether a choice advances time. Old open pop-ups migrate without replaying scene effects.
+whether a choice advances time. Supported pop-ups restore without replaying scene effects.
 
 ### Persistent work records (implemented)
 
-State version 5 records owner, location, work identity, required/completed minutes, reserved
+The work model introduced in version 5 records owner, location, work identity, required/completed minutes, reserved
 inputs, and running/paused status. Completion refers to content IDs rather than callbacks or
 precomputed future snapshots. On loading, a job whose referenced content was removed is dropped
 and its surviving inputs returned; compatible jobs retain progress. Real-time callbacks are
@@ -813,10 +831,9 @@ bait choices, a skill tree and a multitasking UI remain subsequent gameplay work
 
 ### Local production records (implemented)
 
-State version 6 stores independent production batches under each `building@region`. Batch inputs
+The production model introduced in version 6 stores independent production batches under each `building@region`. Batch inputs
 record the materials already consumed; distinct input/output groups can retain separate clocks,
 leaving empty units available for later planting. Production helpers in `src/core/production.ts`
-own unit allocation and readiness. Version-5 timestamps migrate to one batch per local building;
-the old drying-meat flag becomes the rack’s output identity. Pending collections preserve their
+own unit allocation and readiness. Legacy timestamp/flag conversions were removed at the version-7 fresh-game boundary. Pending collections preserve their
 original locked output/unit counts. Loading reconciles claims against surviving batches and
 content limits. Bait selection and crop-specific planting controls remain future gameplay work.

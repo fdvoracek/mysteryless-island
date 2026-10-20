@@ -5,8 +5,6 @@
     "icon": "shelter",
     "_note": "A built shelter is local. The discovered beach rocks already provide natural shelter.",
     "hint": "A lean-to of logs. Build shelter before making a bed away from the beach rocks.",
-    "places": [{"region": "forest", "when": {"sheltered": false}}, {"region": "meadows", "when": {"sheltered": false}}],
-    "availableWhen": { "any": [{"at": "forest"}, {"at": "meadows"}] },
     "build": {
       "hours": 2,
       "effort": "heavy",
@@ -15,7 +13,8 @@
         "You lean logs into a frame and pack the gaps with branches.",
         "Log by log, a lean-to rises. You pack the gaps against the wind.",
         "You wedge the logs together until the wind cannot get in."
-      ]
+      ],
+      "requires": { "all": [{ "site": "shelter_ground" }, { "sheltered": false }] }
     },
     "warmthC": 3,
     "word": "standing"
@@ -25,12 +24,6 @@
     "name": "bed",
     "icon": "sleep",
     "hint": "A sheltered bed. Light a fire here and sleep before midnight for 100% energy.",
-    "places": [
-      { "region": "beach", "when": {"sheltered": true} },
-      { "region": "forest", "when": {"sheltered": true} },
-      { "region": "meadows", "when": {"sheltered": true} }
-    ],
-    "availableWhen": { "sheltered": true },
     "build": {
       "label": "make",
       "hours": 1,
@@ -40,7 +33,8 @@
         "You lash two logs into a frame and heap it with springy branches.",
         "A frame of logs, a deep layer of branches on top. It creaks when you test it.",
         "Two logs, a mattress of branches. Not soft, but off the cold sand."
-      ]
+      ],
+      "requires": {"sheltered": true}
     },
     "word": "made"
   },
@@ -49,13 +43,6 @@
     "name": "drying rack",
     "icon": "fish",
     "hint": "Fish or strips of meat dry in 12 hours. One batch at a time; hang meat with its dry button.",
-    "places": [{ "region": "beach", "when": { "discovered": "rock_shelter" } }],
-    "availableWhen": {
-      "any": [
-        { "quest": "build_drying_rack", "is": "active" },
-        { "quest": "build_drying_rack", "is": "done" }
-      ]
-    },
     "build": {
       "hours": 1,
       "effort": "work",
@@ -64,7 +51,8 @@
         "You drive two logs into the sand by the fire and lay a third across them.",
         "Two uprights, a crossbar: a rack beside the fire, where the smoke drifts.",
         "You build a rack of logs downwind of the fire."
-      ]
+      ],
+      "requires": { "site": "coastal_camp" }
     },
     "cycle": {
       "start": {
@@ -104,13 +92,6 @@
     "name": "rain barrel",
     "icon": "water",
     "hint": "A hollowed log under the shelter's edge. It fills with rain in 12 hours.",
-    "places": [{ "region": "beach", "when": { "sheltered": true } }],
-    "availableWhen": {
-      "any": [
-        { "quest": "build_rain_barrel", "is": "active" },
-        { "quest": "build_rain_barrel", "is": "done" }
-      ]
-    },
     "build": {
       "hours": 1.5,
       "effort": "heavy",
@@ -119,7 +100,8 @@
         "You hollow a log with the axe and set it under the edge of the shelter.",
         "Hour by hour the axe hollows the log. You stand it where the rain runs off.",
         "A hollow log, set on end where the shelter drips."
-      ]
+      ],
+      "requires": { "all": [{ "site": "coastal_camp" }, { "sheltered": true }] }
     },
     "cycle": {
       "start": {
@@ -156,13 +138,6 @@
     "icon": "fish",
     "_note": "anywhere you can fish: the shallows, the river. 1 fish every 2 hours, up to 3; stays set",
     "hint": "A woven willow trap: 1 fish every 2 hours, up to 3. It stays set.",
-    "places": [
-      { "region": "beach", "when": { "discovered": "school_of_fish" } },
-      { "region": "meadows", "when": { "discovered": "river" } }
-    ],
-    "availableWhen": {
-      "any": [{ "quest": "build_fish_trap", "is": "active" }, { "quest": "build_fish_trap", "is": "done" }]
-    },
     "max": 3,
     "build": {
       "hours": 1,
@@ -172,7 +147,8 @@
         "You weave the willow into a long basket with a funnel at the mouth.",
         "Twig over twig, the trap takes shape: a basket the fish can swim into and not out of.",
         "You bend and weave the willow until you have a trap with a narrow mouth."
-      ]
+      ],
+      "requires": { "site": "fishable_water" }
     },
     "cycle": {
       "start": {
@@ -210,10 +186,6 @@
     "name": "snares",
     "icon": "meat",
     "hint": "Rope nooses on the small trails. Check them after 12 hours.",
-    "places": [{ "region": "forest", "when": { "discovered": "rabbit_runs" } }],
-    "availableWhen": {
-      "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }]
-    },
     "build": {
       "label": "make",
       "hours": 1,
@@ -223,7 +195,8 @@
         "You tie running nooses and peg them low over the trails.",
         "Nooses of cord, pegged a hand above the ground where the trails narrow.",
         "You knot the cord into snares and peg them along the runs."
-      ]
+      ],
+      "requires": { "site": "small_game_trails" }
     },
     "cycle": {
       "start": {
@@ -273,74 +246,16 @@
     }
   },
   {
-    "id": "mushroom_logs",
-    "name": "mushroom logs",
-    "icon": "mushrooms",
-    "hint": "Logs soaked at the spring grow mushrooms in 2 days.",
-    "places": [{ "region": "forest" }],
-    "availableWhen": {
-      "any": [
-        { "quest": "build_mushroom_logs", "is": "active" },
-        { "quest": "build_mushroom_logs", "is": "done" }
-      ]
-    },
-    "build": {
-      "label": "cut",
-      "hours": 1,
-      "effort": "heavy",
-      "cost": { "timber": 2 },
-      "log": [
-        "You cut logs into lengths and stack them in the damp shade.",
-        "You stack the cut logs in a shady spot among the trees.",
-        "Short logs, stacked in the shade beneath the trees."
-      ]
-    },
-    "cycle": {
-      "start": {
-        "id": "soak_logs",
-        "label": "soak",
-        "hours": 0.5,
-        "effort": "work",
-        "requires": { "discovered": "spring" },
-        "requiresText": "Needs water close by: the spring",
-        "log": [
-          "You carry water from the spring and soak the logs dark.",
-          "Trip after trip from the spring, until the logs are soaked through."
-        ]
-      },
-      "hours": 48,
-      "collect": {
-        "id": "pick_mushrooms",
-        "label": "pick",
-        "hours": 0.5,
-        "effort": "light",
-        "yields": [{ "item": "mushrooms", "min": 3, "max": 5 }],
-        "log": [
-          "Pale caps have pushed out of the bark. You pick them.",
-          "Mushrooms crowd the logs, soft and pale.",
-          "You twist the mushrooms off the bark."
-        ]
-      },
-      "words": { "idle": "dry", "working": "soaked", "ready": "mushrooms" },
-      "readyLog": "Mushrooms have come up on the logs."
-    }
-  },
-  {
     "id": "corn_field",
     "name": "corn field",
     "icon": "corn",
     "hint": "Corn sown here is ripe in 3 days.",
-    "places": [{ "region": "meadows", "when": { "discovered": "field_site" } }],
-    "availableWhen": {
-      "any": [{ "quest": "build_corn_field", "is": "active" }, { "quest": "build_corn_field", "is": "done" }]
-    },
     "max": 3,
     "build": {
       "label": "dig",
       "hours": 3,
       "effort": "heavy",
-      "requires": { "item": "hoe" },
-      "requiresText": "Needs a hoe to break the ground",
+      "requires": { "all": [{ "site": "cultivable_ground" }, { "item": "hoe" }] },
       "cost": { "corn": 2 },
       "effects": [{ "startCycle": "corn_field", "units": 1 }],
       "log": [
@@ -384,10 +299,6 @@
     "name": "bee hive",
     "icon": "honey",
     "hint": "A hollow log for the wild bees. Honey every 3 days; smoke them first.",
-    "places": [{ "region": "meadows", "when": { "discovered": "bees" } }],
-    "availableWhen": {
-      "any": [{ "quest": "build_bee_hive", "is": "active" }, { "quest": "build_bee_hive", "is": "done" }]
-    },
     "build": {
       "hours": 1.5,
       "effort": "heavy",
@@ -395,7 +306,8 @@
       "log": [
         "You hollow a log and stand it among the flowers, a hand-width hole near the top.",
         "A hollow log, capped with bark, set on stones among the flowers."
-      ]
+      ],
+      "requires": { "site": "bee_habitat" }
     },
     "cycle": {
       "start": {
@@ -433,10 +345,6 @@
     "name": "fish weir",
     "icon": "fish",
     "hint": "A fence of stones and stakes across the river. Fish every 12 hours.",
-    "places": [{ "region": "meadows", "when": { "discovered": "river" } }],
-    "availableWhen": {
-      "any": [{ "quest": "build_fish_weir", "is": "active" }, { "quest": "build_fish_weir", "is": "done" }]
-    },
     "build": {
       "hours": 2,
       "effort": "heavy",
@@ -445,7 +353,8 @@
         "You wade in and build a wall of stones across the shallows, stakes between them, a gap at the end.",
         "Stone by stone, a low wall grows across the river. You drive stakes into the gaps.",
         "A fence of stones and stakes across the river, with one narrow way through."
-      ]
+      ],
+      "requires": { "site": "flowing_water" }
     },
     "cycle": {
       "start": {
@@ -474,20 +383,18 @@
       },
       "words": { "idle": "open", "working": "closed", "ready": "full of fish" }
     }
-  }
-,
+  },
   {
     "id": "campfire",
     "name": "campfire",
     "icon": "fire",
     "hint": "A fire site in this area. Light it with matches, stones, or dry sticks, then feed it with wood.",
-    "places": [{"region": "beach"}, {"region": "forest"}, {"region": "meadows"}],
-    "availableWhen": { "any": [{"discovered": "rock_shelter"}, {"at": "forest"}, {"at": "meadows"}] },
     "build": {
       "hours": 0.25,
       "effort": "light",
       "cost": { "stone": 2 },
-      "log": "You arrange stones in a ring and clear a safe place for a fire."
+      "log": "You arrange stones in a ring and clear a safe place for a fire.",
+      "requires": { "site": "camp_ground" }
     },
     "timer": "fire"
   }

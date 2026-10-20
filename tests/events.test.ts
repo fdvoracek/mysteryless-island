@@ -118,11 +118,9 @@ describe("what you grabbed", () => {
       const e = startGame(reg, 4, choice);
       for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
       e.applyEffects([{ give: { firewood: 10 } }]);
-      if (choice !== "knife") {
-        expect(craft(e, "craft_spear").ok, "no knife at all").toBe(false);
-        e.applyEffects([{ give: { stone: 2 } }]);
-        expect(craft(e, "craft_rock_knife").ok).toBe(true);
-      }
+      expect(craft(e, "craft_spear").ok, "personal rock knife prerequisite").toBe(false);
+      e.applyEffects([{ give: { stone: 2 } }]);
+      expect(craft(e, "craft_rock_knife").ok).toBe(true);
       const t0 = e.state.time;
       expect(craft(e, "craft_spear").ok).toBe(true);
       expect(e.state.time - t0, choice).toBe(minutes);

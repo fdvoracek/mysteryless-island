@@ -357,18 +357,6 @@
     }
   },
   {
-    "id": "mushrooms",
-    "name": "mushrooms",
-    "category": "food",
-    "consume": {
-      "verb": "eat",
-      "hours": 0.25,
-      "stats": {"hunger": -7, "energy": 4},
-      "tags": ["eat"],
-      "log": ["Soft, earthy, a little bitter.", "They taste of the forest floor.", "Cool and earthy."]
-    }
-  },
-  {
     "id": "honey",
     "name": "honey",
     "category": "food",

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { prepareCommand } from "../src/core/commands";
 import { Engine, type Command } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, revealAll, startGame } from "./helpers";
+import { loadRegistry, unlockTechnology, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 function fresh() {
-  const e = revealAll(startGame(reg, 7, "knife", { keepNotes: true }));
+  const e = unlockTechnology(revealAll(startGame(reg, 7, "knife", { keepNotes: true })));
   e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 0 };
   return e;
 }
@@ -42,9 +42,8 @@ describe("paced browser commands", () => {
   ] as const)("delivers $menu results and notes only when work finishes", (entry) => {
     const e = fresh();
     e.applyEffects([{ give: { timber: 2, firewood: 10 } }]);
-    expect(e.dispatch({ type: "menu", menu: entry.menu }).ok).toBe(true);
     const start = e.state.time;
-    const { result, expected } = plan(e, { type: "choose", choice: entry.choice });
+    const { result, expected } = plan(e, entry.menu === "craft" ? { type: "craft", recipe: entry.choice } : { type: "build", building: entry.choice });
     expect(result.ok).toBe(true);
     expect(view(e).event).toBeNull();
     expect(e.state.time).toBe(start);
@@ -110,10 +109,10 @@ describe("paced browser commands", () => {
     }
   });
 
-  it("keeps sleep and zero-time menus instant", () => {
+  it("keeps sleep and exploration opening instant", () => {
     const e = fresh();
     const start = e.state.time;
-    expect(prepareCommand(e, { type: "menu", menu: "craft" })).toMatchObject({ cooldownMs: 0 });
+    expect(prepareCommand(e, { type: "explore" })).toMatchObject({ cooldownMs: 0 });
     expect(e.state.time).toBe(start);
     prepareCommand(e, { type: "choose", choice: "close" });
     e.applyEffects([{ build: "bed" }]);

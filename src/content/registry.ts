@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { indexTextKeys } from "./text-keys";
 import {
-  Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
+  CreationTree, Site, type TreeKind, Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
   type Activity, type BuildingStep, type Timer,
 } from "./schema";
 
 /** Frozen, indexed content. Systems read content only through this object. */
 export interface Registry {
   textKeys: Map<object, string>;
+  sites: Map<string, Site>;
+  trees: Map<TreeKind, TreeIndex>;
   game: Game;
   stats: StatsFile;
   climate: Climate;
@@ -22,7 +24,7 @@ export interface Registry {
   events: Map<string, GameEvent>;
   /** content/buildings/*.json, in file order (the buildings panel lists them in this order) */
   buildings: Map<string, Building>;
-  /** content/recipes/*.json, in file order (the craft menu lists them in this order) */
+  /** content/recipes/*.json, in file order; creation order belongs to the crafting tree */
   recipes: Map<string, Recipe>;
   /** a cycle step id (sow, harvest…) -> its building and which step it is */
   buildingSteps: Map<string, { building: string; step: "start" | "collect"; def: BuildingStep }>;
@@ -33,6 +35,14 @@ export interface Registry {
   statIds: Set<string>;
   bandIds: string[];
   phaseIds: Set<string>;
+}
+
+export interface TreeIndex {
+  definition: CreationTree;
+  nodes: Map<string, CreationTree["nodes"][number]>;
+  children: Map<string, string[]>;
+  depth: Map<string, number>;
+  order: string[];
 }
 
 export class ContentError extends Error {
@@ -82,6 +92,9 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const stats = statsPath ? parse(StatsFile, files[statsPath], statsPath, problems) : undefined;
   const climate = climatePath ? parse(Climate, files[climatePath], climatePath, problems) : undefined;
 
+  const sites = new Map<string, Site>();
+  const treeDefs: Array<{ def: CreationTree; path: string }> = [];
+  const trees = new Map<TreeKind, TreeIndex>();
   const items = new Map<string, Item>();
   const regions = new Map<string, Region>();
   const activities = new Map<string, { activity: Activity; region: string }>();
@@ -100,7 +113,12 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   };
 
   for (const [path, data] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
-    if (/content\/items\/[^/]+\.json$/.test(path)) {
+    if (/content\/sites\.json$/.test(path)) {
+      for (const site of parse(z.array(Site), data, path, problems) ?? []) { claim(site.id, path); sites.set(site.id, site); }
+    } else if (/content\/trees\/[^/]+\.json$/.test(path)) {
+      const def = parse(CreationTree, data, path, problems);
+      if (def) { claim(def.id, path); treeDefs.push({ def, path }); }
+    } else if (/content\/items\/[^/]+\.json$/.test(path)) {
       const list = parse(z.array(Item), data, path, problems) ?? [];
       for (const item of list) { claim(item.id, path); items.set(item.id, item); }
     } else if (/content\/regions\/[^/]+\.json$/.test(path)) {
@@ -188,6 +206,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else if ("quest" in c) ref("quest", c.quest, where);
     else if ("discovered" in c) ref("discovery", c.discovered, where);
     else if ("explored" in c) ref("region", c.explored, where);
+    else if ("site" in c) { if (!sites.has(c.site)) problems.push(`${where}: unknown site "${c.site}"`); }
     else if ("tool" in c) { if (!(c.tool in game.tools)) problems.push(`${where}: unknown tool tag "${c.tool}"`); }
     else if ("built" in c) ref("building", c.built, where);
     else if ("sheltered" in c) { /* local shelter is defined by region content and game.sleep.shelter */ }
@@ -239,7 +258,8 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   for (const r of recipes.values()) {
     const w = `recipe ${r.id}`;
     ref("item", r.item, `${w}.item`);
-    if (r.availableWhen) checkCond(r.availableWhen, `${w}.availableWhen`);
+    if (r.requires) checkCond(r.requires, `${w}.requires`);
+    if (!r.multiple && (r.count ?? 1) !== 1) problems.push(`${w}.count: non-repeatable recipe must output one item`);
     r.ways.forEach((a, i) => {
       const aw = `${w}.ways[${i}]`;
       checkWork(a, aw);
@@ -301,8 +321,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   for (const b of buildings.values()) {
     if (b.timer) ref("timer", b.timer, `building ${b.id}.timer`);
     const w = `building ${b.id}`;
-    b.places.forEach((p, i) => { ref("region", p.region, `${w}.places[${i}]`); if (p.when) checkCond(p.when, `${w}.places[${i}].when`); });
-    if (b.availableWhen) checkCond(b.availableWhen, `${w}.availableWhen`);
+
     checkWork(b.build, `${w}.build`);
     for (const [id, yields] of Object.entries(b.cycle?.products ?? {})) {
       yields.forEach((y, i) => {
@@ -376,6 +395,71 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
 
   if (!statIds.has("health")) problems.push(`stats.json: a "health" stat is required (death happens at health 0)`);
 
+  const providers = new Set<string>();
+  for (const region of regions.values()) {
+    for (const [where, ids] of [[`region ${region.id}.siteCapabilities`, region.siteCapabilities],
+      ...(region.explore?.landmarks ?? []).map((d) => [`landmark ${d.id}.siteCapabilities`, d.siteCapabilities] as const)] as const) {
+      for (const id of ids ?? []) {
+        if (!sites.has(id)) problems.push(`${where}: unknown site "${id}"`);
+        providers.add(id);
+      }
+    }
+  }
+  const checkCreation = (c: Condition | undefined, where: string): void => {
+    if (!c) return;
+    if ("quest" in c) problems.push(`${where}: quests cannot gate creation`);
+    if ("site" in c && !providers.has(c.site)) problems.push(`${where}: site "${c.site}" has no provider`);
+    if ("all" in c) c.all.forEach((x, i) => checkCreation(x, `${where}.all[${i}]`));
+    if ("any" in c) c.any.forEach((x, i) => checkCreation(x, `${where}.any[${i}]`));
+    if ("not" in c) checkCreation(c.not, `${where}.not`);
+  };
+  for (const r of recipes.values()) {
+    checkCreation(r.requires, `recipe ${r.id}.requires`);
+    r.ways.forEach((w, i) => { checkCreation(w.requires, `recipe ${r.id}.ways[${i}].requires`); checkCreation(w.visibleWhen, `recipe ${r.id}.ways[${i}].visibleWhen`); });
+  }
+  for (const b of buildings.values()) checkCreation(b.build.requires, `building ${b.id}.build.requires`);
+  for (const { def, path } of treeDefs) {
+    if (trees.has(def.kind)) problems.push(`${path}.kind: duplicate tree kind "${def.kind}"`);
+    const branches = new Set<string>();
+    for (const branch of def.branches) { claim(branch.id, `${path}.branches`); branches.add(branch.id); }
+    const nodes = new Map<string, CreationTree["nodes"][number]>();
+    const children = new Map<string, string[]>();
+    for (const [i, node] of def.nodes.entries()) {
+      const where = `${path}.nodes[${i}]`;
+      if (nodes.has(node.target)) problems.push(`${where}.target: duplicate target "${node.target}"`);
+      ref(def.kind === "craft" ? "recipe" : "building", node.target, `${where}.target`);
+      if (!branches.has(node.branch)) problems.push(`${where}.branch: unknown branch "${node.branch}"`);
+      if (new Set(node.after).size !== node.after.length) problems.push(`${where}.after: duplicate parents`);
+      nodes.set(node.target, node);
+    }
+    const depth = new Map<string, number>();
+    const order: string[] = [];
+    const visit = (id: string, stack: string[]): number => {
+      if (depth.has(id)) return depth.get(id)!;
+      if (stack.includes(id)) { problems.push(`${path}.nodes.after: cycle ${[...stack, id].join(" → ")}`); return 0; }
+      const node = nodes.get(id);
+      if (!node) return 0;
+      let value = 0;
+      for (const parent of node.after) {
+        if (!nodes.has(parent)) { problems.push(`${path}.nodes.${id}.after: unknown parent "${parent}" in this tree`); continue; }
+        value = Math.max(value, visit(parent, [...stack, id]) + 1);
+      }
+      depth.set(id, value); order.push(id); return value;
+    };
+    for (const node of nodes.values()) {
+      visit(node.target, []);
+      for (const parent of node.after) children.set(parent, [...children.get(parent) ?? [], node.target]);
+    }
+    trees.set(def.kind, { definition: def, nodes, children, depth, order });
+  }
+  for (const kind of ["craft", "build"] as const) {
+    const tree = trees.get(kind);
+    if (!tree) problems.push(`content/trees: missing ${kind} tree`);
+    for (const id of (kind === "craft" ? recipes : buildings).keys()) {
+      if (!tree?.nodes.has(id)) problems.push(`content/trees: ${kind} target "${id}" needs exactly one node`);
+    }
+  }
+
   if (problems.length) throw new ContentError(problems);
 
   const regionOrder = [...regions.values()]
@@ -389,7 +473,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   } catch (error) { throw new ContentError([String(error)]); }
 
   return Object.freeze({
-    textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
+    trees, sites, textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,
   });
 }
 
