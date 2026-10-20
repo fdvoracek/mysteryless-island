@@ -30,6 +30,12 @@ mechanics. Update this document when an architectural decision changes, not for 
   follows [the art direction](docs/ART_DIRECTION.md) and its approved references. These describe
   the adopted direction, not a claim that all reference imagery is implemented. Keep detailed
   visual guidance in those task-specific documents; the loading rules live in `AGENTS.md`.
+- **Foundation implemented, illustrated UI redesign:** the shared panorama slot sits above
+  the route map and all three centre tabs, remaining hidden until real artwork is available.
+  Preserve the large current-area panorama when switching Area, Crafting, and Building.
+  The journal heading comes from the current region view, never parsed log text; work controls
+  remain outside tabpanels. Delivery sequence and acceptance evidence live in
+  [the milestone record](docs/UI_REDESIGN_PROGRESS.md).
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
@@ -201,6 +207,11 @@ derived view models; and an injected scheduler for deterministic controller test
   behavior usable; font selection stays independent of layout through `--font`.
 - Keep keyed control updates so focus and progress survive rendering. Progress bars display
   simulation progress; they must not determine whether work completed.
+- Optional artwork belongs to validated content and derived views, never saved state.
+  Regions/items/buildings reference the shared artwork catalog; region metadata uses the
+  agreed 1600 × 440 panorama size. The shared UI image updater owns Pages-relative URLs,
+  dimensions, alt/decorative treatment, and missing-image fallback. Labels and controls remain
+  usable when pictures are absent. Preserve keyed image slots through normal view updates.
 - Keep area/crafting/building navigation separate from travel. Local buildings stay hidden
   until present, and consumables stay hidden until qualifying carried items exist. Items with consumption/actions go in consumables;
   other items stay in inventory. Building-associated actions belong under the local building.

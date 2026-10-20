@@ -22,15 +22,20 @@ Pacing: every game hour takes 10 real seconds (`content/game.json` → `cosmetic
 
 ## Phones
 
-The classic layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; ordinary action buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. Compact creation trees use 120 × 40 px nodes and pan horizontally and vertically inside the centre panel: grab and drag, swipe, or use a wheel/trackpad, with no visible scrollbars. Hover or focus a node for its type and requirements; the small state control opens the same hint on touch screens without starting work. The e2e test checks it at 375×667.
+The classic layout stacks below 900px: places, actions, journal, then status and inventory. Below 600px ordinary action buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. Compact creation trees use 120 × 40 px nodes and pan horizontally and vertically inside the centre panel: grab and drag, swipe, or use a wheel/trackpad, with no visible scrollbars. Hover or focus a node for its type and requirements; the small state control opens the same hint on touch screens without starting work. Browser tests cover widths down to 320px.
 
 ## Layout and fonts
 
 *font:* in the bottom menu sets one font for all text: *times* (Times New Roman, the original look), *old standard* (Old Standard TT), *fell* (IM Fell English), *garamond italic* (Cormorant Garamond). The choice is remembered; `?font=<id>` works too. Fonts are listed in `src/ui/fonts.ts`; web fonts load only when chosen, and get Times' x-height so the interface keeps its sizes.
 
 
-Classic is the only layout: places above three columns containing the story (newest first),
-actions, and status/tasks/inventory. Its skeleton and scoped styles live in
+Classic is the only layout: places above three flexible columns containing the current-area
+heading and story (newest first), actions, and status/tasks/inventory. A shared panorama slot
+sits above the places and all three action tabs; it stays hidden until artwork is supplied.
+Optional illustrations use validated content references and disappear cleanly if unavailable;
+the current artwork catalog is empty while production images await approval.
+The page grows to 1280px, with roughly a quarter/half/quarter column split. Work controls remain
+visible when switching tabs. Its skeleton and scoped styles live in
 `src/ui/layouts/classic.ts` and `classic.css`; fixed panel IDs come from `panels.ts`.
 There is no layout picker. Older layout URL parameters and stored choices are ignored.
 Font selection remains independent through `--font`.
@@ -81,6 +86,12 @@ See [the technical design](docs/TDD.md) for module boundaries and future extensi
 For visual work, follow [the UI style guide](docs/VISUAL_STYLE.md). Artwork also follows
 [the art direction](docs/ART_DIRECTION.md) and [the approved reference images](assets/art/references/README.md).
 The references guide future changes; they are not screenshots of the current game.
+The [illustrated UI milestone record](docs/UI_REDESIGN_PROGRESS.md) tracks the staged redesign,
+starting with the shared book-page typography, spacing, outlines, and light/dark theme tokens.
+For approved artwork, place files in `public/illustrations/`, register their ID, relative path,
+actual dimensions, and description in `content/artwork.json`, then use `artwork: "<id>"` on a
+region, item, or building. Area panoramas must be 1600 × 440 px. Follow the art guide before
+creating or replacing images; the shared renderer handles Pages paths and both themes.
 
 ## Adding content (no code changes)
 

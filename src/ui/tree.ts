@@ -1,5 +1,6 @@
 import type { ButtonView, TreeNodeView, TreeView } from "../core/selectors";
 import type { RequirementEntry } from "../core/action-rules";
+import { updateIllustration } from "./illustration";
 import { compactTreeLayout, treeConnections, CHIP_HEIGHT } from "./tree-layout";
 
 function describe(entry: RequirementEntry): string {
@@ -20,16 +21,21 @@ const stateLabel = (node: TreeNodeView) => node.work?.status ?? (node.completed 
 /** One floating inspection surface for both trees, outside their scroll containers. */
 export class TreeTooltip {
   private element: HTMLElement;
+  private artwork: HTMLElement;
+  private content: HTMLElement;
   private anchor?: HTMLElement;
   private target?: string;
   private kind?: string;
   private pinned = false;
   private restoringFocus = false;
+  private dismissedAnchor?: HTMLElement;
   private panning = false;
   constructor(private root: HTMLElement) {
     this.element = document.createElement("div");
     this.element.id = "treeTooltip"; this.element.className = "tree-tooltip";
     this.element.setAttribute("role", "tooltip"); this.element.hidden = true;
+    this.artwork = document.createElement("div"); this.artwork.className = "tooltip-illustration";
+    this.content = document.createElement("div"); this.element.append(this.artwork, this.content);
     root.append(this.element);
     document.addEventListener("pointerdown", (event) => {
       if (this.pinned && this.element.contains(event.target as Node)) return;
@@ -47,6 +53,9 @@ export class TreeTooltip {
     });
   }
   hide(restoreFocus = false) {
+    // Removing an overlapping hint can send pointerenter to the chip underneath.
+    // Escape must remain a dismissal until a new visit or explicit inspection.
+    if (restoreFocus && this.anchor) this.dismissedAnchor = this.anchor;
     const returnTo = this.pinned && this.element === document.activeElement
       ? this.anchor?.querySelector<HTMLButtonElement>(".tree-info") : undefined;
     this.element.hidden = true; this.element.classList.remove("pinned"); this.element.tabIndex = -1;
@@ -65,7 +74,9 @@ export class TreeTooltip {
   }
   show(anchor: HTMLElement, node: TreeNodeView, tree: TreeView, pin = false) {
     if (this.restoringFocus || !this.allowed(anchor)) return;
+    if (this.dismissedAnchor === anchor && !pin) return;
     if (this.pinned && this.anchor === anchor && !pin) return;
+    this.dismissedAnchor = undefined;
     this.anchor = anchor; this.target = node.target; this.kind = tree.kind; this.pinned = pin;
     this.element.classList.toggle("pinned", pin); this.element.tabIndex = pin ? 0 : -1;
     this.update(node, tree); this.element.hidden = false; this.position();
@@ -78,9 +89,11 @@ export class TreeTooltip {
     }
   }
   leave(anchor: HTMLElement) {
+    if (this.dismissedAnchor === anchor) this.dismissedAnchor = undefined;
     if (this.anchor === anchor && !this.pinned && !anchor.contains(document.activeElement)) this.hide();
   }
   blur(anchor: HTMLElement, next: EventTarget | null) {
+    if (this.dismissedAnchor === anchor && !anchor.contains(next as Node | null)) this.dismissedAnchor = undefined;
     if (this.pinned && this.element.contains(next as Node | null)) return;
     if (this.anchor === anchor && !anchor.contains(next as Node | null)) this.hide();
   }
@@ -95,7 +108,8 @@ export class TreeTooltip {
     const parents = node.after.map((id) => tree.nodes.find((other) => other.target === id)?.label ?? id);
     const requirements = document.createElement("ul");
     requirements.replaceChildren(...node.requirements.map((entry) => text("li", `${entry.met ? "✓" : "○"} ${describe(entry)}`)));
-    this.element.replaceChildren(text("div", node.label, "tree-tooltip-title"), text("span", node.category, "tree-category"),
+    updateIllustration(this.artwork, node.artwork, { decorative: true, eager: true });
+    this.content.replaceChildren(text("div", node.label, "tree-tooltip-title"), text("span", node.category, "tree-category"),
       text("div", stateLabel(node), "tree-tooltip-state"), ...(parents.length ? [text("div", `after ${parents.join(" + ")}`)] : []),
       ...node.hints.map((hint) => text("div", hint)), ...(node.reason ? [text("div", node.reason, "reason")] : []),
       ...(node.work ? [text("div", `${Math.round(100 * node.work.completed / node.work.required)}% complete`)] : []), requirements);

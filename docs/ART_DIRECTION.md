@@ -35,14 +35,36 @@ The game should feel like **reading an illustrated 19th-century Jules Verne adve
 
 Use this priority order for visual guidance:
 
-1. **Approved production assets** in the repository, especially the most recently approved simplified black-and-white images.
-2. **Curated references** placed by maintainers in `assets/art/references/` (if present).
-3. This written specification.
-4. Historical Jules Férat / 19th-century Verne book engravings as **historical inspiration only**, simplified substantially to match this game's visual density.
+1. **The designated user-approved visual master for the collection.** Use the same actual image file for every member of a set; never select a different style reference per region.
+2. **Approved production assets** from that collection, especially simplified black-and-white images already checked against its master.
+3. **Curated references** placed by maintainers in `assets/art/references/`, respecting the roles in the reference index.
+4. This written specification.
+5. Historical Jules Férat / 19th-century Verne book engravings as **historical inspiration only**, simplified substantially to match this game's visual density.
 
 The historical references are **not** permission to imitate their full engraving density. When historical accuracy and interface readability conflict, **readability and established game consistency win**.
 
 If the repository has no approved reference images yet, **ask for the approved reference files or explicitly flag that visual matching is provisional**. Never claim exact coherence based only on the text prompt. Once references exist, provide them to image-generation tools as image references when supported.
+
+### A single visual master for each collection
+
+Treat related illustrations as scenes from **one illustrated book**, with one visual master
+and one shared style brief. For the beach, forest, and meadows, prefer the user's approved
+simpler black-and-white beach illustration as the master. Locate and inspect its actual file;
+a description of an approval in another chat is not an image reference. If that file is not
+available or no master has been designated, resolve that before generating the production set.
+Existing geography references are not automatically production style masters.
+
+Record the chosen master path and checksum with the set. Attach that same master to **every**
+generation/edit call where references are supported, together with the unchanged base prompt
+and shared style brief. Keep available model/settings consistent and record them; identical
+settings or wording alone do not establish visual consistency. Change only the subject and
+necessary scenery/composition instructions between regions. Do not improvise a new technique,
+stroke weight, shading treatment, contrast, detail budget, or visual scale for each image.
+Delegated generation work must receive the same master and brief.
+
+If a master must first be established, review and obtain approval for that actual candidate
+before generating its companions. Do not promote a later region's different style to a new
+master silently. A deliberate style revision requires reviewing the complete affected set.
 
 Suggested repository organization (adapt to existing structure rather than duplicating it):
 
@@ -59,6 +81,8 @@ assets/art/
 
 ### A. Location illustrations
 - Wide, horizontal, observational illustrations with calm framing and one obvious landmark.
+- The beach, forest, and meadows form one coordinated area set. Final exports are **1600 × 440 px** each, with the same panoramic framing, visual scale, depth treatment, and comparable horizon/foreground allocation; do not invent a separate crop or zoom style per region. This size applies to area panoramas, not item icons or every other asset category.
+- Lock fine-line engraving technique, apparent line thickness at the final display size, sparse hatching, neutral grayscale, restrained contrast, low detail density, and large untouched white areas across the entire set. Only the scenery changes: coastal cliff and dunes; quiet forest and spring; open meadows and willows. Keep subjects faithful to the game's content and discovery rules.
 - Keep sky, sand, or water broad and minimally marked; suggest depth with **three simple planes** (foreground, middle, distance).
 - Use sparse outlines and a handful of hatch clusters; distant objects are lighter and simpler.
 - No people unless the requested scene explicitly requires them; no decorative border or caption.
@@ -103,6 +127,18 @@ REFERENCE ASSETS: [paths to approved image files]
 DETAIL BUDGET: low — simplify further if uncertain
 ```
 
+For area sets, also supply one shared block unchanged in every call:
+
+```text
+COLLECTION: [stable set name]
+VISUAL MASTER: [same approved file path, supplied as an image reference]
+FINAL EXPORT: 1600 x 440 px; identical panoramic framing and visual scale
+STYLE LOCK: match the master's engraving technique and apparent line weight;
+very sparse hatching, low detail density, restrained contrast, neutral grayscale,
+large untouched white areas; consistent depth and foreground/horizon allocation
+ONLY REGION SCENERY CHANGES: [subject-specific block follows]
+```
+
 ## 6. Negative prompt / rejection criteria
 
 **Reject or regenerate** if any of these appear:
@@ -117,21 +153,41 @@ DETAIL BUDGET: low — simplify further if uncertain
 - Decorative border, UI widgets, or words embedded in an illustration.
 - Different line weights, perspectives, grays, or shadow conventions between related assets.
 - A new asset that visually overwhelms nearby text or makes the page feel crowded.
+- An area image that looks like a different artist, technique, tonal range, detail budget, or visual scale from its master or companion regions, even if it looks attractive by itself.
 
 **A successful asset should look intentionally unfinished compared with a traditional densely engraved book plate.** Simplicity is the distinguishing quality.
 
 ## 7. Mandatory Codex workflow for every new image
 
-1. **Inspect** the existing relevant assets and this file. Identify at least one approved style anchor; use multiple anchors if asset types differ.
-2. **Define** the asset's purpose, actual display dimensions, subject, composition, and continuity requirements. Do not invent details not needed by gameplay.
-3. **Generate** using the master prompt and explicit reference assets where supported. Maintain the same model/settings when practical, but do not assume identical settings guarantee matching results.
-4. **Review visually** at full size **and at the intended in-game size**. Compare side by side with approved art for line density, whitespace, value distribution, and overall restraint.
-5. **Simplify first** if it feels inconsistent: remove hatch groups, tiny objects, background clutter, and tonal variation. Do not add detail to make it look more impressive.
-6. **Check in context** against the mostly white game UI. Artwork should complement the text, not become the primary interface.
-7. **Present for approval** when introducing a new visual category or when matching is uncertain. Do not silently accept an inconsistent image.
-8. **Save** the approved image with a descriptive stable filename in the appropriate art directory; preserve source/reference information where practical. Never overwrite approved references automatically.
+1. **Inspect and lock the master.** Read this guide and the reference index; inspect the actual designated master. A multi-region request is one collection, not independent image tasks.
+2. **Define the shared brief.** Record purpose, final dimensions, framing, visual scale, style constraints, and continuity, with separate scenery descriptions. Reuse the same master and style block for every region and delegated task.
+3. **Generate as a coordinated set.** Supply the master image on every supported call. Keep the base prompt/settings stable; retain the actual tool outputs with their real filenames. New candidates remain unapproved until reviewed.
+4. **Verify final files.** Inspect each actual exported file and read its real dimensions. Area panoramas must be 1600 × 440 px. A requested size or filename is not proof of the output size. Any crop/resample must preserve the agreed framing without stretching, and its final export must be reviewed again. Report unsupported export limitations instead of claiming success.
+5. **Compare the whole set.** Display the actual final files side by side with the master at equal scale, both full size and intended in-game size. For area sets, review beach, forest, and meadows together. Check line weight, hatching, grayscale, contrast, detail density, white space, framing, and visual scale. Individual approval-quality images can still fail as a collection.
+6. **Reject drift before delivery.** Regenerate or simplify any inconsistent member against the same master. Remove hatch groups, clutter, and tonal variation first. Replacing or editing one member requires comparing the complete set again; do not deliver a known mismatch as finished.
+7. **Check in context.** Review final artwork against the mostly white game UI. Artwork should complement the text, not become the primary interface.
+8. **Present truthful previews.** Follow the file/preview requirements below. Request approval for a new master/category or unresolved matching choice, with concrete inspected candidates; never silently accept inconsistency.
+9. **Record and save.** Keep approved assets at descriptive stable paths, preserving original references. Store a short set record alongside the outputs: master path/checksum, shared prompt/style brief, subject variants, available model/settings, final file paths/dimensions/checksums, review result, and approval status. Do not invent unavailable tool settings or approval history. Do not mix rejected candidates into approved production assets.
 
 If the available image-generation tool cannot accept image references or inspect outputs, **state the limitation and request human review**. Do not guarantee exact consistency.
+
+### Actual files and truthful previews
+
+- Only describe an image as generated when an actual generation/edit tool produced its file.
+  Pending or failed generation is not a completed asset.
+- Every preview must show the **actual file it claims to represent**. Candidate previews must
+  show the candidate file and say it is unapproved; final previews must show the final export
+  being supplied to the user. Open and inspect that file before presenting it. Identify its
+  filename/path and verified dimensions, and keep derived previews traceable to that export.
+- Never substitute image-search results, stock images, unrelated previous generations, or
+  separate illustrative mockups as previews of delivered files. Research references, if any,
+  must be labelled separately and never presented as generated output.
+- A comparison view must load the final files themselves, for example in an HTML image grid;
+  do not ask an image model to redraw the set as a comparison sheet. A screenshot/thumbnail
+  derived from those files is a preview, not a separate production export. Label outside the
+  artwork, and link each preview to its actual source file.
+- If a file cannot be retrieved or visually inspected, state that explicitly. Do not claim
+  that it was reviewed, matches its companions, or is ready to use.
 
 ## 8. Quick review checklist
 
@@ -147,6 +203,11 @@ Before adding any asset, confirm:
 - [ ] Preserves established island geography and item design where applicable.
 - [ ] No unrelated objects, people, or decorative flourishes.
 - [ ] Reviewed alongside existing assets, not in isolation.
+- [ ] Every collection member used the same actual approved master and shared style brief.
+- [ ] Complete area set compared side by side at equal scale; no stylistic outlier remains.
+- [ ] Final area files verified as 1600 × 440 px with consistent framing and visual scale.
+- [ ] Every preview comes from the inspected final file, with a source path and verified dimensions.
+- [ ] Set record identifies the master, outputs, checksums, review result, and approval status.
 
 **When in doubt: use fewer lines, lighter shading, and more white space. Consistency beats novelty.**
 

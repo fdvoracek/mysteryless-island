@@ -1,51 +1,49 @@
-/* classic: like A Dark Room: the places on their own row on top, then three columns */
+/* A shared panorama and route map introduce the three reading columns. */
+.layout-classic .page { max-width: 1280px; margin: 0 auto; padding: var(--space-6) var(--space-5) 88px; }
+.layout-classic .area-panorama { width: 100%; aspect-ratio: 40 / 11; margin-bottom: var(--space-5); overflow: hidden; }
 .layout-classic .wrap {
-  /* Keep the journal, central action panel, and status readable side by side. */
-  max-width: 1040px; margin: 0 auto; padding: 24px 20px 80px;
-  display: grid; grid-template-columns: 220px minmax(0, 1fr) 240px; gap: 28px 32px; align-items: start;
-  grid-template-areas: "places places places" "log centre side";
+  margin: 0; padding: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-6); align-items: start;
+  grid-template-areas: "places places places" "journal centre side";
 }
 .layout-classic .tabs {
   grid-area: places; margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--line);
-  font-size: 19px; gap: 4px 14px;
+  font-size: 18px; gap: 4px 14px;
 }
-.layout-classic .log { grid-area: log; }
+.layout-classic .journal { grid-area: journal; min-width: 0; }
+.layout-classic .region-title { margin: 0 0 var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); font: inherit; font-size: 17px; font-variant-caps: small-caps; letter-spacing: .055em; }
 .layout-classic .centre { grid-area: centre; }
 .layout-classic .side { grid-area: side; }
 .layout-classic .log {
-  display: grid; gap: 10px; max-height: 80vh; overflow: hidden;
+  display: grid; gap: var(--space-4); max-height: 80vh; overflow: hidden;
   -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent);
 }
-.layout-classic .log .entry { font-size: 15px; }
-.layout-classic .side { display: grid; gap: 18px; }
+.layout-classic .log .entry { font-size: 16px; line-height: 1.6; }
+.layout-classic .side { display: grid; gap: var(--space-5); }
 
-/* Narrower windows leave more room for the central action panel. */
-@media (max-width: 1080px) {
-  .layout-classic .wrap { grid-template-columns: 170px minmax(0, 1fr) 200px; gap: 24px 20px; }
-}
-@media (max-width: 760px) {
-  .layout-classic .wrap { grid-template-columns: 1fr; grid-template-areas: none; gap: 20px; }
-  .layout-classic .tabs, .layout-classic .log, .layout-classic .centre, .layout-classic .side { grid-area: auto; }
-  .layout-classic .tabs { order: 0; }
-  .layout-classic .centre { order: 1; }
-  .layout-classic .log { order: 2; max-height: 42vh; }
-  .layout-classic .side { order: 3; }
+/* Keep the action controls before the journal when the reading columns stack. */
+@media (max-width: 900px) {
+  .layout-classic .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "places" "centre" "journal" "side"; gap: var(--space-5); }
+  .layout-classic .log { max-height: 42vh; }
 }
 @media (max-width: 600px) {
-  .layout-classic .wrap { padding: 14px 14px 0; gap: 16px; }
+  .layout-classic .page { padding: 14px 14px 0; }
+  .layout-classic .wrap { gap: var(--space-4); }
+  .layout-classic .area-panorama { margin-bottom: var(--space-4); }
   .layout-classic .tabs { padding-bottom: 10px; }
   .layout-classic .log .entry { font-size: 16px; }
 }
 
 /* Trees share the central panel and scroll inside it on narrow screens. */
 .layout-classic .centre { min-width: 0; }
-.layout-classic .centre-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
-.layout-classic .centre-tabs button { font: inherit; color: inherit; background: none; border: 0; padding: .3rem 0; cursor: pointer; }
-.layout-classic .centre-tabs [aria-selected="true"] { border-bottom: 1px solid currentColor; }
+.layout-classic .centre-tabs { display: flex; gap: var(--space-5); margin-bottom: var(--space-5); border-bottom: 1px solid var(--line); }
+.layout-classic .centre-tabs button { font: inherit; color: inherit; background: none; border: 0; border-bottom: 2px solid transparent; padding: 0 0 var(--space-2); margin-bottom: -1px; cursor: pointer; font-size: 16px; font-variant-caps: small-caps; letter-spacing: .045em; }
+.layout-classic .centre-tabs [aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
 /* Complete branches determine the canvas size; scrolling stays inside the panel. */
 .layout-classic .tree-scroll { min-width: 0; max-width: 100%; max-height: min(68vh, 640px); overflow: auto; overscroll-behavior: contain; scrollbar-width: none; -ms-overflow-style: none; cursor: grab; touch-action: auto; user-select: none; -webkit-user-select: none; }
 .layout-classic .creation-tree { position: relative; width: 100%; min-width: 0; }
-.layout-classic .tree-node { position: absolute; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); display: flex; align-items: stretch; z-index: 1; }
+.layout-classic .tree-node { position: absolute; height: 40px; border: 1px solid var(--outline); border-radius: 8px; background: var(--bg); display: flex; align-items: stretch; z-index: 1; }
 .layout-classic .tree-node.locked { border-style: dashed; }
 .layout-classic .tree-node .node-control { flex: 1; min-width: 0; }
 .layout-classic .tree-node .btn { display: block; width: 100%; height: 100%; min-height: 0; border: 0; border-radius: 0 8px 8px 0; padding: 3px 6px 3px 1px; margin: 0; overflow: hidden; font-size: 14px; color: var(--fg); background: transparent; }
@@ -53,13 +51,13 @@
 .layout-classic .tree-node .btn[aria-disabled="true"] { color: var(--fg); }
 .layout-classic .tree-node .tip { display: none !important; }
 .layout-classic .tree-info { width: 22px; flex: 0 0 22px; border: 0; border-radius: 8px 0 0 8px; background: transparent; padding: 0; cursor: help; font: inherit; font-size: 13px; color: var(--fg); }
-.layout-classic .tree-node.completed .tree-info { font-weight: bold; }
+.layout-classic .tree-node.completed .tree-info { font-weight: bold; color: var(--accent); }
 .layout-classic .busy .tree-node .btn { pointer-events: auto; cursor: help; }
 .layout-classic .tree-edges { position: absolute; inset: 0; pointer-events: none; overflow: hidden; opacity: .45; }
 .layout-classic .tree-edges path { fill: none; stroke: var(--fg); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
-.layout-classic .tree-tooltip { position: fixed; z-index: 120; width: max-content; max-width: 300px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); box-shadow: 2px 3px 10px #0002; font-size: 14px; overflow-y: auto; pointer-events: none; overflow-wrap: anywhere; }
+.layout-classic .tree-tooltip { position: fixed; z-index: 120; width: max-content; max-width: 300px; padding: 10px 12px; border: 1px solid var(--outline); border-radius: 4px; background: var(--bg); color: var(--fg); box-shadow: 0 2px 8px #0001; font-size: 14px; overflow-y: auto; pointer-events: none; overflow-wrap: anywhere; }
 .layout-classic .tree-tooltip-title { font-size: 16px; }
-.layout-classic .tree-category { display: inline-block; border: 1px solid var(--bar); border-radius: 8px; padding: 0 6px; margin: 4px 0; font-size: 12px; }
+.layout-classic .tree-category { display: inline-block; border: 1px solid var(--line); border-radius: 2px; padding: 0 6px; margin: 4px 0; font-size: 12px; }
 .layout-classic .tree-tooltip-state { font-size: 12px; margin-bottom: 4px; }
 .layout-classic .tree-tooltip ul { padding-left: 16px; margin: 5px 0 0; }
 .layout-classic .tree-tooltip .reason { color: var(--bad); }
@@ -74,3 +72,16 @@
 .layout-classic .tree-scroll.tree-panning,
 .layout-classic .tree-scroll.tree-panning .tree-node .btn,
 .layout-classic .tree-scroll.tree-panning .tree-node .tree-info { cursor: grabbing; }
+
+/* Optional illustrations share neutral ink treatment; missing slots occupy no space. */
+.layout-classic .illustration img { display: block; max-width: 100%; object-fit: contain; filter: grayscale(1); mix-blend-mode: multiply; }
+.layout-classic .area-panorama img { width: 100%; height: 100%; }
+.layout-classic .item-illustration { width: 44px; height: 44px; flex: 0 0 44px; align-self: center; }
+.layout-classic .item-illustration img { width: 100%; height: 100%; }
+.layout-classic .item-label { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; }
+.layout-classic .tooltip-illustration { width: 100%; height: 96px; margin-bottom: 8px; }
+.layout-classic .tooltip-illustration img { width: 100%; height: 100%; }
+:root[data-theme="dark"] .layout-classic .illustration img { filter: grayscale(1) invert(1); mix-blend-mode: screen; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .layout-classic .illustration img { filter: grayscale(1) invert(1); mix-blend-mode: screen; }
+}

@@ -300,6 +300,37 @@ test("the game is visible and not covered on load", async ({ page }) => {
   expect(topmost).toContain("look around");
 });
 
+test("global panorama scaffold and journal heading persist across centre tabs at desktop and phone widths", async ({ page }) => {
+  const panorama = page.locator("#areaPanorama");
+  await expect(panorama).toHaveCount(1);
+  await expect(panorama).toBeHidden();
+  await expect(panorama).toBeEmpty();
+  expect(await panorama.evaluate((el) => !!(el.compareDocumentPosition(document.querySelector("#tabs")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  expect(await panorama.evaluate((el) => el.closest('[role="tabpanel"]') === null)).toBe(true);
+  const heading = page.locator("#regionTitle");
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const kind of ["area", "craft", "build"]) {
+      await page.locator(`#${kind}Tab`).click();
+      await expect(heading).toBeVisible();
+      await expect(heading).toHaveText("A Grey Beach");
+      await expect(page.locator("#log")).toBeVisible();
+      await expect(panorama).toBeHidden();
+      const journal = (await page.locator(".journal").boundingBox())!;
+      const centre = (await page.locator("main.centre").boundingBox())!;
+      const side = (await page.locator("aside.side").boundingBox())!;
+      if (width > 600) {
+        expect(journal.x + journal.width).toBeLessThanOrEqual(centre.x);
+        expect(centre.x + centre.width).toBeLessThanOrEqual(side.x);
+      } else {
+        expect(journal.y).toBeGreaterThanOrEqual(centre.y + centre.height);
+        expect(side.y).toBeGreaterThanOrEqual(journal.y + journal.height);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
+    }
+  }
+});
+
 test("explore the beach and forest, collect wood, drink, come back and light the fire", async ({ page }) => {
   await expect(page.locator('#status .row[data-id="fire"]')).toHaveCount(0);
   await expect(page.locator('#status .row[data-id="comfort"] .key')).toHaveText("comfort");
@@ -539,14 +570,17 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await page.locator("#eventBack").dispatchEvent("click");
   await expect(page.locator("#quests .needs, #quests .progress, #quests .tip")).toHaveCount(0);
 
+  await expect(page.locator("#regionTitle")).toHaveText("A Grey Beach");
   await tab(page, "the forest").dispatchEvent("click");
   expect((await state()).location).toBe("beach");
   await page.clock.runFor(2_500);
   expect((await state()).time).toBe(start + 105);
   expect((await state()).location).toBe("beach");
+  await expect(page.locator("#regionTitle")).toHaveText("A Grey Beach");
   await page.clock.runFor(2_500);
   expect((await state()).time).toBe(start + 120);
   expect((await state()).location).toBe("forest");
+  await expect(page.locator("#regionTitle")).toHaveText("A Quiet Forest");
   // Reloading unfinished work resumes its saved progress without awarding results early.
   await action(page, "collect wood").dispatchEvent("click");
   await page.clock.runFor(2_500);
@@ -1038,6 +1072,10 @@ test("a pinned tall tree tooltip scrolls its full requirements without dismissin
   await expect(tip).toBeVisible();
   await expect(page.locator("#workBox")).toBeHidden();
   await page.keyboard.press("Escape");
+  await expect(tip).toBeHidden();
+  await expect(info).toBeFocused();
+  // Closing the overlay may uncover its chip under a stationary pointer.
+  await node(page, "build", "bed").dispatchEvent("pointerenter", { pointerType: "mouse" });
   await expect(tip).toBeHidden();
   await info.click();
   await expect(tip).toBeVisible();

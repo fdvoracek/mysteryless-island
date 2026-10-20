@@ -227,6 +227,7 @@ export type Landmark = z.infer<typeof Landmark>;
 export const Region = z
   .object({
     id: Id,
+    artwork: Id.optional(),
     siteCapabilities: z.array(Id).optional(),
     name: z.string(),
     title: z.string(),
@@ -289,6 +290,7 @@ export const BuildingStep = z
 export const Building = z
   .object({
     id: Id,
+    artwork: Id.optional(),
     name: z.string(),
     /** shown on hover in the buildings panel */
     hint: z.string().optional(),
@@ -373,6 +375,7 @@ export const ItemAction = z
 export const Item = z
   .object({
     id: Id,
+    artwork: Id.optional(),
     name: z.string(),
     plural: z.string().optional(),
     category: z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"]),
@@ -679,3 +682,12 @@ export const CreationTree = z.object({
 }).strict();
 export type CreationTree = z.infer<typeof CreationTree>;
 export type TreeKind = CreationTree["kind"];
+
+/** Paths are public/illustrations-relative URLs; executable/external URLs are not content. */
+export const Artwork = z.object({
+  id: Id,
+  src: z.string().regex(/^illustrations\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9_-]+\.(?:png|jpe?g|webp|avif|svg)$/, "use a local illustrations/ image path"),
+  width: z.number().int().positive(), height: z.number().int().positive(),
+  alt: z.string().trim().min(1),
+}).strict();
+export type Artwork = z.infer<typeof Artwork>;

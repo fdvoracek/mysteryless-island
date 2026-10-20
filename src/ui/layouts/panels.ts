@@ -3,8 +3,13 @@
  * styles in ../styles.css rely on them.
  */
 export const panel = {
+  /** Shared area-art slot; remains absent from view until real artwork is available. */
+  panorama: () => `<div class="area-panorama" id="areaPanorama" hidden></div>`,
   /** the story */
-  story: () => `<section class="log" id="log" aria-live="polite" aria-label="story"></section>`,
+  story: () => `<section class="journal" aria-labelledby="regionTitle">
+    <h1 class="region-title" id="regionTitle"></h1>
+    <section class="log" id="log" aria-live="polite" aria-label="story"></section>
+  </section>`,
   /** places you can walk to (region tabs) */
   places: () => `<nav class="tabs" id="tabs" aria-label="places"></nav>`,
   /** All controls in their display order. */
@@ -34,7 +39,7 @@ export const panel = {
 /** ids that must exist in the classic skeleton */
 export const REQUIRED_IDS = [
   "areaTab", "craftTab", "buildTab", "areaPanel", "craftPanel", "buildPanel", "craftTree", "buildTree",
-  "wrap", "log", "tabs", "actions", "clock", "status", "workBox", "work",
+  "areaPanorama", "regionTitle", "wrap", "log", "tabs", "actions", "clock", "status", "workBox", "work",
   "consumablesBox", "consumables",
   "quests", "questsBox", "buildings", "buildingsBox", "inventory", "inventoryBox",
 ] as const;
