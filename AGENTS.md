@@ -7,6 +7,15 @@ saves, scheduling, or shared UI. It records architectural boundaries, simulation
 confirmed future mechanics, and the definition of done. Keep decisions there; use this file for
 repository workflow and authoring conventions.
 
+**Visual changes:** Before changing player-visible presentation (layout, CSS, typography,
+icons, or artwork), read and follow [docs/VISUAL_STYLE.md](docs/VISUAL_STYLE.md).
+For illustration or visual-asset creation/editing, also read
+[docs/ART_DIRECTION.md](docs/ART_DIRECTION.md) and inspect the relevant approved references
+listed in [assets/art/references/README.md](assets/art/references/README.md).
+Include these requirements when delegating visual work. Gameplay, persistence, content-text,
+and tooling changes without visual impact do not require these guides; read them when a task
+also changes presentation. Keep detailed visual rules in the guides rather than copying them here.
+
 ## Commands
 
 ```bash

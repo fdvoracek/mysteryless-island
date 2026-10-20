@@ -26,6 +26,10 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Preserve stable content/text identities for saves, translations, and future authoring tools.
 - Classic is the only supported layout. Do not restore retired layouts or a layout picker
   unless the user requests them; keep font selection independent.
+- Future visual changes follow [the UI style guide](docs/VISUAL_STYLE.md); artwork additionally
+  follows [the art direction](docs/ART_DIRECTION.md) and its approved references. These describe
+  the adopted direction, not a claim that all reference imagery is implemented. Keep detailed
+  visual guidance in those task-specific documents; the loading rules live in `AGENTS.md`.
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 

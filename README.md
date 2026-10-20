@@ -78,6 +78,10 @@ translation tables or a CSV importer; JSON remains the current authoring format.
 
 See [the technical design](docs/TDD.md) for module boundaries and future extensions, and [the creation-tree design](docs/CRAFTING_BUILDING_DESIGN.md) for progression and authoring rules.
 
+For visual work, follow [the UI style guide](docs/VISUAL_STYLE.md). Artwork also follows
+[the art direction](docs/ART_DIRECTION.md) and [the approved reference images](assets/art/references/README.md).
+The references guide future changes; they are not screenshots of the current game.
+
 ## Adding content (no code changes)
 
 | What | Where |
