@@ -25,7 +25,7 @@ The screen is a few buttons, a scrolling story log, and a status panel. Occasion
 |---|---|
 | Genre | Text survival / crafting / exploration |
 | Player | One castaway, alone for the whole game **[decided]** |
-| Session | 2–4 hours for one full playthrough **[decided]** |
+| Session | Content-driven; earlier 2–4 h target under revision **[updated design direction; see §20.7]** |
 | Platform | Desktop browser **[decided]** |
 | Inspirations | *A Dark Room* (form, pacing, voice), Jules Verne's *The Mysterious Island* (progression from nothing to industry) |
 | Title | Mysteryless Island **[decided]**: a nod to Verne; the player is never sure whether the island hides a mystery |
@@ -617,7 +617,119 @@ Keep current region identities (beach, forest, meadows) as implemented and recon
 
 ---
 
-## 20. Open questions
+## 20. Personal progression: skills, quality and perks **[mixed: chosen directions and proposals]**
+
+This section captures the design discussions after the Stone Age progression proposal. **Chosen direction:** skills improve through actual practice; efficiency improves automatically; skill milestones offer selectable, freely reversible perks; passive gathering perks eliminate routine clicks without producing unbounded resources. No gameplay implementation is claimed here.
+
+### 20.1 The three distinct sources of advancement
+
+1. **Technology (crafting + discovery):** knowledge, completed precursor techniques, materials, tools and discovered sites determine *what can be done*. A novice may use any essential technology whose ordinary prerequisites are met; skill levels never hard-lock the main escape route.
+2. **Personal skill (practice):** productive activity gradually reduces its time and/or energy cost, and improves the likely quality of handmade tools. Skill XP persists independently of possessions or selected perks.
+3. **Equipment and infrastructure:** tool type unlocks physical capabilities; tool quality affects tool-dependent efficiency; buildings run time-based production, provide storage and eliminate repetitive tasks. A fine stone knife is not equivalent to an iron saw.
+
+Skill benefits must remain distinguishable: practice gives general efficiency, quality affects use of the particular tool, and perks change routines or grant contextual bonuses. Multiplicative efficiency modifiers are a reasonable implementation candidate; minimum action time and capped discounts prevent near-zero durations. Costs and multipliers need balance tests, not fixed implementation constants yet.
+
+### 20.2 Candidate skills and practice progression
+
+| Skill | Primary qualifying activities | Automatic growth | Example perk identity |
+|---|---|---|---|
+| Craftsmanship | Personally craft/refine stone tools, pottery and handmade items | Crafting efficiency and higher tool-quality odds | Better refinement, material recovery |
+| Woodworking | Fell trees, shape timber, construct wooden structures | Reduced woodwork time/energy | Extra yield, faster building |
+| Foraging | Gather vegetation, berries, mushrooms and small useful materials | Faster deliberate gathering, better yields | Passive firewood or edible-plant gathering |
+| Fishing & Hunting | Catch fish, hunt, manage traps | Better success/yield and effort efficiency | Manual catch vs trap specialization |
+| Survival | Maintain fire, prepare camps, perform survival routines | Reduced survival effort and better routine efficiency | Fire duration, camp refueling |
+| Metalworking | Personally smelt and forge | Smelting/forging efficiency and forged-tool quality | Better ingot use, fine metalwork |
+
+**Five named ranks [proposal]:** Novice → Practiced → Competent → Expert → Master. XP can rise continuously between ranks; milestone perk choices are proposed at ranks 3 and 5. Neither five ranks, six skills, thresholds, perk lists nor specific reductions are final. Progression can be extended if the game has enough meaningful content; the older fixed 2–4-hour target in §§1, 3, 11 and 16 is no longer a hard design constraint. Do not pad playtime with repetitive grinding.
+
+**XP rules [chosen direction]:** reward meaningful completed work, production batches and first-time achievements. Base rewards should reflect the action's underlying task rather than its actual (skill-dependent) duration, so efficient players are not punished for faster work. First-time achievements may grant bonuses; endlessly repeating trivial starter recipes yields little XP. Cancelling/restarting work yields no duplicative progress, and unattended building output must not continuously give player skill XP. One primary skill per action is the default. Tune XP milestones through playtests.
+
+### 20.3 Crafted tool quality **[proposal; confirm exact behavior]**
+
+Use **crude / normal / fine** quality, not loot-style rarity levels, for a small set of reusable tools (knives, axes, pickaxes, saws and possibly fishing equipment). All mandatory tool crafts should yield a *usable* result: an unskilled craft may produce a crude, slower tool rather than failing outright and destroying the player's materials. Normal equipment must be sufficient to progress; fine equipment gives a modest time advantage, never exclusive content. A candidate tuning baseline is crude +25% tool-dependent work time, normal baseline, fine −15%; these values are **not approved balance constants**.
+
+Higher Craftsmanship improves quality odds. Prefer deterministic, skill-gated **refinement** of an existing tool as the protection against bad luck; optional random fine results offer occasional pleasant surprises. Avoid repetitive rerolls, inventories full of duplicate knives, or added durability (excluded by §2). The existing one-copy/non-repeatable recipe behavior will need a specific refinement or replacement interaction rather than silently allowing unlimited duplicates.
+
+Communicate crude quality in the craft log, item description and recipe/tooltips, with a positive opportunity to refine or replace it; do not force a "craft another knife" quest. Item quality affects only actions that actually use that tool. Keep resources such as nails, rope, water and food free of quality tiers unless a strong reason emerges.
+
+### 20.4 Perks: milestone choices and switching
+
+**Chosen direction:** automatic skill efficiency plus **player-selected milestone perks**, and players may change the chosen perks without losing XP, levels or acquired knowledge. Perks are optional specializations, never compulsory prerequisites for the ship. The exact switching location remains **open**: anywhere, at a safe camp, or after sleep. Until decided, do not implement an invented cooldown or charge a respec fee. Switching must not retroactively award or return output, and must not allow duplication or resetting passive gathering limits.
+
+Candidate two-way choices (subject to design review):
+
+| Skill | First milestone | Later milestone |
+|---|---|---|
+| Craftsmanship | Better fine-quality chance / refinement material recovery | Reliable fine refinement / batch crafting |
+| Woodworking | Extra timber / faster construction | Efficient planks / bulk-project economy |
+| Foraging | Passive kindling / passive known edible plants | Larger applicable reserves / improved deliberate yields |
+| Fishing & Hunting | Better manual catch / improved traps | Better hunting yields / efficient trapping |
+| Survival | Longer-burning fires / improved recovery | Automatic campfire refueling / lower expedition effort |
+| Metalworking | Better ingot yield / better forged-tool quality | Efficient batch forging / fine metal refinement |
+
+Selected perks are saved. Passive perks should be individually enableable if they consume resources or generate unwanted items. Buffs must be capped; tiny recipes should not be broken by rounded percentage material discounts. It is acceptable for the final perk set to be smaller than this candidate table.
+
+### 20.5 Passive gathering as a reusable perk mechanism
+
+An eligible perk can collect **small, known, locally available survival resources** during other eligible player work or travel. Example: gather **at most one firewood per 15-minute simulation tick** in a suitable woodland, while hunting, until the *actual carried firewood* reaches its cap (example: 10). This rate is an illustration awaiting balancing. Berries, safely identified mushrooms and plant fibre are other candidates. Timber, ore, bricks and other large industrial materials are not passive pickups.
+
+- Award at most once per game tick, not once per concurrent action; no progress when idle, asleep, paused or game closed.
+- Require appropriate region/site resource availability and, when relevant, discovery of safe gathering knowledge.
+- Respect physical carried capacity; never put incidental pickups directly into remote camp storage or bypass caps.
+- Do not silently consume extra player energy or time for a perk described as incidental; account for its output in balance.
+- Manual gathering remains faster for bulk demand; incidental collection replaces routine clicks, not serious resource extraction.
+- Keep repeated log messages aggregated so the quiet narrative voice is not flooded.
+
+### 20.6 Selected physical personal reserves + simplified global stockpile **[chosen design direction]**
+
+This updates the global-stockpile simplification described in §§6.3 and 7.1. **Everyday consumables are physically local, but large crafting/building materials remain global**. There is **no overall carry weight or shared item-slot budget**. Each designated everyday resource has its own individual personal cap; water is limited by portable containers.
+
+| Store | What it contains | Accessibility |
+|---|---|---|
+| **Carried reserves** | Firewood, berries, mushrooms, rations, small edible plants, portable water | Available to the player anywhere, up to each resource's own cap |
+| **Camp storage** | Bulk quantities of those same everyday survival supplies and water in local containers | Accessible only while at the camp for eating, drinking, refueling and resupply |
+| **Global stockpile** | Stone, timber, clay, ore, iron, planks, bricks, rope, nails and other progression materials | Used by crafting/building under the existing abstracted transport model |
+
+Example provisional caps: firewood 10, berries 8, mushrooms 6, cooked rations 6; portable water capacity comes from held containers. There is no shared slot or encumbrance system. This does not introduce transport logistics for construction materials. Classify each item into exactly one resource policy; carried and stored quantities of the same consumable must be tracked separately to prevent phantom remote consumption.
+
+**Reserve targets:** At a camp, the player may configure a desired carried quantity per eligible resource (bounded by its personal capacity). Targets persist between visits. **On arrival at camp, deposit only carried quantities *above* target; retain up to target. Do not force refill on arrival. On departure, automatically refill shortages from local camp storage up to each target, constrained by actual stored quantity and portable container capacity.** Transfers never create or destroy items and should require no repetitive manual clicks. A future manual adjustment option may be useful but is not a prerequisite.
+
+**Consumption:**
+- Away from camp: automatic/manual eating and drinking use carried supplies and carried water only; local fire use consumes carried firewood. Supplies sitting at beach camp are unavailable remotely.
+- At camp: eating and drinking use carried supplies first, then local camp stores. A campfire consumes local stored firewood first, then carried wood if needed. Local survival/cooking actions can access both appropriate stores.
+- Crafting and construction continue to use the global materials pool; if a recipe also needs a designated local consumable such as firewood, resolve that consumable via the appropriate local/carried access rule. Avoid consuming the same quantity twice.
+- Existing hunger/thirst auto-consumption triggers remain; only the accessible source changes.
+
+**Gathering:**
+- Away from camp, manual gathering of everyday consumables fills carried reserves up to their individual caps; no overflow or remote deposit. The player may consume/use items to free room or return to camp.
+- At camp or an explicitly camp-connected local gathering site, deliberate gathering can deliver these supplies directly to camp storage for bulk preparation. It must not be capped by personal carrying space.
+- Passive gathering always goes to carried reserves and halts at the cap, even if camping nearby; it is never an unrestricted industrial supply stream.
+- Production outputs at remote sites retain the GDD's collection-at-site behavior unless explicitly revised later.
+
+**Water:** portable water capacity comes from coconut shells, jars, waterskins etc.; camp water capacity comes from larger jars, barrels, rain catchers or future reservoirs. Stored water cannot hydrate a remote traveler. Keep the earlier water-container concept but distinguish portable from camp containers.
+
+**Safeguards and UI:** show concise carried quantities (e.g., firewood 6/10), camp stores when present, and editable reserve targets at camp. Empty storage yields partial refills; full reserves halt incidental gathering. Crossing a region tab or changing skills must not be mistaken for a camp-arrival/departure event. The engine should detect actual location transitions and perform atomic transfers; save carried quantities, camp quantities and targets. No spoilage, tool durability, shared weight or inventory drag-and-drop is introduced.
+
+### 20.7 Implementation and balancing notes
+
+This section is **design documentation only**; current code still implements a global stockpile, the existing resource/recipe identifiers, and existing creation/progression rules. Implement explicit resource classifications and storage scopes, deterministic transfers, site-aware consumption, and tick-based perks rather than inferring them from UI tabs. Test saving/loading mid-action, multiple camps, full reserves, insufficient stock, water containers, death/reload, and concurrent tasks.
+
+Start with Craftsmanship, Woodworking and Foraging as a vertical slice; validate knife quality/refinement, automatic efficiency, and passive firewood pickup before expanding to other skills. Rebalance the opening and the ship's material requirements after adopting the new logistics. **No fixed playtime cap:** longer runs are welcome where substantive exploration, technologies, production and story justify them.
+
+### 20.8 Remaining design decisions
+
+1. Where and when reversible perk selections may be switched (anywhere, camp, or after sleep).
+2. Exact skill counts, rank/XP thresholds, numeric efficiency limits and perk choices.
+3. Which tools receive quality tiers; refinement costs, odds, and replacement UX.
+4. Per-resource personal caps, refill defaults, and camp storage capacity rules.
+5. Eligibility/rates for individual passive pickups and combined activity balance.
+6. Detailed recipe classifications where firewood or food can be both construction input and carried survival supply.
+7. Handling multiple camps and a possible portable manual loadout adjustment.
+8. Update previously fixed 2–4-hour targets and the balance simulator once content scope is settled.
+
+---
+
+## 21. Open questions
 
 1. Mystery: option A, B, C, or a mix (§10).
 2. ~~Working title~~ → *Mysteryless Island* (decided).
