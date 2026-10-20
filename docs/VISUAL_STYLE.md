@@ -54,3 +54,7 @@ hierarchy, whitespace, text contrast, focus, tooltip placement, overflow, and us
 Compare imagery at its intended display size with the relevant approved reference. Preserve
 existing gameplay and interactions; a mockup supplies visual direction, not executable rules.
 Keep new decisions in this guide or the art guide, and keep reference files unchanged.
+
+Review area illustrations as a coordinated 1600 × 440 px set against one designated approved
+visual master. Follow the art guide's shared-reference, whole-set comparison, and actual-file
+preview requirements; mismatched regions must be corrected before being presented as finished.

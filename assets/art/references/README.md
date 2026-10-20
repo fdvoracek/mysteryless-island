@@ -21,6 +21,21 @@ These images were provided by the user; no original artist, historical source, o
 metadata was supplied. The art direction's Jules Férat references describe inspiration, not
 verified authorship of these files. Add source information here if it becomes available.
 
+## Area collection master
+
+These two initial references are not final 1600 × 440 px area exports. Neither has been
+designated here as the simplified production master for the beach/forest/meadows collection.
+The dense island engraving remains a geography/composition reference, not a substitute for
+the simpler approved beach image discussed in another chat.
+
+Before generating that collection, locate and inspect the actual approved simpler beach file,
+or establish an approved master if it is unavailable. Record its stable path, checksum, and
+approval in this index or the collection record, and supply it on every generation/edit call.
+Use one unchanged shared style brief and compare all final region files with that master.
+Do not claim a master has been selected or a production set generated until those files exist
+and have been reviewed. See [the mandatory art workflow](../../../docs/ART_DIRECTION.md#7-mandatory-codex-workflow-for-every-new-image)
+for actual-file previews and set acceptance.
+
 ## File integrity
 
 Both images are PNG, 1536 × 1024 px. SHA-256 checksums identify the preserved originals:
