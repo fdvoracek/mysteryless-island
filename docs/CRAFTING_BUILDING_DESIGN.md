@@ -10,7 +10,8 @@ The supported format is defined by `src/content/schema.ts`.
 - The centre panel has `area`, `crafting`, and `building` tabs. The map, journal, and status
   remain visible. Changing tabs takes no game time and does not pause work.
 - Crafting and building each show their complete tree, including locked and completed nodes.
-  Category branches group related creations; prerequisite connections determine progression.
+  Prerequisite connections determine progression; category names appear as tags in item tooltips,
+  rather than as branch headings or fixed layout lanes.
 - Clicking an eligible node starts creation directly. Its progress uses the existing work
   pipeline and progress-bar timing. Hints explain prerequisites, materials, tools, and sites.
 - The crafting tree creates inventory items. The building tree constructs buildings in the
@@ -254,13 +255,23 @@ For a first personal craft whose output is already owned, the hint states that c
 completes the node while inventory remains at one copy; normal materials and duration are shown.
 Completion feedback must acknowledge the node completion even when no inventory count increased.
 
-The shared renderer uses ordinary HTML controls with category columns and depth rows;
-SVG connections can show dependencies without making nodes inaccessible. Keep native keyboard
-activation and labelled tab panels. Disabled nodes must remain inspectable by keyboard and
-touch; use a guarded `aria-disabled` control and an accessible hint/details affordance.
-The creation control starts work directly; an optional details control does not open a
-craft/build modal or start work accidentally. Provide textual prerequisite lists in addition
-to connectors and color. On phones, allow the tree panel to scroll without widening the page.
+The shared renderer uses compact HTML chips, thin SVG connections and depth-based placement.
+A pure layout helper uses the actual centre-panel width to fit at most three columns; wider
+generations wrap downwards before their descendants. All parents remain above their children,
+including multi-parent nodes. Category metadata does not reserve a lane or add a heading.
+Each chip shows only its name, state mark/inspection control and work progress; the tree viewport
+scrolls vertically without widening the page. Keep native keyboard activation, labelled tab
+panels and usable phone touch targets.
+
+A single floating tooltip outside the scroll viewport contains the authored category-name tag,
+textual prerequisites, materials, tools, local site requirements, duration and progress. Hover
+or focus exposes it; a dedicated inspection control allows touch users to open it without
+starting creation. Pinned hints accept touch/wheel/keyboard scrolling for long content, while
+ordinary hover hints do not intercept the controls behind them. Escape restores focus to the
+inspection control. The item-name control still starts/resumes work directly. Guard unavailable
+controls with `aria-disabled` and keep hints inspectable while work runs. Clamp hints to the
+viewport and dismiss them on tab changes, blocking popups, restart/load, Escape or outside input.
+Do not bring back permanent per-node requirement lists or craft/build modals.
 
 Keep node elements keyed across updates to preserve focus and progress interpolation. Change
 work presentation targets from shared `menu:craft`/`menu:build` controls to the specific recipe

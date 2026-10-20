@@ -27,10 +27,11 @@ test.afterEach(() => {
 
 const action = (page: Page, name: string) => page.locator(".action-sections .btn", { hasText: name });
 
+const tooltip = (page: Page) => page.locator("#treeTooltip");
 const node = (page: Page, kind: "craft" | "build", target: string) => page.locator(`#${kind}Tree .tree-node[data-target="${target}"]`);
 async function create(page: Page, kind: "craft" | "build", target: string) {
   await page.locator(`#${kind}Tab`).click();
-  await node(page, kind, target).locator(".node-control .btn").click();
+  await node(page, kind, target).locator(".btn").click();
   await page.locator("#areaTab").dispatchEvent("click");
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/, { timeout: 20_000 });
 }
@@ -399,9 +400,9 @@ test("finding fish starts a goal while the spear still requires personal rock kn
   await expect(quest.locator("button, .needs, .progress, .tip")).toHaveCount(0);
   await page.locator("#craftTab").click();
   const spear = node(page, "craft", "craft_spear");
-  await expect(spear.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
-  await spear.locator("summary").click();
-  await expect(spear).toContainText("personally craft rock knife");
+  await expect(spear.locator(".btn")).toHaveAttribute("aria-disabled", "true");
+  await spear.locator(".tree-info").click();
+  await expect(tooltip(page)).toContainText("personally craft rock knife");
   await page.evaluate(() => {
     const ti = (window as unknown as { ti: { give(i: string, n: number): void } }).ti;
     ti.give("stone", 2); ti.give("firewood", 10);
@@ -413,7 +414,7 @@ test("finding fish starts a goal while the spear still requires personal rock kn
   await expect(action(page, "catch fish")).not.toHaveClass(/off/);
   await page.locator("#craftTab").click();
   await expect(spear).toHaveClass(/completed/);
-  await expect(spear.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
+  await expect(spear.locator(".btn")).toHaveAttribute("aria-disabled", "true");
 });
 
 test("without the knife a personal rock knife unlocks a spear that takes twice as long", async ({ page }) => {
@@ -425,17 +426,17 @@ test("without the knife a personal rock knife unlocks a spear that takes twice a
   await action(page, "pick up stones").click();
   await page.locator("#craftTab").click();
   const knife = node(page, "craft", "craft_rock_knife");
-  await knife.locator("summary").click();
-  await expect(knife).toContainText("3h");
-  await expect(knife).toContainText("2 required");
+  await knife.locator(".tree-info").click();
+  await expect(tooltip(page)).toContainText("3h");
+  await expect(tooltip(page)).toContainText("2 required");
   await create(page, "craft", "craft_rock_knife");
   await dismissProvisionWarning(page);
   await page.locator("#craftTab").click();
   await expect(knife).toHaveClass(/completed/);
-  await expect(knife.locator(".node-control .btn")).toHaveAttribute("aria-disabled", "true");
+  await expect(knife.locator(".btn")).toHaveAttribute("aria-disabled", "true");
   const spear = node(page, "craft", "craft_spear");
-  await spear.locator("summary").click();
-  await expect(spear).toContainText("1h");
+  await spear.locator(".tree-info").click();
+  await expect(tooltip(page)).toContainText("1h");
   await create(page, "craft", "craft_spear");
   await expect(page.locator("#inventory")).toContainText("fishing spear");
 });
@@ -491,11 +492,17 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await page.clock.install({ time: wallTime });
   await page.clock.pauseAt(wallTime);
   await page.locator("#craftTab").dispatchEvent("click");
-  await node(page, "craft", "craft_spear").locator(".node-control .btn").dispatchEvent("click");
+  await node(page, "craft", "craft_spear").locator(".btn").dispatchEvent("click");
   await expect(node(page, "craft", "craft_spear").locator(".cd")).toHaveCSS("transition-duration", "2.5s");
   await page.locator("#buildTab").dispatchEvent("click");
   await page.locator("#areaTab").dispatchEvent("click");
   await expect(page.locator("#workBox")).toBeVisible();
+  await page.locator("#craftTab").dispatchEvent("click");
+  const busyInfo = node(page, "craft", "craft_spear").locator(".tree-info");
+  await busyInfo.focus();
+  await expect(tooltip(page)).toBeVisible();
+  await busyInfo.evaluate((el) => { (el as HTMLElement).dataset.testIdentity = "preserved"; });
+  await node(page, "craft", "craft_spear").locator(".btn").dispatchEvent("click");
   expect((await state()).time).toBe(start);
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator('#inventory [data-id="fishing_spear"]')).toHaveCount(0);
@@ -503,6 +510,11 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   expect((await state()).time).toBe(start);
   await page.clock.runFor(1);
   expect((await state()).time).toBe(start + 15);
+  await expect(busyInfo).toBeFocused();
+  await expect(busyInfo).toHaveAttribute("data-test-identity", "preserved");
+  await expect(tooltip(page)).toBeVisible();
+  await page.locator("#areaTab").dispatchEvent("click");
+  await expect(tooltip(page)).toBeHidden();
   const clock = (time: number) => `${String(Math.floor(time / 60) % 24).padStart(2, "0")}:${String(time % 60).padStart(2, "0")}`;
   await expect(page.locator("#clock")).toContainText(clock(start + 15));
   await expect(page.locator('#inventory [data-id="fishing_spear"]')).toHaveCount(0);
@@ -512,7 +524,7 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
 
   await page.locator("#buildTab").dispatchEvent("click");
-  await node(page, "build", "bed").locator(".node-control .btn").dispatchEvent("click");
+  await node(page, "build", "bed").locator(".btn").dispatchEvent("click");
   await page.locator("#areaTab").dispatchEvent("click");
   await expect(page.locator('#buildings [data-id="bed"]')).toHaveCount(0);
   await expect(page.locator("#event")).toBeHidden();
@@ -717,48 +729,134 @@ test("death is permanent: the end screen tells your story; load the saved game o
 
 
 
-test("complete trees show accessible requirements and nonoverlapping nodes on desktop and phone", async ({ page }) => {
-  for (const width of [1280, 375]) {
-    await page.setViewportSize({ width, height: 900 });
-    await page.locator("#buildTab").click();
-    const cards = page.locator("#buildTree .tree-node");
-    await expect(cards).toHaveCount(10);
-    await expect(page.locator("#buildTree .tree-edges path")).toHaveCount(9);
-    const boxes = await cards.evaluateAll((els) => els.map((el) => {
-      const box = el.getBoundingClientRect();
-      return { x: box.x, y: box.y, right: box.right, bottom: box.bottom };
-    }));
-    for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
-      const a = boxes[i], b = boxes[j];
-      expect(a.right <= b.x || b.right <= a.x || a.bottom <= b.y || b.bottom <= a.y).toBe(true);
+test("compact trees keep all nodes readable and hints inspectable on desktop and narrow phones", async ({ page }) => {
+  for (const width of [1280, 375, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    for (const kind of ["build", "craft"] as const) {
+      await page.locator(`#${kind}Tab`).click();
+      const tree = page.locator(`#${kind}Tree`);
+      const cards = tree.locator(".tree-node");
+      await expect(cards).toHaveCount(kind === "build" ? 10 : 5);
+      await expect(tree.locator(".tree-edges path")).toHaveCount(kind === "build" ? 9 : 4);
+      await expect(tree.locator("h3, details, .node-state, .node-parents")).toHaveCount(0);
+      expect(await tree.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+      const boxes = await cards.evaluateAll((els) => els.map((el) => {
+        const box = el.getBoundingClientRect();
+        return { x: box.x, y: box.y, right: box.right, bottom: box.bottom };
+      }));
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i], b = boxes[j];
+        expect(a.right <= b.x || b.right <= a.x || a.bottom <= b.y || b.bottom <= a.y).toBe(true);
+      }
+      // Connections must not suggest false dependencies by crossing unrelated chips.
+      const crossings = await tree.evaluate((el) => {
+        const chips = [...el.querySelectorAll<HTMLElement>(".tree-node")].map((chip) => ({
+          id: chip.dataset.target, rect: chip.getBoundingClientRect(),
+        }));
+        const intersections: string[] = [];
+        for (const path of el.querySelectorAll<SVGPathElement>(".tree-edges path")) {
+          const matrix = path.getScreenCTM()!;
+          const length = path.getTotalLength();
+          for (let distance = 1; distance < length; distance += 2) {
+            const point = path.getPointAtLength(distance).matrixTransform(matrix);
+            const chip = chips.find(({ rect }) => point.x > rect.left + 1 && point.x < rect.right - 1
+              && point.y > rect.top + 1 && point.y < rect.bottom - 1);
+            if (chip) { intersections.push(`${path.dataset.parent} to ${path.dataset.target} crosses ${chip.id}`); break; }
+          }
+        }
+        return intersections;
+      });
+      expect(crossings).toEqual([]);
+      const target = kind === "build" ? "bed" : "craft_spear";
+      const chip = node(page, kind, target);
+      const button = chip.locator(".btn");
+      for (const control of [button, chip.locator(".tree-info")]) {
+        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(width <= 600 ? 44 : 34);
+      }
+      await button.focus();
+      await expect(button).toBeFocused();
+      await expect(button).toHaveAttribute("aria-disabled", "true");
+      await expect(tooltip(page)).toBeVisible();
+      await button.press("Enter");
+      await expect(page.locator("#workBox")).toBeHidden();
+      await page.keyboard.press("Escape");
+      await expect(tooltip(page)).toBeHidden();
+      await chip.locator(".tree-info").click();
+      await expect(tooltip(page)).toBeVisible();
+      await expect(tooltip(page).locator(".tree-category")).not.toBeEmpty();
+      await expect(tooltip(page)).toContainText(kind === "build" ? "personally build campfire" : "personally craft rock knife");
+      const tipBox = (await tooltip(page).boundingBox())!;
+      expect(tipBox.x).toBeGreaterThanOrEqual(0);
+      expect(tipBox.y).toBeGreaterThanOrEqual(0);
+      expect(tipBox.x + tipBox.width).toBeLessThanOrEqual(width);
+      expect(tipBox.y + tipBox.height).toBeLessThanOrEqual(800);
+      await page.screenshot({ path: `test-results/compact-tree-${kind}-${width}.png`, fullPage: false, animations: "disabled" });
+      await expect(button).toHaveCSS("color", await page.locator("body").evaluate((el) => getComputedStyle(el).color));
+      await expect(button).toHaveCSS("opacity", "1");
+      await page.locator("#clock").click();
+      await expect(tooltip(page)).toBeHidden();
+      await chip.locator(".tree-info").click();
+      await page.locator("#areaTab").click();
+      await expect(tooltip(page)).toBeHidden();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
     }
-    const bed = node(page, "build", "bed");
-    const button = bed.locator(".node-control .btn");
-    await button.focus();
-    await expect(button).toBeFocused();
-    await expect(button).toHaveAttribute("aria-disabled", "true");
-    await button.press("Enter");
-    await expect(page.locator("#workBox")).toBeHidden();
-    const summary = bed.locator("summary");
-    await summary.scrollIntoViewIfNeeded();
-    await summary.click();
-    await expect(bed.locator("details")).toHaveAttribute("open", "");
-    await expect(bed).toContainText("personally build campfire");
-    await page.screenshot({ path: `test-results/tree-review-building-${width}.png`, fullPage: true, animations: "disabled" });
-    await expect(button).toHaveCSS("color", await page.locator("body").evaluate((el) => getComputedStyle(el).color));
-    await expect(button).toHaveCSS("opacity", "1");
-    await summary.click();
-    const lastColumn = node(page, "build", "rain_barrel").locator("summary");
-    await lastColumn.scrollIntoViewIfNeeded();
-    await lastColumn.click();
-    await expect(node(page, "build", "rain_barrel").locator("details")).toHaveAttribute("open", "");
-    await lastColumn.click();
-    await page.locator("#craftTab").click();
-    await node(page, "craft", "craft_rock_knife").locator("summary").click();
-    await page.screenshot({ path: `test-results/tree-review-crafting-${width}.png`, fullPage: true, animations: "disabled" });
-    await node(page, "craft", "craft_rock_knife").locator("summary").click();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
   }
+});
+
+test("compact tree inspection survives rendering and stays inside the viewport after vertical scrolling", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 450 });
+  await page.locator("#buildTab").click();
+  const scroller = page.locator("#buildPanel.tree-scroll");
+  expect(await scroller.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+  const info = node(page, "build", "rain_barrel").locator(".tree-info");
+  await info.scrollIntoViewIfNeeded();
+  await info.click();
+  await expect(tooltip(page)).toBeVisible();
+  const before = await scroller.evaluate((el) => el.scrollTop);
+  expect(before).toBeGreaterThan(0);
+  await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("stone", 1));
+  await expect(tooltip(page)).toBeFocused();
+  expect(await scroller.evaluate((el) => el.scrollTop)).toBe(before);
+  const box = (await tooltip(page).boundingBox())!;
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.y).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(320);
+  expect(box.y + box.height).toBeLessThanOrEqual(450);
+  // Opening a real blocking popup must clear inspection, including an anchor in a visible tree.
+  await action(page, "look around").dispatchEvent("click");
+  await expect(page.locator("#event")).toBeVisible();
+  await expect(tooltip(page)).toBeHidden();
+  await page.locator("#eventBack").click();
+  await expect(tooltip(page)).toBeHidden();
+});
+
+test("a pinned tall tree tooltip scrolls its full requirements without dismissing", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 220 });
+  await page.locator("#buildTab").click();
+  const info = node(page, "build", "bed").locator(".tree-info");
+  await info.scrollIntoViewIfNeeded();
+  await info.click();
+  const tip = tooltip(page);
+  await expect(tip).toBeVisible();
+  expect(await tip.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+  await tip.hover();
+  await page.mouse.wheel(0, 300);
+  await expect.poll(() => tip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await expect(tip).toBeVisible();
+  await tip.focus();
+  await expect(tip).toBeFocused();
+  await tip.press("Home");
+  await expect.poll(() => tip.evaluate((el) => el.scrollTop)).toBe(0);
+  await tip.press("End");
+  await expect.poll(() => tip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  await expect(tip).toBeVisible();
+  await expect(page.locator("#workBox")).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(tip).toBeHidden();
+  await info.click();
+  await expect(tip).toBeVisible();
+  await page.locator("#buildTab").click();
+  await expect(tip).toBeHidden();
 });
 
 test("an incompatible save stays intact until the player chooses a new game", async ({ page }) => {
