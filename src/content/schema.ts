@@ -166,7 +166,7 @@ export const Thoughts = z
 export type Thoughts = z.infer<typeof Thoughts>;
 
 /** small pictures for the map: hovering a place shows one per activity found there (src/ui/icons.ts) */
-export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "mushrooms", "honey", "shells", "shelter", "sleep"]);
+export const Icon = z.enum(["fire", "water", "wood", "stone", "fish", "meat", "berries", "corn", "honey", "shells", "shelter", "sleep"]);
 
 /** Shared work fields; entity schemas retain their own visibility, identity and rewards. */
 const WorkFields = {

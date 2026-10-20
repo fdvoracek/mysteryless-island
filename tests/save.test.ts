@@ -78,6 +78,8 @@ describe("save migration boundary", () => {
     e.state.location = "removed_area";
     e.state.items.firewood = 12;
     e.state.items.removed_item = 3;
+    e.state.buildings["removed_building@forest"] = { count: 1, builtAt: e.state.time, batches: [], nextBatch: 1 };
+    e.state.quests.removed_quest = { status: "active", startedAt: e.state.time };
     e.state.events.active = { kind: "event", event: "removed_event", scene: "start", text: "An old scene." };
     e.state.events.queue = ["removed_event"];
     e.state.regions.beach.discoveries.push("removed_discovery");
@@ -86,6 +88,8 @@ describe("save migration boundary", () => {
     expect(loaded.location).toBe(reg.game.start.region);
     expect(loaded.items.firewood).toBe(12);
     expect(loaded.items.removed_item).toBeUndefined();
+    expect(loaded.buildings["removed_building@forest"]).toBeUndefined();
+    expect(loaded.quests.removed_quest).toBeUndefined();
     expect(loaded.events.active).toBeNull();
     expect(loaded.events.queue).toEqual([]);
     expect(loaded.regions.beach.discoveries).not.toContain("removed_discovery");

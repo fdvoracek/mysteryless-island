@@ -388,7 +388,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 - **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in the classic layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
 - **Validator:** places, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
-The 11 buildings in `content/buildings/camp.json`:
+The 10 buildings in `content/buildings/camp.json`:
 
 | Building | Place | Task starts when | Build | Cycle |
 |---|---|---|---|---|
@@ -399,7 +399,6 @@ The 11 buildings in `content/buildings/camp.json`:
 | rain barrel | sheltered beach | built shelter, or natural shelter after the first night | 3 logs | set out → 12h → drink (thirst −45), repeats |
 | fish trap | beach shallows or the river | you found the river | 20 willow twigs | set → 1 fish / 2h, up to 3, stays set |
 | snares | forest | you found the small trails (day 2+) | 1 rope, 2 firewood | set → 12h → maybe a rabbit (raw meat), repeats |
-| mushroom logs | forest | after collecting wood 3 times | 2 logs | soak (needs the spring) → 2 days → 3–5 mushrooms |
 | corn field | meadows | you found the flat ground | needs a hoe, 2 corn (sown at once) | sow 2 corn → 3 days → 6–10 corn |
 | bee hive | meadows | you found the humming (after the bushes) | 2 logs | lure with 2 berries → 3 days → 1–2 honey (smoke: 1 firewood), repeats |
 | fish weir | the river | you emptied the trap twice | 6 stones, 2 logs | close → 12h → 2–4 fish, repeats |

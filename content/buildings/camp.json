@@ -273,59 +273,6 @@
     }
   },
   {
-    "id": "mushroom_logs",
-    "name": "mushroom logs",
-    "icon": "mushrooms",
-    "hint": "Logs soaked at the spring grow mushrooms in 2 days.",
-    "places": [{ "region": "forest" }],
-    "availableWhen": {
-      "any": [
-        { "quest": "build_mushroom_logs", "is": "active" },
-        { "quest": "build_mushroom_logs", "is": "done" }
-      ]
-    },
-    "build": {
-      "label": "cut",
-      "hours": 1,
-      "effort": "heavy",
-      "cost": { "timber": 2 },
-      "log": [
-        "You cut logs into lengths and stack them in the damp shade.",
-        "You stack the cut logs in a shady spot among the trees.",
-        "Short logs, stacked in the shade beneath the trees."
-      ]
-    },
-    "cycle": {
-      "start": {
-        "id": "soak_logs",
-        "label": "soak",
-        "hours": 0.5,
-        "effort": "work",
-        "requires": { "discovered": "spring" },
-        "requiresText": "Needs water close by: the spring",
-        "log": [
-          "You carry water from the spring and soak the logs dark.",
-          "Trip after trip from the spring, until the logs are soaked through."
-        ]
-      },
-      "hours": 48,
-      "collect": {
-        "id": "pick_mushrooms",
-        "label": "pick",
-        "hours": 0.5,
-        "effort": "light",
-        "yields": [{ "item": "mushrooms", "min": 3, "max": 5 }],
-        "log": [
-          "Pale caps have pushed out of the bark. You pick them.",
-          "Mushrooms crowd the logs, soft and pale.",
-          "You twist the mushrooms off the bark."
-        ]
-      },
-      "words": { "idle": "dry", "working": "soaked", "ready": "mushrooms" },
-      "readyLog": "Mushrooms have come up on the logs."
-    }
-  },
-  {
     "id": "corn_field",
     "name": "corn field",
     "icon": "corn",
