@@ -37,7 +37,8 @@ Design rationale and content-authoring model:
 
 - One shared data-driven graph model and UI serves two independent trees, crafting and building.
   Explicit prerequisites determine depth; authored category names appear as item tooltip tags.
-  All nodes remain visible in compact, vertically scrolling trees without category headings.
+  All nodes remain on compact tree canvases that scroll horizontally and vertically inside
+  the centre panel, without category headings.
 - All prerequisite nodes must be personally crafted/built to completion. Found, granted, or
   equivalent items do not count. Unlocks are permanent and global; tools, materials, limits,
   and local site requirements still determine whether work can start now.
@@ -53,15 +54,18 @@ Design rationale and content-authoring model:
   journal, and status. Tab changes do not pause work. Node clicks start creation using the
   existing persisted work/progress pipeline. Items enter inventory; buildings appear locally.
   Building use and production controls stay in the area tab; creation trees only create things.
-- Compact nodes show their name, a small state/inspection control, and active progress. The
-  responsive layout wraps generations into at most three columns, keeping every parent above
-  its children. A floating tooltip outside the scroll viewport contains category tags and all
+- Compact 120 × 40 px nodes show their name, a small state/inspection control, and active
+  progress. Reserve space for complete descendant branches and grow the canvas rather than
+  wrapping siblings or shrinking the layout to the panel. Every parent stays above its children.
+  A floating tooltip outside the scroll viewport contains category tags and all
   requirements; hover/focus or the inspection control exposes it without starting creation.
 - Crafting and building must use the same layout and connector rules in `ui/tree-layout.ts`.
   Do not add tree-kind-specific placement or item-ID offsets. A single child stays directly
-  below its predecessor; a row of siblings is centred on their common predecessor. A shared
-  multi-parent group centres on the mean of its predecessor centres. Panel limits wrap siblings
-  into additional centred rows; collisions move whole rows down, preserving their alignment.
+  below its predecessor; all siblings stay in one horizontal row centred on their common
+  predecessor. A shared multi-parent group centres on the mean of its predecessor centres.
+  Use vertical stems and shared horizontal forks, without obstacle routing or border detours.
+  Viewport resizing must not rearrange branches; scrolling belongs to the tree panel and normal
+  state updates retain both scroll offsets. Keep all prerequisite links for multi-parent joins.
 - Initial content edges are rock knife to axe and rope independently, fire site to bed to
   shelter, and fire site to fish trap to rabbit trap. Completing construction of the fire site
   is sufficient; lighting it is not a progression requirement. Further initial links are

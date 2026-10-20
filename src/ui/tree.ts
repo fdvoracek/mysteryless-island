@@ -1,6 +1,6 @@
 import type { ButtonView, TreeNodeView, TreeView } from "../core/selectors";
 import type { RequirementEntry } from "../core/action-rules";
-import { compactTreeLayout, routeTreeEdges, CHIP_HEIGHT } from "./tree-layout";
+import { compactTreeLayout, treeConnections, CHIP_HEIGHT } from "./tree-layout";
 
 function describe(entry: RequirementEntry): string {
   if (entry.children) {
@@ -113,7 +113,7 @@ export class TreeTooltip {
   }
 }
 
-interface TreeMount { tree: TreeView; tooltip: TreeTooltip; observer: ResizeObserver }
+interface TreeMount { tree: TreeView; tooltip: TreeTooltip; observer: ResizeObserver; positioned: boolean }
 const mounts = new WeakMap<HTMLElement, TreeMount>();
 /** Keyed native chips keep keyboard focus and progress bars through clock updates. */
 export function renderTree(container: HTMLElement, tree: TreeView, buttons: (container: HTMLElement, buttons: ButtonView[]) => void, tooltip: TreeTooltip): void {
@@ -157,31 +157,41 @@ export function renderTree(container: HTMLElement, tree: TreeView, buttons: (con
   if (!mount) {
     const observer = new ResizeObserver(() => layoutTree(container));
     observer.observe(scroller);
-    mount = { tree, tooltip, observer }; mounts.set(container, mount);
+    mount = { tree, tooltip, observer, positioned: false }; mounts.set(container, mount);
   }
   mount.tree = tree; tooltip.refresh(tree);
   layoutTree(container);
 }
 function layoutTree(container: HTMLElement) {
   const mount = mounts.get(container);
-  if (!mount || !container.getBoundingClientRect().width) return;
-  const layout = compactTreeLayout(mount.tree.nodes, container.clientWidth);
-  container.style.height = `${layout.height}px`; container.dataset.columns = String(layout.columns);
+  const scroller = container.parentElement!;
+  if (!mount || !scroller.clientWidth) return;
+  // Measure the viewport, never the expanding canvas: resizing must not feed its
+  // previous width back into the layout. Keep both scroll offsets on normal updates.
+  const layout = compactTreeLayout(mount.tree.nodes, scroller.clientWidth);
+  container.style.width = `${layout.width}px`;
+  container.style.height = `${layout.height}px`;
   for (const placement of layout.nodes) {
     const chip = container.querySelector<HTMLElement>(`.tree-node[data-target="${placement.target}"]`)!;
     chip.style.left = `${placement.x}px`; chip.style.top = `${placement.y}px`; chip.style.width = `${placement.width}px`;
   }
   drawConnections(container, mount.tree, layout.nodes, layout.height);
+  if (!mount.positioned) {
+    const roots = layout.nodes.filter((node) => !mount.tree.nodes.find((definition) => definition.target === node.target)!.after.length);
+    const centre = roots.length ? roots.reduce((sum, node) => sum + node.x + node.width / 2, 0) / roots.length : layout.width / 2;
+    scroller.scrollLeft = Math.max(0, centre - scroller.clientWidth / 2);
+    mount.positioned = true;
+  }
 }
 function drawConnections(container: HTMLElement, tree: TreeView, nodes: ReturnType<typeof compactTreeLayout>["nodes"], height: number) {
   const ns = "http://www.w3.org/2000/svg";
   let svg = container.querySelector<SVGSVGElement>(":scope > svg");
   if (!svg) { svg = document.createElementNS(ns, "svg"); svg.setAttribute("aria-hidden", "true"); svg.classList.add("tree-edges"); container.prepend(svg); }
   svg.setAttribute("width", String(container.clientWidth)); svg.setAttribute("height", String(height));
-  const paths = routeTreeEdges(tree.nodes, nodes, container.clientWidth).map((route) => {
+  const paths = treeConnections(tree.nodes, nodes).map((connection) => {
     const path = document.createElementNS(ns, "path");
-    path.dataset.parent = route.parent; path.dataset.target = route.target;
-    path.setAttribute("d", route.path);
+    path.dataset.parent = connection.parent; path.dataset.target = connection.target;
+    path.setAttribute("d", connection.path);
     return path;
   });
   svg.replaceChildren(...paths);

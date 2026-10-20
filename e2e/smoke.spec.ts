@@ -739,7 +739,12 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
       await expect(cards).toHaveCount(kind === "build" ? 10 : 5);
       await expect(tree.locator(".tree-edges path")).toHaveCount(kind === "build" ? 9 : 4);
       await expect(tree.locator("h3, details, .node-state, .node-parents")).toHaveCount(0);
-      expect(await tree.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
+      const scroller = page.locator(`#${kind}Panel.tree-scroll`);
+      if (width <= 600) expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(0);
+      expect(await scroller.evaluate((el) => el.getBoundingClientRect().width)).toBeLessThanOrEqual(width);
+      for (const path of await tree.locator(".tree-edges path").all()) {
+        expect(await path.getAttribute("d")).not.toMatch(/[CQAS]/i);
+      }
       const boxes = await cards.evaluateAll((els) => els.map((el) => {
         const box = el.getBoundingClientRect();
         return { x: box.x, y: box.y, right: box.right, bottom: box.bottom };
@@ -767,8 +772,8 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
         return intersections;
       });
       expect(crossings).toEqual([]);
-      // Derive predecessor sets from the rendered graph: single children and every
-      // wrapped sibling row stay centred on their own parents, independent of content IDs.
+      // Siblings never wrap: each complete predecessor group shares one row and
+      // stays centred on its parents, independent of content IDs or canvas overflow.
       const misaligned = await tree.evaluate((el) => {
         const chips = new Map([...el.querySelectorAll<HTMLElement>(".tree-node")].map((chip) => [chip.dataset.target!, chip.getBoundingClientRect()]));
         const parents = new Map<string, string[]>();
@@ -778,7 +783,7 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
         }
         const rows = new Map<string, { parents: string[]; ids: string[] }>();
         for (const [id, ids] of parents) {
-          const key = `${[...ids].sort().join(",")}:${Math.round(chips.get(id)!.top)}`;
+          const key = [...ids].sort().join(",");
           const row = rows.get(key) ?? { parents: ids, ids: [] };
           row.ids.push(id); rows.set(key, row);
         }
@@ -788,6 +793,7 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
             const rect = chips.get(id)!; return sum + (rect.left + rect.right) / 2;
           }, 0) / row.parents.length;
           const rects = row.ids.map((id) => chips.get(id)!);
+          if (Math.max(...rects.map((r) => r.top)) - Math.min(...rects.map((r) => r.top)) > 1) failures.push(`${row.ids.join(",")} wrapped`);
           const actual = (Math.min(...rects.map((r) => r.left)) + Math.max(...rects.map((r) => r.right))) / 2;
           if (Math.abs(actual - expected) > 1) failures.push(`${row.ids.join(",")} offset ${actual - expected}`);
         }
@@ -795,11 +801,22 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
       });
       expect(misaligned).toEqual([]);
       await page.screenshot({ path: `test-results/compact-tree-${kind}-${width}-clean.png`, fullPage: false, animations: "disabled" });
+      if (kind === "build" && width === 1280) {
+        // Inspect a static clone of the whole canvas without resizing the live game or its scroll state.
+        await tree.evaluate((el) => {
+          const capture = document.createElement("div");
+          capture.id = "treeCanvasCapture"; capture.className = "layout-classic";
+          Object.assign(capture.style, { position: "fixed", left: "0", top: "0", zIndex: "9999", background: "var(--bg)", width: `${el.clientWidth}px`, height: `${el.clientHeight}px` });
+          capture.append(el.cloneNode(true)); document.body.append(capture);
+        });
+        await page.locator("#treeCanvasCapture").screenshot({ path: "test-results/compact-tree-build-full-canvas.png", animations: "disabled" });
+        await page.locator("#treeCanvasCapture").evaluate((el) => el.remove());
+      }
       const target = kind === "build" ? "bed" : "craft_spear";
       const chip = node(page, kind, target);
       const button = chip.locator(".btn");
       for (const control of [button, chip.locator(".tree-info")]) {
-        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(width <= 600 ? 44 : 34);
+        expect((await control.boundingBox())!.height).toBeGreaterThanOrEqual(38);
       }
       await button.focus();
       await expect(button).toBeFocused();
@@ -831,25 +848,32 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
   }
 });
 
-test("compact tree inspection survives rendering and stays inside the viewport after vertical scrolling", async ({ page }) => {
-  await page.setViewportSize({ width: 320, height: 450 });
+test("compact tree inspection preserves both scroll axes and stays inside the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 320 });
   await page.locator("#buildTab").click();
   const scroller = page.locator("#buildPanel.tree-scroll");
   expect(await scroller.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
-  const info = node(page, "build", "rain_barrel").locator(".tree-info");
+  expect(await scroller.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(0);
+  await scroller.evaluate((el) => { el.scrollLeft = 0; el.scrollTop = 0; });
+  await scroller.hover();
+  await page.mouse.wheel(150, 150);
+  await expect.poll(() => scroller.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+  await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+  const info = node(page, "build", "bee_hive").locator(".tree-info");
   await info.scrollIntoViewIfNeeded();
   await info.click();
   await expect(tooltip(page)).toBeVisible();
-  const before = await scroller.evaluate((el) => el.scrollTop);
-  expect(before).toBeGreaterThan(0);
+  const before = await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }));
+  expect(before.x).toBeGreaterThan(0);
+  expect(before.y).toBeGreaterThan(0);
   await page.evaluate(() => (window as unknown as { ti: { give(i: string, n: number): void } }).ti.give("stone", 1));
   await expect(tooltip(page)).toBeFocused();
-  expect(await scroller.evaluate((el) => el.scrollTop)).toBe(before);
+  expect(await scroller.evaluate((el) => ({ x: el.scrollLeft, y: el.scrollTop }))).toEqual(before);
   const box = (await tooltip(page).boundingBox())!;
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.y).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(320);
-  expect(box.y + box.height).toBeLessThanOrEqual(450);
+  expect(box.y + box.height).toBeLessThanOrEqual(320);
   // Opening a real blocking popup must clear inspection, including an anchor in a visible tree.
   await action(page, "look around").dispatchEvent("click");
   await expect(page.locator("#event")).toBeVisible();

@@ -516,15 +516,25 @@ once even while its output is owned, consuming normal materials/time and leaving
 The centre's area/crafting/building tabs keep the map, journal, status and shared work summary
 available. Switching tabs does not pause work. All nodes stay visible as compact name chips
 with state marks and persisted node-specific progress. Crafting and building share the same
-placement and routing functions in `ui/tree-layout.ts`; neither kind has separate layout rules.
-Within each depth, nodes are grouped by their complete predecessor set. A lone child is centred
-on its predecessor; each sibling row is centred on its parent, or the mean of all parent centres
-for a multi-parent group. At most three nodes fit a row. Panel-edge constraints wrap siblings
-into additional rows at the same anchor; collisions move entire sibling rows down rather than
-recentering a whole depth. Each depth finishes before its descendants are placed. Connections that skip wrapped rows use outer
-gutters so they do not pass behind unrelated chips. The tree viewport scrolls vertically without
-horizontal overflow. Categories do not own columns or headings: `TreeNodeView.category` carries
-the authored branch name into the item's tooltip tag.
+placement and connection functions in `ui/tree-layout.ts`; neither kind has separate layout rules.
+Nodes are 120 × 40 px. Reserve complete descendant branch widths before placing them. A lone
+child is centred on its predecessor; all siblings stay in one horizontal row with the midpoint
+of its outermost node centres on their parent. Multi-parent groups centre on the mean of their
+predecessor centres and retain every edge. The canvas grows to contain all branches; panel
+width does not wrap siblings or alter branch geometry. Connections use vertical stems and
+shared horizontal forks without obstacle routing or gutter detours. The bounded tree viewport
+scrolls in both directions without causing page overflow. `ui/tree.ts` measures the viewport
+independently of the canvas width, centres the root on first display, and preserves both scroll
+offsets on state updates. Categories do not own columns or headings: `TreeNodeView.category`
+carries the authored branch name into the item's tooltip tag.
+
+The layout measures single-parent descendant bounds recursively, packs complete branches,
+then recentres sibling node positions on their parent. Shared descendants are grouped by
+their complete prerequisite set and placed below existing components, centred on their parents'
+mean position, with their own single-parent descendants reserved normally. Every prerequisite
+is drawn directly. The current single-parent trees have clear stems and forks; an arbitrary
+multi-parent graph can have crossing connectors. The layout does not change dependencies,
+drop links, or introduce obstacle routing to hide those crossings.
 
 `ui/tree.ts` keeps controls keyed and owns one floating tooltip outside the scroll viewport.
 Hover/focus or a dedicated state/inspection control shows category, prerequisites, current

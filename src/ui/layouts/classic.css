@@ -42,21 +42,21 @@
 .layout-classic .centre-tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
 .layout-classic .centre-tabs button { font: inherit; color: inherit; background: none; border: 0; padding: .3rem 0; cursor: pointer; }
 .layout-classic .centre-tabs [aria-selected="true"] { border-bottom: 1px solid currentColor; }
-/* Tree geometry follows actual panel width; only the vertical tree viewport scrolls. */
-.layout-classic .tree-scroll { min-width: 0; max-height: min(68vh, 640px); overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-gutter: stable; }
+/* Complete branches determine the canvas size; scrolling stays inside the panel. */
+.layout-classic .tree-scroll { min-width: 0; max-width: 100%; max-height: min(68vh, 640px); overflow: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
 .layout-classic .creation-tree { position: relative; width: 100%; min-width: 0; }
-.layout-classic .tree-node { position: absolute; height: 46px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); display: flex; align-items: stretch; z-index: 1; }
+.layout-classic .tree-node { position: absolute; height: 40px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); display: flex; align-items: stretch; z-index: 1; }
 .layout-classic .tree-node.locked { border-style: dashed; }
 .layout-classic .tree-node .node-control { flex: 1; min-width: 0; }
-.layout-classic .tree-node .btn { display: block; width: 100%; height: 100%; min-height: 0; border: 0; border-radius: 0 10px 10px 0; padding: 3px 6px 3px 1px; margin: 0; overflow: hidden; font-size: 14px; color: var(--fg); background: transparent; }
+.layout-classic .tree-node .btn { display: block; width: 100%; height: 100%; min-height: 0; border: 0; border-radius: 0 8px 8px 0; padding: 3px 6px 3px 1px; margin: 0; overflow: hidden; font-size: 14px; color: var(--fg); background: transparent; }
 .layout-classic .tree-node .btn .label { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .layout-classic .tree-node .btn[aria-disabled="true"] { color: var(--fg); }
 .layout-classic .tree-node .tip { display: none !important; }
-.layout-classic .tree-info { width: 25px; flex: 0 0 25px; border: 0; border-radius: 10px 0 0 10px; background: transparent; padding: 0; cursor: help; font: inherit; font-size: 13px; color: var(--fg); }
+.layout-classic .tree-info { width: 22px; flex: 0 0 22px; border: 0; border-radius: 8px 0 0 8px; background: transparent; padding: 0; cursor: help; font: inherit; font-size: 13px; color: var(--fg); }
 .layout-classic .tree-node.completed .tree-info { font-weight: bold; }
 .layout-classic .busy .tree-node .btn { pointer-events: auto; cursor: help; }
-.layout-classic .tree-edges { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.layout-classic .tree-edges path { fill: none; stroke: var(--fg); opacity: .45; stroke-width: 1; }
+.layout-classic .tree-edges { position: absolute; inset: 0; pointer-events: none; overflow: hidden; opacity: .45; }
+.layout-classic .tree-edges path { fill: none; stroke: var(--fg); stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; }
 .layout-classic .tree-tooltip { position: fixed; z-index: 120; width: max-content; max-width: 300px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); box-shadow: 2px 3px 10px #0002; font-size: 14px; overflow-y: auto; pointer-events: none; overflow-wrap: anywhere; }
 .layout-classic .tree-tooltip-title { font-size: 16px; }
 .layout-classic .tree-category { display: inline-block; border: 1px solid var(--bar); border-radius: 8px; padding: 0 6px; margin: 4px 0; font-size: 12px; }
