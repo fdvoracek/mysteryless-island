@@ -57,6 +57,11 @@ Design rationale and content-authoring model:
   responsive layout wraps generations into at most three columns, keeping every parent above
   its children. A floating tooltip outside the scroll viewport contains category tags and all
   requirements; hover/focus or the inspection control exposes it without starting creation.
+- Crafting and building must use the same layout and connector rules in `ui/tree-layout.ts`.
+  Do not add tree-kind-specific placement or item-ID offsets. A single child stays directly
+  below its predecessor; a row of siblings is centred on their common predecessor. A shared
+  multi-parent group centres on the mean of its predecessor centres. Panel limits wrap siblings
+  into additional centred rows; collisions move whole rows down, preserving their alignment.
 - Initial content edges are rock knife to axe and rope independently, fire site to bed to
   shelter, and fire site to fish trap to rabbit trap. Completing construction of the fire site
   is sufficient; lighting it is not a progression requirement. Further initial links are

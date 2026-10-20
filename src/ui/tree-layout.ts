@@ -13,25 +13,43 @@ export function compactTreeLayout(nodes: readonly LayoutNode[], availableWidth: 
   const generations = new Map<number, LayoutNode[]>();
   for (const node of nodes) generations.set(node.depth, [...generations.get(node.depth) ?? [], node]);
   const placed = new Map<string, TreePlacement>();
-  let row = 0;
+  const rows = new Map<number, TreePlacement[]>();
+  let rowCount = 0;
   for (const depth of [...generations.keys()].sort((a, b) => a - b)) {
-    const generation = generations.get(depth)!;
-    // Stable sibling order follows authored ordering, with parent centres limiting crossings.
-    const centre = (node: LayoutNode) => {
-      const parents = node.after.flatMap((id) => placed.has(id) ? [placed.get(id)!.x + placed.get(id)!.width / 2] : []);
-      return parents.length ? parents.reduce((a, b) => a + b, 0) / parents.length : availableWidth / 2;
+    const groups = new Map<string, LayoutNode[]>();
+    for (const node of generations.get(depth)!) {
+      const parents = JSON.stringify([...node.after].sort());
+      groups.set(parents, [...groups.get(parents) ?? [], node]);
+    }
+    const centre = (group: LayoutNode[]) => {
+      const parents = group[0].after.map((id) => placed.get(id)).filter((parent): parent is TreePlacement => !!parent);
+      return parents.length ? parents.reduce((sum, parent) => sum + parent.x + parent.width / 2, 0) / parents.length : availableWidth / 2;
     };
-    generation.sort((a, b) => centre(a) - centre(b));
-    for (let start = 0; start < generation.length; start += columns) {
-      const chunk = generation.slice(start, start + columns);
-      const left = (availableWidth - chunk.length * chipWidth - (chunk.length - 1) * GAP) / 2;
-      chunk.forEach((node, column) => placed.set(node.target, {
-        target: node.target, x: left + column * (chipWidth + GAP), y: PADDING + row * (CHIP_HEIGHT + ROW_GAP), width: chipWidth, row,
-      }));
-      row++;
+    // Finish the preceding generation before placing any descendants. Within a generation,
+    // separate parent-set groups can share a row only when their anchored chips fit.
+    const firstRow = rowCount;
+    for (const group of [...groups.values()].sort((a, b) => centre(a) - centre(b))) {
+      const midpoint = centre(group);
+      const room = Math.max(0, Math.min(midpoint - PADDING, availableWidth - PADDING - midpoint));
+      const perRow = Math.max(1, Math.min(columns, Math.floor((room * 2 + GAP + 1e-9) / (chipWidth + GAP))));
+      let row = firstRow;
+      for (let start = 0; start < group.length; start += perRow) {
+        const chunk = group.slice(start, start + perRow);
+        const left = midpoint - (chunk.length * chipWidth + (chunk.length - 1) * GAP) / 2;
+        const candidates = chunk.map((node, column) => ({ target: node.target, x: left + column * (chipWidth + GAP), width: chipWidth }));
+        while ((rows.get(row)?.length ?? 0) + candidates.length > columns || candidates.some((candidate) =>
+          rows.get(row)?.some((other) => candidate.x < other.x + other.width + GAP - 1e-9 && other.x < candidate.x + candidate.width + GAP - 1e-9))) row++;
+        for (const candidate of candidates) {
+          const placement = { ...candidate, y: PADDING + row * (CHIP_HEIGHT + ROW_GAP), row };
+          placed.set(placement.target, placement);
+          rows.set(row, [...rows.get(row) ?? [], placement]);
+        }
+        rowCount = Math.max(rowCount, row + 1);
+        row++;
+      }
     }
   }
-  return { columns, height: row ? PADDING * 2 + row * CHIP_HEIGHT + (row - 1) * ROW_GAP : 0, nodes: [...placed.values()] };
+  return { columns, height: rowCount ? PADDING * 2 + rowCount * CHIP_HEIGHT + (rowCount - 1) * ROW_GAP : 0, nodes: [...placed.values()] };
 }
 
 export interface TreePoint { x: number; y: number }

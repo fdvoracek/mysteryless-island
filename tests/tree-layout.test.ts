@@ -19,6 +19,20 @@ function verify(nodes: LayoutNode[], width: number) {
       expect(box.y + CHIP_HEIGHT <= other.y || other.y + CHIP_HEIGHT <= box.y || box.x + box.width <= other.x || other.x + other.width <= box.x).toBe(true);
     }
   }
+  const siblingRows = new Map<string, typeof layout.nodes>();
+  for (const node of nodes) {
+    const placement = placed.get(node.target)!;
+    const key = `${JSON.stringify([...node.after].sort())}@${placement.row}`;
+    siblingRows.set(key, [...siblingRows.get(key) ?? [], placement]);
+  }
+  for (const siblings of siblingRows.values()) {
+    const definition = nodes.find((node) => node.target === siblings[0].target)!;
+    const parents = definition.after.map((id) => placed.get(id)!);
+    const parentCentre = parents.length ? parents.reduce((sum, parent) => sum + parent.x + parent.width / 2, 0) / parents.length : width / 2;
+    const centres = siblings.map((child) => child.x + child.width / 2);
+    expect((Math.min(...centres) + Math.max(...centres)) / 2).toBeCloseTo(parentCentre, 8);
+  }
+  for (const row of new Set(layout.nodes.map((node) => node.row))) expect(layout.nodes.filter((node) => node.row === row).length).toBeLessThanOrEqual(layout.columns);
   return layout;
 }
 
@@ -44,6 +58,34 @@ describe("compact shared tree layout", () => {
       for (const node of tree.nodes) expect(node.category).toBe(tree.branches.find((branch) => branch.id === node.branch)!.name);
       verify(tree.nodes, 320);
     }
+  });
+  it.each([168, 250, 320, 480, 900])("anchors both actual trees' single-child chains and sibling rows to their own parents at %spx", (width) => {
+    const e = startGame(loadRegistry(), 7);
+    for (const kind of ["craft", "build"] as const) {
+      const tree = treeView(e, kind);
+      const layout = verify(tree.nodes, width);
+      const centre = (target: string) => { const node = layout.nodes.find((node) => node.target === target)!; return node.x + node.width / 2; };
+      const chains = kind === "craft" ? [["craft_axe", "craft_hoe"]] : [["bed", "shelter"], ["shelter", "rain_barrel"], ["corn_field", "bee_hive"]];
+      for (const [parent, child] of chains) expect(centre(child)).toBeCloseTo(centre(parent), 8);
+    }
+  });
+  it("wraps edge-anchored siblings and staggers colliding groups instead of moving their centres", () => {
+    const nodes: LayoutNode[] = [
+      { target: "root", depth: 0, after: [] },
+      ...["left", "middle", "right"].map((target) => ({ target, depth: 1, after: ["root"] })),
+      ...["left_a", "left_b"].map((target) => ({ target, depth: 2, after: ["left"] })),
+      ...["middle_a", "middle_b"].map((target) => ({ target, depth: 2, after: ["middle"] })),
+      { target: "right_child", depth: 2, after: ["right"] },
+      { target: "merge_a", depth: 3, after: ["left_a", "right_child"] },
+      { target: "merge_b", depth: 3, after: ["right_child", "left_a"] },
+    ];
+    const layout = verify(nodes, 480);
+    const placed = (target: string) => layout.nodes.find((node) => node.target === target)!;
+    expect(placed("left_a").row).not.toBe(placed("left_b").row);
+    expect(placed("middle_a").row).toBeGreaterThan(placed("left_b").row);
+    expect(placed("middle_a").row).toBe(placed("middle_b").row);
+    expect(placed("merge_a").row).toBe(placed("merge_b").row); // parent-set order is immaterial
+    expectClearRoutes(nodes, 480);
   });
   it("handles an empty graph without a phantom scrolling canvas", () => {
     expect(compactTreeLayout([], 320)).toMatchObject({ height: 0, nodes: [] });

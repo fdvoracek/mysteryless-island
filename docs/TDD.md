@@ -515,9 +515,13 @@ share requirements with engine checks. A non-repeatable recipe may be personally
 once even while its output is owned, consuming normal materials/time and leaving one copy.
 The centre's area/crafting/building tabs keep the map, journal, status and shared work summary
 available. Switching tabs does not pause work. All nodes stay visible as compact name chips
-with state marks and persisted node-specific progress. `ui/tree-layout.ts` packs complete depth
-generations into at most three columns using the panel's actual width, wrapping wide generations
-downwards before placing their descendants. Connections that skip wrapped rows use outer
+with state marks and persisted node-specific progress. Crafting and building share the same
+placement and routing functions in `ui/tree-layout.ts`; neither kind has separate layout rules.
+Within each depth, nodes are grouped by their complete predecessor set. A lone child is centred
+on its predecessor; each sibling row is centred on its parent, or the mean of all parent centres
+for a multi-parent group. At most three nodes fit a row. Panel-edge constraints wrap siblings
+into additional rows at the same anchor; collisions move entire sibling rows down rather than
+recentering a whole depth. Each depth finishes before its descendants are placed. Connections that skip wrapped rows use outer
 gutters so they do not pass behind unrelated chips. The tree viewport scrolls vertically without
 horizontal overflow. Categories do not own columns or headings: `TreeNodeView.category` carries
 the authored branch name into the item's tooltip tag.

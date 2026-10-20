@@ -256,9 +256,14 @@ completes the node while inventory remains at one copy; normal materials and dur
 Completion feedback must acknowledge the node completion even when no inventory count increased.
 
 The shared renderer uses compact HTML chips, thin SVG connections and depth-based placement.
-A pure layout helper uses the actual centre-panel width to fit at most three columns; wider
-generations wrap downwards before their descendants. All parents remain above their children,
-including multi-parent nodes. Category metadata does not reserve a lane or add a heading.
+Crafting and building use the same pure layout and routing helpers; a rule change applies to
+both trees. Group nodes by their complete predecessor set. A lone child stays on its parent's
+horizontal centre, while sibling rows centre on their common predecessor. Multi-parent groups
+centre on the mean of their predecessor centres. The actual panel width limits rows to at most
+three nodes; insufficient space wraps siblings into additional centred rows. Colliding groups
+move down without changing their horizontal anchor. Finish each depth before placing its
+children, including multi-parent nodes. Category metadata does not reserve a lane or heading.
+Never add item-ID offsets or separate craft/build placement rules to fix individual examples.
 Each chip shows only its name, state mark/inspection control and work progress; the tree viewport
 scrolls vertically without widening the page. Keep native keyboard activation, labelled tab
 panels and usable phone touch targets.

@@ -767,6 +767,34 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
         return intersections;
       });
       expect(crossings).toEqual([]);
+      // Derive predecessor sets from the rendered graph: single children and every
+      // wrapped sibling row stay centred on their own parents, independent of content IDs.
+      const misaligned = await tree.evaluate((el) => {
+        const chips = new Map([...el.querySelectorAll<HTMLElement>(".tree-node")].map((chip) => [chip.dataset.target!, chip.getBoundingClientRect()]));
+        const parents = new Map<string, string[]>();
+        for (const edge of el.querySelectorAll<SVGPathElement>(".tree-edges path")) {
+          const ids = parents.get(edge.dataset.target!) ?? [];
+          ids.push(edge.dataset.parent!); parents.set(edge.dataset.target!, ids);
+        }
+        const rows = new Map<string, { parents: string[]; ids: string[] }>();
+        for (const [id, ids] of parents) {
+          const key = `${[...ids].sort().join(",")}:${Math.round(chips.get(id)!.top)}`;
+          const row = rows.get(key) ?? { parents: ids, ids: [] };
+          row.ids.push(id); rows.set(key, row);
+        }
+        const failures: string[] = [];
+        for (const row of rows.values()) {
+          const expected = row.parents.reduce((sum, id) => {
+            const rect = chips.get(id)!; return sum + (rect.left + rect.right) / 2;
+          }, 0) / row.parents.length;
+          const rects = row.ids.map((id) => chips.get(id)!);
+          const actual = (Math.min(...rects.map((r) => r.left)) + Math.max(...rects.map((r) => r.right))) / 2;
+          if (Math.abs(actual - expected) > 1) failures.push(`${row.ids.join(",")} offset ${actual - expected}`);
+        }
+        return failures;
+      });
+      expect(misaligned).toEqual([]);
+      await page.screenshot({ path: `test-results/compact-tree-${kind}-${width}-clean.png`, fullPage: false, animations: "disabled" });
       const target = kind === "build" ? "bed" : "craft_spear";
       const chip = node(page, kind, target);
       const button = chip.locator(".btn");
