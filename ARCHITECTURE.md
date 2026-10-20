@@ -66,6 +66,10 @@ Design rationale and content-authoring model:
   Use vertical stems and shared horizontal forks, without obstacle routing or border detours.
   Viewport resizing must not rearrange branches; scrolling belongs to the tree panel and normal
   state updates retain both scroll offsets. Keep all prerequisite links for multi-parent joins.
+- Both tree canvases support grab-and-drag panning with hidden scrollbars. Wheel/trackpad,
+  native touch scrolling, and keyboard navigation remain usable. A drag must never activate
+  creation or inspection; ordinary clicks and keyboard activation retain their behavior.
+  Hide inspection hints during panning and keep all pointer handling in the shared UI.
 - Initial content edges are rock knife to axe and rope independently, fire site to bed to
   shelter, and fire site to fish trap to rabbit trap. Completing construction of the fire site
   is sufficient; lighting it is not a progression requirement. Further initial links are

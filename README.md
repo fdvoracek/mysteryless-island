@@ -22,7 +22,7 @@ Pacing: every game hour takes 10 real seconds (`content/game.json` → `cosmetic
 
 ## Phones
 
-The classic layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; ordinary action buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. Compact creation trees use 120 × 40 px nodes and scroll horizontally and vertically inside the centre panel. Hover or focus a node for its type and requirements; the small state control opens the same hint on touch screens without starting work. The e2e test checks it at 375×667.
+The classic layout works on a phone browser: below 600px wide the story, the places and the buttons come first, the panels below; ordinary action buttons are at least 44px tall; the bottom menu wraps and its lists open as a sheet. Compact creation trees use 120 × 40 px nodes and pan horizontally and vertically inside the centre panel: grab and drag, swipe, or use a wheel/trackpad, with no visible scrollbars. Hover or focus a node for its type and requirements; the small state control opens the same hint on touch screens without starting work. The e2e test checks it at 375×667.
 
 ## Layout and fonts
 

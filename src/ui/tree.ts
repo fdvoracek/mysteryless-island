@@ -25,6 +25,7 @@ export class TreeTooltip {
   private kind?: string;
   private pinned = false;
   private restoringFocus = false;
+  private panning = false;
   constructor(private root: HTMLElement) {
     this.element = document.createElement("div");
     this.element.id = "treeTooltip"; this.element.className = "tree-tooltip";
@@ -54,8 +55,12 @@ export class TreeTooltip {
       this.restoringFocus = true; returnTo.focus({ preventScroll: true }); this.restoringFocus = false;
     }
   }
+  setPanning(active: boolean) {
+    this.panning = active || !!this.root.querySelector(".tree-panning");
+    if (this.panning) this.hide();
+  }
   private allowed(anchor: HTMLElement) {
-    return !anchor.closest("[hidden]") && this.root.querySelector<HTMLElement>("#event")?.hidden !== false
+    return !this.panning && !anchor.closest("[hidden]") && this.root.querySelector<HTMLElement>("#event")?.hidden !== false
       && !this.root.classList.contains("ended") && !this.root.classList.contains("prologue");
   }
   show(anchor: HTMLElement, node: TreeNodeView, tree: TreeView, pin = false) {
@@ -158,10 +163,55 @@ export function renderTree(container: HTMLElement, tree: TreeView, buttons: (con
     const observer = new ResizeObserver(() => layoutTree(container));
     observer.observe(scroller);
     mount = { tree, tooltip, observer, positioned: false }; mounts.set(container, mount);
+    installPanning(scroller, tooltip);
   }
   mount.tree = tree; tooltip.refresh(tree);
   layoutTree(container);
 }
+/** Mouse/pen dragging shares the native scroll offsets. Touch keeps browser momentum.
+ * Mount once: document listeners also cover a release outside the panel before capture. */
+function installPanning(scroller: HTMLElement, tooltip: TreeTooltip) {
+  scroller.tabIndex = 0;
+  let pointer: { id: number; x: number; y: number; left: number; top: number; dragging: boolean } | undefined;
+  let suppressClick = false;
+  const finish = () => {
+    if (!pointer) return;
+    const { id, dragging } = pointer;
+    pointer = undefined;
+    suppressClick = dragging;
+    scroller.classList.remove("tree-panning");
+    if (scroller.hasPointerCapture(id)) scroller.releasePointerCapture(id);
+    if (dragging) requestAnimationFrame(() => tooltip.setPanning(false));
+  };
+  document.addEventListener("pointerdown", (event) => {
+    finish(); suppressClick = false;
+    if (event.pointerType === "touch" || !event.isPrimary || event.button !== 0 || !scroller.contains(event.target as Node)) return;
+    pointer = { id: event.pointerId, x: event.clientX, y: event.clientY, left: scroller.scrollLeft, top: scroller.scrollTop, dragging: false };
+  }, true);
+  document.addEventListener("pointermove", (event) => {
+    if (!pointer || event.pointerId !== pointer.id) return;
+    if (!(event.buttons & 1) || scroller.hidden) { finish(); return; }
+    const dx = event.clientX - pointer.x, dy = event.clientY - pointer.y;
+    if (!pointer.dragging && Math.hypot(dx, dy) <= 5) return;
+    if (!pointer.dragging) {
+      pointer.dragging = true;
+      scroller.classList.add("tree-panning"); tooltip.setPanning(true);
+      scroller.setPointerCapture(pointer.id);
+    }
+    event.preventDefault();
+    scroller.scrollLeft = pointer.left - dx; scroller.scrollTop = pointer.top - dy;
+  }, { capture: true, passive: false });
+  const release = (event: PointerEvent) => { if (event.pointerId === pointer?.id) finish(); };
+  document.addEventListener("pointerup", release, true);
+  document.addEventListener("pointercancel", release, true);
+  scroller.addEventListener("lostpointercapture", release);
+  window.addEventListener("blur", finish);
+  document.addEventListener("click", (event) => {
+    if (!suppressClick || event.detail === 0) return;
+    suppressClick = false; event.preventDefault(); event.stopImmediatePropagation();
+  }, true);
+}
+
 function layoutTree(container: HTMLElement) {
   const mount = mounts.get(container);
   const scroller = container.parentElement!;

@@ -528,6 +528,13 @@ independently of the canvas width, centres the root on first display, and preser
 offsets on state updates. Categories do not own columns or headings: `TreeNodeView.category`
 carries the authored branch name into the item's tooltip tag.
 
+Both tree panels hide their native scrollbars while retaining native wheel/trackpad, touch,
+and keyboard scrolling. Shared pointer handling adds grab-and-drag panning for mouse/pen.
+A movement threshold distinguishes a drag from a node click; only real drags capture the
+pointer, hide inspection hints, and suppress pointer click activation. Pointer release,
+cancellation, or lost capture ends the gesture. Normal creation/inspection clicks and keyboard
+activation keep their existing behavior. Install gesture handlers once per mounted tree.
+
 The layout measures single-parent descendant bounds recursively, packs complete branches,
 then recentres sibling node positions on their parent. Shared descendants are grouped by
 their complete prerequisite set and placed below existing components, centred on their parents'

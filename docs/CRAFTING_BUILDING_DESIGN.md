@@ -268,6 +268,9 @@ Each chip shows only its name, state mark/inspection control and work progress. 
 scrolls horizontally and vertically without widening the page. Initially show the root centrally;
 normal state updates retain both scroll offsets. Keep native keyboard activation, labelled tab
 panels and separate creation/inspection controls on phones.
+Hide scrollbars and support grab-and-drag panning in both trees, preserving native swipe,
+wheel/trackpad and keyboard scrolling. A movement threshold distinguishes clicking from dragging;
+dragging hides hints and must never start creation or open inspection.
 
 A single floating tooltip outside the scroll viewport contains the authored category-name tag,
 textual prerequisites, materials, tools, local site requirements, duration and progress. Hover
