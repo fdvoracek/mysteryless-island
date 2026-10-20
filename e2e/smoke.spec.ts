@@ -1039,6 +1039,10 @@ test("a pinned tall tree tooltip scrolls its full requirements without dismissin
   await expect(page.locator("#workBox")).toBeHidden();
   await page.keyboard.press("Escape");
   await expect(tip).toBeHidden();
+  await expect(info).toBeFocused();
+  // Closing the overlay may uncover its chip under a stationary pointer.
+  await node(page, "build", "bed").dispatchEvent("pointerenter", { pointerType: "mouse" });
+  await expect(tip).toBeHidden();
   await info.click();
   await expect(tip).toBeVisible();
   await page.locator("#buildTab").click();

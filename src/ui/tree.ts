@@ -25,6 +25,7 @@ export class TreeTooltip {
   private kind?: string;
   private pinned = false;
   private restoringFocus = false;
+  private dismissedAnchor?: HTMLElement;
   private panning = false;
   constructor(private root: HTMLElement) {
     this.element = document.createElement("div");
@@ -47,6 +48,9 @@ export class TreeTooltip {
     });
   }
   hide(restoreFocus = false) {
+    // Removing an overlapping hint can send pointerenter to the chip underneath.
+    // Escape must remain a dismissal until a new visit or explicit inspection.
+    if (restoreFocus && this.anchor) this.dismissedAnchor = this.anchor;
     const returnTo = this.pinned && this.element === document.activeElement
       ? this.anchor?.querySelector<HTMLButtonElement>(".tree-info") : undefined;
     this.element.hidden = true; this.element.classList.remove("pinned"); this.element.tabIndex = -1;
@@ -65,7 +69,9 @@ export class TreeTooltip {
   }
   show(anchor: HTMLElement, node: TreeNodeView, tree: TreeView, pin = false) {
     if (this.restoringFocus || !this.allowed(anchor)) return;
+    if (this.dismissedAnchor === anchor && !pin) return;
     if (this.pinned && this.anchor === anchor && !pin) return;
+    this.dismissedAnchor = undefined;
     this.anchor = anchor; this.target = node.target; this.kind = tree.kind; this.pinned = pin;
     this.element.classList.toggle("pinned", pin); this.element.tabIndex = pin ? 0 : -1;
     this.update(node, tree); this.element.hidden = false; this.position();
@@ -78,9 +84,11 @@ export class TreeTooltip {
     }
   }
   leave(anchor: HTMLElement) {
+    if (this.dismissedAnchor === anchor) this.dismissedAnchor = undefined;
     if (this.anchor === anchor && !this.pinned && !anchor.contains(document.activeElement)) this.hide();
   }
   blur(anchor: HTMLElement, next: EventTarget | null) {
+    if (this.dismissedAnchor === anchor && !anchor.contains(next as Node | null)) this.dismissedAnchor = undefined;
     if (this.pinned && this.element.contains(next as Node | null)) return;
     if (this.anchor === anchor && !anchor.contains(next as Node | null)) this.hide();
   }

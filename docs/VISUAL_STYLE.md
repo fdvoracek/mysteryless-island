@@ -36,6 +36,12 @@ direction for future visual work; storing the guides does not implement a new in
 
 ## Using the references
 
+The latest [panoramic UI composition](<../assets/art/references/Vintage Parchment Survival Adventure UI.png>)
+guides the illustrated header, route-map placement, journal/action/sidebar hierarchy, and item
+row composition. Use the white, neutral treatment above rather than its parchment texture,
+warm artwork tint, background landscape, or repeated compass ornaments. The large panorama
+stays above all three tabs, including Crafting and Building; it is not limited to Area.
+
 Start with [the reference index](../assets/art/references/README.md), which assigns each image
 a role. The four-panel UI composition guides hierarchy, illustration placement, spacing, and
 the relation between the journal, actions, and status. It shows alternative views, not four

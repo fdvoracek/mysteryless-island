@@ -1,21 +1,36 @@
-/* Text Island: A Dark Room-style look. One serif face, ink on paper, thin borders, no icons. */
+/* A quiet book page: shared typography, neutral surfaces, and thin ink rules. */
 :root {
   --bg: #ffffff;
-  --fg: #111111;
-  --muted: #8a8a8a;
-  --line: #111111;
-  --bar: #d6d6d6;
-  --bad: #9b2c12;
+  --surface: #fafafa;
+  --fg: #242424;
+  --muted: #656565;
+  --line: #d2d2d2;
+  --outline: #8b8b8b;
+  --bar: #e5e5e5;
+  --ink: #454545;
+  --accent: #4e6470;
+  --selection: #eef2f4;
+  --bad: #943e32;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
   --font: "Times New Roman", Times, serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #151515; --fg: #e4e1da; --muted: #7f7c76; --line: #e4e1da; --bar: #3a3936; --bad: #e58a62; color-scheme: dark;
+    --bg: #171717; --surface: #1c1c1c; --fg: #e3e3e3; --muted: #b1b1b1;
+    --line: #454545; --outline: #858585; --bar: #363636; --ink: #c9c9c9;
+    --accent: #b9c9d2; --selection: #252e33; --bad: #e39b8e; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #151515; --fg: #e4e1da; --muted: #7f7c76; --line: #e4e1da; --bar: #3a3936; --bad: #e58a62; color-scheme: dark;
+  --bg: #171717; --surface: #1c1c1c; --fg: #e3e3e3; --muted: #b1b1b1;
+  --line: #454545; --outline: #858585; --bar: #363636; --ink: #c9c9c9;
+  --accent: #b9c9d2; --selection: #252e33; --bad: #e39b8e; color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -25,11 +40,12 @@ html, body { margin: 0; background: var(--bg); color: var(--fg); }
 /* --font, --font-style, --font-weight and --font-adjust are set by the font menu (./fonts.ts) */
 body {
   font-family: var(--font); font-style: var(--font-style, normal); font-weight: var(--font-weight, 400);
-  font-size-adjust: var(--font-adjust, none); font-size: 16px; line-height: 1.35; min-height: 100vh; min-height: 100dvh;
+  font-size-adjust: var(--font-adjust, none); font-size: 16px; line-height: 1.5; min-height: 100vh; min-height: 100dvh;
   -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
 }
 button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 1px dashed var(--fg); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+::selection { background: var(--selection); color: var(--fg); }
 
 /* classic panel placement and story sizes live in ./layouts/classic.css */
 .wrap > * { min-width: 0; }
@@ -78,7 +94,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .tab .dot { flex: none; width: 9px; height: 9px; border: 1px solid currentColor; border-radius: 50%; background: var(--bg); }
 .tab.here { cursor: default; }
 .tab.here .dot { background: currentColor; }
-.tab.here .name { text-decoration: underline; text-underline-offset: 4px; }
+.tab.here .name { color: var(--accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 5px; }
 @media (hover: hover) { .tab:not(.here):hover .name { text-decoration: underline; } }
 .tab:disabled:not(.here) { cursor: wait; }
 /* new on the map: two pulses */
@@ -88,13 +104,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 /* buttons */
 .buttons { display: flex; flex-wrap: wrap; gap: 12px; }
 .btn {
-  position: relative; width: 140px; padding: 6px 8px; text-align: center; cursor: pointer;
-  background: var(--bg); border: 1px solid var(--line); border-radius: 0;
+  position: relative; width: 140px; min-height: 40px; padding: 7px 12px; text-align: center; cursor: pointer;
+  background: var(--bg); border: 1px solid var(--outline); border-radius: 2px;
 }
 .btn .label { position: relative; z-index: 1; }
 /* Main activities share a row above the other area controls. */
 .buttons .break { flex-basis: 100%; height: 0; }
-.buttons .btn.explore, .buttons .btn.menu-btn { border-width: 2px; padding-top: 5px; padding-bottom: 5px; }
+.buttons .btn.explore { border-color: var(--fg); }
 /* "look around *": something left to explore */
 .btn .badge { margin-left: 4px; font-weight: 700; }
 /* Keep button marks and times together */
@@ -102,7 +118,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 /* the time a choice takes, next to its label (exploring a landmark) */
 .btn .time { margin-left: 8px; font-size: 0.85em; color: var(--muted); }
 .btn .cd, .tab .cd { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--bar); z-index: 0; }
-.btn.off { color: var(--muted); border-color: var(--muted); cursor: default; }
+.btn.off { color: var(--muted); border-color: var(--line); cursor: default; }
 .btn.appear { animation: fadein 0.5s ease-out; }
 /* an action is in progress: nothing can be clicked, and everything but the running button looks it */
 .busy { cursor: progress; }
@@ -120,9 +136,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .btn .tip .reason { color: var(--bad); margin-top: 2px; }
 
 /* status and inventory */
-.box { margin: 0; border: 1px solid var(--line); padding: 8px 12px 10px; min-width: 0; }
-.box legend { padding: 0 4px; font-size: 15px; }
-.row { display: flex; gap: 8px; align-items: baseline; padding: 1px 0; }
+.box { margin: 0; border: 1px solid var(--line); padding: var(--space-3) var(--space-4) var(--space-4); min-width: 0; }
+.box legend { padding: 0 var(--space-2); font-size: 15px; font-weight: 400; font-variant-caps: small-caps; letter-spacing: .055em; }
+.row { display: flex; gap: var(--space-2); align-items: baseline; padding: 3px 0; }
 .row .key { flex: 1; }
 /* an item's tool tags, next to its name: knife · sharp */
 .row .key:has(+ .itags) { flex: 0 1 auto; }
@@ -138,8 +154,8 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 
 /* ink bars: the same thin line as the button cooldown, filled with ink; the word shows on hover or focus */
 .row.stat { position: relative; cursor: default; }
-.bar { display: inline-block; width: 72px; height: 5px; border: 1px solid var(--line); position: relative; align-self: center; }
-.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--fg); transition: width 0.6s ease-out; }
+.bar { display: inline-block; width: 72px; height: 5px; border: 0; background: var(--bar); position: relative; align-self: center; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: var(--ink); transition: width 0.6s ease-out; }
 .row.bad .bar { border-color: var(--bad); }
 .row.bad .bar i { background: var(--bad); }
 .row .tip {
@@ -152,11 +168,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 /* small buttons next to an item or a task: eat, cook, build */
 .sbtn {
   flex: none; align-self: center; padding: 1px 8px; font-size: 14px; line-height: 1.35; cursor: pointer;
-  background: var(--bg); color: var(--fg); border: 1px solid var(--line); border-radius: 0;
+  background: var(--bg); color: var(--fg); border: 1px solid var(--outline); border-radius: 2px;
 }
-@media (hover: hover) { .sbtn:hover { background: var(--fg); color: var(--bg); } }
-.sbtn:active, .btn:active { background: var(--bar); }
-.sbtn.off, .sbtn:disabled { color: var(--muted); border-color: var(--muted); background: var(--bg); cursor: default; }
+@media (hover: hover) {
+  .btn:not(.off):not([aria-disabled="true"]):hover, .sbtn:not(.off):not(:disabled):hover { background: var(--surface); border-color: var(--fg); }
+}
+.sbtn:not(:disabled):not(.off):active, .btn:not(.off):not([aria-disabled="true"]):active { background: var(--selection); }
+.sbtn.off, .sbtn:disabled { color: var(--muted); border-color: var(--line); background: var(--bg); cursor: default; }
 .row .acts { display: flex; gap: 4px; align-self: center; margin-left: 2px; }
 
 /* tasks: active quests; a finished one is struck through, then fades out */
@@ -172,7 +190,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 
 /* menu */
 .menu { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: flex-end; gap: 16px;
-  padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); font-size: 14px; }
+  padding: 10px 20px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border-top: 1px solid var(--line); font-size: 14px; }
 .menu .link { color: var(--muted); text-decoration: none; }
 .menu .link:hover { color: var(--fg); }
 .font-switch { position: relative; }
@@ -212,7 +230,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 #app.ended #game, #app.ended .menu { visibility: hidden; }
 #app.ended .modal.end { background: var(--bg); }
 .modal.end .buttons { margin-top: 4px; }
-.error { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: ui-monospace, Menlo, monospace; font-size: 13px; white-space: pre-wrap; color: var(--bad); }
+.error { max-width: 760px; margin: 40px auto; padding: 0 20px; font-family: var(--font); font-size: 14px; white-space: pre-wrap; color: var(--bad); }
 
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -272,9 +290,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 }
 
 /* The three action sections stay together in display order. */
-.action-sections { display: grid; gap: 40px; min-width: 0; width: 100%; }
+.action-sections { display: grid; gap: var(--space-6); min-width: 0; width: 100%; }
 .action-sections > .box.action-section { border: 0; padding: 0; }
-.action-sections > .box.action-section > legend { padding: 0; margin-bottom: 12px; }
+.action-sections > .box.action-section > legend { width: 100%; padding: 0 0 var(--space-2); margin-bottom: var(--space-4); border-bottom: 1px solid var(--line); }
 .action-section .control-row + .control-row { border-top: 1px solid var(--line); margin-top: 12px; padding-top: 12px; }
 .action-section .control-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .action-section .control-heading { flex: 1 1 130px; flex-wrap: wrap; margin: 0; min-width: 0; }

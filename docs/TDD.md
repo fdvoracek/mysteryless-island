@@ -683,6 +683,9 @@ interface SaveFile {
 - **No framework [decided].** `render.ts` keeps keyed control rows and buttons so focus and progress animations survive refreshes. If this grows painful, `lit-html` (a templating library, ~3 kB) is a drop-in fallback **[proposal]**.
 - Shared panel skeletons in `src/ui/layouts/panels.ts` supply fixed DOM IDs; `render.ts` fills story, route map, actions, status, tasks, stores and pop-ups.
 - **Styles:** CSS custom properties; one serif typeface; light and dark themes; fixed max width (~980 px) centred; keyboard focus visible.
+- **Book-page foundation [implemented]:** shared surface, ink, outline, spacing, and selection
+  tokens in `ui/styles.css` give controls and panels a restrained hierarchy in both themes.
+  All typography retains the selected `--font`; classic placement stays in its scoped CSS.
 - **Illustrations [future]:** content would reference an image id. The UI loads `/illustrations/{id}.webp` lazily, with required `alt` text from content. Dark mode applies `filter: invert(1)` to ink drawings, so one file serves both themes.
 - **Input:** mouse first; keyboard shortcuts for tabs (1–7) and for event choices (1–4) **[proposal]**.
 

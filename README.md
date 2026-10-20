@@ -81,6 +81,8 @@ See [the technical design](docs/TDD.md) for module boundaries and future extensi
 For visual work, follow [the UI style guide](docs/VISUAL_STYLE.md). Artwork also follows
 [the art direction](docs/ART_DIRECTION.md) and [the approved reference images](assets/art/references/README.md).
 The references guide future changes; they are not screenshots of the current game.
+The [illustrated UI milestone record](docs/UI_REDESIGN_PROGRESS.md) tracks the staged redesign,
+starting with the shared book-page typography, spacing, outlines, and light/dark theme tokens.
 
 ## Adding content (no code changes)
 
