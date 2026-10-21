@@ -4,8 +4,6 @@ import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import { contentProblems, loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
 
-const QUESTS = "content/quests/first-days.json";
-
 /** Test-only quests for triggers, rewards and follow-up goals. */
 const EXTRA = [
   { id: "find_water", title: "find water", trigger: "start", completeWhen: { did: "drink" }, doneLog: "Fresh water. You will last a while longer." },
@@ -18,7 +16,10 @@ const EXTRA = [
 ];
 function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) => void) {
   const files = readContentFiles();
-  files[QUESTS] = [...(structuredClone(files[QUESTS]) as unknown[]), ...extra];
+  for (const [index, quest] of extra.entries()) {
+    const entity = quest as { id: string };
+    files[`content/quests/${entity.id}.json`] = { ...entity, order: 140 + index * 10 };
+  }
   edit?.(files);
   return buildRegistry(files);
 }
@@ -126,7 +127,7 @@ describe("quests", () => {
     const files = readContentFiles();
     const bad = (extra: unknown, match: RegExp) => {
       const f = structuredClone(files);
-      f[QUESTS] = [...(structuredClone(files[QUESTS]) as unknown[]), extra];
+      f[`content/quests/${(extra as { id: string }).id}.json`] = extra;
       expect(contentProblems(() => buildRegistry(f))).toMatch(match);
     };
     bad({ id: "q1", title: "x", trigger: "start", completeWhen: { did: "dance" } }, /unknown did "dance"/);

@@ -1,0 +1,46 @@
+{
+  "id": "rain_barrel",
+  "order": 30,
+  "name": "rain barrel",
+  "icon": "water",
+  "hint": "A hollowed log under the shelter's edge. It fills with rain in 12 hours.",
+  "build": {
+    "hours": 1.5,
+    "effort": "heavy",
+    "cost": { "timber": 3 },
+    "log": [
+      "You hollow a log with the axe and set it under the edge of the shelter.",
+      "Hour by hour the axe hollows the log. You stand it where the rain runs off.",
+      "A hollow log, set on end where the shelter drips."
+    ],
+    "requires": { "all": [{ "site": "coastal_camp" }, { "sheltered": true }] }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_out_barrel",
+      "label": "set out",
+      "hours": 0.25,
+      "effort": "light",
+      "log": [
+        "You tip the barrel upright under the edge of the shelter.",
+        "You set the barrel where the rain will run into it."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "drink_barrel",
+      "label": "drink",
+      "hours": 0.25,
+      "effort": "light",
+      "effects": [{ "stat": { "thirst": -45, "energy": 10 } }],
+      "tags": ["drink"],
+      "log": [
+        "Rainwater, soft and cold. You drink your fill.",
+        "You drink from the barrel. It tastes of wood and sky.",
+        "Sweet rainwater, as much as you want."
+      ]
+    },
+    "words": { "idle": "dry", "working": "filling", "ready": "full" }
+  }
+}

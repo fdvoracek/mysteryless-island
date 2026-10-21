@@ -1,0 +1,17 @@
+{
+  "id": "roasted_corn",
+  "order": 220,
+  "name": "roasted corn",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -16, "energy": 8 },
+    "tags": ["eat"],
+    "log": [
+      "Hot, sweet and smoky.",
+      "You eat it off the cob, burning your fingers.",
+      "Sweet roasted corn. Real food."
+    ]
+  }
+}

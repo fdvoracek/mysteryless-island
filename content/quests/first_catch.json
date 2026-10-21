@@ -1,0 +1,12 @@
+{
+  "id": "first_catch",
+  "order": 10,
+  "title": "catch a fish",
+  "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
+  "completeWhen": { "seen": "raw_fish" },
+  "doneLog": [
+    "A fish, cold and slippery, and yours.",
+    "The sea has provided your first fish, and with it some hope of regular food.",
+    "At last a fish is secured. Hunger need not be your immediate enemy today."
+  ]
+}

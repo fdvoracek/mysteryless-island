@@ -1,0 +1,48 @@
+{
+  "id": "drying_rack",
+  "order": 20,
+  "name": "drying rack",
+  "icon": "fish",
+  "hint": "Fish or strips of meat dry in 12 hours. One batch at a time; hang meat with its dry button.",
+  "build": {
+    "hours": 1,
+    "effort": "work",
+    "cost": { "timber": 2 },
+    "log": [
+      "You drive two logs into the sand by the fire and lay a third across them.",
+      "Two uprights, a crossbar: a rack beside the fire, where the smoke drifts.",
+      "You build a rack of logs downwind of the fire."
+    ],
+    "requires": { "site": "coastal_camp" }
+  },
+  "cycle": {
+    "start": {
+      "id": "hang_fish",
+      "label": "hang fish",
+      "hours": 0.25,
+      "effort": "light",
+      "cost": { "raw_fish": 2 },
+      "log": [
+        "You split two fish and hang them over the crossbar.",
+        "Two fish, gutted and split, hang from the rack.",
+        "You hang the fish where the smoke can reach them."
+      ]
+    },
+    "hours": 12,
+    "products": { "meat": [{ "item": "dried_meat", "min": 2, "max": 2 }] },
+    "collect": {
+      "id": "take_dried_fish",
+      "label": "take down",
+      "hours": 0.25,
+      "effort": "light",
+      "yields": [{ "item": "dried_fish", "min": 2, "max": 2 }],
+      "log": [
+        "The food comes off the rack stiff and dark.",
+        "Dry, hard, smelling of smoke. They will keep.",
+        "You take down the food, dry as bark."
+      ]
+    },
+    "words": { "idle": "empty", "working": "drying", "ready": "dry" },
+    "readyLog": ["The food on the rack is dry.", "The food on the rack has dried."]
+  }
+}

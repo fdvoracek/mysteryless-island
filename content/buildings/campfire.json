@@ -1,0 +1,15 @@
+{
+  "id": "campfire",
+  "order": 90,
+  "name": "campfire",
+  "icon": "fire",
+  "hint": "A prepared hearth in this area. Kindle it with matches, stones, or dry sticks, then maintain it with wood.",
+  "build": {
+    "hours": 0.25,
+    "effort": "light",
+    "cost": { "stone": 2 },
+    "log": "You arrange stones in a ring and clear a safe place for a fire.",
+    "requires": { "site": "camp_ground" }
+  },
+  "timer": "fire"
+}

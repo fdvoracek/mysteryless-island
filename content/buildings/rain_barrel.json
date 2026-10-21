@@ -1,0 +1,46 @@
+{
+  "id": "rain_barrel",
+  "order": 30,
+  "name": "rain barrel",
+  "icon": "water",
+  "hint": "A vessel hollowed from timber and placed beneath the eaves. Rain fills it in 12 hours.",
+  "build": {
+    "hours": 1.5,
+    "effort": "heavy",
+    "cost": { "timber": 3 },
+    "log": [
+      "You hollow a log with the axe and set it under the edge of the shelter.",
+      "Hour by hour the axe hollows the log.",
+      "The hollow trunk is set upright beneath the eaves, ready for the next shower."
+    ],
+    "requires": { "all": [{ "site": "coastal_camp" }, { "sheltered": true }] }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_out_barrel",
+      "label": "set out",
+      "hours": 0.25,
+      "effort": "light",
+      "log": [
+        "You place the barrel beneath the shelter's dripping edge.",
+        "The vessel stands ready where the next rain will gather."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "drink_barrel",
+      "label": "drink",
+      "hours": 0.25,
+      "effort": "light",
+      "effects": [{ "stat": { "thirst": -45, "energy": 10 } }],
+      "tags": ["drink"],
+      "log": [
+        "You drink the cold rainwater accumulated in the wooden vessel.",
+        "The water carries a faint taste of timber, but it is fresh and welcome.",
+        "A useful store of rainwater is now at your disposal."
+      ]
+    },
+    "words": { "idle": "dry", "working": "filling", "ready": "full" }
+  }
+}

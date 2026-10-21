@@ -1,0 +1,17 @@
+{
+  "id": "berries",
+  "order": 50,
+  "name": "berries",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -5, "energy": 2 },
+    "tags": ["eat"],
+    "log": [
+      "Sour, then sweet. Your mouth goes purple.",
+      "You consume a handful of fruit, grateful for even this small provision.",
+      "Sharp and sweet. Not much, but something."
+    ]
+  }
+}

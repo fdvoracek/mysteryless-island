@@ -1,0 +1,11 @@
+{
+  "id": "build_fish_trap",
+  "order": 80,
+  "title": "build a fish trap",
+  "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
+  "completeWhen": { "built": "fish_trap" },
+  "doneLog": [
+    "The woven trap is set in the current. The river must now do its part.",
+    "Willow and patience. Now the fish do the work."
+  ]
+}

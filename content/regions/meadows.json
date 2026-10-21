@@ -56,7 +56,10 @@
       "when": { "discovered": "river" }
     },
     {
-      "text": ["The ears of corn have ripened in your cultivated field.", "The planted corn stands tall, its ears heavy and ready for harvest."],
+      "text": [
+        "The ears of corn have ripened in your cultivated field.",
+        "The planted corn stands tall, its ears heavy and ready for harvest."
+      ],
       "when": { "building": "corn_field", "is": "ready" }
     }
   ],
@@ -75,10 +78,22 @@
         "text": "Several dark shrubs break the otherwise continuous expanse of grass.",
         "when": { "not": { "discovered": "berry_bushes" } }
       },
-      { "text": "The bushes you examined are heavy with dark, ripe fruit.", "when": { "discovered": "berry_bushes" } },
-      { "text": "Lower on the slope the crowns of willows form a narrow line.", "when": { "not": { "discovered": "river" } } },
-      { "text": "The river runs beneath the willows, its water broken by stones.", "when": { "discovered": "river" } },
-      { "text": "Near the river lies a level tract where the grass grows unusually thick.", "when": { "not": { "discovered": "field_site" } } },
+      {
+        "text": "The bushes you examined are heavy with dark, ripe fruit.",
+        "when": { "discovered": "berry_bushes" }
+      },
+      {
+        "text": "Lower on the slope the crowns of willows form a narrow line.",
+        "when": { "not": { "discovered": "river" } }
+      },
+      {
+        "text": "The river runs beneath the willows, its water broken by stones.",
+        "when": { "discovered": "river" }
+      },
+      {
+        "text": "Near the river lies a level tract where the grass grows unusually thick.",
+        "when": { "not": { "discovered": "field_site" } }
+      },
       {
         "text": "Among the grasses stand a few taller stems bearing conspicuous seed heads.",
         "when": { "not": { "discovered": "wild_corn" } }
@@ -88,7 +103,11 @@
         "when": { "all": [{ "discovered": "berry_bushes" }, { "not": { "discovered": "bees" } }] }
       }
     ],
-    "nothingLeft": ["The open ground presents no new feature, only grass bending before the wind.", "By now you have examined the principal resources of these meadows.", "Your survey of the grassy slope reveals nothing further today."],
+    "nothingLeft": [
+      "The open ground presents no new feature, only grass bending before the wind.",
+      "By now you have examined the principal resources of these meadows.",
+      "Your survey of the grassy slope reveals nothing further today."
+    ],
     "landmarks": [
       {
         "id": "berry_bushes",
@@ -192,7 +211,7 @@
     {
       "id": "catch_river_fish",
       "name": "catch fish",
-      "hours": 1.0,
+      "hours": 1,
       "effort": "work",
       "icon": "fish",
       "visibleWhen": { "discovered": "river" },

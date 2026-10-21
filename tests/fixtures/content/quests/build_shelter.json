@@ -1,0 +1,23 @@
+{
+  "id": "build_shelter",
+  "order": 30,
+  "title": "build a shelter",
+  "trigger": {
+    "when": {
+      "all": [
+        { "quest": "survive_first_night", "is": "done" },
+        { "sheltered": false },
+        { "not": { "at": "beach" } }
+      ]
+    }
+  },
+  "startLog": [
+    "The wind found you all night. A shelter against the rocks would keep it off.",
+    "Another night like that and the cold will win. You need a shelter."
+  ],
+  "completeWhen": { "built": "shelter" },
+  "doneLog": [
+    "The wind breaks on the logs. Inside, it is almost still.",
+    "A shelter, rough but yours. The wind can't reach you here."
+  ]
+}

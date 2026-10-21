@@ -20,7 +20,8 @@ npm run check        # everything CI runs: tests, content validation, production
 
 Tests use the fixed definitions in `tests/fixtures/content/`, so editing the shipped game's
 wording does not change engine or browser expectations. `npm run content:check` separately
-validates production `content/` for schema and reference errors. The Pages build uses the
+validates production `content/` for schema and reference errors, and checks canonical formatting
+of production content and fixtures. Run `npm run content:format` to format both packs. The Pages build uses the
 production data in `dist/`; browser tests build their own `dist-test/` bundle.
 Browser timing is configured in `.env.engine-test`: 100ms per game step and 200ms for UI
 animations. Run a focused unit file with `npm test -- tests/work.test.ts` during development;
@@ -97,7 +98,7 @@ The references guide future changes; they are not screenshots of the current gam
 The [illustrated UI milestone record](docs/UI_REDESIGN_PROGRESS.md) tracks the staged redesign,
 starting with the shared book-page typography, spacing, outlines, and light/dark theme tokens.
 For artwork, place files in `public/illustrations/`, register their ID, relative path,
-actual dimensions, and description in `content/artwork.json`. Set `game.json` → `panorama`
+actual dimensions, and description in `content/artwork/<id>.json`. Set `game.json` → `panorama`
 for the one shared header, or use `artwork: "<id>"` on an item or building. The header displays
 in a 160:33 crop without stretching the source. Follow the art guide before creating or replacing
 images; the shared renderer handles Pages paths and both themes.
@@ -113,10 +114,14 @@ images; the shared renderer handles Pages paths and both themes.
 | Buildings (creation and local production cycles) | `content/buildings/*.json` |
 | Recipes (items you craft) | `content/recipes/*.json` |
 | Tree branches and prerequisites | `content/trees/*.json` |
-| Site capabilities | `content/sites.json`; grants on regions/landmarks |
+| Site capabilities | `content/sites/<id>.json`; grants on regions/landmarks |
 | Survival rules (rates, damage, regen) | `content/stats.json` |
 | Day phases, temperature bands | `content/climate.json` |
 | Start state, timers (the fire) | `content/game.json` |
+
+**[implemented, Studio PR-02]** Each entity file holds one object whose ID matches its filename.
+Items, quests, events and buildings accept optional `order`; registry order is `order` then ID,
+with missing order last. Activities remain embedded in region files.
 
 Sentences (story, hints, reasons) start with a capital letter; labels (buttons, places, items, tasks) stay lowercase. **Text variants:** every text shown in the journal is a string or a list of variants: `"log": ["You wade into the shallows, spear raised.", "You stand knee-deep in the cold water and wait.", …]`. One is picked each time, never the same twice in a row. Lines the engine writes itself (walking, a new way opening, nothing found) are in `game.json` → `journal`, with `{place}`. Add `?variants=first` to the URL to always see the first wording (the browser tests use it). Keys starting with `_` are comments. Errors (unknown ids, typos in keys) are listed on screen and by `npm run content:check`.
 

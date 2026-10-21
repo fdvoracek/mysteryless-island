@@ -109,7 +109,7 @@ describe("personal creation progression", () => {
 
   it("preserves repeatable quantities after completion", () => {
     const files = readContentFiles();
-    (files["content/recipes/tools.json"] as Recipe[]).find((r) => r.id === "craft_rope")!.count = 3;
+    (files["content/recipes/craft_rope.json"] as Recipe).count = 3;
     const e = fresh(buildRegistry(files));
     e.applyEffects([{ give: { stone: 2, bark_strips: 8 } }]);
     craft(e, "craft_rock_knife");
@@ -124,8 +124,8 @@ describe("personal creation progression", () => {
 describe("creation requirements and saved tools", () => {
   it("reports capacity for the whole repeatable output batch in both hints and direct commands", () => {
     const files = readContentFiles();
-    (files["content/recipes/tools.json"] as Recipe[]).find((r) => r.id === "craft_rope")!.count = 3;
-    (files["content/items/basics.json"] as Item[]).find((i) => i.id === "cordage")!.max = 4;
+    (files["content/recipes/craft_rope.json"] as Recipe).count = 3;
+    (files["content/items/cordage.json"] as Item).max = 4;
     const e = fresh(buildRegistry(files));
     e.applyEffects([{ give: { stone: 2, bark_strips: 4, cordage: 2 } }]);
     craft(e, "craft_rock_knife");
@@ -188,7 +188,7 @@ describe("creation requirements and saved tools", () => {
 
   it.each(["resume", "build"])("rechecks construction tools through %s without losing reserved stone", (entry) => {
     const files = readContentFiles();
-    const campfire = (files["content/buildings/camp.json"] as Building[]).find((b) => b.id === "campfire")!;
+    const campfire = (files["content/buildings/campfire.json"] as Building);
     campfire.build.hours = 0.5;
     campfire.build.requires = { all: [{ site: "camp_ground" }, { tool: "sharp" }] };
     const e = fresh(buildRegistry(files));
@@ -215,7 +215,7 @@ describe("creation requirements and saved tools", () => {
 
   it("captures mixed tool alternatives while freezing consumed-item decisions", () => {
     const files = readContentFiles();
-    const recipe = (files["content/recipes/tools.json"] as Recipe[]).find((r) => r.id === "craft_rock_knife")!;
+    const recipe = (files["content/recipes/craft_rock_knife.json"] as Recipe);
     const tools: Condition = { all: [{ item: "stone", gte: 2 }, { any: [{ tool: "sharp" }, { not: { tool: "fire_starter" } }] }] };
     recipe.ways[0].requires = tools;
     const e = fresh(buildRegistry(files));

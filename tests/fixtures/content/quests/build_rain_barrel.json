@@ -1,0 +1,20 @@
+{
+  "id": "build_rain_barrel",
+  "order": 60,
+  "title": "build a rain barrel",
+  "trigger": {
+    "when": {
+      "any": [
+        { "built": "shelter" },
+        {
+          "all": [{ "at": "beach" }, { "sheltered": true }, { "quest": "survive_first_night", "is": "done" }]
+        }
+      ]
+    }
+  },
+  "completeWhen": { "built": "rain_barrel" },
+  "doneLog": [
+    "The barrel stands under the shelter's edge, waiting for rain.",
+    "Now the rain will come to you."
+  ]
+}

@@ -187,7 +187,7 @@
     {
       "id": "catch_river_fish",
       "name": "catch fish",
-      "hours": 1.0,
+      "hours": 1,
       "effort": "work",
       "icon": "fish",
       "visibleWhen": { "discovered": "river" },

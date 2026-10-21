@@ -57,3 +57,7 @@ Use `npm test -- tests/work.test.ts` for an affected engine file and
 `npm run test:e2e -- --grep 'clock ticks'` for an affected browser flow. Run `npm run check`
 before delivery. It also validates the shipped content and builds the production bundle;
 test source files are not bundled into the playable game.
+
+**[implemented, Studio PR-02]** `content:check` also checks canonical JSON formatting in both
+content packs. Use `npm run content:format` to fix layout. Registry tests reject legacy entity
+arrays, filename/ID mismatches and invalid order fields, and verify deterministic entity order.

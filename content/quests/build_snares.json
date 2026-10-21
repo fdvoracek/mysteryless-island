@@ -1,0 +1,11 @@
+{
+  "id": "build_snares",
+  "order": 90,
+  "title": "set snares",
+  "trigger": { "when": { "discovered": "rabbit_runs" } },
+  "completeWhen": { "built": "snares" },
+  "doneLog": [
+    "Your snares stand ready across the small animal paths.",
+    "Nooses on the runs. Now leave them alone."
+  ]
+}

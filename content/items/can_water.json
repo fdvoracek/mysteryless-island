@@ -1,0 +1,19 @@
+{
+  "id": "can_water",
+  "order": 120,
+  "name": "water in the can",
+  "category": "water",
+  "consume": {
+    "verb": "drink",
+    "hours": 0.25,
+    "stats": { "thirst": -35, "energy": 18 },
+    "tags": ["drink"],
+    "log": [
+      "The water has acquired a faint taste of tin, but quenches your thirst.",
+      "You take a long and grateful drink from the can.",
+      "After drinking, you close the vessel carefully to preserve the remaining water."
+    ]
+  },
+  "max": 4,
+  "_note": "up to 4 drinks; refilled from the water can's 'fill'"
+}

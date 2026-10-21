@@ -1,0 +1,65 @@
+{
+  "id": "snares",
+  "order": 50,
+  "name": "snares",
+  "icon": "meat",
+  "hint": "Running nooses arranged across animal paths. Inspect them after 12 hours.",
+  "build": {
+    "label": "make",
+    "hours": 1,
+    "effort": "work",
+    "cost": { "cordage": 1, "firewood": 2 },
+    "log": [
+      "You fashion running nooses of cord and fix them across the narrow animal tracks.",
+      "Nooses of cord, pegged a hand above the ground where the trails narrow.",
+      "The snares are carefully knotted and pegged along the familiar rabbit runs."
+    ],
+    "requires": { "site": "small_game_trails" }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_snares",
+      "label": "set",
+      "hours": 0.5,
+      "effort": "light",
+      "log": [
+        "You reset the nooses and smooth away the signs of your presence.",
+        "The snares are opened anew, and you retreat quietly from the trails.",
+        "You examine each cord and stake before leaving the traps undisturbed."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "check_snares",
+      "label": "check",
+      "hours": 0.5,
+      "effort": "work",
+      "outcomes": [
+        {
+          "weight": 3,
+          "text": [
+            "One snare holds a rabbit, already cold and still.",
+            "A rabbit has been taken in the running noose.",
+            "Your last snare contains a rabbit: the labour has not been wasted."
+          ],
+          "effects": [{ "give": { "raw_meat": 1 } }]
+        },
+        {
+          "weight": 2,
+          "text": [
+            "One noose has been dragged loose, but no animal remains.",
+            "Every snare is empty upon inspection.",
+            "Tracks surround the traps, yet none has secured its quarry."
+          ]
+        }
+      ],
+      "log": [
+        "You follow the narrow trails, examining each snare in turn.",
+        "One by one the running nooses are checked for a catch.",
+        "You move quietly between the traps, looking for signs of success."
+      ]
+    },
+    "words": { "idle": "not set", "working": "set", "ready": "worth checking" }
+  }
+}

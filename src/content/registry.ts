@@ -19,13 +19,13 @@ export interface Registry {
   regionOrder: string[];
   timers: Map<string, Timer>;
   activities: Map<string, { activity: Activity; region: string }>;
-  /** in file order; the tasks panel lists active quests in this order */
+  /** in (order, id) order; the tasks panel lists active quests in this order */
   quests: Map<string, Quest>;
-  /** in file order (content/events/*.json) */
+  /** in (order, id) order (content/events/*.json) */
   events: Map<string, GameEvent>;
-  /** content/buildings/*.json, in file order (the buildings panel lists them in this order) */
+  /** content/buildings/*.json, in (order, id) order (the buildings panel lists them in this order) */
   buildings: Map<string, Building>;
-  /** content/recipes/*.json, in file order; creation order belongs to the crafting tree */
+  /** content/recipes/*.json, in id order; creation order belongs to the crafting tree */
   recipes: Map<string, Recipe>;
   /** a cycle step id (sow, harvest…) -> its building and which step it is */
   buildingSteps: Map<string, { building: string; step: "start" | "collect"; def: BuildingStep }>;
@@ -114,47 +114,69 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     else allIds.set(id, where);
   };
 
+  const entity = <T extends { id: string }>(schema: z.ZodType<T>, data: unknown, path: string): T | undefined => {
+    const value = parse(schema, data, path, problems);
+    if (value && path.slice(path.lastIndexOf("/") + 1, -5) !== value.id) {
+      problems.push(`${path}: id: file name must equal id "${value.id}"`);
+    }
+    if (value) claim(value.id, path);
+    return value;
+  };
+
   for (const [path, data] of Object.entries(files).sort(([a], [b]) => a.localeCompare(b))) {
-    if (/content\/artwork\.json$/.test(path)) {
-      for (const art of parse(z.array(Artwork), data, path, problems) ?? []) { claim(art.id, path); artwork.set(art.id, art); }
-    } else if (/content\/sites\.json$/.test(path)) {
-      for (const site of parse(z.array(Site), data, path, problems) ?? []) { claim(site.id, path); sites.set(site.id, site); }
+    if (/content\/artwork\/[^/]+\.json$/.test(path)) {
+      const art = entity(Artwork, data, path);
+      if (art) artwork.set(art.id, art);
+    } else if (/content\/sites\/[^/]+\.json$/.test(path)) {
+      const site = entity(Site, data, path);
+      if (site) sites.set(site.id, site);
     } else if (/content\/trees\/[^/]+\.json$/.test(path)) {
       const def = parse(CreationTree, data, path, problems);
       if (def) { claim(def.id, path); treeDefs.push({ def, path }); }
     } else if (/content\/items\/[^/]+\.json$/.test(path)) {
-      const list = parse(z.array(Item), data, path, problems) ?? [];
-      for (const item of list) { claim(item.id, path); items.set(item.id, item); }
+      const item = entity(Item, data, path);
+      if (item) items.set(item.id, item);
     } else if (/content\/regions\/[^/]+\.json$/.test(path)) {
-      const region = parse(Region, data, path, problems);
+      const region = entity(Region, data, path);
       if (!region) continue;
-      claim(region.id, path);
       regions.set(region.id, region);
       for (const a of region.activities) { claim(a.id, path); activities.set(a.id, { activity: a, region: region.id }); }
       for (const d of region.explore?.landmarks ?? []) { claim(d.id, path); discoveries.set(d.id, region.id); }
     } else if (/content\/quests\/[^/]+\.json$/.test(path)) {
-      const list = parse(z.array(Quest), data, path, problems) ?? [];
-      for (const q of list) { claim(q.id, path); quests.set(q.id, q); }
+      const q = entity(Quest, data, path);
+      if (q) quests.set(q.id, q);
     } else if (/content\/events\/[^/]+\.json$/.test(path)) {
-      const list = parse(z.array(GameEvent), data, path, problems) ?? [];
-      for (const ev of list) { claim(ev.id, path); events.set(ev.id, ev); }
+      const ev = entity(GameEvent, data, path);
+      if (ev) events.set(ev.id, ev);
     } else if (/content\/recipes\/[^/]+\.json$/.test(path)) {
-      const list = parse(z.array(Recipe), data, path, problems) ?? [];
-      for (const r of list) { claim(r.id, path); recipes.set(r.id, r); }
+      const r = entity(Recipe, data, path);
+      if (r) recipes.set(r.id, r);
     } else if (/content\/buildings\/[^/]+\.json$/.test(path)) {
-      const list = parse(z.array(Building), data, path, problems) ?? [];
-      for (const b of list) {
-        claim(b.id, path);
-        buildings.set(b.id, b);
-        if (b.cycle) {
-          for (const step of ["start", "collect"] as const) {
-            claim(b.cycle[step].id, path);
-            buildingSteps.set(b.cycle[step].id, { building: b.id, step, def: b.cycle[step] });
-          }
+      const b = entity(Building, data, path);
+      if (!b) continue;
+      buildings.set(b.id, b);
+      if (b.cycle) {
+        for (const step of ["start", "collect"] as const) {
+          claim(b.cycle[step].id, path);
+          buildingSteps.set(b.cycle[step].id, { building: b.id, step, def: b.cycle[step] });
         }
       }
+    } else if (![gamePath, statsPath, climatePath].includes(path)) {
+      problems.push(`${path}: unsupported content file; use <kind>/<id>.json with one entity per file`);
     }
   }
+
+  // Runtime consumers keep reading registry order, independent of file enumeration.
+  const sort = <T extends { id: string; order?: number }>(map: Map<string, T>) => {
+    const entries = [...map.entries()].sort(([, a], [, b]) =>
+      (a.order ?? Infinity) - (b.order ?? Infinity) || a.id.localeCompare(b.id));
+    map.clear();
+    for (const [id, value] of entries) map.set(id, value);
+  };
+  sort(items);
+  sort(quests);
+  sort(events);
+  sort(buildings);
 
   if (!game || !stats || !climate) throw new ContentError(problems);
 

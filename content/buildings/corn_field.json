@@ -1,0 +1,53 @@
+{
+  "id": "corn_field",
+  "order": 60,
+  "name": "corn field",
+  "icon": "corn",
+  "hint": "A plot of cultivated ground. Seed sown here produces ripe corn in 3 days.",
+  "max": 3,
+  "build": {
+    "label": "dig",
+    "hours": 3,
+    "effort": "heavy",
+    "requires": { "all": [{ "site": "cultivable_ground" }, { "item": "hoe" }] },
+    "cost": { "corn": 2 },
+    "effects": [{ "startCycle": "corn_field", "units": 1 }],
+    "log": [
+      "You turn the soil with the hoe and place the kernels carefully in ordered rows.",
+      "Hours of hacking at the turf.",
+      "The hoe turns the soil over in long rows."
+    ]
+  },
+  "cycle": {
+    "start": {
+      "id": "sow_corn",
+      "label": "sow",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "corn": 2 },
+      "log": [
+        "You prepare the furrows afresh and sow another crop.",
+        "Each kernel is placed in the soil at a suitable interval.",
+        "Having sown the rows, you cover the grain carefully with earth."
+      ]
+    },
+    "hours": 72,
+    "collect": {
+      "id": "harvest_corn",
+      "label": "harvest",
+      "hours": 1.5,
+      "effort": "work",
+      "yields": [{ "item": "corn", "min": 6, "max": 10 }],
+      "log": [
+        "You break the ripe ears from their stalks and gather them together.",
+        "The dry leaves rustle as you collect the harvest.",
+        "The field yields ear after ear of corn, carried away in your arms."
+      ]
+    },
+    "words": { "idle": "dug", "working": "growing", "ready": "ripe" },
+    "readyLog": [
+      "The corn has reached maturity and may be harvested.",
+      "The ears of corn have filled out; the crop is ripe."
+    ]
+  }
+}

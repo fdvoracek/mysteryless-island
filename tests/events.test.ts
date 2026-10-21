@@ -10,10 +10,13 @@ const reg = loadRegistry();
 const choose = (e: Engine, choice: string) => e.dispatch({ type: "choose", choice });
 const look = lookAround;
 
-/** The frozen test content plus test-only events (content/events/test.json). */
+/** The frozen test content plus test-only events (one file per event). */
 function withEvents(events: unknown[]): Registry {
   const files = readContentFiles();
-  files["content/events/test.json"] = events;
+  for (const [index, event] of events.entries()) {
+    const entity = event as { id: string };
+    files[`content/events/${entity.id}.json`] = { ...entity, order: 10 + index * 10 };
+  }
   return buildRegistry(files);
 }
 const scene = (text = "Something happens.") => ({ start: { text } });
@@ -255,7 +258,7 @@ describe("event choices and effects", () => {
 
     // a forest that only the event can open (its usual unlock never comes true here)
     const files = readContentFiles();
-    files["content/events/test.json"] = [story];
+    files[`content/events/${story.id}.json`] = story;
     const forest = structuredClone(files["content/regions/forest.json"]) as { unlockWhen: unknown };
     forest.unlockWhen = { flag: "never" };
     files["content/regions/forest.json"] = forest;

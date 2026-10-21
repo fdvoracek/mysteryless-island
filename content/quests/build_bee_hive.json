@@ -1,0 +1,11 @@
+{
+  "id": "build_bee_hive",
+  "order": 110,
+  "title": "build a bee hive",
+  "trigger": { "when": { "discovered": "bees" } },
+  "completeWhen": { "built": "bee_hive" },
+  "doneLog": [
+    "The hollow hive stands among the flowers, awaiting its industrious occupants.",
+    "A home for the bees, if they want it."
+  ]
+}

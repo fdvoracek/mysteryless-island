@@ -1,0 +1,11 @@
+{
+  "id": "build_corn_field",
+  "order": 100,
+  "title": "dig a corn field",
+  "trigger": { "when": { "discovered": "field_site" } },
+  "completeWhen": { "built": "corn_field" },
+  "doneLog": [
+    "Rows of dark earth, sown. Three days, if the weather holds.",
+    "The field is dug and sown. Now the waiting."
+  ]
+}

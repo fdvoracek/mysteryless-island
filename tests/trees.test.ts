@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { buildRegistry } from "../src/content/registry";
-import type { Building, CreationTree, Recipe, Region, Site } from "../src/content/schema";
+import type { Building, CreationTree, Recipe, Region } from "../src/content/schema";
 import { readContentFiles } from "./helpers";
 
 type Files = ReturnType<typeof readContentFiles>;
 const craftTree = (f: Files) => f["content/trees/crafting.json"] as CreationTree;
-const recipes = (f: Files) => f["content/recipes/tools.json"] as Recipe[];
-const buildings = (f: Files) => f["content/buildings/camp.json"] as Building[];
+const recipes = (f: Files) => Object.entries(f).filter(([p]) => p.startsWith("content/recipes/")).map(([, v]) => v) as Recipe[];
+const buildings = (f: Files) => Object.entries(f).filter(([p]) => p.startsWith("content/buildings/")).map(([, v]) => v) as Building[];
 const cases: Array<[string, (f: Files) => void, RegExp]> = [
   ["duplicate tree kind", (f) => { f["content/trees/duplicate.json"] = { ...craftTree(f), id: "another_crafting_tree" }; }, /duplicate tree kind/],
   ["duplicate tree id", (f) => { f["content/trees/duplicate.json"] = craftTree(f); }, /duplicate id.*crafting_tree/],
@@ -21,7 +21,7 @@ const cases: Array<[string, (f: Files) => void, RegExp]> = [
   ["self dependency", (f) => { craftTree(f).nodes[0].after = ["craft_rock_knife"]; }, /cycle.*craft_rock_knife.*craft_rock_knife/],
   ["indirect cycle", (f) => { craftTree(f).nodes[0].after = ["craft_axe"]; }, /cycle.*craft_rock_knife.*craft_axe.*craft_rock_knife/],
   ["unknown site", (f) => { buildings(f)[0].build.requires = { site: "missing_site" }; }, /unknown site.*missing_site/],
-  ["site without provider", (f) => { (f["content/sites.json"] as Site[]).push({ id: "unprovided_site", name: "unprovided site", needs: "unprovided site" }); buildings(f)[0].build.requires = { site: "unprovided_site" }; }, /unprovided_site.*no provider/],
+  ["site without provider", (f) => { f["content/sites/unprovided_site.json"] = { id: "unprovided_site", name: "unprovided site", needs: "unprovided site" }; buildings(f)[0].build.requires = { site: "unprovided_site" }; }, /unprovided_site.*no provider/],
   ["unknown site grant", (f) => { (f["content/regions/beach.json"] as Region).siteCapabilities = ["missing_site"]; }, /siteCapabilities.*unknown site/],
   ["quest gated recipe", (f) => { recipes(f)[0].requires = { all: [{ not: { quest: "survive_first_night", is: "done" } }] }; }, /quests cannot gate creation/],
   ["quest gated method", (f) => { recipes(f)[0].ways[0].visibleWhen = { any: [{ quest: "survive_first_night", is: "active" }] }; }, /quests cannot gate creation/],

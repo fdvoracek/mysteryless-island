@@ -1,0 +1,41 @@
+{
+  "id": "water_can",
+  "order": 110,
+  "name": "water can",
+  "category": "tool",
+  "_note": "stays when the water is gone; 'fill' at a water source you have explored (the spring, the river)",
+  "actions": [
+    {
+      "id": "fill",
+      "label": "fill",
+      "hours": 0.25,
+      "effort": "light",
+      "uses": 0,
+      "visibleWhen": { "all": [{ "at": "forest" }, { "discovered": "spring" }] },
+      "requires": { "item": "can_water", "lte": 3 },
+      "requiresText": "The can is full",
+      "effects": [{ "give": { "can_water": 4 } }],
+      "log": [
+        "You hold the can in the spring until it brims.",
+        "Cold water gurgles into the can.",
+        "You fill the can to the top and screw the lid on tight."
+      ]
+    },
+    {
+      "id": "fill_river",
+      "label": "fill",
+      "hours": 0.25,
+      "effort": "light",
+      "uses": 0,
+      "visibleWhen": { "all": [{ "at": "meadows" }, { "discovered": "river" }] },
+      "requires": { "item": "can_water", "lte": 3 },
+      "requiresText": "The can is full",
+      "effects": [{ "give": { "can_water": 4 } }],
+      "log": [
+        "You hold the can under the river's surface until it stops bubbling.",
+        "The current pushes river water into the can.",
+        "You fill the can in the river and screw the lid on tight."
+      ]
+    }
+  ]
+}

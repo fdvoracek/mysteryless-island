@@ -116,12 +116,8 @@ describe("local production batches", () => {
 
   it("validates named outputs and their item references", () => {
     const files = readContentFiles();
-    const items = structuredClone(files["content/items/basics.json"]) as any[];
-    items.find((i) => i.id === "raw_meat").actions[0].effects[0].production = "missing";
-    files["content/items/basics.json"] = items;
-    const buildings = structuredClone(files["content/buildings/camp.json"]) as any[];
-    buildings.find((b) => b.id === "drying_rack").cycle.products.meat[0].item = "missing_item";
-    files["content/buildings/camp.json"] = buildings;
+    (files["content/items/raw_meat.json"] as any).actions[0].effects[0].production = "missing";
+    (files["content/buildings/drying_rack.json"] as any).cycle.products.meat[0].item = "missing_item";
     const problems = contentProblems(() => buildRegistry(files));
     expect(problems).toMatch(/unknown production "missing"/);
     expect(problems).toMatch(/unknown item "missing_item"/);
@@ -148,9 +144,7 @@ it("reconciles collection claims when installed content lowers the number of sur
   e.state.time += 120;
   e.start({ type: "building", id: "fish_trap", step: "collect" });
   const files = readContentFiles();
-  const buildings = structuredClone(files["content/buildings/camp.json"]) as any[];
-  buildings.find((b) => b.id === "fish_trap").max = 1;
-  files["content/buildings/camp.json"] = buildings;
+  (files["content/buildings/fish_trap.json"] as { max: number }).max = 1;
   const changed = buildRegistry(files);
   const loaded = new Engine(changed, restoreState(e.state, changed)!);
   expect(loaded.state.actions[0].work).toMatchObject({ collections: [{ units: 1, batches: 1 }] });

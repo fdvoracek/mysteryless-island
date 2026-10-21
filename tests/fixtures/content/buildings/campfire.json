@@ -1,0 +1,15 @@
+{
+  "id": "campfire",
+  "order": 90,
+  "name": "campfire",
+  "icon": "fire",
+  "hint": "A fire site in this area. Light it with matches, stones, or dry sticks, then feed it with wood.",
+  "build": {
+    "hours": 0.25,
+    "effort": "light",
+    "cost": { "stone": 2 },
+    "log": "You arrange stones in a ring and clear a safe place for a fire.",
+    "requires": { "site": "camp_ground" }
+  },
+  "timer": "fire"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "dried_fish",
+  "order": 230,
+  "name": "dried fish",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -22, "energy": 11 },
+    "tags": ["eat"],
+    "log": [
+      "The dried fish is firm and salty, demanding considerable effort to chew.",
+      "Smoke has lent the preserved fish a strong flavour and a leathery texture.",
+      "Though tough, the dried fish proves filling and should travel well."
+    ]
+  }
+}

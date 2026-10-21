@@ -1,0 +1,17 @@
+{
+  "id": "cooked_shells",
+  "order": 40,
+  "name": "cooked shells",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -15, "energy": 8 },
+    "tags": ["eat"],
+    "log": [
+      "The heated shellfish proves tender, with the strong flavour of the sea.",
+      "Warm and softened by the fire, the shellfish makes a more agreeable meal.",
+      "The shells yield their meat readily once cooked, a considerable improvement."
+    ]
+  }
+}

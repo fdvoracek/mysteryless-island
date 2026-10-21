@@ -1,0 +1,47 @@
+{
+  "id": "bee_hive",
+  "order": 70,
+  "name": "bee hive",
+  "icon": "honey",
+  "hint": "A hollow log for the wild bees. Honey every 3 days; smoke them first.",
+  "build": {
+    "hours": 1.5,
+    "effort": "heavy",
+    "cost": { "timber": 2 },
+    "log": [
+      "You hollow a log and stand it among the flowers, a hand-width hole near the top.",
+      "A hollow log, capped with bark, set on stones among the flowers."
+    ],
+    "requires": { "site": "bee_habitat" }
+  },
+  "cycle": {
+    "start": {
+      "id": "lure_bees",
+      "label": "lure bees",
+      "hours": 0.5,
+      "effort": "light",
+      "cost": { "berries": 2 },
+      "log": [
+        "You smear crushed berries around the hole and wait.",
+        "Berry juice on the bark, to bring the bees.",
+        "You rub berries into the log's mouth. The humming comes closer."
+      ]
+    },
+    "hours": 72,
+    "repeat": true,
+    "collect": {
+      "id": "take_honey",
+      "label": "take honey",
+      "hours": 0.5,
+      "effort": "work",
+      "cost": { "firewood": 1 },
+      "yields": [{ "item": "honey", "min": 1, "max": 2 }],
+      "log": [
+        "You smoke the bees drowsy and cut out a slab of comb.",
+        "Smoke, a slow hand, and a piece of dripping comb.",
+        "Under the smoke the bees go quiet. You take the comb."
+      ]
+    },
+    "words": { "idle": "empty", "working": "busy", "ready": "heavy with honey" }
+  }
+}

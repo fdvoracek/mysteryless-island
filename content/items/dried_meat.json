@@ -1,0 +1,16 @@
+{
+  "id": "dried_meat",
+  "order": 250,
+  "name": "dried meat",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -28, "energy": 14 },
+    "tags": ["eat"],
+    "log": [
+      "Tough strips of dried meat. You chew slowly.",
+      "You chew the smoky strips slowly, finding them unexpectedly nourishing."
+    ]
+  }
+}

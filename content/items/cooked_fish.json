@@ -1,0 +1,17 @@
+{
+  "id": "cooked_fish",
+  "order": 20,
+  "name": "cooked fish",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -30, "health": 2, "energy": 15 },
+    "tags": ["eat"],
+    "log": [
+      "The cooked flesh separates readily from the bones and restores some strength.",
+      "You eat the warm fish carefully, leaving little but the bones.",
+      "Though still hot enough to burn your fingers, the fish provides a welcome meal."
+    ]
+  }
+}

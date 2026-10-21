@@ -53,9 +53,10 @@ Architectural consequences that bind all work:
   (plan §5.1). Engine and game-content work is paused while the program runs.
 - The Studio uses the shared schema, registry and engine; it never reimplements rules and is never
   part of the production build. `src/content` and `src/core` stay free of UI, storage and Studio imports.
-- Planned content layout: one entity per file; items, activities, recipes, buildings, quests,
-  events, sites and artwork are independent definitions; areas link to activities by ID and own
-  their landmarks, view and arrival lines. Until that PR lands, the current layout is authoritative.
+- **Implemented, PR-02:** one entity per file for items, recipes, buildings, quests, events, sites
+  and artwork, with canonical formatting shared by tooling and validation. Regions already use
+  one object per file. Activities remain embedded until PR-03; independent activities and area
+  links are still planned. Areas retain their landmarks, view and arrival lines.
 - Content stays English-only; translations are out of scope for now.
 - **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
   explicit recovery screen. This overrides the old-save testing rule in "Save and presentation

@@ -1,0 +1,13 @@
+{
+  "_note": "Quests are listed in the tasks panel while active, in this order. trigger: \"start\" (new game), \"manual\" (only via a { \"startQuest\": id } effect) or { \"when\": condition }.",
+  "id": "survive_first_night",
+  "order": 0,
+  "title": "survive the first night",
+  "trigger": "start",
+  "completeWhen": { "reached": { "day": 2, "hour": 6 } },
+  "doneLog": [
+    "Grey light over the water. You made it through the night.",
+    "Daybreak reveals the empty sea once more. You have survived the night.",
+    "Dawn, thin and cold. You lived through the first night."
+  ]
+}

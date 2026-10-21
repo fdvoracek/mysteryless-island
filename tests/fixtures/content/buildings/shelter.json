@@ -1,0 +1,21 @@
+{
+  "id": "shelter",
+  "order": 0,
+  "name": "shelter",
+  "icon": "shelter",
+  "_note": "A built shelter is local. The discovered beach rocks already provide natural shelter.",
+  "hint": "A lean-to of logs. Build shelter before making a bed away from the beach rocks.",
+  "build": {
+    "hours": 2,
+    "effort": "heavy",
+    "cost": { "timber": 4 },
+    "log": [
+      "You lean logs into a frame and pack the gaps with branches.",
+      "Log by log, a lean-to rises. You pack the gaps against the wind.",
+      "You wedge the logs together until the wind cannot get in."
+    ],
+    "requires": { "all": [{ "site": "shelter_ground" }, { "sheltered": false }] }
+  },
+  "warmthC": 3,
+  "word": "standing"
+}

@@ -1,0 +1,45 @@
+{
+  "id": "fish_weir",
+  "order": 80,
+  "name": "fish weir",
+  "icon": "fish",
+  "hint": "A fence of stones and stakes across the river. Fish every 12 hours.",
+  "build": {
+    "hours": 2,
+    "effort": "heavy",
+    "cost": { "stone": 6, "timber": 2 },
+    "log": [
+      "You wade in and build a wall of stones across the shallows, stakes between them, a gap at the end.",
+      "Stone by stone, a low wall grows across the river. You drive stakes into the gaps.",
+      "A fence of stones and stakes across the river, with one narrow way through."
+    ],
+    "requires": { "site": "flowing_water" }
+  },
+  "cycle": {
+    "start": {
+      "id": "close_weir",
+      "label": "close",
+      "hours": 0.5,
+      "effort": "work",
+      "log": [
+        "You close the gap with a willow mat.",
+        "You block the weir's gap. The fish can come in, not out."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "empty_weir",
+      "label": "empty",
+      "hours": 0.5,
+      "effort": "work",
+      "yields": [{ "item": "raw_fish", "min": 2, "max": 4 }],
+      "log": [
+        "You wade into the pool behind the weir and catch the fish by hand.",
+        "Fish crowd the pool behind the stones. You scoop them out.",
+        "Behind the weir, the fish have nowhere to go."
+      ]
+    },
+    "words": { "idle": "open", "working": "closed", "ready": "full of fish" }
+  }
+}

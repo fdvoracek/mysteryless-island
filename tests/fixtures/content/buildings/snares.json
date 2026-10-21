@@ -1,0 +1,65 @@
+{
+  "id": "snares",
+  "order": 50,
+  "name": "snares",
+  "icon": "meat",
+  "hint": "Rope nooses on the small trails. Check them after 12 hours.",
+  "build": {
+    "label": "make",
+    "hours": 1,
+    "effort": "work",
+    "cost": { "cordage": 1, "firewood": 2 },
+    "log": [
+      "You tie running nooses and peg them low over the trails.",
+      "Nooses of cord, pegged a hand above the ground where the trails narrow.",
+      "You knot the cord into snares and peg them along the runs."
+    ],
+    "requires": { "site": "small_game_trails" }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_snares",
+      "label": "set",
+      "hours": 0.5,
+      "effort": "light",
+      "log": [
+        "You open the nooses and smooth the earth around them.",
+        "You set the snares and back away without a sound.",
+        "Each noose open, each peg firm. Now wait."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "check_snares",
+      "label": "check",
+      "hours": 0.5,
+      "effort": "work",
+      "outcomes": [
+        {
+          "weight": 3,
+          "text": [
+            "A rabbit, cold and still in the noose.",
+            "One snare has caught: a rabbit.",
+            "A rabbit in the last snare."
+          ],
+          "effects": [{ "give": { "raw_meat": 1 } }]
+        },
+        {
+          "weight": 2,
+          "text": [
+            "Nothing. One noose has been pulled loose.",
+            "Empty, every one.",
+            "Nothing but tracks around the nooses."
+          ]
+        }
+      ],
+      "log": [
+        "You walk the trails from snare to snare.",
+        "You follow the runs, checking each noose.",
+        "One by one, you check the snares."
+      ]
+    },
+    "words": { "idle": "not set", "working": "set", "ready": "worth checking" }
+  }
+}

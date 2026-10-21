@@ -1,0 +1,45 @@
+{
+  "id": "fish_weir",
+  "order": 80,
+  "name": "fish weir",
+  "icon": "fish",
+  "hint": "A barrier of stakes and stones across the current. It collects fish every 12 hours.",
+  "build": {
+    "hours": 2,
+    "effort": "heavy",
+    "cost": { "stone": 6, "timber": 2 },
+    "log": [
+      "You build a stone-and-stake barrier across the river.",
+      "Stone by stone, a low wall grows across the river.",
+      "A fence of stones and stakes across the river, with one narrow way through."
+    ],
+    "requires": { "site": "flowing_water" }
+  },
+  "cycle": {
+    "start": {
+      "id": "close_weir",
+      "label": "close",
+      "hours": 0.5,
+      "effort": "work",
+      "log": [
+        "You close the passage with a woven mat of willow.",
+        "You block the weir's gap. The fish can come in, not out."
+      ]
+    },
+    "hours": 12,
+    "repeat": true,
+    "collect": {
+      "id": "empty_weir",
+      "label": "empty",
+      "hours": 0.5,
+      "effort": "work",
+      "yields": [{ "item": "raw_fish", "min": 2, "max": 4 }],
+      "log": [
+        "You enter the shallow pool above the barrier and take the confined fish by hand.",
+        "The weir has gathered fish behind its stones, from which you remove them.",
+        "Within the enclosed water the fish have little room to escape."
+      ]
+    },
+    "words": { "idle": "open", "working": "closed", "ready": "full of fish" }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "id": "shells",
+  "order": 30,
+  "name": "shells",
+  "category": "food",
+  "consume": {
+    "verb": "eat raw",
+    "hours": 0.25,
+    "stats": { "hunger": -6, "energy": 3 },
+    "tags": ["eat"],
+    "log": [
+      "The raw shellfish is tough and briny, and scarcely satisfies your hunger.",
+      "You remove the meat from its shell; it tastes chiefly of salt.",
+      "A few mouthfuls of chewy shellfish make a very modest repast."
+    ]
+  },
+  "actions": [
+    {
+      "id": "cook",
+      "building": "campfire",
+      "label": "cook",
+      "hours": 0.25,
+      "effort": "light",
+      "visibleWhen": { "timer": "fire" },
+      "effects": [{ "give": { "cooked_shells": 1 } }],
+      "log": [
+        "The shells open with sharp little reports among the embers.",
+        "Heat acts upon the shells until they split and release their steam.",
+        "A faint hiss is followed by the cracking of shells in the fire."
+      ],
+      "tags": ["cook"]
+    }
+  ]
+}

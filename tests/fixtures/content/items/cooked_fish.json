@@ -1,0 +1,17 @@
+{
+  "id": "cooked_fish",
+  "order": 20,
+  "name": "cooked fish",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -30, "health": 2, "energy": 15 },
+    "tags": ["eat"],
+    "log": [
+      "Hot flesh, flaking from the bone.",
+      "Hot and soft. You eat it down to the bones.",
+      "It burns your fingers. You eat it anyway."
+    ]
+  }
+}

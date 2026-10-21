@@ -1,0 +1,17 @@
+{
+  "id": "cooked_meat",
+  "order": 260,
+  "name": "cooked meat",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -35, "health": 3, "energy": 18 },
+    "tags": ["eat"],
+    "log": [
+      "The freshly roasted meat is rich and hot, its fat running as you eat.",
+      "Such a meal is a luxury upon an island where every mouthful must be earned.",
+      "You eat slowly. Real meat."
+    ]
+  }
+}
