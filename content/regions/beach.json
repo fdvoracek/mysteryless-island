@@ -4,9 +4,9 @@
   "title": "A Grey Beach",
   "order": 1,
   "description": [
-    "Before you stretches a desolate strand of damp sand, strewn with broken shells and the refuse of the tide. A persistent wind sweeps in from the sea.",
-    "The grey beach extends beneath a restless sky. Shell fragments lie among the seaweed deposited by the last tide, and the wind affords scarcely a moment's respite.",
-    "On one side lies the open sea; on the other, dunes of pale sand. Between them runs a narrow shore marked by wrack and shells, where the wind is never quite still."
+    "Wet sand, broken shells, a line of wrack. The wind never quite stops.",
+    "Wet sand and broken shells, and a line of wrack. The wind does not stop.",
+    "Grey sand, grey sea, a line of wrack. The wind is always here."
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
@@ -21,16 +21,16 @@
         "You emerge upon the shore once more, where sand and wind appear unchanged.",
         "The sea comes into view, and with it the beach exposed to every passing gust.",
         "You return to the damp strand, its tide line darkened by seaweed.",
-        "The beach presents its customary aspect: wet sand, scattered shells, and a line of wrack.",
-        "Beneath your feet the sand is firm with moisture; the tide has left its debris in a winding line."
+        "The beach: the same wet sand, the same wrack.",
+        "Wet sand underfoot again. Wrack along the tide line."
       ],
       "when": { "phase": ["dawn", "day", "dusk"] }
     },
     {
       "text": [
-        "Darkness has concealed the beach, though each breaking wave shows a pale crest of foam.",
-        "At night the coast can scarcely be distinguished; only wind and surf betray the direction of the sea.",
-        "The shore lies obscure beneath the night sky, save where the surf traces a faint white line."
+        "The beach in the dark. Only the surf, and a pale line of foam.",
+        "In the dark the beach is only sound: the surf, the wind.",
+        "Night on the beach. The foam glows faintly at the water's edge."
       ],
       "when": { "phase": ["night"] }
     },
@@ -191,7 +191,7 @@
       "cost": { "firewood": 3, "matches": 1 },
       "effects": [{"timer": "fire", "addHours": 6}],
       "log": [
-        "A match flares beneath your hands; the dry fibres begin to smoke and presently take fire.",
+        "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
         "You shelter the tiny flame from the wind until it passes to the kindling.",
         "With a carefully struck match, you kindle the prepared wood."
       ],
@@ -225,18 +225,18 @@
         {
           "weight": 2,
           "text": [
-            "At last one of the sparks lodges in the tinder. A cautious breath enlarges the glow into a flame.",
+            "A spark holds. You blow, and it becomes a flame.",
             "The dry fibres begin to smoke; an instant later a small flame rises among them.",
-            "A single spark persists long enough to kindle the grass. You feed it slender twigs until the fire is secure."
+            "The tinder catches at last. You feed it twig by twig."
           ],
           "effects": [{"take": {"firewood": 3}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
           "text": [
-            "The sparks expire upon the tinder almost as soon as they fall. The attempt has failed, but the materials remain.",
+            "The sparks die in the tinder, one after another. Not this time.",
             "A little smoke appears, then vanishes. The wood is still fit for another trial.",
-            "Repeated blows yield nothing but fleeting sparks, and your hands are numbed by the effort."
+            "Your hands are numb before a spark holds."
           ]
         }
       ],
@@ -261,25 +261,25 @@
       },
       "requires": { "all": [{"tool": "fire_starter"}, {"item": "firewood", "gte": 5}] },
       "log": [
-        "You revolve a dry stick against the wood beneath it, working until the friction heats your palms.",
-        "Without matches, you turn a slender stick between your hands until your arms grow weary.",
-        "The wood is rubbed steadily upon itself, and every trace of smoke is nursed with a cautious breath."
+        "You twist a dry stick against a branch, again and again, until your palms burn.",
+        "No matches. You spin a stick between your hands until your arms ache.",
+        "You rub wood on wood, slow and stubborn, blowing on every wisp of smoke."
       ],
       "outcomes": [
         {
           "weight": 2,
           "text": [
-            "A dark ember forms in the powdered wood. Carefully nursed with air and tinder, it becomes a flame.",
-            "The faint smoke increases, and a glowing coal at last sets fire to the dry fibres.",
-            "Your persistence is rewarded: a small flame rises from the tinder, and you add fuel with great care."
+            "A glow, a breath, and at last a flame. The fire takes.",
+            "The wisp of smoke becomes an ember, then a flame.",
+            "Finally, a flame. You feed it, careful as with a newborn."
           ],
           "effects": [{"take": {"firewood": 5}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
           "text": [
-            "Smoke appears, but the wood never reaches the heat required for flame. It may be tried again.",
-            "The forming ember is extinguished before it can kindle the grass. The materials are not lost.",
+            "Smoke, but no flame. The wood will do for another try.",
+            "The ember dies before it catches. You keep the wood.",
             "At length fatigue compels you to stop; the sticks have yielded no fire."
           ]
         }
@@ -317,7 +317,7 @@
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
         "You prise the shellfish from the rocks as the surf washes around your legs.",
-        "Working against the wet stone, you detach the shells while waves break at your knees.",
+        "You work the shells loose with your fingers. The surf breaks over your knees.",
         "One shell after another comes free, though the cold soon numbs your fingers.",
         "You gather a handful of shells, heavy with seawater.",
         "The day's collection begins with a pocketful of fresh shellfish.",
@@ -333,7 +333,7 @@
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "stone", "min": 2, "max": 3 }],
       "log": [
-        "At the cliff's foot you examine stones of several kinds, choosing those hardest to the touch.",
+        "Under the cliff, stones of every size. You pick the hardest.",
         "You select flat, weighty stones from the debris beneath the cliff.",
         "The fallen rock provides stones suitable for rough tools and a hearth."
       ],
@@ -398,7 +398,7 @@
             {
               "text": [
                 "You lie down so utterly exhausted that thought is beyond your power.",
-                "Fatigue has mastered you; scarcely have you stretched out before your eyes close.",
+                "You fall down where you are. You can't keep your eyes open.",
                 "Your remaining strength deserts you, leaving only the desire for sleep."
               ],
               "when": { "stat": "energy", "lte": 20 }
@@ -407,7 +407,7 @@
               "text": [
                 "You rest upon the bed, conscious of an ache in every muscle.",
                 "Weariness settles heavily upon your limbs after the day's exertions.",
-                "You draw yourself into a more comfortable position, though your whole body protests."
+                "You curl up, aching all over."
               ],
               "when": { "stat": "energy", "lte": 40 }
             },
@@ -441,7 +441,7 @@
           "lines": [
             {
               "text": [
-                "You remember the cold sea and the uncertain moment when you first woke on the sand.",
+                "The cold sea. Waking alone on the sand.",
                 "The deserted shore and your solitary awakening return vividly to mind.",
                 "Again you see the empty horizon where your vessel should have been."
               ],
@@ -541,13 +541,13 @@
               "text": [
                 "The little flame of a match returns to mind, followed by the welcome warmth.",
                 "You remember how readily the kindling caught from a single match.",
-                "A faint sulphurous smell, then the odour of burning wood: such was the beginning of the fire."
+                "The smell of a struck match, then woodsmoke."
               ],
               "when": { "today": "light_fire" }
             },
             {
               "text": [
-                "You recall the painful friction of wood against wood before the first flame appeared.",
+                "Wood against wood until your palms burned, and at last a flame.",
                 "The long work of turning dry sticks seemed almost without end.",
                 "Your sore palms and the small first ember are not easily forgotten."
               ],
@@ -639,12 +639,12 @@
             }
           ],
           "otherwise": [
-            "Nothing remarkable has marked the day, but even such hours belong to the struggle for survival.",
-            "The day's events fade together, leaving little beyond the memory of wind and labour.",
-            "There is scant discovery to record: only the sand, the wind, and the passing hours.",
+            "A day of small things. You hardly remember it.",
+            "The day blurs. Nothing stands out.",
+            "Little to remember. Sand, waiting, more sand.",
             "The island revealed no novelty today, though its familiar demands remained.",
             "It has been a quiet day, with few events worthy of the journal.",
-            "For many hours you have attended to small necessities beneath the ceaseless wind."
+            "Hours of wind and waiting."
           ],
           "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches, stones or friction; knife or rock knife)"
         }
