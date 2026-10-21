@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[proposal — agent handoff; not implemented]**
+Status: **[PR-01 implemented; PR-02 to PR-10 proposal]**
 Revised: 2026-10-21 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -159,10 +159,12 @@ transition or dual-layout support is needed. The game must still work after ever
 
 ### Phase A — content foundations (no Studio yet)
 
-**PR-01 — Golden traces.** Seeded command scripts on the frozen fixtures produce a normalized
+**PR-01 — Golden traces.** **[implemented]** Seeded command scripts on the frozen fixtures produce a normalized
 snapshot (state + journal). Covers shipwreck, exploration, an activity with outcomes, crafting,
 building + production, a quest, an event branch, sleep and save/reload.
 *Done when:* snapshots are committed and stable across runs. *Owner test:* none beyond CI.
+Implementation: [trace scripts](../tests/golden-traces.test.ts) and their committed
+[snapshots](../tests/__snapshots__/golden-traces.test.ts.snap).
 
 **PR-02 — Formatter and one file per entity.** Add the formatter and `content:format`; loader and
 registry read one object per file for every list kind, enforce `file name == id`, and keep
