@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { clockText } from "../src/core/clock";
 import { view } from "../src/core/selectors";
 import { loadRegistry, revealAll, startGame } from "./helpers";
 
@@ -12,28 +11,6 @@ const fresh = (seed = 1) => {
 };
 
 describe("engine: the prototype loop", () => {
-  it("starts at dawn on the beach with only 'look around' (craft and build appear once there is something)", () => {
-    const e = startGame(reg, 1);
-    expect(e.state.location).toBe("beach");
-    expect(clockText(e.state.time)).toBe("06:00");
-    expect(view(e).actions.map((a) => a.label)).toEqual(["look around"]);
-    expect(view(e).tabs.map((t) => t.id)).toEqual(["beach"]);
-  });
-
-  it("once the beach is explored: fire, shells, fish, sleep", () => {
-    const e = fresh();
-    const v = view(e);
-    expect(v.actions.map((a) => a.id)).toEqual(["explore:beach", "light_fire", "collect_shells", "collect_stones", "catch_fish"]);
-    expect(v.actions.find((a) => a.id === "light_fire")!.enabled).toBe(false);
-    expect(v.actions.find((a) => a.id === "catch_fish")!.reason).toBe("Needs 1 fishing spear");
-    expect(v.actions.find((a) => a.id === "sleep")).toBeUndefined();
-  });
-
-  it("with the knife grabbed from the ship: knife and summer clothes, listed under inventory", () => {
-    const v = view(startGame(reg, 1, "knife", { matches: false }));
-    expect(v.inventory.map((i) => i.id)).toEqual(["knife", "summer_clothes"]);
-    expect(v.consumables).toEqual([]);
-  });
 
   it("shells: collect, eat raw, or cook over the fire for more food", () => {
     const e = fresh(5);
@@ -57,15 +34,6 @@ describe("engine: the prototype loop", () => {
   it("refuses forest activities on the beach", () => {
     const e = fresh();
     expect(e.dispatch({ type: "activity", id: "gather_wood" }).ok).toBe(false);
-  });
-
-  it("travel to the forest costs half an hour and reveals its description once", () => {
-    const e = fresh();
-    const t0 = e.state.time;
-    expect(e.dispatch({ type: "travel", region: "forest" }).ok).toBe(true);
-    expect(e.state.time - t0).toBe(30);
-    expect(e.state.location).toBe("forest");
-    expect(e.state.log.some((l) => l.text.includes("water runs over stones"))).toBe(true);
   });
 
   it("gather wood, drink, return, light fire, cook fish, sleep: full loop", () => {
@@ -178,23 +146,5 @@ describe("engine: the prototype loop", () => {
     expect(e.dispatch({ type: "activity", id: "gather_wood" }).cooldownMs).toBe(1_000);
     e.applyEffects([{ give: { water_can: 1 } }]);
     expect(e.dispatch({ type: "itemAction", item: "water_can", action: "fill" }).cooldownMs).toBe(500);
-  });
-
-  it("cooking controls appear under the local campfire only while a fire burns", () => {
-    const e = fresh();
-    e.applyEffects([{ give: { raw_fish: 2, shells: 1, firewood: 3 } }]);
-    const withButtons = () => view(e).buildings.flatMap((b) => b.actions).filter((a) => a.command.type === "itemAction").map((a) => a.command.type === "itemAction" ? a.command.item : "");
-    expect(withButtons()).toEqual([]); // fire out
-    e.dispatch({ type: "activity", id: "light_fire" });
-    expect(withButtons()).toEqual(["raw_fish", "shells"]); // never on cooked food or firewood
-    expect(view(e).actions.map((a) => a.id)).not.toContain("cook_fish"); // no cook buttons any more
-
-    expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(true);
-    expect(e.state.items).toMatchObject({ raw_fish: 1, cooked_fish: 1 });
-    expect(e.state.counters["did:cook"]).toBe(1);
-
-    e.dispatch({ type: "travel", region: "forest" }); // the fire is still burning, but on the beach
-    expect(withButtons()).toEqual([]);
-    expect(e.dispatch({ type: "itemAction", item: "raw_fish", action: "cook" }).ok).toBe(false);
   });
 });

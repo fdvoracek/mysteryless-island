@@ -60,6 +60,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 ## Tests
 
 - Add a test with every engine feature. Unit and browser tests use frozen `tests/fixtures/content/`; change it only for an intentional test scenario. Validate shipped content with `npm run content:check`, then check new gameplay content with a short manual playthrough.
+- Keep rule coverage in engine tests and browser coverage focused on DOM interaction, layout and application wiring. Reuse a scenario for related assertions; avoid one playthrough per item or tests that parse other tests. See [docs/TESTING.md](docs/TESTING.md) for coverage ownership and timing configuration.
 - A new game opens the shipwreck event first: tests use `startGame(reg, seed, choice?)` from `tests/helpers.ts` (picks the knife, closes the event, adds matches); the e2e test calls `escapeShip(page, choice)`.
 - A finished task opens a note pop-up that blocks the game until closed: `startGame` closes notes after every command unless `{ keepNotes: true }`; the e2e test closes it explicitly.
 - Completion notes open when work finishes. Pop-up buttons (`choose`) remain usable whenever a pop-up is open; the scheduler pauses active work until it closes. Other controls remain locked during running work (`UI.send`).
@@ -72,6 +73,6 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 
 - Commit author: `Frantisek Dvoracek <f.dvoracek@gmail.com>`. The user pushes; pushing to `main` deploys via `.github/workflows/pages.yml` (tests, build, e2e, deploy). Do not push.
 - `.githooks/pre-push` runs `npm run check` before a push to `main` and stops the push if it fails (`npm install` sets `core.hooksPath`; the hook installs Playwright's Chromium if it is missing).
-- In a sandbox without Chromium the browser test can't run: `tests/e2e-content.test.ts` checks that every id and label expected by the browser test still exists in the frozen test content. When changing the fixture's task, label, or id, grep `e2e/smoke.spec.ts` for the old name too. Shipped content changes do not require fixture or browser-test edits.
+- Browser tests require Chromium. Their test build reads `.env.engine-test` (100ms action steps, 200ms UI animation defaults); the paced-work case uses a controlled clock. Shipped content changes do not require fixture or browser-test edits.
 - If you work in a Linux sandbox with this folder mounted from macOS, never install `node_modules` into the repo: copy it elsewhere (e.g. `rsync --exclude node_modules --exclude .git`) and build there.
 - Update `README.md` / `docs/TDD.md` when behaviour or the content model changes.

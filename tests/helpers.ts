@@ -1,14 +1,18 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildRegistry } from "../src/content/registry";
+import { buildRegistry, ContentError } from "../src/content/registry";
 import type { Registry } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
+const FIXTURE_ROOT = join(ROOT, "tests", "fixtures", "content");
+let fixtureFiles: Record<string, unknown> | undefined;
+let fixtureRegistry: Registry | undefined;
 
 /** Stable engine scenario: production prose changes never rewrite test expectations. */
-export function readContentFiles(dir = join(ROOT, "tests", "fixtures", "content")): Record<string, unknown> {
+export function readContentFiles(dir = FIXTURE_ROOT): Record<string, unknown> {
+  if (dir === FIXTURE_ROOT && fixtureFiles) return structuredClone(fixtureFiles);
   const out: Record<string, unknown> = {};
   const walk = (current: string) => {
     for (const name of readdirSync(current)) {
@@ -18,11 +22,22 @@ export function readContentFiles(dir = join(ROOT, "tests", "fixtures", "content"
     }
   };
   walk(dir);
+  if (dir === FIXTURE_ROOT) fixtureFiles = structuredClone(out);
   return out;
 }
 
-export const loadRegistry = () => buildRegistry(readContentFiles());
+/** Each caller gets an isolated graph; repeated setup need not reparse the same validated data. */
+export const loadRegistry = () => structuredClone(fixtureRegistry ??= buildRegistry(readContentFiles()));
 export const readShippedContentFiles = () => readContentFiles(join(ROOT, "content"));
+
+/** Inspect negative validation once, preserving unexpected exceptions as test failures. */
+export function contentProblems(validate: () => unknown): string {
+  try { validate(); } catch (error) {
+    if (error instanceof ContentError) return error.problems.join("\n");
+    throw error;
+  }
+  throw new Error("Expected a ContentError");
+}
 
 /**
  * A new game past the opening event (the shipwreck): `choice` is what you grabbed, "knife" by

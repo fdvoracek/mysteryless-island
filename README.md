@@ -22,6 +22,9 @@ Tests use the fixed definitions in `tests/fixtures/content/`, so editing the shi
 wording does not change engine or browser expectations. `npm run content:check` separately
 validates production `content/` for schema and reference errors. The Pages build uses the
 production data in `dist/`; browser tests build their own `dist-test/` bundle.
+Browser timing is configured in `.env.engine-test`: 100ms per game step and 200ms for UI
+animations. Run a focused unit file with `npm test -- tests/work.test.ts` during development;
+run `npm run check` before delivery. Coverage ownership and overrides are in [docs/TESTING.md](docs/TESTING.md).
 
 Pacing: every game hour takes 10 real seconds (`content/game.json` → `cosmetic.msPerHour`). During crafting, building, travel, exploration, and other timed actions, the clock advances in 15-minute steps, every 2.5 real seconds. Survival stats and timers advance with each step; items, buildings, arrival, and completion notes appear when the work finishes. Sleep jumps immediately to the next 6am. Switching centre tabs or choosing ordinary event text takes no time. New actions stay locked during work, but tab navigation remains usable. Add `?speed=0.2` to make bars 5× faster while testing.
 
