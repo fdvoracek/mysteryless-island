@@ -48,7 +48,9 @@ Detailed scope, decision gates and acceptance criteria are in [docs/CONTENT_STUD
 
 **Save-compatibility decision (2026-10-21):** the owner is the only tester and explicitly accepts abandoning existing saves during this migration. Do not implement migration code solely to preserve earlier save versions. If a PR changes save schema, bump the version and give a clear fresh-game recovery path. In the **current PR** a new game must start, play, save and reload correctly. No merged PR may break player gameplay, production validation or the runtime build.
 
-**Still open:** hosted/local editing scope and authorization, exact canonical source format beyond existing JSON, localization switching/completeness policy, whether authored travel edges will replace current camp-centered routes, media hosting and public Studio availability. Ask the owner before implementing any affected milestone; record decision and rationale here.
+**Studio editing surface decision (D1, 2026-10-21): RESOLVED.** Build local authoring first: localhost-served Studio UI, repository-scoped loopback-only write adapter, local validation/playtesting, and explicit Git-based publishing of proposed changes. **Hosted editing is a later, optional feature**, not part of the local editor's delivery criteria. A hosted GitHub Pages Studio may be read-only pending a separate deployment decision; writing from a hosted site requires independently approved authentication/backend. Do not start with GitHub OAuth/Apps or hosted storage purely to enable the local authoring workflow.
+
+**Still open:** hosted authentication, authorizations and collaboration policy, canonical source format beyond existing JSON, localization switching/completeness policy, whether authored travel edges will replace current camp-centered routes, media hosting and public read-only Studio availability. Ask the owner before implementing affected milestones; record decision and rationale here.
 
 ## Crafting and building trees — implemented
 
