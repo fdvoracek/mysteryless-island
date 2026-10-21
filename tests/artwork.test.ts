@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Artwork, type Building, type Item, type Region } from "../src/content/schema";
+import { Artwork, type Building, type Game, type Item, type Region } from "../src/content/schema";
 import { buildRegistry } from "../src/content/registry";
 import { treeView, view } from "../src/core/selectors";
 import { illustrationUrl } from "../src/ui/illustration";
@@ -14,6 +14,7 @@ function illustratedContent() {
     { ...object, id: "art_can", src: "illustrations/items/can.png", alt: "An empty metal water can." },
     { ...object, id: "art_fire", src: "illustrations/structures/fire.png", alt: "A small ring of stones." },
     { ...panorama, id: "art_forest", src: "illustrations/locations/forest.png", alt: "A spring beneath quiet trees." }];
+  (files["content/game.json"] as Game).panorama = "art_beach";
   (files["content/regions/beach.json"] as Region).artwork = "art_beach";
   (files["content/regions/forest.json"] as Region).artwork = "art_forest";
   const items = files["content/items/basics.json"] as Item[];
@@ -27,6 +28,7 @@ function illustratedContent() {
 describe("optional artwork authoring", () => {
   it("accepts an empty or absent catalog without adding images or game state", () => {
     const files = readContentFiles(); delete files["content/artwork.json"];
+    delete (files["content/game.json"] as Game).panorama;
     const reg = buildRegistry(files), engine = startGame(reg, 7);
     expect(reg.artwork.size).toBe(0);
     expect(view(engine).panorama).toBeUndefined();
@@ -66,6 +68,12 @@ describe("optional artwork authoring", () => {
     files["content/artwork.json"] = [{ ...panorama, width: 800, height: 220 }];
     expect(() => buildRegistry(files)).toThrow(/content\/regions\/beach\.json.beach.artwork: region artwork must declare 1600 × 440/);
   });
+
+  it("validates the game-wide panorama reference", () => {
+    const files = illustratedContent();
+    (files["content/game.json"] as Game).panorama = "missing_art";
+    expect(() => buildRegistry(files)).toThrow(/content\/game\.json\.panorama: unknown artwork "missing_art"/);
+  });
 });
 
 describe("resolved artwork views", () => {
@@ -88,7 +96,7 @@ describe("resolved artwork views", () => {
     expect(view(e).buildings).toEqual([]);
   });
 
-  it("changes the shared panorama only when travel arrives, retaining it across tab view derivation", () => {
+  it("keeps the game-wide panorama through travel and all tab view derivations", () => {
     const e = revealAll(startGame(buildRegistry(illustratedContent()), 7));
     const before = view(e).panorama;
     expect(before).toEqual(panorama);
@@ -96,9 +104,9 @@ describe("resolved artwork views", () => {
     expect(view(e).panorama).toBe(before);
     expect(e.start({ type: "travel", region: "forest" }).ok).toBe(true);
     e.stepActions(); expect(view(e).panorama).toBe(before);
-    e.stepActions(); expect(view(e).panorama!.id).toBe("art_forest");
+    e.stepActions(); expect(view(e).panorama).toBe(before);
     e.state.location = "meadows";
-    expect(view(e).panorama).toBeUndefined();
+    expect(view(e).panorama).toBe(before);
   });
 });
 

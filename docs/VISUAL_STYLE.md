@@ -40,7 +40,8 @@ The latest [panoramic UI composition](<../assets/art/references/Vintage Parchmen
 guides the illustrated header, route-map placement, journal/action/sidebar hierarchy, and item
 row composition. Use the white, neutral treatment above rather than its parchment texture,
 warm artwork tint, background landscape, or repeated compass ornaments. The large panorama
-stays above all three tabs, including Crafting and Building; it is not limited to Area.
+is one game-wide image above all three tabs, including Crafting and Building. It does not
+change with the player's location; do not make separate area headers for now.
 
 Start with [the reference index](../assets/art/references/README.md), which assigns each image
 a role. The four-panel UI composition guides hierarchy, illustration placement, spacing, and
@@ -61,6 +62,7 @@ Compare imagery at its intended display size with the relevant approved referenc
 existing gameplay and interactions; a mockup supplies visual direction, not executable rules.
 Keep new decisions in this guide or the art guide, and keep reference files unchanged.
 
-Review area illustrations as a coordinated 1600 × 440 px set against one designated approved
-visual master. Follow the art guide's shared-reference, whole-set comparison, and actual-file
-preview requirements; mismatched regions must be corrected before being presented as finished.
+Review the single top illustration at its actual display size and verify its source dimensions,
+crop, and Pages URL. Item and building artwork still follows the art guide's consistency and
+actual-file preview requirements. A multi-area panorama set is deferred unless the user changes
+the one-banner direction.

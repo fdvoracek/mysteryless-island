@@ -686,12 +686,13 @@ interface SaveFile {
 - **Book-page foundation [implemented]:** shared surface, ink, outline, spacing, and selection
   tokens in `ui/styles.css` give controls and panels a restrained hierarchy in both themes.
   All typography retains the selected `--font`; classic placement stays in its scoped CSS.
-- **Illustration support [implemented; production assets pending]:** optional
-  `content/artwork.json` entries define `{ id, src, width, height, alt }`. Regions, items, and
+- **Illustration support [implemented]:** optional
+  `content/artwork.json` entries define `{ id, src, width, height, alt }`. `game.json` chooses
+  one global `panorama` ID; regions can supply fallback artwork if it is absent. Items and
   buildings reference them with `artwork: id`; the registry validates IDs, nonblank alt text,
-  local `illustrations/` paths, positive integer dimensions, and 1600 × 440 region metadata.
+  local `illustrations/` paths, positive integer dimensions, and 1600 × 440 region fallback metadata.
   Files belong in `public/illustrations/`; paths in content omit `public/` and a leading slash.
-  Selectors resolve metadata for the current panorama, possession/building rows, and tree
+  Selectors resolve metadata for the global panorama, possession/building rows, and tree
   tooltips. Creation nodes retain their compact dimensions.
   `ui/illustration.ts` supplies one keyed image updater using Vite's base URL, explicit image
   dimensions, eager panorama/tooltips and lazy item pictures. Semantically described panoramas
@@ -699,8 +700,8 @@ interface SaveFile {
   Missing metadata or a failed load hides only the image slot. Failed sources are remembered
   per slot to avoid repeated requests; stale image events cannot replace a newer image.
   Monochrome ink uses multiply blending in light mode and inverted screen blending in dark
-  mode. No artwork enters saves or changes gameplay. The initial catalog is empty; production
-  assets still require the art guide's approval, physical-file checks, and coordinated review.
+  mode. No artwork enters saves or changes gameplay. The shared panorama is the one selected
+  island image, recorded at its actual 2116 × 743 source size and cropped in CSS to a 40:11 slot.
 - **Input:** mouse first; keyboard shortcuts for tabs (1–7) and for event choices (1–4) **[proposal]**.
 
 ---
@@ -714,7 +715,7 @@ The action area is one shared `panel.actions()` block: untitled local activities
 Classic is the only supported layout. `src/ui/layouts/classic.ts` provides its skeleton
 from fixed-ID panels in `panels.ts`; `classic.css` scopes placement and sizing under
 `.layout-classic`. A shared `#areaPanorama` slot sits before the route map, outside every
-tabpanel. It is hidden and empty until illustration content is available. The body uses
+tabpanel. It renders the same global image on every tab and after travel. The body uses
 flexible 1:2:1 columns; below 900px it stacks map, actions, journal, and sidebar. The journal's
 `#regionTitle` uses `View.title` and changes on actual arrival, independently of journal text
 and selected action tab. `#workBox` remains outside tabpanels so work controls stay available.

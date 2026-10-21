@@ -416,6 +416,8 @@ export const Timer = z
 export const Game = z
   .object({
     title: z.string(),
+    /** One illustration above the route map and every action tab, independent of location. */
+    panorama: Id.optional(),
     stepMinutes: z.number().int().positive(),
     start: z
       .object({

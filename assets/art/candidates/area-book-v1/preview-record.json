@@ -1,0 +1,20 @@
+{
+  "status": "unapproved revised artwork and temporary in-game DOM previews",
+  "source": "beach-master-candidate-v2.png",
+  "sourceSha256": "64353ba51fdededeb848177d0080c60e8958a3e4f1e8fdacf91e403a24b28336",
+  "verifiedSourceDimensions": [2116, 743],
+  "proposedExportDimensions": [1600, 440],
+  "crop": { "method": "CSS object-fit:cover", "objectPosition": "50% 55%" },
+  "screenshots": [
+    { "file": "revised-area-light-1280.png", "tab": "area", "viewportWidth": 1280 },
+    { "file": "revised-craft-light-1280.png", "tab": "crafting", "viewportWidth": 1280 },
+    { "file": "revised-build-light-1280.png", "tab": "building", "viewportWidth": 1280 },
+    { "file": "revised-area-light-375.png", "tab": "area", "viewportWidth": 375 },
+    { "file": "revised-craft-light-375.png", "tab": "crafting", "viewportWidth": 375 },
+    { "file": "revised-build-light-375.png", "tab": "building", "viewportWidth": 375 }
+  ],
+  "captureMethod": "Chromium against running Vite game after CSS update; temporary DOM insertion of the actual revised source into the shared panorama slot",
+  "productionIntegrated": false,
+  "approvedMaster": false,
+  "previousRejectedPreviewRecord": "preview-record-rejected.json"
+}

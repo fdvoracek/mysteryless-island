@@ -186,6 +186,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   for (const entity of regions.values()) checkArtwork(entity, true);
   for (const entity of items.values()) checkArtwork(entity);
   for (const entity of buildings.values()) checkArtwork(entity);
+  if (game?.panorama && !artwork.has(game.panorama)) problems.push(`${gamePath}.panorama: unknown artwork "${game.panorama}"`);
 
   // ---------- reference checks ----------
   const ref = (kind: "item" | "region" | "timer" | "stat" | "band" | "phase" | "quest" | "did" | "discovery" | "today" | "building" | "recipe", id: string, where: string) => {
