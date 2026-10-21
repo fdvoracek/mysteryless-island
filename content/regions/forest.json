@@ -121,15 +121,15 @@
       "icon": "wood",
       "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
       "log": [
-        "Dry branches snap underfoot.",
-        "Twigs crack under your feet.",
-        "You snap dead branches off a fallen tree.",
-        "An armful of deadwood.",
-        "You gather an armful of dry wood.",
-        "Deadwood, as much as you can carry.",
-        "Bark and twigs, dry enough to burn.",
-        "Dry bark peels off in strips.",
-        "Twigs and branches, light and dry."
+        "Dry branches crack beneath your feet as you search for fuel.",
+        "Brittle twigs litter the ground under the trees.",
+        "You detach sound dead branches from a fallen trunk.",
+        "An armful of dry wood is gathered from the forest floor.",
+        "You assemble a bundle of light, well-seasoned branches.",
+        "The quantity of fallen wood is sufficient for all you can carry.",
+        "Loose bark and twigs should serve admirably as kindling.",
+        "The dry outer bark separates readily in long strips.",
+        "You collect slender branches and twigs, light enough to carry."
       ],
       "_note": "no exploring needed: the forest floor is full of deadwood"
     },
