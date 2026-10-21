@@ -36,33 +36,33 @@
     },
     {
       "text": [
-        "Smoke rises from the ring of rocks.",
-        "A thread of smoke above the ring of rocks.",
-        "The fire is still alive in the rocks."
+        "A thread of smoke rises from the circle of rocks, marking the living hearth.",
+        "Smoke ascends steadily above the stones and is scattered by the wind.",
+        "The fire still burns within the sheltering rocks."
       ],
       "when": { "all": [{ "discovered": "rock_shelter" }, { "timer": "fire" }] }
     },
     {
       "text": [
-        "The ring of rocks waits, cold.",
-        "The ring of rocks, and cold ash inside it.",
-        "No smoke from the rocks. The fire is out."
+        "The hearth among the rocks is cold and silent.",
+        "Only cold ashes occupy the ring of stones.",
+        "No smoke rises from the rocks; the fire has expired."
       ],
       "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] }
     },
     {
       "text": [
-        "Shells on the stone under the cliff.",
-        "The shells still cling under the cliff.",
-        "Under the cliff, the shells wait for the tide."
+        "Shellfish remain attached to the wet rock beneath the cliff.",
+        "The stones at the cliff's foot are still crowded with shells.",
+        "Beneath the cliff, the shellfish lie exposed until the returning tide."
       ],
       "when": { "discovered": "cliff_shells" }
     },
     {
       "text": [
-        "Fish flash in the shallows.",
-        "Something silver turns in the shallows.",
-        "The fish are still in the shallows."
+        "Small fish flash in the shallow water beside the shore.",
+        "An occasional silver movement betrays fish among the shallows.",
+        "The school of fish continues to frequent the water near the beach."
       ],
       "when": { "discovered": "school_of_fish" }
     }
@@ -186,9 +186,9 @@
       "cost": { "firewood": 3, "matches": 1 },
       "effects": [{"timer": "fire", "addHours": 6}],
       "log": [
-        "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
-        "You shield a match in your hands. The flame jumps to the kindling.",
-        "One match, struck carefully. The fire is lit."
+        "A match flares beneath your hands; the dry fibres begin to smoke and presently take fire.",
+        "You shelter the tiny flame from the wind until it passes to the kindling.",
+        "With a carefully struck match, you kindle the prepared wood."
       ],
       "tags": ["kindle"],
       "_note": "with matches: 15 min, always works, one match each time",
@@ -212,9 +212,9 @@
       },
       "requires": { "item": "firewood", "gte": 3 },
       "log": [
-        "You strike one stone against the other over a nest of dry grass, again and again.",
-        "Stone on stone, sparks jumping into the tinder, most of them dying at once.",
-        "You knock the stones together until your knuckles bleed, coaxing sparks into the kindling."
+        "You strike the stones repeatedly over a nest of dry grass, seeking a spark that will persist.",
+        "Sparks fall upon the tinder, but most vanish before they can set it alight.",
+        "Patient blows of stone against stone produce brief sparks, while the effort leaves your knuckles sore."
       ],
       "outcomes": [
         {
@@ -256,9 +256,9 @@
       },
       "requires": { "all": [{"tool": "fire_starter"}, {"item": "firewood", "gte": 5}] },
       "log": [
-        "You twist a dry stick against a branch, again and again, until your palms burn.",
-        "No matches. You spin a stick between your hands until your arms ache.",
-        "You rub wood on wood, slow and stubborn, blowing on every wisp of smoke."
+        "You revolve a dry stick against the wood beneath it, working until the friction heats your palms.",
+        "Without matches, you turn a slender stick between your hands until your arms grow weary.",
+        "The wood is rubbed steadily upon itself, and every trace of smoke is nursed with a cautious breath."
       ],
       "outcomes": [
         {
@@ -293,12 +293,12 @@
       "cost": { "firewood": 2 },
       "effects": [{"timer": "fire", "addHours": 4}],
       "log": [
-        "The fire crackles.",
-        "The flames climb higher.",
-        "You feed the fire. It answers.",
-        "Sparks climb into the dark.",
-        "Sparks drift up on the wind.",
-        "The new wood catches with a hiss."
+        "The new fuel catches, and the hearth crackles steadily.",
+        "The flames rise higher above the stones.",
+        "You add dry wood, and the fire responds with renewed vigour.",
+        "Sparks ascend into the darkening air.",
+        "A shower of sparks is carried upwards by the wind.",
+        "Fresh wood catches with a sudden hiss of escaping moisture."
       ],
       "global": true
     },
@@ -311,12 +311,12 @@
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
-        "You prise shells off the wet stone. The surf soaks your legs.",
-        "You work the shells loose with your fingers. The surf breaks over your knees.",
-        "Shell by shell, off the wet stone. Your hands go numb.",
-        "A handful of shells, cold and heavy.",
-        "A pocketful of shells, cold and wet.",
-        "Shells, heavy and dripping."
+        "You prise the shellfish from the rocks as the surf washes around your legs.",
+        "Working against the wet stone, you detach the shells while waves break at your knees.",
+        "One shell after another comes free, though the cold soon numbs your fingers.",
+        "You gather a handful of shells, heavy with seawater.",
+        "The day's collection begins with a pocketful of fresh shellfish.",
+        "You carry away shells still dripping from the tide."
       ]
     },
     {
@@ -328,9 +328,9 @@
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "stone", "min": 2, "max": 3 }],
       "log": [
-        "Under the cliff, stones of every size. You pick the hardest.",
-        "You choose stones from the foot of the cliff, flat and heavy.",
-        "You gather stones where the cliff has crumbled."
+        "At the cliff's foot you examine stones of several kinds, choosing those hardest to the touch.",
+        "You select flat, weighty stones from the debris beneath the cliff.",
+        "The fallen rock provides stones suitable for rough tools and a hearth."
       ],
       "_note": "stones lie under the cliff: 2 strike sparks for a fire; also for the rock knife, the axe, the hoe and the weir"
     },
@@ -371,9 +371,9 @@
         }
       ],
       "log": [
-        "You wade into the shallows, spear raised.",
-        "You stand knee-deep in the cold water and wait.",
-        "Spear ready, you wade out slowly."
+        "You wade cautiously into the shallows with the spear held ready.",
+        "Standing knee-deep in cold water, you wait for the fish to approach.",
+        "With the spear prepared, you advance slowly through the water."
       ]
     },
     {
