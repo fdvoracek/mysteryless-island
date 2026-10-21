@@ -16,18 +16,35 @@ The writing should resemble an expedition journal one might find in a nineteenth
 - **Resourceful hope, without certainty:** a discovery suggests possibilities. An unbuilt tool, hidden location, or unearned capability must remain a possibility rather than an accomplished fact.
 - **Restrained suspense:** isolation, weather, hunger, and unexplored terrain provide enough danger. Do not fill ordinary tasks with sinister foreshadowing or invented mysteries.
 
-## Pacing by text category
+## Two channels: long scenes, short journal
 
-| Text type | Target | Principle |
+The **modal** is where the player can stop and read; the **narrative window** is narrow and constantly updated. The two need different prose budgets even when they describe the same event.
+
+### Modal / exploration / story text
+
+- A major discovery or event can take **2–4 sentences** or a few compact paragraphs. Descriptive language should invite observation, deduction and adventure in Verne's spirit.
+- Start with what the player can see, then explain why it matters; avoid decorative sentences with no new information.
+- The full scene belongs in `content/events/*.json -> scenes.<id>.text` or `content/regions/*.json -> explore.landmarks[].text`.
+- `explore.view[].text` and `explore.nothingLeft` are also modal-only. `game.newPlace.text`, shortage preparation advice, and end screens are modal text.
+
+### Narrow narrative window / journal
+
+- Usually **5–15 words** and **no more than 80 source characters per variant**. Prefer one direct sentence; split events into separate short updates rather than chaining clauses.
+- **Action or consequence first.** Say what was found, built, lost, used, or changed before adding colour. A single vivid word can suggest atmosphere.
+- Never duplicate a modal paragraph in the journal. For modal scenes author `scene.journal`; for explored landmarks author `landmark.journal`. These are short alternatives to their full `text`. For legacy content the engine falls back to `text`, but newly authored substantial modal text must always provide the summary.
+- `region.description` (first visit), `firstVisit.log`, `arrive[].text`, activity/outcome logs, recipe/building/item/consumption logs, memories, quest progress, timer warnings, and sleep recovery are **journal text**. Despite its name, `region.description` is currently logged on arrival rather than opened in a modal. Put the expansive area description in `explore.view`.
+- A quest completion currently shares its `doneLog` between the journal and a completion note; keep that passage short until separate note text is explicitly supported.
+- A supply-shortage note shows full advice, but only the immediate shortage is written into the journal.
+- UI labels, hints, timing and prerequisites are functional text: keep them succinct without dropping vital quantities or affordances.
+
+| Situation | Modal prose | Journal entry |
 |---|---|---|
-| Major events and consequential discoveries | 1–3 compact paragraphs | Description, physical action, and a reason to decide |
-| Region introduction | 2–3 sentences per variant | Location, atmosphere, and something observable |
-| Landmark discovery | 2–3 sentences per variant | Evidence → inference → attainable opportunity |
-| Recurring arrival, action, item, production, or sleep line | Generally 1 sentence | Fresh concrete detail without repeated lectures |
-| Quest completion or special progression | 1–2 sentences | Mark the practical achievement, not a triumphal speech |
-| UI hint, requirement, state, warning, or button | Concise and literal | Mechanics, counts, times, affordances, and urgency outrank literary colour |
+| Forest discovery | A paragraph about the shadowed trees, quiet air, and possible resources | "You discover a forest beyond the dunes." |
+| A freshwater spring | Describe the stones, clear water, and importance of the find | "You discover a freshwater spring among mossy stones." |
+| Making a spear | Generally no modal; only the log is shown | "You sharpen a branch into a spear." |
+| Shipwreck | Full dramatic scene with choice | "A storm wrecks your ship. You must decide what to save." |
 
-**Variety:** Each array is a pool of interchangeable alternatives, not consecutive paragraphs. All variants must convey the same outcome, state, location, and conditions. Make their diction and observations distinct without contradictory details.
+**Variety:** An array is a pool of interchangeable alternatives, never sequential paragraphs. All variants of the same field must imply the same world state and outcome. Do not use a longer alternative just to make the text sound literary.
 
 ## Diction
 
@@ -47,12 +64,16 @@ Use a broadly consistent English register. The existing copy leans British (*lab
 
 ## Before and after
 
-A plain observation such as "Tall trunks, close together. The sea is only a sound now." becomes a clearer survey:
+**Exploration modal**, from the plain observation "Tall trunks, close together. The sea is only a sound now.":
 
-> The forest begins in a close assembly of high trunks, whose crowns admit only a diminished light. The roar of the sea is already remote.
+> The trees rise in close formation, their branches intercepting much of the daylight. Beneath them the air is cool and motionless, while the distant sea has diminished to a murmur. This forest may hold resources of considerable importance.
 
-A terse technical action such as "Stone on stone, until it had an edge." becomes a statement of work and consequence:
+**Journal**, for the same arrival:
 
-> After three hours of laborious work the stone has acquired an irregular but effective edge.
+> You enter the forest. The sea fades behind the trees.
 
-These are new game examples, not quotations from Verne. The point is **reasoned exploration with disciplined economy**, not length for its own sake.
+**Crafting journal**, where the result matters more than the process:
+
+> You finish shaping a crude stone knife.
+
+These are newly written game examples, not quotations from Verne. **A short line can still have a period-adventure voice; length alone does not create atmosphere.**
