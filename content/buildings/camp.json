@@ -4,7 +4,7 @@
     "name": "shelter",
     "icon": "shelter",
     "_note": "A built shelter is local. The discovered beach rocks already provide natural shelter.",
-    "hint": "A lean-to of logs. Build shelter before making a bed away from the beach rocks.",
+    "hint": "A simple habitation of leaning logs. Away from the beach's natural rock shelter, build this before placing a bed.",
     "build": {
       "hours": 2,
       "effort": "heavy",
@@ -23,7 +23,7 @@
     "id": "bed",
     "name": "bed",
     "icon": "sleep",
-    "hint": "A sheltered bed. Light a fire here and sleep before midnight for 100% energy.",
+    "hint": "A bed raised above the ground. Under shelter, with a fire, retiring before midnight restores 100% energy.",
     "build": {
       "label": "make",
       "hours": 1,
@@ -42,7 +42,7 @@
     "id": "drying_rack",
     "name": "drying rack",
     "icon": "fish",
-    "hint": "Fish or strips of meat dry in 12 hours. One batch at a time; hang meat with its dry button.",
+    "hint": "A rack on which fish or meat dries for 12 hours. Process one batch at a time; use meat's dry action to hang it.",
     "build": {
       "hours": 1,
       "effort": "work",
@@ -91,7 +91,7 @@
     "id": "rain_barrel",
     "name": "rain barrel",
     "icon": "water",
-    "hint": "A hollowed log under the shelter's edge. It fills with rain in 12 hours.",
+    "hint": "A vessel hollowed from timber and placed beneath the eaves. Rain fills it in 12 hours.",
     "build": {
       "hours": 1.5,
       "effort": "heavy",
@@ -137,7 +137,7 @@
     "name": "fish trap",
     "icon": "fish",
     "_note": "anywhere you can fish: the shallows, the river. 1 fish every 2 hours, up to 3; stays set",
-    "hint": "A woven willow trap: 1 fish every 2 hours, up to 3. It stays set.",
+    "hint": "A trap of woven willow, yielding 1 fish every 2 hours, up to 3. Once placed, it remains set.",
     "max": 3,
     "build": {
       "hours": 1,
@@ -185,7 +185,7 @@
     "id": "snares",
     "name": "snares",
     "icon": "meat",
-    "hint": "Rope nooses on the small trails. Check them after 12 hours.",
+    "hint": "Running nooses arranged across animal paths. Inspect them after 12 hours.",
     "build": {
       "label": "make",
       "hours": 1,
@@ -249,7 +249,7 @@
     "id": "corn_field",
     "name": "corn field",
     "icon": "corn",
-    "hint": "Corn sown here is ripe in 3 days.",
+    "hint": "A plot of cultivated ground. Seed sown here produces ripe corn in 3 days.",
     "max": 3,
     "build": {
       "label": "dig",
@@ -298,7 +298,7 @@
     "id": "bee_hive",
     "name": "bee hive",
     "icon": "honey",
-    "hint": "A hollow log for the wild bees. Honey every 3 days; smoke them first.",
+    "hint": "A hollow log for wild bees. Gather honey every 3 days, after quieting the insects with smoke.",
     "build": {
       "hours": 1.5,
       "effort": "heavy",
@@ -344,7 +344,7 @@
     "id": "fish_weir",
     "name": "fish weir",
     "icon": "fish",
-    "hint": "A fence of stones and stakes across the river. Fish every 12 hours.",
+    "hint": "A barrier of stakes and stones across the current. It collects fish every 12 hours.",
     "build": {
       "hours": 2,
       "effort": "heavy",
@@ -388,7 +388,7 @@
     "id": "campfire",
     "name": "campfire",
     "icon": "fire",
-    "hint": "A fire site in this area. Light it with matches, stones, or dry sticks, then feed it with wood.",
+    "hint": "A prepared hearth in this area. Kindle it with matches, stones, or dry sticks, then maintain it with wood.",
     "build": {
       "hours": 0.25,
       "effort": "light",
