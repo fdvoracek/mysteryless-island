@@ -30,10 +30,9 @@ The classic layout stacks below 900px: places, actions, journal, then status and
 
 
 Classic is the only layout: places above three flexible columns containing the current-area
-heading and story (newest first), actions, and status/tasks/inventory. A shared panorama slot
-sits above the places and all three action tabs; it stays hidden until artwork is supplied.
-Optional illustrations use validated content references and disappear cleanly if unavailable;
-the current artwork catalog is empty while production images await approval.
+heading and story (newest first), actions, and status/tasks/inventory. One island panorama
+sits above the places and all three action tabs and stays the same when you travel.
+Optional illustrations use validated content references and disappear cleanly if unavailable.
 The page grows to 1280px, with roughly a quarter/half/quarter column split. Work controls remain
 visible when switching tabs. Its skeleton and scoped styles live in
 `src/ui/layouts/classic.ts` and `classic.css`; fixed panel IDs come from `panels.ts`.
@@ -88,10 +87,11 @@ For visual work, follow [the UI style guide](docs/VISUAL_STYLE.md). Artwork also
 The references guide future changes; they are not screenshots of the current game.
 The [illustrated UI milestone record](docs/UI_REDESIGN_PROGRESS.md) tracks the staged redesign,
 starting with the shared book-page typography, spacing, outlines, and light/dark theme tokens.
-For approved artwork, place files in `public/illustrations/`, register their ID, relative path,
-actual dimensions, and description in `content/artwork.json`, then use `artwork: "<id>"` on a
-region, item, or building. Area panoramas must be 1600 × 440 px. Follow the art guide before
-creating or replacing images; the shared renderer handles Pages paths and both themes.
+For artwork, place files in `public/illustrations/`, register their ID, relative path,
+actual dimensions, and description in `content/artwork.json`. Set `game.json` → `panorama`
+for the one shared header, or use `artwork: "<id>"` on an item or building. The header displays
+in a 40:11 crop without stretching the source. Follow the art guide before creating or replacing
+images; the shared renderer handles Pages paths and both themes.
 
 ## Adding content (no code changes)
 

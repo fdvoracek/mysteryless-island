@@ -238,10 +238,11 @@ export function view(engine: Engine): View {
   }
 
   const turns = groupTurns(s.log);
+  const panoramaId = reg.game.panorama ?? region.artwork;
 
   return {
     title: region.title,
-    panorama: region.artwork ? reg.artwork.get(region.artwork) : undefined,
+    panorama: panoramaId ? reg.artwork.get(panoramaId) : undefined,
     trees: { craft: treeView(engine, "craft"), build: treeView(engine, "build") },
     work: s.actions.filter((a) => a.location === s.location).map((a) => {
       const share = focusShare(engine.runningActions().length);

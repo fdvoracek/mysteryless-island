@@ -45,13 +45,21 @@ The historical references are **not** permission to imitate their full engraving
 
 If the repository has no approved reference images yet, **ask for the approved reference files or explicitly flag that visual matching is provisional**. Never claim exact coherence based only on the text prompt. Once references exist, provide them to image-generation tools as image references when supported.
 
-### A single visual master for each collection
+### One shared top panorama for the current game
+
+The current design uses **one island panorama for every location and every Area/Crafting/Building
+tab**. The user explicitly deferred distinct beach, forest, and meadows headers. The selected
+source is `public/illustrations/island-panorama.png`; its actual 2116 × 743 dimensions are
+declared in content and it is displayed without stretching in a 40:11 CSS crop. Do not generate
+or wire separate area headers unless the user changes this direction.
+
+### A single visual master for any future collection
 
 Treat related illustrations as scenes from **one illustrated book**, with one visual master
-and one shared style brief. For the beach, forest, and meadows, prefer the user's approved
-simpler black-and-white beach illustration as the master. Locate and inspect its actual file;
-a description of an approval in another chat is not an image reference. If that file is not
-available or no master has been designated, resolve that before generating the production set.
+and one shared style brief. If a distinct area set is requested in the future, locate and
+inspect its actual designated master before generation; a description of an approval in
+another chat is not an image reference. If the file is unavailable or no master has been
+designated, resolve that before generating the set.
 Existing geography references are not automatically production style masters.
 
 Record the chosen master path and checksum with the set. Attach that same master to **every**
@@ -81,8 +89,8 @@ assets/art/
 
 ### A. Location illustrations
 - Wide, horizontal, observational illustrations with calm framing and one obvious landmark.
-- The beach, forest, and meadows form one coordinated area set. Final exports are **1600 × 440 px** each, with the same panoramic framing, visual scale, depth treatment, and comparable horizon/foreground allocation; do not invent a separate crop or zoom style per region. This size applies to area panoramas, not item icons or every other asset category.
-- Lock fine-line engraving technique, apparent line thickness at the final display size, sparse hatching, neutral grayscale, restrained contrast, low detail density, and large untouched white areas across the entire set. Only the scenery changes: coastal cliff and dunes; quiet forest and spring; open meadows and willows. Keep subjects faithful to the game's content and discovery rules.
+- Use the same shared island panorama at every location. Its display slot is **40:11**; keep the actual source dimensions in metadata and crop with CSS rather than stretching. The current source is 2116 × 743; any future replacement should be inspected in this slot.
+- If distinct area images are explicitly requested later, lock the fine-line engraving technique, apparent line thickness, sparse hatching, neutral grayscale, restrained contrast, low detail density, and white space across that whole set.
 - Keep sky, sand, or water broad and minimally marked; suggest depth with **three simple planes** (foreground, middle, distance).
 - Use sparse outlines and a handful of hatch clusters; distant objects are lighter and simpler.
 - No people unless the requested scene explicitly requires them; no decorative border or caption.
@@ -127,7 +135,7 @@ REFERENCE ASSETS: [paths to approved image files]
 DETAIL BUDGET: low — simplify further if uncertain
 ```
 
-For area sets, also supply one shared block unchanged in every call:
+Only if an area set is requested in the future, supply one shared block unchanged in every call:
 
 ```text
 COLLECTION: [stable set name]
@@ -162,8 +170,8 @@ ONLY REGION SCENERY CHANGES: [subject-specific block follows]
 1. **Inspect and lock the master.** Read this guide and the reference index; inspect the actual designated master. A multi-region request is one collection, not independent image tasks.
 2. **Define the shared brief.** Record purpose, final dimensions, framing, visual scale, style constraints, and continuity, with separate scenery descriptions. Reuse the same master and style block for every region and delegated task.
 3. **Generate as a coordinated set.** Supply the master image on every supported call. Keep the base prompt/settings stable; retain the actual tool outputs with their real filenames. New candidates remain unapproved until reviewed.
-4. **Verify final files.** Inspect each actual exported file and read its real dimensions. Area panoramas must be 1600 × 440 px. A requested size or filename is not proof of the output size. Any crop/resample must preserve the agreed framing without stretching, and its final export must be reviewed again. Report unsupported export limitations instead of claiming success.
-5. **Compare the whole set.** Display the actual final files side by side with the master at equal scale, both full size and intended in-game size. For area sets, review beach, forest, and meadows together. Check line weight, hatching, grayscale, contrast, detail density, white space, framing, and visual scale. Individual approval-quality images can still fail as a collection.
+4. **Verify final files.** Inspect each actual exported file and read its real dimensions. A requested size or filename is not proof of the output size. Any crop/resample must preserve the agreed framing without stretching, and its final export must be reviewed again. Report unsupported export limitations instead of claiming success.
+5. **Compare related files.** Display any actual collection files side by side with the master at equal scale, both full size and intended in-game size. Check line weight, hatching, grayscale, contrast, detail density, white space, framing, and visual scale. Individual approval-quality images can still fail as a collection. This does not call for new area headers under the current one-banner design.
 6. **Reject drift before delivery.** Regenerate or simplify any inconsistent member against the same master. Remove hatch groups, clutter, and tonal variation first. Replacing or editing one member requires comparing the complete set again; do not deliver a known mismatch as finished.
 7. **Check in context.** Review final artwork against the mostly white game UI. Artwork should complement the text, not become the primary interface.
 8. **Present truthful previews.** Follow the file/preview requirements below. Request approval for a new master/category or unresolved matching choice, with concrete inspected candidates; never silently accept inconsistency.
@@ -203,9 +211,8 @@ Before adding any asset, confirm:
 - [ ] Preserves established island geography and item design where applicable.
 - [ ] No unrelated objects, people, or decorative flourishes.
 - [ ] Reviewed alongside existing assets, not in isolation.
-- [ ] Every collection member used the same actual approved master and shared style brief.
-- [ ] Complete area set compared side by side at equal scale; no stylistic outlier remains.
-- [ ] Final area files verified as 1600 × 440 px with consistent framing and visual scale.
+- [ ] If generating a collection, every member used the same actual approved master and shared style brief.
+- [ ] The shared top image is inspected at full size and in its 40:11 display crop, without stretching.
 - [ ] Every preview comes from the inspected final file, with a source path and verified dimensions.
 - [ ] Set record identifies the master, outputs, checksums, review result, and approval status.
 

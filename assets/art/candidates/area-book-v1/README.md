@@ -1,15 +1,16 @@
-# Area book collection — unapproved master candidate
+# Island panorama — proposal and review history
 
-Status: **revised after user rejected the first preview; awaiting review**. No region references either candidate.
-Milestones 1–3 are committed and pushed. Milestone 4 is not delivered.
-Those earlier changes were merged in PR #8. This packet is a separate draft-PR review
-checkpoint on `art/area-master-review`, based on the merged main branch.
+Status: **the revised image is selected for the current game-wide top banner**. The user
+requested one image across every location, then asked to implement the current proposal before
+further frame/footer work. The runtime copy is
+[`public/illustrations/island-panorama.png`](../../../../public/illustrations/island-panorama.png).
+The older rejected candidate and preview screenshots remain here as history.
 
 The approved simpler beach image discussed in another chat was not available in the
 repository. The local `Downloads/beach.png` and similarly named engraved beach file were
 inspected: both depict the same dense geography reference, not a designated simplified master.
 
-## Current revised candidate
+## Selected source and production copy
 
 - File: [beach-master-candidate-v2.png](beach-master-candidate-v2.png)
 - Verified dimensions: **2116 × 743 px**, PNG. This is not a 1600 × 440 export.
@@ -18,7 +19,12 @@ inspected: both depict the same dense geography reference, not a designated simp
 - Original tool output: `exec-be767c19-70fe-4dca-bcb0-d77f995dbd74.png` in generated-images collection `01a153fe-393f-7800-81aa-0fcf182be204`.
 - The panoramic UI reference supplied composition and engraving treatment; the island engraving supplied geography. Neither reference's parchment/tint, interface, or dense all-over hatching was requested.
 
-The first preview failed visual review: its almost uniform outlines and weak tonal depth did not resemble the supplied engraved book-page design. This revised file uses selectively hatched cliff and rock planes, darker foreground anchors, and a lighter mountain/sky. It remains a **candidate**, not an approved master or production asset. Its generated dimensions still require a verified final export before any game integration.
+The first preview failed visual review: its uniform outlines and weak tonal depth did not
+resemble the supplied book-page design. The revised source has selectively hatched cliff and
+rock planes, foreground shadows, and a lighter mountain. The production copy has the **same
+checksum** and actual dimensions. `content/game.json` selects it once for every location and
+tab. The 40:11 slot crops it with CSS `object-fit: cover` and `object-position: 50% 55%`, without
+resampling or stretching.
 
 ## Rejected earlier candidate and preview history
 
@@ -40,15 +46,14 @@ shading, and a quiet scene without labels or UI. Review then found the result vi
 
 ## Export limitation and review
 
-Three built-in calls requested 1600 × 440 or its 40:11 ratio; none produced those dimensions. No crop, resize, or overwrite has been applied to either candidate. The production catalog remains empty.
+Three built-in calls requested 1600 × 440 or its 40:11 ratio; none produced those dimensions.
+The selected 2116 × 743 image is used intact; the production catalog records the actual source
+size. No separate forest or meadows header is planned.
 
 The earlier in-context preview used the rejected image in a **40:11 CSS slot**. Its six screenshots remain as a record of the rejected presentation and must not be read as previews of the revised candidate or completed runtime integration. The revised HTML comparison below loads the revised source itself. Any future screenshot and final export must identify its actual source and dimensions.
 
-Before production integration: approve or revise the candidate style and proposed framing. After approval,
-record the actual final master path/checksum, attach that same master and unchanged shared
-style brief to every companion generation call, and review beach/forest/meadows together at
-full and in-game size. Keep final paths/dimensions/checksums and whole-set findings together.
-Only then integrate the coordinated set and deliver milestone 4.
+If the user later asks for distinct area headers, revisit the art direction and require one
+shared master and a whole-set review before generating companions.
 
 ## Inspect the revised framing and actual UI
 
@@ -61,4 +66,6 @@ Only then integrate the coordinated set and deliver milestone 4.
 - [Browser capture record](preview-record.json): revised source dimensions/checksum, CSS crop,
   six current-UI captures, and preview-only status.
 
-The six revised screenshots were captured from the running game on 2026-10-21 after the page-style CSS update, using temporary DOM insertion of the same revised source on all three tabs. The original rejected screenshots remain in the packet as history. Runtime content has no approved panorama.
+The six revised screenshots linked above were captured **before integration**, using temporary
+DOM insertion of the same source. They are review history, not proof of current runtime behavior.
+Actual game checks after integration are recorded in [the milestone log](../../../../docs/UI_REDESIGN_PROGRESS.md).

@@ -300,11 +300,13 @@ test("the game is visible and not covered on load", async ({ page }) => {
   expect(topmost).toContain("look around");
 });
 
-test("global panorama scaffold and journal heading persist across centre tabs at desktop and phone widths", async ({ page }) => {
+test("one game-wide panorama and journal heading persist across centre tabs at desktop and phone widths", async ({ page }) => {
   const panorama = page.locator("#areaPanorama");
   await expect(panorama).toHaveCount(1);
-  await expect(panorama).toBeHidden();
-  await expect(panorama).toBeEmpty();
+  await expect(panorama).toBeVisible();
+  const banner = panorama.locator("img");
+  await expect(banner).toHaveAttribute("src", /illustrations\/island-panorama\.png$/);
+  await expect(banner).toHaveJSProperty("naturalWidth", 2116);
   expect(await panorama.evaluate((el) => !!(el.compareDocumentPosition(document.querySelector("#tabs")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
   expect(await panorama.evaluate((el) => el.closest('[role="tabpanel"]') === null)).toBe(true);
   const heading = page.locator("#regionTitle");
@@ -315,7 +317,8 @@ test("global panorama scaffold and journal heading persist across centre tabs at
       await expect(heading).toBeVisible();
       await expect(heading).toHaveText("A Grey Beach");
       await expect(page.locator("#log")).toBeVisible();
-      await expect(panorama).toBeHidden();
+      await expect(panorama).toBeVisible();
+      await expect(banner).toHaveAttribute("src", /illustrations\/island-panorama\.png$/);
       const journal = (await page.locator(".journal").boundingBox())!;
       const centre = (await page.locator("main.centre").boundingBox())!;
       const side = (await page.locator("aside.side").boundingBox())!;

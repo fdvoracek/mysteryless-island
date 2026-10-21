@@ -1,13 +1,15 @@
 # Illustrated book UI delivery
 
 The user approved the implementation sequence on 2026-10-20 and requested a separate commit
-and feature-branch push for every delivered milestone. The large area panorama remains above
-the route map and all three tabs: Area, Crafting, and Building. Tab changes do not hide it.
+and feature-branch push for every delivered milestone. The top panorama is one image for the
+whole game, above the route map and Area, Crafting, and Building. Travel and tab changes do
+not change it.
 
 Milestones 1–3 were merged in PR #8 on 2026-10-20. Subsequent work starts from current main
 on `art/area-master-review`. The user rejected the first beach preview as unlike the supplied
-design. The revised checkpoint includes a new unapproved engraving candidate and a CSS pass on
-the actual game layout. This is still not a delivered artwork milestone or production integration.
+design. A revised engraved image and page-style CSS were reviewed. The user then chose one top
+image for the whole game and requested integration of the current proposal before more frame
+or footer work.
 
 Follow [VISUAL_STYLE.md](VISUAL_STYLE.md) and [ART_DIRECTION.md](ART_DIRECTION.md). The supplied
 panoramic UI mockup supplies composition and hierarchy; use a white, neutral book-page
@@ -23,10 +25,11 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
 3. **Validated artwork support — verified.** Optional content-driven illustration metadata,
    validated references, selector views, shared image rendering, reserved dimensions, alt-text
    policy, missing-image fallback, and GitHub Pages base-path compatibility. No save migration.
-4. **Coordinated region artwork — revised master candidate in review.** Locate the actual approved simpler beach master,
-   or produce a concrete master candidate for approval. Generate beach, forest, and meadows
-   against that one master, verify 1600 × 440 exports, compare the complete set, and integrate
-   the approved files on all tabs. Never substitute searched images as previews.
+4. **One game-wide panorama — implemented.** The revised beach engraving is copied unchanged
+   to `public/illustrations/island-panorama.png` and selected by `game.json` → `panorama`.
+   Its actual 2116 × 743 source is cropped without stretching in the 40:11 banner slot.
+   Region artwork is a fallback only if the global setting is removed. Separate area headers
+   are deferred by the user's direction.
 5. **Functional component styling — started early after visual feedback, incomplete.** The
    actual journal, action, and sidebar columns now have stronger book-page hierarchy. Consistent item illustrations and consumable
    rows, quantities/capacity from existing content, informational task markers, and matching
@@ -35,12 +38,9 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
    light/dark treatments, fonts, narrow screens, keyboard/touch behavior, and complete checks.
 
 Finish, inspect, verify, commit, and push each milestone before starting the next. The CSS
-correction above was requested while the artwork master remains under review; do not mark
-milestones 4 or 5 complete because of this checkpoint. Record its
-acceptance evidence here. Screenshots must show the actual running UI; artwork previews must
-show the actual exported files. A missing master does not block the first three milestones.
-Do not mark the artwork milestone delivered until its required approval and whole-set review
-are complete.
+correction was requested ahead of the remaining component work and does not mark milestone 5
+complete. Record acceptance evidence here. Screenshots must show the actual running UI and
+artwork previews must show their actual source files.
 
 ## Acceptance evidence
 
@@ -63,14 +63,13 @@ are complete.
   cached failures, stale callbacks, and removing metadata. Independent source and integration
   review found no material issues. No production assets or save changes were introduced.
   Delivered as `4b9f43b` on `feature/illustrated-book-ui`; remote commit verified.
-- Milestone 4 is not delivered: the first 2041 × 770 candidate was rejected as too flat and
-  unlike the book engraving in the reference. The revised unapproved source is 2116 × 743,
-  still not a 1600 × 440 production export. See [the revised candidate review packet](../assets/art/candidates/area-book-v1/README.md).
-  Six labelled Chromium screenshots of the actual game at 1280/375 px show the revised source
-  temporarily inserted above Area, Crafting, and Building; normal gameplay still has an empty
-  artwork catalog. The actual runtime CSS now frames the journal, centre, and sidebar and gives
-  prose and actions clearer hierarchy. Desktop and phone screenshots were inspected in both
-  themes; the page had no horizontal overflow. `npm run check` passed on the second complete
-  run (347 unit tests, production build, 28 Chromium tests); one tree-tooltip visibility check
-  failed in the first run and passed when rerun alone and in the full repeat. No companion image
-  or production integration exists yet.
+- Earlier review checkpoint: the first 2041 × 770 candidate was rejected as too flat. The
+  revised 2116 × 743 source was shown in temporary previews with a CSS page-style correction.
+  `npm run check` passed on the second complete run (347 unit tests, build, 28 Chromium tests);
+  an intermittent tree-tooltip check passed alone and in the repeat. See [the review history](../assets/art/candidates/area-book-v1/README.md).
+- Milestone 4: the user selected a **single** top image for now and asked to implement the
+  revised proposal. The production file has the same SHA-256 as the inspected source,
+  `64353ba51fdededeb848177d0080c60e8958a3e4f1e8fdacf91e403a24b28336`.
+  The actual game rendered it on Area, Crafting, and Building at 1280 and 375 px with a
+  loaded natural size of 2116 × 743, CSS cover at 50% 55%, and no horizontal page overflow.
+  `npm run check` passed (348 unit tests, production build, 28 Chromium tests). No save change.
