@@ -1,0 +1,189 @@
+{
+  "id": "forest",
+  "name": "the forest",
+  "title": "A Quiet Forest",
+  "order": 2,
+  "description": [
+    "Tall trunks, close together. The sea is only a sound now.",
+    "Trunks stand close and the light thins. Behind you, the sea is only a sound.",
+    "Among tall trees the air goes still. You can barely hear the sea."
+  ],
+  "climate": { "baseC": 18 },
+  "travelHours": 0.5,
+  "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
+  "map": { "x": 1, "y": 0 },
+  "unlockWhen": { "discovered": "forest_edge" },
+  "firstVisit": {
+    "log": [
+      "Somewhere ahead, water runs over stones.",
+      "From somewhere ahead comes the sound of running water.",
+      "You hear water trickling, somewhere deeper in."
+    ]
+  },
+  "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
+  "arrive": [
+    {
+      "text": [
+        "The trees close in again. The sea fades to a murmur.",
+        "The forest takes you in again.",
+        "Under the trees, the sea goes quiet.",
+        "Back under the trees. It is darker here, and still.",
+        "The forest again, dim and still.",
+        "Back in the green half-dark."
+      ],
+      "when": { "phase": ["dawn", "day", "dusk"] }
+    },
+    {
+      "text": [
+        "Under the trees the dark is total. You feel your way between the trunks.",
+        "In the forest at night you can't see your hands.",
+        "Pitch dark under the trees. You go slowly, hands out."
+      ],
+      "when": { "phase": ["night"] }
+    },
+    { "text": ["Dry branches everywhere.", "Deadwood all around.", "Plenty of dry branches still."] },
+    {
+      "text": [
+        "Somewhere ahead, water runs over stones.",
+        "From somewhere ahead comes the sound of running water.",
+        "You hear water trickling, somewhere deeper in."
+      ],
+      "when": { "not": { "discovered": "spring" } }
+    },
+    {
+      "text": [
+        "The spring trickles between mossy stones.",
+        "The spring is still running over the stones.",
+        "You hear the spring before you see it."
+      ],
+      "when": { "discovered": "spring" }
+    }
+  ],
+  "explore": {
+    "name": "look around",
+    "_explore": "look around: a pop-up with what you see (view lines whose 'when' holds) and the landmarks not explored yet; no time passes until you pick one",
+    "view": [
+      {
+        "text": [
+          "Tall trunks, close together. The light is dim and green.",
+          "Trees all around, close and still.",
+          "Trunks, moss, and a quiet that swallows the sea."
+        ]
+      },
+      {
+        "text": [
+          "Dead branches lie among the roots, dry enough to burn.",
+          "Deadwood everywhere under the trees.",
+          "Fallen branches, dry and light, all around."
+        ]
+      },
+      { "text": "Somewhere ahead, water runs over stones.", "when": { "not": { "discovered": "spring" } } },
+      { "text": "The spring trickles between mossy stones.", "when": { "discovered": "spring" } },
+      {
+        "text": "Small trails run under the ferns.",
+        "when": { "all": [{ "day": { "gte": 2 } }, { "not": { "discovered": "rabbit_runs" } }] }
+      }
+    ],
+    "nothingLeft": ["The trees all look the same now.", "Nothing here you have not seen.", "Only more trees."],
+    "landmarks": [
+      {
+        "id": "spring",
+        "label": "the sound of water",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Between mossy stones, a small spring. The water is clear and cold.",
+          "Water wells up between mossy stones: a spring, clear and cold.",
+          "You find where the sound comes from: a small spring among the stones. The water is clean."
+        ]
+      },
+      {
+        "id": "rabbit_runs",
+        "label": "the small trails",
+        "hours": 0.5,
+        "effort": "work",
+        "visibleWhen": { "day": { "gte": 2 } },
+        "text": [
+          "Narrow trails wind through the undergrowth, too small for anything but rabbits. Droppings, fresh. A snare could take one.",
+          "In the morning light you see them: little paths through the ferns, worn by rabbits. Snares would catch them.",
+          "Low runs under the bracken, droppings along them. Rabbits. With cord you could set snares."
+        ],
+        "siteCapabilities": ["small_game_trails"]
+      }
+    ]
+  },
+  "activities": [
+    {
+      "id": "gather_wood",
+      "name": "collect wood",
+      "hours": 0.5,
+      "effort": "work",
+      "icon": "wood",
+      "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
+      "log": [
+        "Dry branches snap underfoot.",
+        "Twigs crack under your feet.",
+        "You snap dead branches off a fallen tree.",
+        "An armful of deadwood.",
+        "You gather an armful of dry wood.",
+        "Deadwood, as much as you can carry.",
+        "Bark and twigs, dry enough to burn.",
+        "Dry bark peels off in strips.",
+        "Twigs and branches, light and dry."
+      ],
+      "_note": "no exploring needed: the forest floor is full of deadwood"
+    },
+    {
+      "id": "chop_wood",
+      "name": "chop wood",
+      "hours": 1,
+      "effort": "heavy",
+      "icon": "wood",
+      "visibleWhen": { "item": "axe" },
+      "yields": [{ "item": "timber", "min": 2, "max": 3 }],
+      "log": [
+        "The axe bites. Chips fly. A young tree comes down.",
+        "You fell a thin trunk and cut it into lengths.",
+        "Stroke after stroke, until the trunk cracks and falls."
+      ]
+    },
+    {
+      "id": "strip_bark",
+      "name": "strip bark",
+      "hours": 1,
+      "effort": "work",
+      "visibleWhen": {
+        "any": [
+          { "discovered": "cliff_shells" },
+          { "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }] }
+        ]
+      },
+      "requires": { "tool": "sharp" },
+      "yields": [{ "item": "bark_strips", "min": 4, "max": 4 }],
+      "log": [
+        "You score a young tree and peel the inner bark away in long, pale strips.",
+        "The bark comes away in strips, wet and stringy, as long as your arm.",
+        "You cut and peel, cut and peel, until you have a bundle of bark strips."
+      ]
+    },
+    {
+      "id": "drink_stream",
+      "name": "drink water",
+      "hours": 0.25,
+      "effort": "light",
+      "icon": "water",
+      "visibleWhen": { "discovered": "spring" },
+      "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
+      "tags": ["drink"],
+      "log": [
+        "Cold water from the spring, tasting of stone.",
+        "You cup your hands and drink. Cold, clean.",
+        "The water tastes of stone and moss.",
+        "You drink until your teeth ache.",
+        "You drink long and slow.",
+        "Cold water, as much as you want."
+      ]
+    }
+  ],
+  "siteCapabilities": ["camp_ground", "shelter_ground"]
+}

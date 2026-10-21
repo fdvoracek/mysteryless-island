@@ -1,8 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Browser smoke test against the production build (dist/), served by `vite preview`.
- * Run locally: npm run build && npm run test:e2e   (first time: npx playwright install chromium)
+ * Browser smoke test against a separate build of the frozen test-content fixture.
+ * `npm run test:e2e` builds dist-test first; the production build remains in dist/.
  */
 export default defineConfig({
   testDir: "e2e",
@@ -16,7 +16,7 @@ export default defineConfig({
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npx vite preview --port 4173 --strictPort",
+    command: "npx vite preview --mode engine-test --port 4173 --strictPort",
     url: "http://localhost:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

@@ -1,0 +1,24 @@
+{
+  "id": "building_tree",
+  "kind": "build",
+  "name": "building",
+  "branches": [
+    { "id": "build_camp", "name": "camp", "order": 0 },
+    { "id": "build_trapping", "name": "trapping", "order": 1 },
+    { "id": "build_preservation", "name": "preservation", "order": 2 },
+    { "id": "build_farming", "name": "farming", "order": 3 },
+    { "id": "build_water", "name": "water", "order": 4 }
+  ],
+  "nodes": [
+    { "target": "campfire", "branch": "build_camp", "after": [], "order": 0 },
+    { "target": "bed", "branch": "build_camp", "after": ["campfire"], "order": 1 },
+    { "target": "shelter", "branch": "build_camp", "after": ["bed"], "order": 2 },
+    { "target": "drying_rack", "branch": "build_preservation", "after": ["campfire"], "order": 3 },
+    { "target": "rain_barrel", "branch": "build_water", "after": ["shelter"], "order": 4 },
+    { "target": "fish_trap", "branch": "build_trapping", "after": ["campfire"], "order": 5 },
+    { "target": "snares", "branch": "build_trapping", "after": ["fish_trap"], "order": 6 },
+    { "target": "corn_field", "branch": "build_farming", "after": ["campfire"], "order": 7 },
+    { "target": "bee_hive", "branch": "build_farming", "after": ["corn_field"], "order": 8 },
+    { "target": "fish_weir", "branch": "build_trapping", "after": ["fish_trap"], "order": 9 }
+  ]
+}

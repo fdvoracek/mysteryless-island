@@ -86,7 +86,7 @@ describe("sleep always ends at 6am", () => {
     if (reason === "exhausted") e.state.stats.energy = 0.1;
     e.dispatch({ type: "travel", region: "beach" });
     expect(view(e).event).toMatchObject({ id: "note", title: "You passed out" });
-    expect(view(e).event!.text).toContain("Exhaustion leaves you sleeping on the ground");
+    expect(view(e).event!.text).toContain("You did not get to bed in time.");
     expect(view(e).event!.text).toContain("at the forest");
     expect(view(e).event!.text).toContain("New day 2 is starting.");
     expect(e.dispatch({ type: "activity", id: "sleep" })).toMatchObject({ ok: false, reason: "an event is open" });
@@ -131,7 +131,7 @@ describe("sleep always ends at 6am", () => {
     sleep(e);
     expect(e.state.location).toBe("forest");
     expect(e.state.stats.energy).toBe(50);
-    expect(e.state.log.some((line) => line.text.includes("no shelter"))).toBe(true);
+    expect(e.state.log.some((line) => line.text.includes("without shelter"))).toBe(true);
     expect(e.state.today.forest).toBeUndefined();
     expect(e.state.today.sleep).toBeUndefined();
   });
@@ -153,7 +153,7 @@ describe("sleep always ends at 6am", () => {
     expect(e.state.time).toBe(1440 + 360);
     expect(e.state.location).toBe("forest");
     expect(e.state.stats.energy).toBe(50);
-    expect(e.state.log.some((line) => line.text.startsWith("Midnight."))).toBe(true);
+    expect(e.state.log.some((line) => line.text.startsWith("It is midnight"))).toBe(true);
   });
 
   it("a collapse at midnight where there is a bed restores 80%", () => {

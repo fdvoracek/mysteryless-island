@@ -1,0 +1,109 @@
+{
+  "_note": "Survival model. All stats are 0..100. Words are picked by the first band whose upTo >= value. The panel shows each stat as an ink bar (fuller is better; hunger and thirst are drawn inverted as fullness and hydration). Health at 0 = death.",
+  "dangerAtOrBelow": 20,
+  "stats": [
+    {
+      "id": "energy",
+      "name": "energy",
+      "words": [
+        { "upTo": 20, "word": "exhausted" },
+        { "upTo": 40, "word": "weary" },
+        { "upTo": 80, "word": "tired" },
+        { "upTo": 100, "word": "rested" }
+      ]
+    },
+    {
+      "id": "health",
+      "name": "health",
+      "words": [
+        { "upTo": 20, "word": "dying" },
+        { "upTo": 40, "word": "badly hurt" },
+        { "upTo": 60, "word": "hurt" },
+        { "upTo": 80, "word": "bruised" },
+        { "upTo": 100, "word": "healthy" }
+      ]
+    },
+    {
+      "id": "hunger",
+      "name": "hunger",
+      "label": "fullness",
+      "highIsBad": true,
+      "words": [
+        { "upTo": 20, "word": "fed" },
+        { "upTo": 40, "word": "peckish" },
+        { "upTo": 80, "word": "hungry" },
+        { "upTo": 100, "word": "starving" }
+      ]
+    },
+    {
+      "id": "thirst",
+      "name": "thirst",
+      "label": "hydration",
+      "highIsBad": true,
+      "words": [
+        { "upTo": 20, "word": "quenched" },
+        { "upTo": 40, "word": "dry" },
+        { "upTo": 80, "word": "thirsty" },
+        { "upTo": 100, "word": "parched" }
+      ]
+    }
+  ],
+  "ratesPerHour": {
+    "heavy": { "hunger": 4, "thirst": 6, "energy": -8 },
+    "work": { "hunger": 3, "thirst": 5, "energy": -5 },
+    "light": { "hunger": 2, "thirst": 4, "energy": -2 },
+    "rest": { "hunger": 2, "thirst": 3, "energy": 0 },
+    "sleep": { "hunger": 1.5, "thirst": 2, "energy": 0 }
+  },
+  "multipliers": [
+    { "when": { "warmth": ["cold", "freezing"] }, "stat": "hunger", "factor": 1.25 },
+    {
+      "when": { "any": [{ "stat": "hunger", "gte": 41 }, { "stat": "thirst", "gte": 41 }] },
+      "stat": "energy",
+      "factor": 1.5
+    },
+    {
+      "when": { "all": [{ "stat": "hunger", "lte": 20 }, { "stat": "thirst", "lte": 20 }] },
+      "stat": "energy",
+      "factor": 0.5
+    }
+  ],
+  "damage": [
+    {
+      "when": { "warmth": ["freezing"] },
+      "healthPerHour": -3,
+      "log": ["The cold is in your bones.", "You can't stop shivering.", "The cold numbs your fingers."],
+      "cause": "cold"
+    }
+  ],
+  "regen": [
+    {
+      "when": {
+        "all": [
+          { "stat": "hunger", "lte": 50 },
+          { "stat": "thirst", "lte": 50 },
+          { "warmth": ["comfortable"] }
+        ]
+      },
+      "healthPerHour": 1
+    },
+    {
+      "when": {
+        "all": [{ "effort": ["sleep"] }, { "stat": "hunger", "lte": 50 }, { "stat": "thirst", "lte": 50 }]
+      },
+      "healthPerHour": 2
+    },
+    {
+      "when": {
+        "all": [
+          { "effort": ["sleep"] },
+          { "built": "bed", "here": true },
+          { "at": "beach" },
+          { "stat": "hunger", "lte": 50 },
+          { "stat": "thirst", "lte": 50 }
+        ]
+      },
+      "healthPerHour": 1
+    }
+  ]
+}

@@ -7,12 +7,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:test": "vite build --mode engine-test",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "content:check": "vitest run tests/content.test.ts",
-    "test:e2e": "playwright test",
-    "check": "npm test && npm run build && npm run test:e2e",
+    "content:check": "vitest run --config vitest.content.config.ts",
+    "test:e2e": "npm run build:test && playwright test",
+    "check": "npm test && npm run content:check && npm run build && npm run test:e2e",
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {

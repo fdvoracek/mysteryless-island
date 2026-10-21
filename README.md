@@ -9,14 +9,19 @@ Play: <https://fdvoracek.github.io/mysteryless-island/> (deployed by GitHub Acti
 ```bash
 npm install
 npm run dev          # http://localhost:5173
-npm test             # engine + content tests
-npm run content:check
+npm test             # engine and UI behavior against frozen test content
+npm run content:check # shipped content schema and reference validation
 npm run build        # static build in dist/
-npm run test:e2e     # browser smoke test of dist/ (first time: npx playwright install chromium)
-npm run check        # everything CI runs: unit tests, build, browser test
+npm run test:e2e     # builds dist-test/ and runs browser smoke tests (first time: npx playwright install chromium)
+npm run check        # everything CI runs: tests, content validation, production build, browser test
 ```
 
 `git push` to `main` runs `npm run check` first (a pre-push hook in `.githooks/`, set up by `npm install`) and stops the push if anything fails; `git push --no-verify` skips it once.
+
+Tests use the fixed definitions in `tests/fixtures/content/`, so editing the shipped game's
+wording does not change engine or browser expectations. `npm run content:check` separately
+validates production `content/` for schema and reference errors. The Pages build uses the
+production data in `dist/`; browser tests build their own `dist-test/` bundle.
 
 Pacing: every game hour takes 10 real seconds (`content/game.json` → `cosmetic.msPerHour`). During crafting, building, travel, exploration, and other timed actions, the clock advances in 15-minute steps, every 2.5 real seconds. Survival stats and timers advance with each step; items, buildings, arrival, and completion notes appear when the work finishes. Sleep jumps immediately to the next 6am. Switching centre tabs or choosing ordinary event text takes no time. New actions stay locked during work, but tab navigation remains usable. Add `?speed=0.2` to make bars 5× faster while testing.
 
