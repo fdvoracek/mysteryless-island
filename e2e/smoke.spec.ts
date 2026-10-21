@@ -865,6 +865,10 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
       await expect(tooltip(page)).toBeHidden();
       await chip.locator(".tree-info").click();
       await expect(tooltip(page)).toBeVisible();
+      // Focus and layout can produce a late scroll event after inspection opens.
+      // It must not dismiss an explicitly pinned hint before it can be read.
+      await scroller.evaluate((el) => el.dispatchEvent(new Event("scroll")));
+      await expect(tooltip(page)).toBeVisible();
       await expect(tooltip(page).locator(".tree-category")).not.toBeEmpty();
       await expect(tooltip(page)).toContainText(kind === "build" ? "personally build campfire" : "personally craft rock knife");
       const tipBox = (await tooltip(page).boundingBox())!;

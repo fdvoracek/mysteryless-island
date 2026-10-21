@@ -43,9 +43,11 @@ export class TreeTooltip {
     });
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") this.hide(true); });
     window.addEventListener("resize", () => this.hide());
-    // Includes page scrolling and either tree's own bounded scroll area.
+    // Includes page scrolling and either tree's own bounded scroll area. Keep
+    // explicit inspection open through incidental focus/layout scroll events;
+    // dragging still dismisses it through setPanning().
     document.addEventListener("scroll", (event) => {
-      if (this.pinned && this.element.contains(event.target as Node)) return;
+      if (this.pinned) { if (!this.element.contains(event.target as Node)) this.position(); return; }
       this.hide();
     }, true);
     this.element.addEventListener("blur", (event) => {
