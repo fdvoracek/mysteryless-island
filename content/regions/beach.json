@@ -4,9 +4,9 @@
   "title": "A Grey Beach",
   "order": 1,
   "description": [
-    "Wet sand, broken shells, a line of wrack. The wind never quite stops.",
-    "Wet sand and broken shells, and a line of wrack. The wind does not stop.",
-    "Grey sand, grey sea, a line of wrack. The wind is always here."
+    "Before you stretches a desolate strand of damp sand, strewn with broken shells and the refuse of the tide. A persistent wind sweeps in from the sea.",
+    "The grey beach extends beneath a restless sky. Shell fragments lie among the seaweed deposited by the last tide, and the wind affords scarcely a moment's respite.",
+    "On one side lies the open sea; on the other, dunes of pale sand. Between them runs a narrow shore marked by wrack and shells, where the wind is never quite still."
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
@@ -17,20 +17,20 @@
   "arrive": [
     {
       "text": [
-        "Back on the sand. The wind finds you at once.",
-        "The sand again, and the wind with it.",
-        "You come out onto the beach. The wind is waiting.",
-        "The beach again: wet sand, a line of wrack.",
-        "The beach: the same wet sand, the same wrack.",
-        "Wet sand underfoot again. Wrack along the tide line."
+        "The familiar beach opens before you, and the salt wind meets you at once.",
+        "You emerge upon the shore once more, where sand and wind appear unchanged.",
+        "The sea comes into view, and with it the beach exposed to every passing gust.",
+        "You return to the damp strand, its tide line darkened by seaweed.",
+        "The beach presents its customary aspect: wet sand, scattered shells, and a line of wrack.",
+        "Beneath your feet the sand is firm with moisture; the tide has left its debris in a winding line."
       ],
       "when": { "phase": ["dawn", "day", "dusk"] }
     },
     {
       "text": [
-        "The beach in the dark. Only the surf, and a pale line of foam.",
-        "In the dark the beach is only sound: the surf, the wind.",
-        "Night on the beach. The foam glows faintly at the water's edge."
+        "Darkness has concealed the beach, though each breaking wave shows a pale crest of foam.",
+        "At night the coast can scarcely be distinguished; only wind and surf betray the direction of the sea.",
+        "The shore lies obscure beneath the night sky, save where the surf traces a faint white line."
       ],
       "when": { "phase": ["night"] }
     },
@@ -73,42 +73,42 @@
     "view": [
       {
         "text": [
-          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line.",
-          "The beach stretches both ways, grey and empty. Wrack marks the tide line.",
-          "Sand, wrack and broken shells, as far as you can see."
+          "The grey strand stretches in either direction until it disappears beyond the bends of the coast. Broken shells and long banks of wrack mark the reach of the tide.",
+          "From this point you can follow the empty beach with your eyes for some distance. Its upper margin is strewn with shells and seaweed.",
+          "Sand and fragments cast up by the waves cover the shore; beyond its distant curves, the course of the coastline remains unknown."
         ]
       },
       {
-        "text": "Behind the dunes, a dark line of trees.",
+        "text": "Beyond the dunes you distinguish a continuous dark belt of trees.",
         "when": { "not": { "discovered": "forest_edge" } }
       },
-      { "text": "Behind the dunes, the forest.", "when": { "discovered": "forest_edge" } },
+      { "text": "Beyond the sandy ridges begins the forest, its foliage closing over the inland ground.", "when": { "discovered": "forest_edge" } },
       {
-        "text": "At the far end of the beach, a ring of dark rocks.",
+        "text": "At the farther extremity of the beach, dark rocks stand together in an irregular ring.",
         "when": { "not": { "discovered": "rock_shelter" } }
       },
       {
-        "text": "At the far end, the ring of rocks, out of the wind.",
+        "text": "The cluster of rocks at the end of the shore offers a refuge from the prevailing wind.",
         "when": { "discovered": "rock_shelter" }
       },
-      { "text": "Smoke rises from the rocks.", "when": { "timer": "fire" } },
+      { "text": "A thin column of smoke rises above the rocks and disperses in the sea breeze.", "when": { "timer": "fire" } },
       {
-        "text": "Past the rocks, a low cliff drops into the surf.",
+        "text": "Past the rocks, a low cliff ends abruptly in the surf.",
         "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "discovered": "cliff_shells" } }] }
       },
-      { "text": "Under the cliff, shells on the wet stone.", "when": { "discovered": "cliff_shells" } },
+      { "text": "Molluscs cling in numbers to the wet stone beneath the cliff.", "when": { "discovered": "cliff_shells" } },
       {
-        "text": "The cliff above them is steep. With a rope, it could be climbed.",
+        "text": "The face of the cliff is steep, though a securely fastened rope might make its ascent possible.",
         "when": { "all": [{ "discovered": "cliff_shells" }, { "not": { "discovered": "cliff_top" } }] }
       },
-      { "text": "Beyond the cliff, to the west, the meadows.", "when": { "discovered": "cliff_top" } },
-      { "text": "Something flashes in the shallows.", "when": { "not": { "discovered": "school_of_fish" } } },
-      { "text": "Fish turn in the shallows.", "when": { "discovered": "school_of_fish" } }
+      { "text": "Beyond the cliff, towards the west, the ground opens into broad meadows.", "when": { "discovered": "cliff_top" } },
+      { "text": "An occasional silver flash betrays movement in the shallow water.", "when": { "not": { "discovered": "school_of_fish" } } },
+      { "text": "A school of small fish turns and scatters among the shallows.", "when": { "discovered": "school_of_fish" } }
     ],
     "nothingLeft": [
-      "There is nothing here you have not seen.",
-      "You know this beach now.",
-      "Nothing new along the shore."
+      "A further survey of the shore reveals no feature overlooked before.",
+      "By now the principal features of this stretch of coast are familiar to you.",
+      "The tide may bring other things in time, but today the shore yields no new discovery."
     ],
     "landmarks": [
       {
@@ -117,9 +117,9 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "You climb the dunes. From the top the beach runs both ways until it bends out of sight. Behind them the trees begin. A forest, close and hard to miss.",
-          "Up the soft sand of the dunes. On the other side, trunks and shade: a forest, close enough to walk to.",
-          "From the crest of the dunes you see the island's edge give way to trees. A forest, an hour's walk at most."
+          "You climb the loose sand of the dunes, gaining a better view of the country. Behind the crest the coast gives way to a dense forest, near enough to reach on foot; whether it offers fresh water or useful timber remains to be learned.",
+          "From the summit of the dunes you observe a line of tall trees on the landward side. The forest begins within a short walk, promising shade and perhaps a different class of resources.",
+          "The climb is laborious in the soft sand, but it reveals the first distinct feature of the island's interior: a forest, scarcely an hour's walk away."
         ]
       },
       {
@@ -128,9 +128,9 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "At the far end of the beach, a ring of rocks breaks the sea wind. It is a natural shelter. You can make a bed here, and build a campfire for warmth.",
-          "Rocks stand in a ring, out of the wind. A natural shelter, ready for a bed and a campfire.",
-          "The wind cannot reach inside the rock formation. Shelter already made. You can build a bed and a campfire here."
+          "At the end of the beach, a natural ring of rocks breaks the full force of the sea wind. Its enclosed ground would serve admirably for a bed, and a hearth could be established there with little labour.",
+          "The formation proves more useful on inspection than from a distance. The rocks shut out much of the wind, leaving a space in which to sleep and maintain a campfire.",
+          "Between the boulders you find a sheltered hollow. Nature has supplied the walls; a bed and a fire would be enough to make it a serviceable first camp."
         ],
         "siteCapabilities": ["camp_ground", "coastal_camp"]
       },
@@ -141,9 +141,9 @@
         "effort": "work",
         "visibleWhen": { "discovered": "rock_shelter" },
         "text": [
-          "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it. You could pick them and eat them as they are. Cooked, they would go further.",
-          "Beyond the rocks, a low cliff meets the sea. Shells crowd the wet stone at its foot. You could eat them raw, or cook them for more.",
-          "Under a low cliff past the rocks, shells cover the wet stone. Food, of a kind: raw, or better cooked."
+          "Beneath a low cliff the retreating tide exposes stones thickly covered with shellfish. They may be eaten raw, though heat would render this modest resource more nourishing.",
+          "The wet rock at the cliff's foot is occupied by countless shells. Here, at least, the sea offers food without the need for a boat; it would be better still when cooked.",
+          "You examine the cliff and discover an accessible bed of shellfish upon the stones below. They promise an immediate meal, and a better one if a fire can be made."
         ]
       },
       {
@@ -152,9 +152,9 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
-          "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",
-          "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them."
+          "A school of small fish moves through the shallows in quick, coordinated turns. Too swift for the unaided hand, they might nevertheless be taken with a properly sharpened spear.",
+          "The water is shallow enough to wade, and fish are plentiful; but their movements are exceedingly rapid. A pointed stick would greatly improve your chances.",
+          "Silver bodies dart through the clear water close to shore. The fish cannot be grasped by hand, but they remain within reach of a spear."
         ],
         "siteCapabilities": ["fishable_water"]
       },
@@ -165,9 +165,9 @@
         "effort": "work",
         "visibleWhen": { "discovered": "cliff_shells" },
         "text": [
-          "You tie the rope around a rock and climb, hand over hand. From the top the land opens out to the west: long grass in waves, bushes, a line of willows. Meadows, an hour's walk away.",
-          "With the rope looped round a boulder you haul yourself up, the wind pulling at you. At the top you see what the cliff was hiding: meadows to the west, wide and green, an hour away.",
-          "The rope holds. The climb is short but steep. From the top, inland to the west, grass rolls away under the wind: meadows, maybe an hour's walk."
+          "Having secured the rope about a firm boulder, you ascend the cliff with considerable caution. From its summit the western country comes into view: a broad expanse of grassland, dotted with bushes and willows, perhaps an hour's walk away.",
+          "The rope bears your weight as you climb the steep face. At the top you discover what the cliffs had concealed: meadows extending westward, their long grasses stirred by the wind.",
+          "The ascent is short, but there is little secure footing. Once above the cliff, you observe a new region to the west, where meadows sweep towards a line of willows about an hour distant."
         ],
         "requires": { "item": "cordage" },
         "requiresText": "Too steep to climb without a rope"
@@ -220,18 +220,18 @@
         {
           "weight": 2,
           "text": [
-            "A spark holds. You blow, and it becomes a flame.",
-            "One spark lands right. Smoke, a glow, then fire.",
-            "The tinder catches at last. You feed it twig by twig."
+            "At last one of the sparks lodges in the tinder. A cautious breath enlarges the glow into a flame.",
+            "The dry fibres begin to smoke; an instant later a small flame rises among them.",
+            "A single spark persists long enough to kindle the grass. You feed it slender twigs until the fire is secure."
           ],
           "effects": [{"take": {"firewood": 3}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
           "text": [
-            "The sparks die in the tinder, one after another. Not this time.",
-            "Smoke, then nothing. The wood will keep for another try.",
-            "Your hands are numb before a spark holds."
+            "The sparks expire upon the tinder almost as soon as they fall. The attempt has failed, but the materials remain.",
+            "A little smoke appears, then vanishes. The wood is still fit for another trial.",
+            "Repeated blows yield nothing but fleeting sparks, and your hands are numbed by the effort."
           ]
         }
       ],
@@ -264,18 +264,18 @@
         {
           "weight": 2,
           "text": [
-            "A glow, a breath, and at last a flame. The fire takes.",
-            "The wisp of smoke becomes an ember, then a flame.",
-            "Finally, a flame. You feed it, careful as with a newborn."
+            "A dark ember forms in the powdered wood. Carefully nursed with air and tinder, it becomes a flame.",
+            "The faint smoke increases, and a glowing coal at last sets fire to the dry fibres.",
+            "Your persistence is rewarded: a small flame rises from the tinder, and you add fuel with great care."
           ],
           "effects": [{"take": {"firewood": 5}}, {"timer": "fire", "addHours": 6}]
         },
         {
           "weight": 1,
           "text": [
-            "Smoke, but no flame. The wood will do for another try.",
-            "The ember dies before it catches. You keep the wood.",
-            "Your hands give out first. No fire, not yet."
+            "Smoke appears, but the wood never reaches the heat required for flame. It may be tried again.",
+            "The forming ember is extinguished before it can kindle the grass. The materials are not lost.",
+            "At length fatigue compels you to stop; the sticks have yielded no fire."
           ]
         }
       ],
@@ -346,27 +346,27 @@
         {
           "weight": 4,
           "text": [
-            "Two fish, flapping on the sand.",
-            "Two fish, one on each strike.",
-            "Two fish thrash on the sand."
+            "Two fish lie upon the sand, taken by successive strokes of the spear.",
+            "Your patience has secured two fish from the shallow water.",
+            "Two small fish struggle briefly upon the shore: a useful return for the effort."
           ],
           "effects": [{ "give": { "raw_fish": 2 } }]
         },
         {
           "weight": 4,
           "text": [
-            "One fish. It will do.",
-            "One fish, wriggling on the point.",
-            "A single fish. Enough for now."
+            "A single fish is taken. It will provide at least one meal.",
+            "The spear rises with one fish upon its point.",
+            "Your effort produces one fish, a modest but welcome catch."
           ],
           "effects": [{ "give": { "raw_fish": 1 } }]
         },
         {
           "weight": 2,
           "text": [
-            "Nothing. The fish are quicker than you.",
-            "Nothing. They scatter every time.",
-            "The water swirls. The spear comes up empty."
+            "The fish turn aside before the spear can reach them.",
+            "At each movement the school disperses into deeper water.",
+            "The water clouds around the spear, which returns without a catch."
           ]
         }
       ],
