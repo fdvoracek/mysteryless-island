@@ -40,6 +40,16 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
+## Content Studio program — confirmed future direction, not implemented
+
+As confirmed in the design discussion on 2026-10-21, build **one npm-workspaces monorepo with two independent web apps**: keep the existing non-React player game, add a separate React/Vite Content Studio, and extract a shared typed content-model, pure simulation engine and deterministic content-compiler incrementally. The studio will support no-code authoring of all currently supported gameplay vocabulary and handcrafted modal/journal texts, without forking engine rules. Git-tracked authored data and Git review remain the release foundation. The planned hosted URLs are /mysteryless-island/ and /mysteryless-island/studio/; hosted editing authentication/backend is NOT yet decided. GitHub Pages by itself is static and cannot securely accept writes.
+
+Detailed scope, decision gates and acceptance criteria are in [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md), PR-01 through PR-30. **Each numbered deliverable is a separate, independently mergeable PR; every merged PR leaves the player game fully playable and testable.** Current code/layout remains authoritative until individual PRs implement changes. Do not treat planned source paths as already present. Gameplay invariant tests remain deterministic and use frozen content; align browser testing with [docs/TESTING.md](docs/TESTING.md).
+
+**Save-compatibility decision (2026-10-21):** the owner is the only tester and explicitly accepts abandoning existing saves during this migration. Do not implement migration code solely to preserve earlier save versions. If a PR changes save schema, bump the version and give a clear fresh-game recovery path. In the **current PR** a new game must start, play, save and reload correctly. No merged PR may break player gameplay, production validation or the runtime build.
+
+**Still open:** hosted/local editing scope and authorization, exact canonical source format beyond existing JSON, localization switching/completeness policy, whether authored travel edges will replace current camp-centered routes, media hosting and public Studio availability. Ask the owner before implementing any affected milestone; record decision and rationale here.
+
 ## Crafting and building trees — implemented
 
 **Implemented:** shared creation trees replace craft/build popups and quest-gated creation.
