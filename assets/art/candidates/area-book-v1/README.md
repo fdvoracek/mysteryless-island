@@ -23,7 +23,8 @@ The first preview failed visual review: its uniform outlines and weak tonal dept
 resemble the supplied book-page design. The revised source has selectively hatched cliff and
 rock planes, foreground shadows, and a lighter mountain. The production copy has the **same
 checksum** and actual dimensions. `content/game.json` selects it once for every location and
-tab. The 40:11 slot crops it with CSS `object-fit: cover` and `object-position: 50% 55%`, without
+tab. The current 160:33 slot (25% shorter than the initial 40:11 proposal) crops it with CSS
+`object-fit: cover` and `object-position: 50% 55%`, without
 resampling or stretching.
 
 ## Rejected earlier candidate and preview history
