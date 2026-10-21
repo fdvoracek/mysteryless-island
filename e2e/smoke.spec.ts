@@ -551,6 +551,8 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await page.locator("#craftTab").dispatchEvent("click");
   const busyInfo = node(page, "craft", "craft_spear").locator(".tree-info");
   await busyInfo.focus();
+  // Focusing a node can scroll the tree after its hint opens.
+  await busyInfo.evaluate((el) => el.closest(".tree-scroll")!.dispatchEvent(new Event("scroll")));
   await expect(tooltip(page)).toBeVisible();
   await busyInfo.evaluate((el) => { (el as HTMLElement).dataset.testIdentity = "preserved"; });
   await node(page, "craft", "craft_spear").locator(".btn").dispatchEvent("click");
