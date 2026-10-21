@@ -90,7 +90,7 @@ starting with the shared book-page typography, spacing, outlines, and light/dark
 For artwork, place files in `public/illustrations/`, register their ID, relative path,
 actual dimensions, and description in `content/artwork.json`. Set `game.json` → `panorama`
 for the one shared header, or use `artwork: "<id>"` on an item or building. The header displays
-in a 40:11 crop without stretching the source. Follow the art guide before creating or replacing
+in a 160:33 crop without stretching the source. Follow the art guide before creating or replacing
 images; the shared renderer handles Pages paths and both themes.
 
 ## Adding content (no code changes)

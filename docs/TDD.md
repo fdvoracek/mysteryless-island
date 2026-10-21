@@ -701,7 +701,7 @@ interface SaveFile {
   per slot to avoid repeated requests; stale image events cannot replace a newer image.
   Monochrome ink uses multiply blending in light mode and inverted screen blending in dark
   mode. No artwork enters saves or changes gameplay. The shared panorama is the one selected
-  island image, recorded at its actual 2116 × 743 source size and cropped in CSS to a 40:11 slot.
+  island image, recorded at its actual 2116 × 743 source size and cropped in CSS to a 160:33 slot.
 - **Input:** mouse first; keyboard shortcuts for tabs (1–7) and for event choices (1–4) **[proposal]**.
 
 ---
