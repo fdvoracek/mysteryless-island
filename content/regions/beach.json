@@ -4,9 +4,9 @@
   "title": "A Grey Beach",
   "order": 1,
   "description": [
-    "Wet sand, broken shells, a line of wrack. The wind never quite stops.",
-    "Wet sand and broken shells, and a line of wrack. The wind does not stop.",
-    "Grey sand, grey sea, a line of wrack. The wind is always here."
+    "Grey sand and broken shells stretch along the wind-scoured shore.",
+    "The tide leaves wrack upon the sand; the sea wind never rests.",
+    "Open sea before you, dunes behind. The beach offers little shelter."
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
