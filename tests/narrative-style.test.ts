@@ -12,10 +12,10 @@ const journalKeys = new Set([
 ]);
 
 function modalOnly(file: string, path: string): boolean {
-  if (file.startsWith("content/events/") && /\\.text(?:\\[\\d+\\])?$/.test(path)) return true;
-  if (file.startsWith("content/regions/") && /(?:^|\\.)explore\\.(view|landmarks|nothingLeft)/.test(path)
-    && !/\\.journal(?:\\[\\d+\\])?$/.test(path)) return true;
-  if (file === "content/game.json" && /^(newPlace|ending|tasks|provisions\\.preparation)\\./.test(path)) return true;
+  if (file.startsWith("content/events/") && /\.text(?:\[\d+\])?$/.test(path)) return true;
+  if (file.startsWith("content/regions/") && /(?:^|\.)explore\.(view|landmarks|nothingLeft)/.test(path)
+    && !/\.journal(?:\[\d+\])?$/.test(path)) return true;
+  if (file === "content/game.json" && /^(newPlace|ending|tasks|provisions\.preparation)\./.test(path)) return true;
   return false;
 }
 
