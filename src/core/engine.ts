@@ -294,8 +294,8 @@ export class Engine {
     const scene = event.scenes[sceneId];
     const text = this.say(scene.text)!;
     this.state.events.active = { kind: "event", event: event.id, scene: sceneId, text };
-    // the event is part of the story: its pages go into the journal too, in the order they happen
-    this.logStory(text);
+    // Record the event in the narrow journal without repeating its full modal prose.
+    this.logStory(this.say(scene.journal) ?? text);
     this.applyEffects(scene.effects);
   }
 
@@ -748,7 +748,8 @@ export class Engine {
     if (!fresh) return;
     const text = [this.say(missing.length === 2 ? p.both : p[missing[0]]),
       prepare ? this.say(p.preparation.text) : undefined].filter(Boolean).join("\n\n");
-    this.log(text);
+    // Keep the full guidance in the note; the narrow journal only reports the shortage.
+    this.log(this.say(missing.length === 2 ? p.both : p[missing[0]]));
     (this.state.events.notes ??= []).push({ title: this.say(p.title)!, text });
   }
 
@@ -978,7 +979,7 @@ export class Engine {
         this.remember(d.id);
         const text = this.say(d.text)!;
         this.state.events.active = { kind: "exploration", region: work.region, landmark: d.id, text };
-        this.logStory(text);
+        this.logStory(this.say(d.journal) ?? text);
         this.applyEffects(d.effects);
         if (this.state.dead) this.state.events.active = null;
         break;
