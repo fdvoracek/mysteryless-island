@@ -95,7 +95,8 @@
           "Following the sound, you come upon a spring issuing between stones green with moss. Its water is clear and remarkably cold: a discovery of no small importance.",
           "A little current wells up from the earth at the foot of a rock, then runs between mossy stones. Here is fresh water, apparently clean and easily obtained.",
           "The source of the murmur proves to be a small spring, whose transparent water escapes between stones. The island has furnished one of the first necessities of life."
-        ]
+        ],
+        "journal": "You discover a freshwater spring among mossy stones."
       },
       {
         "id": "rabbit_runs",
@@ -108,6 +109,7 @@
           "On closer inspection the little trails prove to be worn by rabbits. The paths are so regular that a snare could be set across them with good prospects of success.",
           "A network of passages through the low vegetation, together with fresh droppings, betrays the presence of rabbits. Cord and patience might turn these signs to advantage."
         ],
+        "journal": "Rabbit trails cross the undergrowth. You could set snares.",
         "siteCapabilities": ["small_game_trails"]
       }
     ]
