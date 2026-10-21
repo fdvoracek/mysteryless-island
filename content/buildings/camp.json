@@ -10,9 +10,9 @@
       "effort": "heavy",
       "cost": { "timber": 4 },
       "log": [
-        "You incline stout logs against a simple frame and close the openings with branches to exclude the wind.",
-        "One timber after another is set in place; smaller branches make the rough habitation nearly proof against the weather.",
-        "By wedging the logs closely together, you contrive a shelter through which little wind can pass."
+        "You lean logs into a frame and pack the gaps with branches.",
+        "Log by log, a lean-to rises. You pack the gaps against the wind.",
+        "You wedge the logs together until the wind cannot get in."
       ],
       "requires": { "all": [{ "site": "shelter_ground" }, { "sheltered": false }] }
     },
@@ -30,8 +30,8 @@
       "effort": "work",
       "cost": { "timber": 2, "firewood": 4 },
       "log": [
-        "Two logs form the bed's framework; across them you arrange a springy layer of branches.",
-        "You assemble a low wooden frame and cover it thickly with boughs. The structure creaks, but holds your weight.",
+        "You lash two logs into a frame and heap it with springy branches.",
+        "You assemble a low wooden frame and cover it thickly with boughs.",
         "A narrow bed of timber and branches now raises you above the cold ground."
       ],
       "requires": {"sheltered": true}
@@ -48,8 +48,8 @@
       "effort": "work",
       "cost": { "timber": 2 },
       "log": [
-        "You plant two uprights firmly in the sand and connect them with a crosspiece suitable for hanging food.",
-        "Two posts support a wooden crossbar near the fire, where warm smoke may preserve provisions.",
+        "You drive two logs into the sand by the fire and lay a third across them.",
+        "Two uprights, a crossbar: a rack beside the fire, where the smoke drifts.",
         "You erect the rack downwind of the hearth, where fish and meat may dry slowly."
       ],
       "requires": { "site": "coastal_camp" }
@@ -79,7 +79,7 @@
         ],
         "log": [
           "The preserved food has become firm and dark during its time above the fire.",
-          "You remove the dried provisions, hard to the touch and strongly scented with smoke.",
+          "Dry, hard, smelling of smoke. They will keep.",
           "The food leaves the rack thoroughly dry, and should now keep far longer."
         ]
       },
@@ -97,8 +97,8 @@
       "effort": "heavy",
       "cost": { "timber": 3 },
       "log": [
-        "You hollow a suitable log with the axe, then place it where rain runs from the shelter's edge.",
-        "Repeated strokes remove the timber's heartwood, leaving a barrel to catch the water descending from the roof.",
+        "You hollow a log with the axe and set it under the edge of the shelter.",
+        "Hour by hour the axe hollows the log.",
         "The hollow trunk is set upright beneath the eaves, ready for the next shower."
       ],
       "requires": { "all": [{ "site": "coastal_camp" }, { "sheltered": true }] }
@@ -144,9 +144,9 @@
       "effort": "work",
       "cost": { "willow_twigs": 20 },
       "log": [
-        "You weave flexible willow shoots into a long basket with a narrow, funnel-shaped entrance.",
+        "You weave the willow into a long basket with a funnel at the mouth.",
         "By crossing and bending the willow twigs, you fashion a trap through which fish may enter but cannot readily escape.",
-        "The yielding willow is woven into a strong basket, its mouth narrowing towards the interior."
+        "You bend and weave the willow until you have a trap with a narrow mouth."
       ],
       "requires": { "site": "fishable_water" }
     },
@@ -193,7 +193,7 @@
       "cost": { "cordage": 1, "firewood": 2 },
       "log": [
         "You fashion running nooses of cord and fix them across the narrow animal tracks.",
-        "Each noose is held open a little above the ground at a point where the trail contracts.",
+        "Nooses of cord, pegged a hand above the ground where the trails narrow.",
         "The snares are carefully knotted and pegged along the familiar rabbit runs."
       ],
       "requires": { "site": "small_game_trails" }
@@ -260,8 +260,8 @@
       "effects": [{ "startCycle": "corn_field", "units": 1 }],
       "log": [
         "You turn the soil with the hoe and place the kernels carefully in ordered rows.",
-        "After many hours spent breaking the turf, the field shows neat furrows ready to receive the seed.",
-        "The ground is opened in long rows, and the corn is sown beneath a thin covering of earth."
+        "Hours of hacking at the turf.",
+        "The hoe turns the soil over in long rows."
       ]
     },
     "cycle": {
@@ -304,8 +304,8 @@
       "effort": "heavy",
       "cost": { "timber": 2 },
       "log": [
-        "You hollow a log and pierce a small opening near its crown before placing it among the flowers.",
-        "A capped section of hollow timber, raised upon stones, offers the bees a possible dwelling."
+        "You hollow a log and stand it among the flowers, a hand-width hole near the top.",
+        "A hollow log, capped with bark, set on stones among the flowers."
       ],
       "requires": { "site": "bee_habitat" }
     },
@@ -351,8 +351,8 @@
       "cost": { "stone": 6, "timber": 2 },
       "log": [
         "Standing in the river, you arrange a low barrier of stones and stakes, preserving one narrow entrance.",
-        "Stone after stone is placed across the shallows, with wooden stakes driven into the gaps.",
-        "Across the stream you erect a fence of timber and stone, leaving one channel through which fish may enter."
+        "Stone by stone, a low wall grows across the river.",
+        "A fence of stones and stakes across the river, with one narrow way through."
       ],
       "requires": { "site": "flowing_water" }
     },
@@ -364,7 +364,7 @@
         "effort": "work",
         "log": [
           "You close the passage with a woven mat of willow.",
-          "The entrance is blocked so that fish may enter the weir no longer, nor escape from within."
+          "You block the weir's gap. The fish can come in, not out."
         ]
       },
       "hours": 12,
@@ -393,7 +393,7 @@
       "hours": 0.25,
       "effort": "light",
       "cost": { "stone": 2 },
-      "log": "You arrange a ring of stones and clear the ground within it, establishing a safe hearth for the fire.",
+      "log": "You arrange stones in a ring and clear a safe place for a fire.",
       "requires": { "site": "camp_ground" }
     },
     "timer": "fire"
