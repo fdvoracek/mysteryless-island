@@ -6,9 +6,9 @@
     "trigger": "start",
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
     "doneLog": [
-      "A grey light spreads over the water. Your first night on the island is behind you.",
+      "Grey light over the water. You made it through the night.",
       "Daybreak reveals the empty sea once more. You have survived the night.",
-      "The sky brightens above the shore, and with it comes the knowledge that you have endured your first night."
+      "Dawn, thin and cold. You lived through the first night."
     ]
   },
   {
@@ -17,7 +17,7 @@
     "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
     "completeWhen": { "seen": "raw_fish" },
     "doneLog": [
-      "A first fish! Slippery and cold though it is, the catch represents a real advance.",
+      "A fish, cold and slippery, and yours.",
       "The sea has provided your first fish, and with it some hope of regular food.",
       "At last a fish is secured. Hunger need not be your immediate enemy today."
     ]
@@ -28,8 +28,8 @@
     "trigger": { "when": { "discovered": "cliff_shells" } },
     "completeWhen": { "discovered": "cliff_top" },
     "doneLog": [
-      "From the cliff top the newly revealed country extends farther inland than you had imagined.",
-      "The difficult ascent is accomplished. Beyond the cliff lies a far more extensive island than the beach suggested."
+      "You stand on the cliff top, the rope coiled at your feet, and look inland.",
+      "The cliff is behind you. The island is bigger than you thought."
     ]
   },
   {
@@ -41,13 +41,13 @@
       }
     },
     "startLog": [
-      "All night the wind found its way to you. A shelter raised against the rocks would exclude much of it.",
-      "Another night exposed to the wind would be a severe trial. Your first concern must be shelter."
+      "The wind found you all night. A shelter against the rocks would keep it off.",
+      "Another night like that and the cold will win. You need a shelter."
     ],
     "completeWhen": { "built": "shelter" },
     "doneLog": [
       "The wind strikes the outer logs, but within the shelter the air is almost still.",
-      "A rough habitation now stands beside the rocks, sufficient at least to defend you against the wind."
+      "A shelter, rough but yours. The wind can't reach you here."
     ]
   },
   {
@@ -67,7 +67,7 @@
       }
     },
     "completeWhen": { "did": "chop_wood" },
-    "doneLog": ["You have obtained sound logs, straight enough for the heavier work of construction.", "The first proper timber is ready for use; building on a larger scale is now possible."]
+    "doneLog": ["Real logs, heavy and straight.", "Logs at last: wood to build with."]
   },
   {
     "id": "make_bed",
@@ -75,8 +75,8 @@
     "trigger": { "when": {"sheltered": true} },
     "completeWhen": { "built": "bed" },
     "doneLog": [
-      "You stretch yourself upon the new bed, grateful to be raised above the cold ground.",
-      "The bed is hardly luxurious, yet its dry frame affords a comfort unknown upon the bare sand."
+      "You lie down to try it. Off the sand, for the first time.",
+      "Not soft, but dry and off the ground. It will do."
     ]
   },
   {
@@ -92,8 +92,8 @@
     },
     "completeWhen": { "built": "rain_barrel" },
     "doneLog": [
-      "The hollowed barrel has been placed beneath the eaves, ready to collect the next rain.",
-      "With the barrel established, even a passing shower may contribute to your water supply."
+      "The barrel stands under the shelter's edge, waiting for rain.",
+      "Now the rain will come to you."
     ]
   },
   {
@@ -109,8 +109,8 @@
     },
     "completeWhen": { "built": "drying_rack" },
     "doneLog": [
-      "The drying rack now stands beside the fire, capable of preserving fish or meat for less favourable days.",
-      "You have contrived a rack upon which the fire's warmth may turn fresh food into lasting provisions."
+      "The rack stands by the fire, ready for fish or meat.",
+      "A rack for drying fish and meat. Food for the bad days."
     ]
   },
   {
@@ -120,7 +120,7 @@
     "completeWhen": { "built": "fish_trap" },
     "doneLog": [
       "The woven trap is set in the current. The river must now do its part.",
-      "Willow twigs and patient workmanship have provided a means of catching fish without a spear."
+      "Willow and patience. Now the fish do the work."
     ]
   },
   {
@@ -128,7 +128,7 @@
     "title": "set snares",
     "trigger": { "when": { "discovered": "rabbit_runs" } },
     "completeWhen": { "built": "snares" },
-    "doneLog": ["Your snares stand ready across the small animal paths.", "The running nooses have been arranged along the tracks; only time will show their worth."]
+    "doneLog": ["Your snares stand ready across the small animal paths.", "Nooses on the runs. Now leave them alone."]
   },
   {
     "id": "build_corn_field",
@@ -136,8 +136,8 @@
     "trigger": { "when": { "discovered": "field_site" } },
     "completeWhen": { "built": "corn_field" },
     "doneLog": [
-      "The soil is broken and sown. If conditions remain favourable, the crop should ripen within three days.",
-      "Rows of newly turned earth now conceal the seed. For the moment, the work belongs to sun and rain."
+      "Rows of dark earth, sown. Three days, if the weather holds.",
+      "The field is dug and sown. Now the waiting."
     ]
   },
   {
@@ -145,7 +145,7 @@
     "title": "build a bee hive",
     "trigger": { "when": { "discovered": "bees" } },
     "completeWhen": { "built": "bee_hive" },
-    "doneLog": ["The hollow hive stands among the flowers, awaiting its industrious occupants.", "You have provided a dwelling for the wild bees; whether they accept it remains to be seen."]
+    "doneLog": ["The hollow hive stands among the flowers, awaiting its industrious occupants.", "A home for the bees, if they want it."]
   },
   {
     "id": "build_fish_weir",
@@ -153,8 +153,8 @@
     "trigger": { "when": { "did": "empty_trap", "gte": 2 } },
     "completeWhen": { "built": "fish_weir" },
     "doneLog": [
-      "A barrier of stone and timber now crosses the river, allowing water through while detaining fish.",
-      "The weir is complete. The current passes its stones, but the fish should find no easy passage out."
+      "The weir stretches across the river. The water runs through; the fish don't.",
+      "A wall across the river, with one way in."
     ]
   },
   {
@@ -162,7 +162,7 @@
     "title": "better sleep",
     "trigger": { "when": {"quest": "survive_first_night", "is": "done"} },
     "completeWhen": { "all": [{"sheltered": true}, {"built": "bed", "here": true}, {"timer": "fire"}] },
-    "startLog": "For sounder rest, establish a bed beneath shelter and maintain a fire there. The rocks on the beach already afford a natural refuge.",
-    "doneLog": "A sheltered bed and a fire now offer the means of complete recovery, provided you retire before midnight."
+    "startLog": "For sounder rest, establish a bed beneath shelter and maintain a fire there.",
+    "doneLog": "A sheltered bed and a fire in the same place."
   }
 ]
