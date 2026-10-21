@@ -101,9 +101,9 @@
       "stats": {"hunger": -5, "energy": 2},
       "tags": ["eat"],
       "log": [
-        "The berries are sharp upon the tongue before their sweetness develops; their juice stains your hands.",
+        "Sour, then sweet. Your mouth goes purple.",
         "You consume a handful of fruit, grateful for even this small provision.",
-        "The little berries offer a pleasant sweetness, though scarcely a substantial meal."
+        "Sharp and sweet. Not much, but something."
       ]
     }
   },
@@ -192,8 +192,8 @@
       "stats": {"hunger": -30, "energy": 15},
       "tags": ["eat"],
       "log": [
-        "The ship's biscuit and salted meat are damp with seawater, yet remain of great value.",
-        "You eat your ration slowly, unwilling to squander the provisions rescued from the wreck.",
+        "Hard biscuit and salt meat, soaked with sea water. Still food.",
+        "You chew a ration slowly, making it last.",
         "The salted meat and softened biscuit are plain fare, but restore your strength."
       ]
     }
@@ -310,7 +310,7 @@
         "visibleWhen": { "all": [{ "at": "beach" }, { "built": "drying_rack" }] },
         "requires": { "all": [{ "tool": "sharp" }, { "building": "drying_rack", "is": "idle" }] },
         "effects": [{ "startCycle": "drying_rack", "production": "meat" }],
-        "log": "You divide two portions of meat into thin strips and suspend them upon the drying rack."
+        "log": "You cut two portions of meat into thin strips and hang them on the drying rack."
       },
       {
         "id": "cook", "building": "campfire",
@@ -320,7 +320,7 @@
         "visibleWhen": { "timer": "fire" },
         "effects": [{ "give": { "cooked_meat": 1 } }],
         "log": [
-          "You hold the meat upon a stick over the flames, where its juices hiss upon the coals.",
+          "Meat on a stick over the fire, dripping into the flames.",
           "The meat browns slowly above the fire, giving off a rich aroma.",
           "You turn the meat carefully until the heat has penetrated it throughout."
         ],
@@ -337,7 +337,7 @@
       "hours": 0.25,
       "stats": {"hunger": -28, "energy": 14},
       "tags": ["eat"],
-      "log": ["The preserved meat is tough, but its concentrated substance makes a useful ration.", "You chew the smoky strips slowly, finding them unexpectedly nourishing."]
+      "log": ["Tough strips of dried meat. You chew slowly.", "You chew the smoky strips slowly, finding them unexpectedly nourishing."]
     }
   },
   {
@@ -352,7 +352,7 @@
       "log": [
         "The freshly roasted meat is rich and hot, its fat running as you eat.",
         "Such a meal is a luxury upon an island where every mouthful must be earned.",
-        "You take your time over the cooked meat, which is far superior to dry provisions."
+        "You eat slowly. Real meat."
       ]
     }
   },
@@ -367,7 +367,7 @@
       "tags": ["eat"],
       "log": [
         "The honey is so sweet that its flavour seems almost overwhelming.",
-        "You taste wax and honey together, and discover an unfortunate bee among the comb.",
+        "Honey and wax and a dead bee. Sweet.",
         "The rich honey is drawn from the cells until the comb is nearly empty."
       ]
     }
