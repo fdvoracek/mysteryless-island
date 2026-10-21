@@ -1,20 +1,21 @@
-/* A shared panorama and route map introduce the three reading columns. */
+/* The map occupies the notch above the middle page column. */
 .layout-classic .page { max-width: 1280px; margin: 0 auto; padding: var(--space-4) var(--space-5) 88px; }
 .layout-classic .area-panorama { width: 100%; aspect-ratio: 160 / 33; margin-bottom: var(--space-5); overflow: hidden; }
 .layout-classic .wrap {
   margin: 0; padding: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
-  gap: var(--space-4) 0; align-items: stretch;
-  grid-template-areas: "places places places" "journal centre side";
+  grid-template-rows: minmax(56px, auto) minmax(0, 1fr);
+  gap: 0; align-items: stretch;
+  grid-template-areas: "journal places side" "journal centre side";
 }
 .layout-classic .tabs {
-  grid-area: places; margin: 0; padding-bottom: 12px; border-bottom: 1px solid var(--line);
+  grid-area: places; align-self: center; margin: 0; padding: 0; border: 0;
   font-size: 18px; gap: 4px 14px;
 }
 .layout-classic .journal { grid-area: journal; min-width: 0; border: 1px solid var(--outline); padding: var(--space-5); }
 .layout-classic .region-title { margin: 0 0 var(--space-4); padding-bottom: var(--space-2); border-bottom: 1px solid var(--line); font: inherit; font-size: 17px; font-variant-caps: small-caps; letter-spacing: .055em; }
-.layout-classic .centre { grid-area: centre; border-block: 1px solid var(--outline); padding: var(--space-5) 28px var(--space-6); min-height: 640px; }
-.layout-classic .side { grid-area: side; border: 1px solid var(--outline); padding: var(--space-5) 20px; }
+.layout-classic .centre { grid-area: centre; border: 1px solid var(--outline); margin-left: -1px; padding: var(--space-5) 28px var(--space-6); min-height: 640px; }
+.layout-classic .side { grid-area: side; border: 1px solid var(--outline); margin-left: -1px; padding: var(--space-5) 20px; }
 .layout-classic .log {
   display: grid; gap: var(--space-4); max-height: 80vh; overflow: hidden;
   -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent);
@@ -32,11 +33,12 @@
 .layout-classic #actions .btn.explore { min-width: 190px; }
 
 /* Keep the action controls before the journal when the reading columns stack. */
-@media (max-width: 900px) {
-  .layout-classic .wrap { grid-template-columns: minmax(0, 1fr); grid-template-areas: "places" "centre" "journal" "side"; gap: var(--space-5); }
+@media (max-width: 1050px) {
+  .layout-classic .wrap { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "places" "centre" "journal" "side"; gap: var(--space-5); }
+  .layout-classic .tabs { padding-bottom: var(--space-3); border-bottom: 1px solid var(--line); }
   .layout-classic .log { max-height: 42vh; }
-  .layout-classic .centre { border: 1px solid var(--outline); min-height: 0; padding: var(--space-5); }
-  .layout-classic .side { border: 0; padding: 0; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+  .layout-classic .centre { margin-left: 0; min-height: 0; padding: var(--space-5); }
+  .layout-classic .side { margin-left: 0; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
 }
 @media (max-width: 600px) {
   .layout-classic .page { padding: 14px 14px 0; }

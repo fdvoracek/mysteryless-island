@@ -300,7 +300,7 @@ test("the game is visible and not covered on load", async ({ page }) => {
   expect(topmost).toContain("look around");
 });
 
-test("one game-wide panorama and journal heading persist across centre tabs at desktop and phone widths", async ({ page }) => {
+test("shared panorama and framed columns stay readable across tabs and screen widths", async ({ page }) => {
   const panorama = page.locator("#areaPanorama");
   await expect(panorama).toHaveCount(1);
   await expect(panorama).toBeVisible();
@@ -310,7 +310,7 @@ test("one game-wide panorama and journal heading persist across centre tabs at d
   expect(await panorama.evaluate((el) => !!(el.compareDocumentPosition(document.querySelector("#tabs")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
   expect(await panorama.evaluate((el) => el.closest('[role="tabpanel"]') === null)).toBe(true);
   const heading = page.locator("#regionTitle");
-  for (const width of [1280, 320]) {
+  for (const width of [1280, 1051, 1050, 320]) {
     await page.setViewportSize({ width, height: 900 });
     for (const kind of ["area", "craft", "build"]) {
       await page.locator(`#${kind}Tab`).click();
@@ -322,12 +322,29 @@ test("one game-wide panorama and journal heading persist across centre tabs at d
       const journal = (await page.locator(".journal").boundingBox())!;
       const centre = (await page.locator("main.centre").boundingBox())!;
       const side = (await page.locator("aside.side").boundingBox())!;
-      if (width > 600) {
-        expect(journal.x + journal.width).toBeLessThanOrEqual(centre.x);
-        expect(centre.x + centre.width).toBeLessThanOrEqual(side.x);
+      const map = (await page.locator("#tabs").boundingBox())!;
+      for (const frame of [".journal", "main.centre", "aside.side"]) {
+        await expect(page.locator(frame)).toHaveCSS("border-left-width", "1px");
+        await expect(page.locator(frame)).toHaveCSS("border-right-width", "1px");
+      }
+      if (width > 1050) {
+        expect(journal.x + journal.width - centre.x).toBeLessThanOrEqual(1);
+        expect(centre.x + centre.width - side.x).toBeLessThanOrEqual(1);
+        expect(journal.y).toBeLessThan(centre.y);
+        expect(side.y).toBeLessThan(centre.y);
+        expect(map.x).toBeGreaterThanOrEqual(journal.x + journal.width);
+        expect(map.x + map.width).toBeLessThanOrEqual(side.x + 1);
+        expect(map.y + map.height).toBeLessThanOrEqual(centre.y);
       } else {
+        expect(map.y + map.height).toBeLessThanOrEqual(centre.y);
         expect(journal.y).toBeGreaterThanOrEqual(centre.y + centre.height);
         expect(side.y).toBeGreaterThanOrEqual(journal.y + journal.height);
+      }
+      const statusBox = (await page.locator(".status-box").boundingBox())!;
+      const statusRight = statusBox.x + statusBox.width;
+      for (const bar of await page.locator(".status-box .bar").all()) {
+        const box = (await bar.boundingBox())!;
+        expect(box.x + box.width).toBeLessThan(statusRight);
       }
       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
     }
