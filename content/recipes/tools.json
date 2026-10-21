@@ -9,7 +9,7 @@
         "effort": "work",
         "cost": { "stone": 2 },
         "log": [
-          "Holding one stone against another, you patiently grind away the rough surface until a usable cutting edge emerges.",
+          "You grind two stones together until a cutting edge appears.",
           "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
           "You first detach flakes with sharp blows, then refine the edge by grinding."
         ]
@@ -57,7 +57,7 @@
         "effort": "work",
         "cost": { "firewood": 2, "stone": 2 },
         "log": [
-          "You strike a hard stone until it bears a cutting edge, then secure it tightly in a split wooden haft.",
+          "You shape a stone blade and lash it into a split wooden haft.",
           "Stone on stone until one has an edge.",
           "A sharp stone, a stout branch, and a long time binding them."
         ]
@@ -91,8 +91,8 @@
         "effort": "work",
         "cost": { "bark_strips": 4 },
         "log": [
-          "You twist strips of inner bark into three strands, then lay the strands together to obtain a stronger rope.",
-          "Hour after hour the fibres are braided until a length of serviceable rope lies coiled at your feet.",
+          "You twist strips of bark into a length of strong rope.",
+          "After hours of braiding, the rope lies coiled at your feet.",
           "Strip by strip, the bark becomes cord, and the cord a rope. Your fingers ache."
         ]
       }
