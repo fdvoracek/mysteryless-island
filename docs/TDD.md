@@ -4,7 +4,7 @@ Version 0.1 (draft for review) · Companion to `docs/GDD.md` · Last updated: 20
 
 Status markers: **[implemented]** describes the current prototype · **[decided]** records design intent · **[proposal]** and **[open]** describe future work. Design examples for knowledge, weather, upgrades, standalone processes and the boat are future extensions; `src/content/schema.ts` is the authoritative supported format.
 
-**Content Studio [approved direction, not implemented]:** one GitHub monorepo containing two independently built web apps, a shared schema/engine/compilation foundation, and a 30-PR sequence. [Read the agent implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md). **Owner decision (2026-10-21): old player-save compatibility is not required; every merged PR must nevertheless leave the game playable from a fresh start and current-version save/reload functional.** See also [testing guidance](TESTING.md).
+**Content Studio [approved direction, not implemented]:** a localhost-only React Studio in this single package, editing content files and previewing them in the real game. Scope, decisions and PR order: [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md). See also [testing guidance](TESTING.md).
 
 **Crafting/building trees [implemented]:** separate centre-panel tabs use one shared graph
 model and renderer. Personal completion of all prerequisites permanently unlocks nodes;
@@ -21,13 +21,13 @@ non-repeatable item completes its node but leaves only one inventory copy. See
 | # | Requirement | Source |
 |---|---|---|
 | R1 | All game content (regions, items, activities, buildings, recipes, processes, knowledge, events, weather, stats) is data. Adding a region needs **no engine code changes**. | your brief |
-| R2 | Current game content is authored in JSON. Future Studio has one shared canonical authoring model; whether its source remains JSON is explicitly gated (plan D3). | [implemented + proposal] |
+| R2 | Content is authored in JSON and stays canonical; the planned Studio edits the same files. | [implemented + proposal] |
 | R3 | Logic inside data uses **structured conditions** (JSON objects), not code or expression strings. | [decided] |
-| R4 | Player game remains TypeScript + Vite without UI framework; proposed Studio is a separate React + TypeScript + Vite app in a monorepo. Both can deploy as static websites. | [implemented + proposal] |
+| R4 | Player game remains TypeScript + Vite without UI framework; the planned Studio is a React page in the same package, served only by the local dev server. | [implemented + proposal] |
 | R5 | **Action-based clock**: the simulation advances only through player commands. | [decided] |
-| R6 | Deterministic and testable: the same seed and commands give the same result. | [proposal] |
-| R7 | English inline currently; planned stable text catalog, compiled language bundles, runtime switching and explicit journal/popup representation. | [implemented + proposal] |
-| R8 | Existing validator and debug tools remain; separate Content Studio program targets authoring, preview, validation and local publishing across individually testable PRs. Balance simulation is not implied to be implemented. | [implemented + proposal] |
+| R6 | Deterministic and testable: the same seed and commands give the same result. | [implemented] |
+| R7 | English inline; translations are not planned for now. | [implemented] |
+| R8 | Existing validator and debug tools remain; the planned Studio adds form/graph authoring and live preview. Balance simulation is not implied to be implemented. | [implemented + proposal] |
 | R9 | Look and feel of *A Dark Room*: text, buttons, log, status panel, occasional illustrations. | [decided] |
 
 ### What we keep from *A Dark Room*, and what we change
@@ -67,8 +67,8 @@ step persistence and cancellation when loading or restarting. `dispatch` runs th
 synchronously in tests. The classic layout supplies fixed panel IDs to the renderer and owns no game state.
 Core modules use no DOM, wall clock, or unseeded randomness. The validated registry is read-only
 by convention (its outer object is frozen); the runtime state contains plain serializable data.
-The JSON loader already acts as an adapter into `buildRegistry`. A future CSV importer should
-produce the same validated entities with stable IDs; no CSV implementation is needed now.
+The JSON loader already acts as an adapter into `buildRegistry`; the planned Studio validates its
+edits with the same function.
 
 ---
 
@@ -163,7 +163,7 @@ stockpile; only content-defined item caps apply. Clothing uses the best owned it
 ### 6.1 Conventions
 
 - **IDs:** lowercase `snake_case`, **unique across all content kinds** (an item and a building can't share an id). This lets conditions refer to things without a type prefix and makes validator messages unambiguous.
-- **Text:** written inline in English. Every text field becomes a translation key automatically (§10).
+- **Text:** written inline in English. Every text field has a stable key (§10).
 - **Comments:** JSON has none. Any key starting with `_` (for example `"_note"`) is allowed everywhere and ignored by the loader.
 - **Amounts:** `{ "item_id": count }`.
 - **Durations:** `hours` (decimals allowed: `0.5`).
@@ -652,13 +652,10 @@ content `availableWhen` and place conditions; requirements/costs determine enabl
 
 ---
 
-## 10. Localisation **[future; stable text IDs implemented]**
+## 10. Localisation **[not planned]**
 
-- Authors write English inline. They never manage keys.
-- Planned `strings:extract` tooling will walk the registry and write `content/strings/en.json`. Keys are derived from the content path, for example `region.forest.description.0` or `event.wild_boar.scenes.start.choices.fight.text`.
-- A translation file (`cs.json`) uses the same keys. A future runtime `t(key, inlineText)` would return the translation if one exists, else the inline English.
-- Placeholders use `{name}` syntax (`"you collect {count} {item}"`). Plurals: items have `name` and `plural`. More complex plural rules (Czech has three forms) can be added later with `Intl.PluralRules` and a `{count, plural, ...}` form **[open: needed only when a second language starts]**.
-- Risk: renaming an id breaks its translation keys. Orphaned translation checks remain future work.
+English only for now (owner, 2026-10-21). Stable text keys exist (see "Outcome narration and
+stable text identity"); any future localization needs its own design decision first.
 
 ---
 
@@ -759,9 +756,9 @@ commands in `README.md`; a debug overlay is future work.
 - Estimated real time = clicks × seconds-per-click + event scenes × seconds-per-scene (constants in `game.json`).
 - Candid limit: the bot will not play like a human. Use it to catch regressions and gross pacing problems. Final tuning needs real playtests.
 
-### 13.5 Content Studio and monorepo migration **[approved direction; NOT implemented]**
+### 13.5 Content Studio **[approved direction; NOT implemented]**
 
-The detailed program is [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md), PR-01 through PR-30. The target uses independently built game (non-React) and Studio (React/Vite), sharing Zod/registry/engine/compiler packages via npm workspaces. **Updated confirmed decision (2026-10-21): the Studio UI itself runs on GitHub Pages and edits the user's local checked-out repository via Chrome File System Access API permissions**, without requiring a local file server or hosted authentication. Brave is best-effort with a manually enabled experimental API flag. Existing local Git tools handle commits/pushes; optional direct remote GitHub publishing requires a separately approved backend. No proposed feature in this paragraph is implemented until its PR merges.
+See [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -822,7 +819,7 @@ What **needs code**:
 | M5 | Content pass: all 7 regions, ~60 items, mystery decision applied | Full game reachable per validator |
 | M6 | Shipyard stages, voyage event, endings | Simulator completes the game across 50 seeds |
 | M7 | Illustrations, polish, dark mode, audio (if decided), playtests, balance | Real playtest within 2–4 hours |
-| M8 | Content Studio in monorepo [planned] | PR-01–PR-30 in CONTENT_STUDIO_IMPLEMENTATION_PLAN.md; game playable after each merge |
+| M8 | Content Studio [planned] | PR-01–PR-10 in CONTENT_STUDIO_IMPLEMENTATION_PLAN.md; game playable after each merge |
 
 ---
 
@@ -831,7 +828,7 @@ What **needs code**:
 | Risk | Mitigation |
 |---|---|
 | The condition/effect vocabulary grows too large | Add a new type only when three pieces of content need it; otherwise express it with flags and counters |
-| JSON is tiring to write by hand | Schema autocomplete now, editor later; `_note` fields for comments |
+| JSON is tiring to write by hand | Content Studio (planned); `_note` fields for comments |
 | Region files become long | The loader also accepts a region split across `regions/<id>/*.json`, merged by id |
 | Re-evaluating every condition after each command gets slow | Not expected below a few thousand entities; add indexes only when profiling shows a need |
 | Content refactors break saves during development | Owner accepts a fresh game after every PR (2026-10-21). Bump save version with clear restart UI when needed; fresh-game save/reload must always remain working. |
@@ -849,8 +846,7 @@ What **needs code**:
 `core/action-rules.ts` owns availability checks, combined item-action input costs, cost scaling,
 and tool-adjusted work duration. Duration is rounded up to the next simulation step, identically
 for previews and execution. Entity schemas share work fields and the registry shares their
-reference checks; JSON remains the authoring format, not an engine dependency. A future CSV
-adapter should produce the same validated content model.
+reference checks; JSON remains the authoring format, not an engine dependency.
 
 ### Save compatibility boundary (implemented)
 
@@ -871,9 +867,8 @@ variants, or using `?variants=first` cannot change rewards or event rolls. Suppo
 Existing inline strings/variant arrays remain supported. The registry indexes arrays by entity
 ID and field path (not English wording or file order). Text can also use an explicit stable ID:
 `{ "id": "hunt_success", "variants": ["You caught a rabbit.", "A rabbit hangs from your belt."] }`.
-Explicit text IDs must be unique and survive moving text between content entities. These IDs
-provide the join keys for future translation tables or CSV import; no editor or translation UI
-is required by the engine. Outcome text belongs to its outcome, rather than a generic random
+Explicit text IDs must be unique and survive moving text between content entities. These keys
+keep text identity across edits (variant memory, explicit IDs); no translation is planned. Outcome text belongs to its outcome, rather than a generic random
 pool that might describe a different result.
 
 ### Typed pop-ups (implemented)
@@ -904,82 +899,7 @@ content limits. Bait selection and crop-specific planting controls remain future
 
 ---
 
-## 19. Content Studio and monorepo architecture [proposed; NOT implemented]
+## 19. Content Studio [proposed; NOT implemented]
 
-See [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md) for the numbered deliverables PR-01 through PR-30, acceptance tests, dependencies, decision gates and migration ordering. The implementation work must be split into separate, independently mergeable PRs; the existing player game must be playable at the end of each PR. None of the proposed paths, build features or editor APIs are implemented merely because they appear below.
-
-### 19.1 Product/runtime boundaries
-
-- **Current state:** a single TypeScript/Vite browser app, content from JSON through import.meta.glob, Zod schema and reference-checked Registry, deterministic Engine, classic DOM interface, browser localStorage persistence and GitHub Pages deployment.
-- **Target:** one npm-workspaces monorepo with apps/game (original player game, no React rewrite) and apps/studio (separate React/TypeScript/Vite authoring app). The two apps share packages rather than making a second rules implementation.
-- **URLs when enabled:** /mysteryless-island/ for game and /mysteryless-island/studio/ for Studio. One Pages artifact may contain both independently built apps. Player runtime remains a static site with no CMS/backend requirement.
-- **Supported no-code scope:** author regions, exploration/landmarks, item definitions, activities, crafting/building trees and production, quests, branching event scenes, localization and assets using existing typed mechanics. Brand-new kinds of simulation logic still need engine+schema+editor code.
-- **Publishing — confirmed Pages UI + local files:** from HTTPS GitHub Pages, an explicit user gesture opens the local cloned repository directory using showDirectoryPicker({mode: "readwrite"}); a scoped adapter reads/saves approved content/media only after permission. No local Node writer needed. The Studio shows published/read-only content before selection and local uncommitted content after selection. Local Git CLI/IDE/Desktop handles commit/push; static browser cannot execute Git. Optional backend-authenticated remote API publishing is PR-29 only. Never embed credentials in client bundles.
-
-### 19.2 Proposed layout and dependency direction
-
-~~~text
-apps/
-  game/                 TypeScript + Vite; classic player DOM interface, app scheduler, save adapter
-  studio/               React + TypeScript + Vite; graph and form editors, authoring UI
-packages/
-  content-model/        Zod entities/conditions/effects; IDs; registry; references; diagnostics
-  engine/               pure deterministic simulation, state schema, RNG, selectors
-  content-compiler/     build-time validation/normalization, gameplay and locale bundle generation
-content/                canonical authored definitions, stable texts/locales, validated art references
-tests/, e2e/            frozen tests + separate app/integration scenarios
-docs/
-~~~
-
-Content-model must not import browser UI, Studio or persistent storage. Engine may import content-model, not Studio/game. Compiler consumes shared schemas and canonical authored input. Player game depends on engine and precompiled bundles. Studio depends on shared packages and can run the actual engine/game for preview, but the engine must not depend on Studio. An implementation agent must preserve these boundaries and migrate one package per deliverable rather than performing a speculative full rewrite.
-
-The current content source is JSON; a different canonical source format is not yet chosen. Until the owner resolves plan gate D3, preserve existing JSON as the authoritative authored data with adapters. CSV/TSV is useful for translation and flat bulk data but is not the canonical representation of nested branching event graphs. No startup CSV parsing in the published game.
-
-### 19.3 Compilation and validation flow
-
-~~~mermaid
-flowchart TD
-  SRC[Git-tracked authored content] --> PARSE[Shared typed source reader]
-  PARSE --> VAL[Schema and cross-reference validation]
-  VAL --> CMP[Deterministic compiler]
-  CMP --> DATA[Versioned gameplay bundle]
-  CMP --> LOC[Per-language text bundles]
-  DATA --> GAME[Player game]
-  LOC --> GAME
-  PARSE --> STUDIO[Studio authoring forms]
-  STUDIO --> EDIT[Validated local draft writer]
-  EDIT --> SRC
-  STUDIO --> PREVIEW[Isolated actual-game draft preview]
-~~~
-
-- The compiler is deterministic: identical source produces identical normalized data and bundle identity/hash, not a wall-clock-dependent artifact. It fails on invalid schemas, IDs, references, step duration, rule/creation-tree invariants, missing required text placeholders or invalid local art refs. Do not weaken existing registry checks.
-- Preserve **source identity** (file/entity/field path) for error links and Git diffs. Preserve gameplay ordering wherever existing behavior depends on it, including narrative variants, event and quest ordering, and creation tree order.
-- Distinguish draft from released content. Draft validation/preview may occur without publishing; invalid drafts must not corrupt game bundle. A publish proposal is explicit and inspectable through Git diffs and tests.
-- Use reference pickers and a shared recursive condition/effect editor for exactly the vocabulary supported by schema/engine. Never execute arbitrary JavaScript stored in content. A new effect type is a schema+registry+engine+Studio+test change.
-- **Browser local writing:** HTTPS + user activation + explicit readwrite directory picker; validate project root and restrict path handles to content/approved media; reject .git, secret and unrelated paths. Browser writes can be atomic per file using createWritable but **not across multiple files**: detect stale external edits and use recoverable backups/manifest on multi-file failure. Handle permission cancellation, revocation and unsupported browsers; Brave only best-effort after its experimental flag. No background scanning or network upload is needed to save files.
-
-### 19.4 Stable texts, two narrative channels and runtime language switching
-
-Current Text values may be inline strings, string-variant arrays or objects with explicit IDs. The planned compiler introduces a recorded mapping of stable text IDs that survive content file moves. Modal long prose and short journal summary require distinct keys; arrays of variants represent alternate ways of saying the same thing, never ordered paragraphs. Use the constraints in docs/NARRATIVE_STYLE.md: longer modal discoveries and concise journal narration.
-
-Runtime localization requires gameplay definitions to be separate from per-locale text bundles. Translation edits must not change gameplay RNG; narration RNG remains independent. Validate interpolation placeholders such as {place}, {item}, {time} and {day} per key/locale, and preserve variant identity so language switching does not randomly select a new wording.
-
-Existing journal entries and open popups currently store resolved strings in state. The language-switch PR must explicitly decide how to represent saved message keys, variant identity and arguments for already-generated text. The owner has waived old-save migration, so it may establish a new SAVE_VERSION. New sessions in that PR must still save and reload correctly, including their language selection and current event progress. Whether *historical* journal text translates immediately is a separately gated product decision (D4), not an assumption.
-
-### 19.5 Graph editors and map behavior
-
-Event graph editor reflects actual GameEvent scenes and choices (required start, next references, conditions and effects); story layout is for authoring only. Quest editor uses the existing trigger/completeWhen/effects vocabulary, not quest-gated crafting. Craft/build graph editors edit the current creation trees and enforce one node per target, all-prerequisite completion and cycle rejection.
-
-Region map editor initially manipulates existing region.map coordinates, visibility and travelHours, reflecting current camp-centered travel. A more general authored map-edge routing system changes gameplay and must be separately approved (D6), designed, validated and tested **before** UI claims it works. Do not infer new route mechanics from a visual mockup.
-
-### 19.6 Preview, tests, persistence and independent PR delivery
-
-Studio live preview must use the real Engine, compiled draft Registry and actual player game renderer, with isolated in-memory or distinct test storage. It may provide seeded test scenarios, controlled time, inventory/discovery overrides and condition-explanation inspector without leaking into the player's save slots. Scenario fixture consistency must be checked before simulation.
-
-Testing continues to follow [TESTING.md](TESTING.md): deterministic engine tests own game rules; browser tests cover wiring, responsiveness, game/studio page availability and representative end-to-end interactions, not a separate long journey for every item. Preserve frozen test fixtures, dedicated engine-test builds and the Vite environment overrides (VITE_ACTION_STEP_MS=100 and VITE_UI_ANIMATION_MS=200), using Playwright controlled clocks for paced-work tests. Each new editor surface needs positive and negative validation tests and a manually demonstrable capability.
-
-**Explicit user decisions, 2026-10-21:** host Studio UI on GitHub Pages, author in selected local folders through Chrome browser permission (D1/D10 resolved), and leave direct remote GitHub publishing optional; compatibility with pre-migration saves is unnecessary because the owner is the only tester. A PR may require starting a new game and may bump save versions; no backport/migration code must be written purely to preserve earlier test saves. Nevertheless **every PR** must leave the current player game playable from fresh start with a functional fresh save/reload, and an incompatible stored save must have an obvious new-game recovery path. Existing engine invariants remain binding: deterministic rolls, quantized work steps, reservation exactly once, pause/resume, local production and collection, event/popup blocking and non-quest-gated creation.
-
-### 19.7 Gated architecture decisions
-
-Refer to plan §3 for gate ownership and questions. Do not silently choose hosted authentication, canonical source replacement, translation completeness/fallback, arbitrary route graph, public Studio access, multiuser collaboration or external asset upload storage. The owner has decided (a) one monorepo/two independent web apps, (b) GitHub Pages-hosted Studio with Chrome File System Access API writing only to explicitly selected local checkout, (c) each numbered deliverable as one mergeable, tested PR, and (d) old save compatibility is not required. Direct remote GitHub API publishing, additional browsers and collaboration remain separate optional decisions. Record later decisions in ARCHITECTURE.md and revise the implementation plan before affected PRs.
+Architecture, decisions, gates and PR order live only in
+[CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).

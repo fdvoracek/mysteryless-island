@@ -85,8 +85,9 @@ interprets that validated model; shared modules own action requirements, conditi
 and local production. Player work and production are serializable state. The application
 controller schedules live steps and saves progress; selectors supply a view to the shared
 renderer and classic layout. Loading validates and migrates saves before play resumes.
-Gameplay and narrative randomness use separate saved streams. Stable text IDs allow future
-translation tables or a CSV importer; JSON remains the current authoring format.
+Gameplay and narrative randomness use separate saved streams. Stable text IDs keep text identity
+across edits; JSON remains the authoring format. A local Content Studio is planned
+([plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md)).
 
 See [the technical design](docs/TDD.md) for module boundaries and future extensions, and [the creation-tree design](docs/CRAFTING_BUILDING_DESIGN.md) for progression and authoring rules.
 
