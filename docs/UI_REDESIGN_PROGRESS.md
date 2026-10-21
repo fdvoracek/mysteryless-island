@@ -35,6 +35,9 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
    actual journal, action, and sidebar columns now have stronger book-page hierarchy. Consistent item illustrations and consumable
    rows, quantities/capacity from existing content, informational task markers, and matching
    creation-tree tooltip treatment while preserving compact nodes and shared grab panning.
+   The three sections now have complete thin frames; on wide screens the map occupies the
+   space above the lowered middle frame, while story and status start nearer the panorama.
+   Narrow screens stack the framed sections and map before the action controls.
 6. **Remaining screens and verification — pending.** Popups, menus, progress, ending screen,
    light/dark treatments, fonts, narrow screens, keyboard/touch behavior, and complete checks.
 
@@ -73,4 +76,11 @@ artwork previews must show their actual source files.
   `64353ba51fdededeb848177d0080c60e8958a3e4f1e8fdacf91e403a24b28336`.
   The actual game rendered it on Area, Crafting, and Building at 1280 and 375 px with a
   loaded natural size of 2116 × 743, CSS cover at 50% 55%, and no horizontal page overflow.
+  `npm run check` passed (348 unit tests, production build, 28 Chromium tests). No save change.
+- Framed-column checkpoint: inspected the actual game at 1280, 901, 375, and 320 px and in
+  light and dark themes. The map now sits above the lowered middle frame on wide screens;
+  the story and sidebar frames begin directly beneath the shared panorama. At 1050 px and
+  below the sections stack, avoiding cramped status bars. All three tabs have no page-width
+  overflow at 1280, 1051, 1050, 900, 601, 600, 375, or 320 px. The browser layout test checks
+  frame edges, map placement, sidebar bar containment, and both sides of the breakpoint.
   `npm run check` passed (348 unit tests, production build, 28 Chromium tests). No save change.
