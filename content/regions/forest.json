@@ -4,9 +4,9 @@
   "title": "A Quiet Forest",
   "order": 2,
   "description": [
-    "Tall trunks, close together. The sea is only a sound now.",
-    "Trunks stand close and the light thins. Behind you, the sea is only a sound.",
-    "Among tall trees the air goes still. You can barely hear the sea."
+    "The forest begins in a close assembly of high trunks, whose crowns admit only a diminished light. The roar of the sea is already remote.",
+    "Tall trees stand so near one another that daylight reaches the ground in broken patches. Behind you, the ocean has sunk to a faint murmur.",
+    "Beneath the interlaced branches, the air is still and cool. Little remains of the coast's incessant noise, and the landward country is hidden among the trees."
   ],
   "climate": { "baseC": 18 },
   "travelHours": 0.5,
@@ -15,46 +15,46 @@
   "unlockWhen": { "discovered": "forest_edge" },
   "firstVisit": {
     "log": [
-      "Somewhere ahead, water runs over stones.",
-      "From somewhere ahead comes the sound of running water.",
-      "You hear water trickling, somewhere deeper in."
+      "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.",
+      "From the interior comes a faint but persistent sound of running water.",
+      "A distant trickling reaches you through the forest, suggesting a spring or stream not yet seen."
     ]
   },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
   "arrive": [
     {
       "text": [
-        "The trees close in again. The sea fades to a murmur.",
-        "The forest takes you in again.",
-        "Under the trees, the sea goes quiet.",
-        "Back under the trees. It is darker here, and still.",
-        "The forest again, dim and still.",
-        "Back in the green half-dark."
+        "Once more the trees gather about you, shutting out the noise of the sea.",
+        "You re-enter the forest beneath its lofty and closely spaced branches.",
+        "The sound of the coast diminishes as you pass under the trees.",
+        "Here the light is filtered through foliage, and the air scarcely moves.",
+        "The forest receives you again with its familiar stillness.",
+        "You return to the cool half-light beneath the canopy."
       ],
       "when": { "phase": ["dawn", "day", "dusk"] }
     },
     {
       "text": [
-        "Under the trees the dark is total. You feel your way between the trunks.",
-        "In the forest at night you can't see your hands.",
-        "Pitch dark under the trees. You go slowly, hands out."
+        "At night the forest is almost impenetrably dark. You proceed cautiously between the trunks.",
+        "The branches conceal what little light the sky affords; even your hands are hard to see.",
+        "Deep darkness gathers beneath the trees, obliging you to find your way by touch."
       ],
       "when": { "phase": ["night"] }
     },
-    { "text": ["Dry branches everywhere.", "Deadwood all around.", "Plenty of dry branches still."] },
+    { "text": ["Fallen branches remain plentiful beneath the trees.", "The forest floor is strewn with dry wood suitable for fuel.", "Dead branches lie scattered among the roots, ready to be gathered."] },
     {
       "text": [
-        "Somewhere ahead, water runs over stones.",
-        "From somewhere ahead comes the sound of running water.",
-        "You hear water trickling, somewhere deeper in."
+        "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.",
+        "From the interior comes a faint but persistent sound of running water.",
+        "A distant trickling reaches you through the forest, suggesting a spring or stream not yet seen."
       ],
       "when": { "not": { "discovered": "spring" } }
     },
     {
       "text": [
-        "The spring trickles between mossy stones.",
-        "The spring is still running over the stones.",
-        "You hear the spring before you see it."
+        "The spring continues to issue from the moss-covered stones.",
+        "Clear water runs steadily between the rocks of the discovered spring.",
+        "Before the spring comes into view, its gentle murmur reaches your ears."
       ],
       "when": { "discovered": "spring" }
     }
@@ -65,26 +65,26 @@
     "view": [
       {
         "text": [
-          "Tall trunks, close together. The light is dim and green.",
-          "Trees all around, close and still.",
-          "Trunks, moss, and a quiet that swallows the sea."
+          "The trunks rise straight and close about you, with a dim green light filtering through their leaves.",
+          "In every direction the forest appears dense, cool, and scarcely disturbed by wind.",
+          "Roots, moss, and fallen branches cover the ground beneath the trees; the sea is almost silent here."
         ]
       },
       {
         "text": [
-          "Dead branches lie among the roots, dry enough to burn.",
-          "Deadwood everywhere under the trees.",
-          "Fallen branches, dry and light, all around."
+          "Dry limbs lie among the roots in quantities sufficient for several fires.",
+          "The trees have shed a considerable store of deadwood upon the forest floor.",
+          "Among the undergrowth you observe fallen branches, dry enough to serve as fuel."
         ]
       },
-      { "text": "Somewhere ahead, water runs over stones.", "when": { "not": { "discovered": "spring" } } },
-      { "text": "The spring trickles between mossy stones.", "when": { "discovered": "spring" } },
+      { "text": "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.", "when": { "not": { "discovered": "spring" } } },
+      { "text": "The spring continues to issue from the moss-covered stones.", "when": { "discovered": "spring" } },
       {
-        "text": "Small trails run under the ferns.",
+        "text": "Under the ferns, narrow passages run through the undergrowth, evidently used by small animals.",
         "when": { "all": [{ "day": { "gte": 2 } }, { "not": { "discovered": "rabbit_runs" } }] }
       }
     ],
-    "nothingLeft": ["The trees all look the same now.", "Nothing here you have not seen.", "Only more trees."],
+    "nothingLeft": ["No new feature distinguishes these trees from those already examined.", "Your survey has, for the present, accounted for all that is readily visible here.", "The remaining depths show only more trunks and undergrowth."],
     "landmarks": [
       {
         "id": "spring",
@@ -92,9 +92,9 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "Between mossy stones, a small spring. The water is clear and cold.",
-          "Water wells up between mossy stones: a spring, clear and cold.",
-          "You find where the sound comes from: a small spring among the stones. The water is clean."
+          "Following the sound, you come upon a spring issuing between stones green with moss. Its water is clear and remarkably cold: a discovery of no small importance.",
+          "A little current wells up from the earth at the foot of a rock, then runs between mossy stones. Here is fresh water, apparently clean and easily obtained.",
+          "The source of the murmur proves to be a small spring, whose transparent water escapes between stones. The island has furnished one of the first necessities of life."
         ]
       },
       {
@@ -104,9 +104,9 @@
         "effort": "work",
         "visibleWhen": { "day": { "gte": 2 } },
         "text": [
-          "Narrow trails wind through the undergrowth, too small for anything but rabbits. Droppings, fresh. A snare could take one.",
-          "In the morning light you see them: little paths through the ferns, worn by rabbits. Snares would catch them.",
-          "Low runs under the bracken, droppings along them. Rabbits. With cord you could set snares."
+          "The narrow runs beneath the bracken bear fresh droppings and the marks of many small feet. Rabbits evidently use them; a few well-placed snares might provide meat.",
+          "On closer inspection the little trails prove to be worn by rabbits. The paths are so regular that a snare could be set across them with good prospects of success.",
+          "A network of passages through the low vegetation, together with fresh droppings, betrays the presence of rabbits. Cord and patience might turn these signs to advantage."
         ],
         "siteCapabilities": ["small_game_trails"]
       }
@@ -142,9 +142,9 @@
       "visibleWhen": { "item": "axe" },
       "yields": [{ "item": "timber", "min": 2, "max": 3 }],
       "log": [
-        "The axe bites. Chips fly. A young tree comes down.",
-        "You fell a thin trunk and cut it into lengths.",
-        "Stroke after stroke, until the trunk cracks and falls."
+        "The axe bites deeply into a young trunk; chips scatter, and presently the tree falls.",
+        "You fell a slender tree and divide its trunk into lengths fit for building.",
+        "Repeated strokes open a deep cut in the wood until the trunk gives way."
       ]
     },
     {
@@ -161,9 +161,9 @@
       "requires": { "tool": "sharp" },
       "yields": [{ "item": "bark_strips", "min": 4, "max": 4 }],
       "log": [
-        "You score a young tree and peel the inner bark away in long, pale strips.",
-        "The bark comes away in strips, wet and stringy, as long as your arm.",
-        "You cut and peel, cut and peel, until you have a bundle of bark strips."
+        "You score the surface of a young tree and strip away long ribbons of inner bark.",
+        "The moist inner bark separates in tough, fibrous strips, each nearly an arm's length.",
+        "By alternating shallow cuts with careful pulling, you obtain a useful bundle of bark fibres."
       ]
     },
     {
@@ -176,12 +176,12 @@
       "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
       "tags": ["drink"],
       "log": [
-        "Cold water from the spring, tasting of stone.",
-        "You cup your hands and drink. Cold, clean.",
-        "The water tastes of stone and moss.",
-        "You drink until your teeth ache.",
-        "You drink long and slow.",
-        "Cold water, as much as you want."
+        "The spring water is exceptionally cold, with a faint mineral taste.",
+        "You cup the clear water in your hands and drink from the spring.",
+        "A trace of stone and moss flavours the fresh water.",
+        "You drink until the cold of the water sets your teeth aching.",
+        "You drink slowly from the spring, grateful for its constant supply.",
+        "Here, at least, the island offers fresh water without stint."
       ]
     }
   ],
