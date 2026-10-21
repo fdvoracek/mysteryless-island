@@ -13,7 +13,7 @@ Existing authority: ARCHITECTURE.md records implemented game invariants; docs/TD
 
 **Primary outcome.** A non-programmer can create a new region with its map placement, discoveries, actions, items, recipes, buildings, tasks, story scenes, conditions, rewards, illustrations and authored text, then validate and playtest a draft and publish it without editing game code. The game remains a static browser app. Authoring new combinations of **supported** mechanics is no-code; adding a fundamentally new engine mechanic still requires code plus corresponding editor and schema support.
 
-**Independent apps.** Player game at /mysteryless-island/ and authoring app at /mysteryless-island/studio/ after deployment is enabled. Each can build/test independently; both consume one content contract and engine implementation. A hosted editor on GitHub Pages is static; it cannot safely write repository files without authenticated infrastructure. Local authoring comes first; hosted write access is a separate gated deliverable.
+**Independent apps and confirmed local-first rollout.** Player game at /mysteryless-island/ and authoring app at /mysteryless-island/studio/ after deployment is enabled. Each can build/test independently and use the shared content/engine contracts. **The first usable editor runs locally** (localhost browser UI plus loopback-only development write service), reads/writes checked-out Git-tracked content, validates and previews it, and publishes proposed changes through an explicit local Git workflow. GitHub Pages remains static: its optional initial Studio deployment is read-only. Authenticated hosted editing is a later optional gated deliverable, not a prerequisite for implementing local authoring.
 
 **Out of scope unless explicitly approved:** arbitrary scripts/eval in authored data; replacing the game UI framework; a multiplayer game; content-hosting backend required by players; user accounts for the game; turning the editor into a generic multi-game commercial product; changing survival balance or story while migrating; replacing the star-shaped route model with an arbitrary travel graph solely to satisfy an editor mockup.
 
@@ -36,20 +36,20 @@ This plan was based on the main branch on 2026-10-21; implementations must check
 
 ## 3. Decision gates — request explicit answers, do not guess
 
-These questions are intentionally **not** settled by the present conversation. Before a PR reaches a gate, discuss its concrete alternatives with the owner and add the decision to ARCHITECTURE.md (and where appropriate the GDD/TDD). Until then follow the conservative boundaries below, without implementing irreversible changes.
+The table distinguishes **resolved owner decisions** from open design gates. Before a PR reaches an unresolved gate, discuss its concrete alternatives with the owner and add the decision to ARCHITECTURE.md (and where appropriate the GDD/TDD). Until then follow conservative boundaries without implementing irreversible changes.
 
 | Gate | Owner decision needed | Required before |
 |---|---|---|
-| D1 Studio editing surface | Local-only file-backed authoring as first release, or browser-first hosted edits from day one? The plan stages a local writer and read-only hosted site but does not assume final scope. | PR-09, PR-22 |
-| D2 Hosted publishing authentication | GitHub App + small trusted service, OAuth-supported flow with safe backend, or no hosted publishing? Never ship embedded PATs, unrestricted cross-origin writes or secrets to GitHub Pages. | PR-23 |
+| D1 Studio editing surface — **RESOLVED** | **Owner decision (2026-10-21): local Studio first, with hosted editing later.** Run the Studio in a local browser via a development server, edit files in the checked-out repository using a loopback-only local writer, validate and playtest locally, and use Git for publishing. Hosted Studio editing/authentication is explicitly deferred; the optional hosted write PR remains gated by D2/D8/D9. | PR-09–10 and PR-27; no further decision required |
+| D2 Hosted publishing authentication | Later, choose GitHub App + trusted service, secure OAuth/backend flow, or no hosted writing. Never ship embedded PATs, unrestricted cross-origin writes or secrets to GitHub Pages. This is **not a blocker for local editing**. | Optional PR-29 only |
 | D3 Data authority and format | Maintain current content JSON as canonical and add a text catalog, or migrate all source content to a different canonical representation? Until approved, preserve canonical JSON and add adapters rather than replacing it. | PR-05, PR-07 |
-| D4 Translation and switching policy | Which first additional language, required completion/fallback policy, whether switching must update historical journal/popups instantly? Preserve current English default while unresolved. | PR-07, PR-08, PR-18 |
+| D4 Translation and switching policy | Which first additional language, required completion/fallback policy, whether switching must update historical journal/popups instantly? Preserve current English default while unresolved. | PR-07, PR-08, PR-20 |
 | D5 Save compatibility — **RESOLVED** | **Owner decision (2026-10-21): old saves may be incompatible or discarded during migration because only the owner is testing. No legacy save migration is needed.** The app must detect incompatible data, offer a clear start-new-game path and remain playable after every PR. | All PRs; no further decision required |
-| D6 World graph | Keep authored map positions and camp-based travel for now, or support authored per-edge travel networks and shortest paths? No mechanical travel redesign before approval. | PR-19 |
-| D7 Visual/gameplay scope | Does the first complete editor need global game settings, climate/stats and every niche schema field, or is milestone coverage acceptable? Define the completeness inventory before declaring no-code production ready. | PR-20 |
-| D8 Studio access/collaboration | Single author, team reviewing through PRs, or multi-user real-time collaboration? Do not implement accounts/collaboration speculatively. | PR-22–23 |
-| D9 External assets | Should image files be edited/uploaded locally only, or published using hosted storage/GitHub API? Maintain existing art direction and local validated artwork paths unless approved. | PR-21 |
-| D10 Deploy policy | Is publishing a studio build publicly at /studio/ acceptable before hosted editing is supported? Read-only is not a security boundary by itself. | PR-22 |
+| D6 World graph | Keep authored map positions and camp-based travel for now, or support authored per-edge travel networks and shortest paths? No mechanical travel redesign before approval. | PR-21 |
+| D7 Visual/gameplay scope | Does the first complete editor need global game settings, climate/stats and every niche schema field, or is milestone coverage acceptable? Define the completeness inventory before declaring no-code production ready. | PR-22 |
+| D8 Studio access/collaboration | If/when hosted authoring is introduced, decide single-author versus multi-user permissions/collaboration. No accounts or real-time collaboration for the initial local Studio. | Optional PR-29 |
+| D9 External assets | Decide whether later media storage extends beyond local repository files. Preserve existing art direction and validated local asset paths for initial local authoring. | PR-22 (if needed), optional PR-29 |
+| D10 Deploy policy | Is publishing a studio build publicly at /studio/ acceptable before hosted editing is supported? Read-only is not a security boundary by itself. | PR-28 |
 
 For every gate: record the answer, changes to PR scope, migration consequences and acceptance tests. Where the owner defers a decision, the dependent PR must not claim completion. Avoid a speculative “temporary” implementation that forces later save or schema incompatibilities.
 
@@ -201,7 +201,7 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 **Delivers:** editors can make an intentional content change and persist it to canonical source files via an authenticated **local-only** authoring service, then see resulting git diffs.
 
-**Decision gates:** D1 and D3. If undecided, implement only read-only Studio from PR-09 and ask before adding file-write functionality.
+**Confirmed approach:** D1 is resolved: implement a locally served Studio and a loopback-only, repository-scoped writer; do not build hosted writing or hosted auth here. **Open decision:** D3 (canonical source format). Until D3 is resolved, continue editing the existing Git-tracked JSON instead of introducing a new canonical store.
 
 **Implementation:** implement a local Node development server/CLI with narrowly scoped endpoints (workspace snapshot, validate, write change, revert change), bound to loopback with appropriate origin/token checks; no unrestricted filesystem path supplied by clients. Source adapter reads existing JSON and maps typed entities to source file+path; editor changes are validated, written atomically (temp file/rename) and preserve unrelated content. Include optimistic conflict detection using file hash or revision token; refuse stale overwrites. Provide undo/redo for the active draft and dirty-state indicator, explicit Save Draft, Cancel/Revert. Support malformed source recovery with backup/error rather than overwriting it. Preserve comments (_note) and the repository's formatting conventions as reasonably as possible; snapshot diff tests prevent unintended rewriting of entire content trees. Ensure no dev write server is bundled in GitHub Pages output.
 
@@ -378,7 +378,7 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 ### PR-27 — Local Git diff, branches, commits and PR proposal workflow
 
-**Decision:** D1; confirm authorization to use local Git and optional GitHub API credentials. Never push, merge or publish without explicit user action.
+**Confirmed approach:** D1 is resolved: local Git workflow first. Obtain explicit authorization for individual write/push/PR actions as required; GitHub credentials are optional and must stay outside browser bundles. Never push, merge or publish without explicit user action.
 
 **Working deliverable:** Review Studio-created content changes and produce a content-only local commit/branch; optionally initiate a GitHub PR when configured.
 
@@ -402,7 +402,7 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 ### PR-29 — Secure hosted authoring (optional; explicitly gated)
 
-**Decisions:** D1, D2, D8 and D9. Do not start until owner selects backend, authentication, write permissions and collaboration scope. If declined, record as optional/deferred; local Studio remains complete.
+**Decisions:** D1 is resolved in favor of local-first; **D2, D8 and D9 remain open for future hosted writing**. Do not start until the owner selects backend, authentication, write permissions and collaboration scope. Local Studio is the complete first editing workflow, independent of this optional later PR.
 
 **Working deliverable:** Hosted authorized editor proposes changes by GitHub PR without granting general repository write access to the public.
 
