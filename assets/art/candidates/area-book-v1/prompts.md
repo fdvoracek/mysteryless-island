@@ -1,0 +1,40 @@
+# Area master candidate prompts
+
+Built-in image-generation tool; no CLI/API fallback. Tool model/settings were not exposed.
+The original output files remain in the tool's generated-images directory.
+
+## First candidate
+
+Create a minimalist **black-and-white illustration for a text-first browser survival game**, visually consistent with a single restrained 19th-century Jules Verne adventure-book edition inspired by Jules Férat. Render as a **simplified fine-line wood engraving / pen-and-ink book illustration**: crisp, delicate contours, **very sparse selective hatching**, subtle neutral-gray tones, clear recognizable forms, restrained contrast, and **large clean white areas**. Prioritize calm composition, visual readability, and minimal detail over historical engraving complexity. Match the approved reference assets in line thickness, tonal balance, composition, and density. The illustration must feel quiet, precise, and coherent with other illustrations from the same book. **Pure white or transparent background as appropriate. Absolutely monochrome. No color, sepia, parchment texture, typography, captions, frames, UI, gradients, heavy crosshatching, dense lines, excessive texture, photorealism, painterly brushwork, cartoon styling, or extra decorative objects.**
+
+USE CASE: illustration-story
+PURPOSE: Establish one unapproved beach visual-master candidate for a coordinated beach/forest/meadows collection. This is one scene, not a contact sheet or UI mockup.
+INPUT IMAGE ROLE: The supplied island engraving is GEOGRAPHY AND COMPOSITION ONLY. Its dense hatching, textured gray sky, dark fills and busy surface detail must NOT be copied. Simplify much further than that reference. There is no approved production style master available yet.
+SUBJECT: A quiet deserted island beach, modest coastal cliff on the left, a low line of dunes backed by trees, distant mountain toward the right, calm shoreline.
+STORY CONTEXT: The opening beach of a quiet survival adventure. No inhabitants, huts, ships, tools, campfires, animals, captions, or discoveries highlighted.
+COMPOSITION: One very wide panoramic scene, full frame 1600 x 440 pixels (40:11 ratio). Draw the entire coastline as a panorama, do not crop a tall illustration or place a small image inside a big canvas. Keep the cliff readable near the left edge and the distant mountain softly outlined. Beach and sky are broad untouched white areas; water uses only a handful of spaced strokes. Three simple depth planes; delicate distant tree silhouettes rather than individual leaves. Restrained dark accents on only a few foreground rocks. Horizon about halfway down the shallow frame. No decorative margins, no border.
+OUTPUT TYPE: location panorama
+BACKGROUND: pure white #FFFFFF, absolutely neutral grayscale linework
+ASPECT RATIO / DIMENSIONS: 1600 x 440 px final canvas, precisely forty units wide to eleven units tall.
+CONTINUITY: Preserve the cliff/beach/dunes/forest/distant-mountain geographical relationship of the supplied reference while dramatically reducing detail and dark areas.
+REFERENCE ASSETS: /Users/frantisek.dvoracek/GameDev/Projects/TextIsland/assets/art/references/island-engraving-reference.png (geography only).
+DETAIL BUDGET: very low. Leave at least two thirds of the picture clean white. No all-over hatch texture; at most a few small selective hatch clusters. Fine contours, large simple forms, same apparent scale suitable for future forest and meadow panoramas.
+
+## Refinement
+
+Create a minimalist **black-and-white illustration for a text-first browser survival game**, visually consistent with a single restrained 19th-century Jules Verne adventure-book edition inspired by Jules Férat. Render as a **simplified fine-line wood engraving / pen-and-ink book illustration**: crisp, delicate contours, **very sparse selective hatching**, subtle neutral-gray tones, clear recognizable forms, restrained contrast, and **large clean white areas**. Prioritize calm composition, visual readability, and minimal detail over historical engraving complexity. Match the approved reference assets in line thickness, tonal balance, composition, and density. The illustration must feel quiet, precise, and coherent with other illustrations from the same book. **Pure white or transparent background as appropriate. Absolutely monochrome. No color, sepia, parchment texture, typography, captions, frames, UI, gradients, heavy crosshatching, dense lines, excessive texture, photorealism, painterly brushwork, cartoon styling, or extra decorative objects.**
+
+USE CASE: illustration-story
+PURPOSE: Establish one unapproved beach visual-master candidate for a coordinated beach/forest/meadows collection. This is one scene, not a contact sheet or UI mockup.
+INPUT IMAGE ROLE: The supplied island engraving is GEOGRAPHY AND COMPOSITION ONLY. Its dense hatching, textured gray sky, dark fills and busy surface detail must NOT be copied. Simplify much further than that reference. There is no approved production style master available yet.
+SUBJECT: A quiet deserted island beach, modest coastal cliff on the left, a low line of dunes backed by trees, distant mountain toward the right, calm shoreline.
+STORY CONTEXT: The opening beach of a quiet survival adventure. No inhabitants, huts, ships, tools, campfires, animals, captions, or discoveries highlighted.
+COMPOSITION: One very wide panoramic scene, full frame 1600 x 440 pixels (40:11 ratio). Draw the entire coastline as a panorama, do not crop a tall illustration or place a small image inside a big canvas. Keep the cliff readable near the left edge and the distant mountain softly outlined. Beach and sky are broad untouched white areas; water uses only a handful of spaced strokes. Three simple depth planes; delicate distant tree silhouettes rather than individual leaves. Restrained dark accents on only a few foreground rocks. Horizon about halfway down the shallow frame. No decorative margins, no border.
+OUTPUT TYPE: location panorama
+BACKGROUND: pure white #FFFFFF, absolutely neutral grayscale linework
+ASPECT RATIO / DIMENSIONS: 1600 x 440 px final canvas, precisely forty units wide to eleven units tall.
+CONTINUITY: Preserve the cliff/beach/dunes/forest/distant-mountain geographical relationship of the supplied reference while dramatically reducing detail and dark areas.
+REFERENCE ASSETS: /Users/frantisek.dvoracek/GameDev/Projects/TextIsland/assets/art/references/island-engraving-reference.png (geography only).
+DETAIL BUDGET: very low. Leave at least two thirds of the picture clean white. No all-over hatch texture; at most a few small selective hatch clusters. Fine contours, large simple forms, same apparent scale suitable for future forest and meadow panoramas.
+
+REFINEMENT: The new attached image is the unapproved first candidate and the edit target. Keep its beach/cliff/mountain geography, fine contour technique and calm monochrome appearance. Make ONE targeted refinement: remove about half the hatch clusters and repeated lines, particularly almost all parallel water texture, most mountain slope hatching, and leaf-by-leaf marks in the forest. Keep broad recognizable shapes and a few material strokes only; preserve pure white sky/sand. This must be a quiet header beside prose. EXPORT REQUIREMENT: recompose this scene on a 1600 pixel wide by 440 pixel high canvas (aspect ratio 3.63636:1). The previous file was 2043 x 770 and is not the required panoramic export. Do not return that previous aspect ratio. Keep all essential coast geography readable in the wider, shallower composition, without stretching. No new elements or different technique.

@@ -4,6 +4,10 @@ The user approved the implementation sequence on 2026-10-20 and requested a sepa
 and feature-branch push for every delivered milestone. The large area panorama remains above
 the route map and all three tabs: Area, Crafting, and Building. Tab changes do not hide it.
 
+Milestones 1–3 were merged in PR #8 on 2026-10-20. Subsequent work starts from current main
+on `art/area-master-review`; its first review checkpoint contains the unapproved beach master
+and actual-file previews, not a delivered artwork milestone or production integration.
+
 Follow [VISUAL_STYLE.md](VISUAL_STYLE.md) and [ART_DIRECTION.md](ART_DIRECTION.md). The supplied
 panoramic UI mockup supplies composition and hierarchy; use a white, neutral book-page
 treatment without its parchment texture, warm artwork tint, large background map, or repeated
@@ -18,7 +22,7 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
 3. **Validated artwork support — verified.** Optional content-driven illustration metadata,
    validated references, selector views, shared image rendering, reserved dimensions, alt-text
    policy, missing-image fallback, and GitHub Pages base-path compatibility. No save migration.
-4. **Coordinated region artwork — pending.** Locate the actual approved simpler beach master,
+4. **Coordinated region artwork — master candidate in review.** Locate the actual approved simpler beach master,
    or produce a concrete master candidate for approval. Generate beach, forest, and meadows
    against that one master, verify 1600 × 440 exports, compare the complete set, and integrate
    the approved files on all tabs. Never substitute searched images as previews.
@@ -54,3 +58,10 @@ are complete.
   Five real-browser helper tests exercise Pages subpaths, actual loads, stable image elements,
   cached failures, stale callbacks, and removing metadata. Independent source and integration
   review found no material issues. No production assets or save changes were introduced.
+  Delivered as `4b9f43b` on `feature/illustrated-book-ui`; remote commit verified.
+- Milestone 4 is not delivered: a new beach candidate is being reviewed before companion
+  generation. Its raw output is 2041 × 770, not the required 1600 × 440 production export.
+  See [the candidate review packet](../assets/art/candidates/area-book-v1/README.md).
+  A fresh production build and six labelled browser previews at 1280/375 px confirm the
+  proposed CSS framing above Area, Crafting, and Building. The original image checksum is
+  unchanged. No production catalog entry, crop/resize export, or companion image exists yet.
