@@ -20,6 +20,17 @@ One browser scenario can exercise a representative craft and build; engine tests
 individual requirements and interruption cases. Do not repeat long browser playthroughs to
 verify different item definitions. Do not add tests that parse other tests for expected labels.
 
+## Golden traces — [implemented, Studio PR-01]
+
+`tests/golden-traces.test.ts` and `tests/__snapshots__/golden-traces.test.ts.snap` are the Studio
+parity baseline. Seed 7 drives both random streams in random-variant mode. Normalization sorts
+object keys and presents the journal chronologically; it preserves every persisted field,
+array order and numeric value. The scripts use real commands and the real save/reload boundary.
+
+Run `npm test -- tests/golden-traces.test.ts` without snapshot updates. Later Studio PRs must
+keep these traces unchanged: investigate a mismatch rather than refreshing the snapshots.
+The frozen content pack stays independent of shipped story and balance edits.
+
 ## Timing
 
 The test build loads `.env.engine-test`:

@@ -1,0 +1,1095 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PR-01 golden traces on frozen content > records exploration, outcomes, personal creation, production, quests, sleep and continued play after reload 1`] = `
+{
+  "journal": [
+    {
+      "at": 360,
+      "text": "You swim until your arms stop answering. Then sand scrapes your knees. You crawl out of the surf and lie still, the knife in your hand.",
+      "turn": 7,
+    },
+    {
+      "at": 360,
+      "text": "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees.",
+      "turn": 9,
+    },
+    {
+      "at": 390,
+      "text": "From the crest of the dunes you see the island's edge give way to trees. A forest, an hour's walk at most.",
+      "turn": 12,
+    },
+    {
+      "at": 390,
+      "text": "You could reach the forest from here.",
+      "turn": 13,
+    },
+    {
+      "at": 420,
+      "text": "At the far end of the beach, a ring of rocks breaks the sea wind. It is a natural shelter. You can make a bed here, and build a campfire for warmth.",
+      "turn": 17,
+    },
+    {
+      "at": 450,
+      "text": "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it. You could pick them and eat them as they are. Cooked, they would go further.",
+      "turn": 22,
+    },
+    {
+      "at": 450,
+      "text": "You gather stones where the cliff has crumbled.",
+      "turn": 25,
+    },
+    {
+      "at": 480,
+      "text": "Under the cliff, stones of every size. You pick the hardest.",
+      "turn": 26,
+    },
+    {
+      "at": 510,
+      "text": "You gather stones where the cliff has crumbled.",
+      "turn": 27,
+    },
+    {
+      "at": 540,
+      "text": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
+      "turn": 27,
+    },
+    {
+      "at": 540,
+      "text": "You prise shells off the wet stone. The surf soaks your legs.",
+      "turn": 29,
+    },
+    {
+      "at": 570,
+      "text": "A handful of shells, cold and heavy.",
+      "turn": 30,
+    },
+    {
+      "at": 600,
+      "text": "Shell by shell, off the wet stone. Your hands go numb.",
+      "turn": 31,
+    },
+    {
+      "at": 630,
+      "text": "You knock flakes off one stone with the other, then grind the edge. It will never be a knife, but it will do.",
+      "turn": 32,
+    },
+    {
+      "at": 810,
+      "text": "You finish crafting rock knife.",
+      "turn": 32,
+    },
+    {
+      "at": 810,
+      "text": "You make your way to the forest.",
+      "turn": 33,
+    },
+    {
+      "at": 840,
+      "text": "Tall trunks, close together. The sea is only a sound now.",
+      "turn": 33,
+    },
+    {
+      "at": 840,
+      "text": "From somewhere ahead comes the sound of running water.",
+      "turn": 33,
+    },
+    {
+      "at": 870,
+      "text": "Salty and chewy. Barely a mouthful.",
+      "turn": 35,
+    },
+    {
+      "at": 870,
+      "text": "Between mossy stones, a small spring. The water is clear and cold.",
+      "turn": 36,
+    },
+    {
+      "at": 870,
+      "text": "The water tastes of stone and moss.",
+      "turn": 39,
+    },
+    {
+      "at": 885,
+      "text": "Dry branches snap underfoot.",
+      "turn": 40,
+    },
+    {
+      "at": 915,
+      "text": "Twigs and branches, light and dry.",
+      "turn": 41,
+    },
+    {
+      "at": 945,
+      "text": "Dry branches snap underfoot.",
+      "turn": 42,
+    },
+    {
+      "at": 975,
+      "text": "Stone on stone until one has an edge. Then a split branch, and the stone wedged in tight.",
+      "turn": 43,
+    },
+    {
+      "at": 990,
+      "text": "Chewy, salty, gone in a moment.",
+      "turn": 43,
+    },
+    {
+      "at": 1035,
+      "text": "You finish crafting axe.",
+      "turn": 43,
+    },
+    {
+      "at": 1035,
+      "text": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
+      "turn": 43,
+    },
+    {
+      "at": 1035,
+      "text": "Cold water, as much as you want.",
+      "turn": 45,
+    },
+    {
+      "at": 1050,
+      "text": "Stroke after stroke, until the trunk cracks and falls.",
+      "turn": 46,
+    },
+    {
+      "at": 1095,
+      "text": "Salty and chewy. Barely a mouthful.",
+      "turn": 46,
+    },
+    {
+      "at": 1110,
+      "text": "Logs at last: wood to build with.",
+      "turn": 46,
+    },
+    {
+      "at": 1110,
+      "text": "The axe bites. Chips fly. A young tree comes down.",
+      "turn": 48,
+    },
+    {
+      "at": 1155,
+      "text": "Your energy is gone. You collapse where you are and sleep until morning.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "New day 2 is starting.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "You slept without a bed at the forest. The rough sleep restores you to 50% energy at 6am.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "You did not get to bed in time. You passed out and had to sleep where you were, at the forest.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "The sky pales over the sea. You are still here.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "The wind found you all night. A shelter against the rocks would keep it off.",
+      "turn": 48,
+    },
+    {
+      "at": 1800,
+      "text": "For better sleep, make a bed and light a fire under shelter. The beach rocks already shelter you.",
+      "turn": 48,
+    },
+    {
+      "at": 1815,
+      "text": "Salty and chewy. Barely a mouthful.",
+      "turn": 51,
+    },
+    {
+      "at": 1815,
+      "text": "You set off for the beach.",
+      "turn": 52,
+    },
+    {
+      "at": 1845,
+      "text": "You come out onto the beach. The wind is waiting.",
+      "turn": 52,
+    },
+    {
+      "at": 1845,
+      "text": "The ring of rocks, and cold ash inside it.",
+      "turn": 52,
+    },
+    {
+      "at": 1845,
+      "text": "Under the cliff, the shells wait for the tide.",
+      "turn": 52,
+    },
+    {
+      "at": 1845,
+      "text": "You arrange stones in a ring and clear a safe place for a fire.",
+      "turn": 53,
+    },
+    {
+      "at": 1860,
+      "text": "Two logs, a mattress of branches. Not soft, but off the cold sand.",
+      "turn": 54,
+    },
+    {
+      "at": 1920,
+      "text": "Chewy, salty, gone in a moment.",
+      "turn": 54,
+    },
+    {
+      "at": 1920,
+      "text": "Not soft, but dry and off the ground. It will do.",
+      "turn": 54,
+    },
+    {
+      "at": 1920,
+      "text": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
+      "turn": 54,
+    },
+    {
+      "at": 1920,
+      "text": "You build a rack of logs downwind of the fire.",
+      "turn": 57,
+    },
+    {
+      "at": 1980,
+      "text": "You make your way to the forest.",
+      "turn": 58,
+    },
+    {
+      "at": 2010,
+      "text": "Back under the trees. It is darker here, and still.",
+      "turn": 58,
+    },
+    {
+      "at": 2010,
+      "text": "Dry branches everywhere.",
+      "turn": 58,
+    },
+    {
+      "at": 2010,
+      "text": "The spring is still running over the stones.",
+      "turn": 58,
+    },
+    {
+      "at": 2010,
+      "text": "You drink until your teeth ache.",
+      "turn": 59,
+    },
+    {
+      "at": 2025,
+      "text": "An armful of deadwood.",
+      "turn": 60,
+    },
+    {
+      "at": 2055,
+      "text": "You have no ready-to-eat food left. Eat soon, or you will collapse.",
+      "turn": 60,
+    },
+    {
+      "at": 2055,
+      "text": "You snap dead branches off a fallen tree.",
+      "turn": 62,
+    },
+    {
+      "at": 2085,
+      "text": "Twigs crack under your feet.",
+      "turn": 63,
+    },
+    {
+      "at": 2115,
+      "text": "An armful of deadwood.",
+      "turn": 64,
+    },
+    {
+      "at": 2145,
+      "text": "You set off for the beach.",
+      "turn": 65,
+    },
+    {
+      "at": 2175,
+      "text": "The sand again, and the wind with it.",
+      "turn": 65,
+    },
+    {
+      "at": 2175,
+      "text": "No smoke from the rocks. The fire is out.",
+      "turn": 65,
+    },
+    {
+      "at": 2175,
+      "text": "The shells still cling under the cliff.",
+      "turn": 65,
+    },
+    {
+      "at": 2205,
+      "text": "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them.",
+      "turn": 68,
+    },
+    {
+      "at": 2205,
+      "text": "Shaving by shaving, the knife turns a branch into a point.",
+      "turn": 71,
+    },
+    {
+      "at": 2235,
+      "text": "You finish crafting fishing spear.",
+      "turn": 71,
+    },
+    {
+      "at": 2235,
+      "text": "You fall down where you are. You can't keep your eyes open.",
+      "turn": 72,
+    },
+    {
+      "at": 2235,
+      "text": "In the quiet, the day replays.",
+      "turn": 72,
+    },
+    {
+      "at": 2235,
+      "text": "The spear you carved, its point sharp under your thumb.",
+      "turn": 72,
+    },
+    {
+      "at": 2235,
+      "text": "Silver fish in the shallows, too quick to catch.",
+      "turn": 72,
+    },
+    {
+      "at": 2235,
+      "text": "The axe biting into wood.",
+      "turn": 72,
+    },
+    {
+      "at": 2235,
+      "text": "Sleep comes quickly.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "New day 3 is starting.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "You went to sleep before midnight in a sheltered bed at the beach, without a burning fire. You wake at 6am with 80% energy.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "Hunger and thirst, both at once.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "The fire is long out. Only cold ash.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "You have no ready-to-eat food or drinking water left. Eat and drink soon, or you will collapse. Prepare food and find fresh water.",
+      "turn": 72,
+    },
+    {
+      "at": 3240,
+      "text": "You wade into the shallows, spear raised.",
+      "turn": 74,
+    },
+    {
+      "at": 3300,
+      "text": "One fish, wriggling on the point.",
+      "turn": 74,
+    },
+    {
+      "at": 3300,
+      "text": "A fish at last. You will not starve, not today.",
+      "turn": 74,
+    },
+    {
+      "at": 3300,
+      "text": "The rack stands by the fire, ready for fish or meat.",
+      "turn": 74,
+    },
+    {
+      "at": 3300,
+      "text": "You have no ready-to-eat food or drinking water left. Eat and drink soon, or you will collapse. Prepare food and find fresh water.",
+      "turn": 74,
+    },
+    {
+      "at": 3300,
+      "text": "You stand knee-deep in the cold water and wait.",
+      "turn": 78,
+    },
+    {
+      "at": 3360,
+      "text": "Two fish, flapping on the sand.",
+      "turn": 78,
+    },
+    {
+      "at": 3360,
+      "text": "You wade into the shallows, spear raised.",
+      "turn": 79,
+    },
+    {
+      "at": 3420,
+      "text": "The water swirls. The spear comes up empty.",
+      "turn": 79,
+    },
+    {
+      "at": 3420,
+      "text": "You hang the fish where the smoke can reach them.",
+      "turn": 80,
+    },
+    {
+      "at": 3435,
+      "text": "You lie down, heavy and tired.",
+      "turn": 81,
+    },
+    {
+      "at": 3435,
+      "text": "Pieces of the day drift back.",
+      "turn": 81,
+    },
+    {
+      "at": 3435,
+      "text": "Waiting in the surf for the fish to come close.",
+      "turn": 81,
+    },
+    {
+      "at": 3435,
+      "text": "Your eyes close.",
+      "turn": 81,
+    },
+    {
+      "at": 4680,
+      "text": "New day 4 is starting.",
+      "turn": 81,
+    },
+    {
+      "at": 4680,
+      "text": "You went to sleep before midnight in a sheltered bed at the beach, without a burning fire. You wake at 6am with 80% energy.",
+      "turn": 81,
+    },
+    {
+      "at": 4680,
+      "text": "Your stomach aches and your mouth is dry.",
+      "turn": 81,
+    },
+    {
+      "at": 4680,
+      "text": "The fire did not last the night.",
+      "turn": 81,
+    },
+    {
+      "at": 4680,
+      "text": "You take down the food, dry as bark.",
+      "turn": 82,
+    },
+    {
+      "at": 4695,
+      "text": "It takes a long time to chew. It fills you.",
+      "turn": 82,
+    },
+    {
+      "at": 4695,
+      "text": "Dry fish, chewy and smoky.",
+      "turn": 82,
+    },
+  ],
+  "seed": 7,
+  "state": {
+    "actions": [],
+    "buildings": {
+      "bed@beach": {
+        "batches": [],
+        "builtAt": 1920,
+        "count": 1,
+        "nextBatch": 1,
+      },
+      "campfire@beach": {
+        "batches": [],
+        "builtAt": 1860,
+        "count": 1,
+        "nextBatch": 1,
+      },
+      "drying_rack@beach": {
+        "batches": [],
+        "builtAt": 1980,
+        "count": 1,
+        "nextBatch": 2,
+      },
+    },
+    "counters": {
+      "did:bed": 1,
+      "did:campfire": 1,
+      "did:catch_fish": 3,
+      "did:chop_wood": 2,
+      "did:collect_shells": 3,
+      "did:collect_stones": 3,
+      "did:craft_axe": 1,
+      "did:craft_rock_knife": 1,
+      "did:craft_spear": 1,
+      "did:dried_fish": 2,
+      "did:drink": 3,
+      "did:drink_stream": 3,
+      "did:drying_rack": 1,
+      "did:eat": 10,
+      "did:gather_wood": 7,
+      "did:hang_fish": 1,
+      "did:shells": 8,
+      "did:sleep": 3,
+      "did:take_dried_fish": 1,
+    },
+    "dead": false,
+    "events": {
+      "active": null,
+      "notes": [],
+      "queue": [],
+      "seen": {
+        "shipwreck": {
+          "count": 1,
+          "lastAt": 360,
+        },
+      },
+    },
+    "flags": [
+      "auto_thirst_unavailable",
+    ],
+    "items": {
+      "axe": 1,
+      "dried_fish": 0,
+      "firewood": 11,
+      "fishing_spear": 1,
+      "knife": 1,
+      "raw_fish": 1,
+      "rock_knife": 1,
+      "shells": 0,
+      "stone": 3,
+      "summer_clothes": 1,
+      "timber": 0,
+    },
+    "lastText": {
+      "buildings.bed.build.log": 2,
+      "buildings.drying_rack.build.log": 2,
+      "buildings.drying_rack.cycle.collect.log": 2,
+      "buildings.drying_rack.cycle.readyLog": 0,
+      "buildings.drying_rack.cycle.start.log": 2,
+      "game.journal.walkTo": 1,
+      "game.journal.wayOpens": 1,
+      "game.start.log": 2,
+      "items.dried_fish.consume.log": 1,
+      "items.shells.consume.log": 2,
+      "quests.build_drying_rack.doneLog": 0,
+      "quests.build_shelter.startLog": 0,
+      "quests.cut_logs.doneLog": 1,
+      "quests.first_catch.doneLog": 2,
+      "quests.make_bed.doneLog": 1,
+      "quests.survive_first_night.doneLog": 1,
+      "recipes.craft_axe.ways.0.log": 1,
+      "recipes.craft_rock_knife.ways.0.log": 2,
+      "recipes.craft_spear.ways.1.log": 2,
+      "regions.beach.activities.catch_fish.log": 0,
+      "regions.beach.activities.catch_fish.outcomes.0.text": 0,
+      "regions.beach.activities.catch_fish.outcomes.1.text": 1,
+      "regions.beach.activities.catch_fish.outcomes.2.text": 2,
+      "regions.beach.activities.collect_shells.log": 2,
+      "regions.beach.activities.collect_stones.log": 2,
+      "regions.beach.activities.sleep.afterwards.0.lines.1.text": 1,
+      "regions.beach.activities.sleep.afterwards.1.lines.1.text": 5,
+      "regions.beach.activities.sleep.log": 1,
+      "regions.beach.activities.sleep.thoughts.0.lines.0.text": 1,
+      "regions.beach.activities.sleep.thoughts.0.lines.2.text": 2,
+      "regions.beach.activities.sleep.thoughts.1.intro": 1,
+      "regions.beach.activities.sleep.thoughts.1.lines.1.text": 2,
+      "regions.beach.activities.sleep.thoughts.1.lines.4.text": 1,
+      "regions.beach.activities.sleep.thoughts.1.lines.7.text": 1,
+      "regions.beach.activities.sleep.thoughts.1.lines.8.text": 2,
+      "regions.beach.arrive.0.text": 1,
+      "regions.beach.arrive.3.text": 2,
+      "regions.beach.arrive.4.text": 1,
+      "regions.beach.explore.landmarks.cliff_shells.text": 0,
+      "regions.beach.explore.landmarks.forest_edge.text": 2,
+      "regions.beach.explore.landmarks.rock_shelter.text": 0,
+      "regions.beach.explore.landmarks.school_of_fish.text": 2,
+      "regions.beach.explore.view.0.text": 2,
+      "regions.forest.activities.chop_wood.log": 0,
+      "regions.forest.activities.drink_stream.log": 3,
+      "regions.forest.activities.gather_wood.log": 3,
+      "regions.forest.arrive.0.text": 3,
+      "regions.forest.arrive.2.text": 0,
+      "regions.forest.arrive.4.text": 1,
+      "regions.forest.description": 0,
+      "regions.forest.explore.landmarks.spring.text": 0,
+      "regions.forest.explore.view.0.text": 0,
+      "regions.forest.explore.view.1.text": 2,
+      "regions.forest.firstVisit.log": 1,
+    },
+    "location": "beach",
+    "narrativeRng": [
+      -203175143,
+      855144850,
+      2778485754,
+      1312903867,
+    ],
+    "nextAction": 39,
+    "prevStats": {
+      "energy": 80,
+      "health": 81,
+      "hunger": 100,
+      "thirst": 100,
+    },
+    "provisionWarnings": [
+      "thirst",
+    ],
+    "quests": {
+      "better_sleep": {
+        "startedAt": 1800,
+        "status": "active",
+      },
+      "build_drying_rack": {
+        "doneAt": 3300,
+        "startedAt": 3300,
+        "status": "done",
+      },
+      "build_fish_trap": {
+        "startedAt": 2205,
+        "status": "active",
+      },
+      "build_rain_barrel": {
+        "startedAt": 1845,
+        "status": "active",
+      },
+      "build_shelter": {
+        "startedAt": 1800,
+        "status": "active",
+      },
+      "climb_cliff": {
+        "startedAt": 450,
+        "status": "active",
+      },
+      "cut_logs": {
+        "doneAt": 1110,
+        "startedAt": 420,
+        "status": "done",
+      },
+      "first_catch": {
+        "doneAt": 3300,
+        "startedAt": 2205,
+        "status": "done",
+      },
+      "make_bed": {
+        "doneAt": 1920,
+        "startedAt": 420,
+        "status": "done",
+      },
+      "survive_first_night": {
+        "doneAt": 1800,
+        "startedAt": 360,
+        "status": "done",
+      },
+    },
+    "regions": {
+      "beach": {
+        "discoveries": [
+          "forest_edge",
+          "rock_shelter",
+          "cliff_shells",
+          "school_of_fish",
+        ],
+        "explored": 4,
+        "unlocked": true,
+        "visited": true,
+      },
+      "forest": {
+        "discoveries": [
+          "spring",
+        ],
+        "explored": 1,
+        "unlocked": true,
+        "visited": true,
+      },
+      "meadows": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": false,
+        "visited": false,
+      },
+    },
+    "rng": [
+      -1069094142,
+      719831596,
+      3275205570,
+      38,
+    ],
+    "saveVersion": 7,
+    "seed": 7,
+    "seen": [
+      "summer_clothes",
+      "knife",
+      "stone",
+      "shells",
+      "rock_knife",
+      "firewood",
+      "axe",
+      "timber",
+      "fishing_spear",
+      "raw_fish",
+      "dried_fish",
+    ],
+    "stats": {
+      "energy": 100,
+      "health": 81,
+      "hunger": 56,
+      "thirst": 100,
+    },
+    "technology": {
+      "build": {
+        "completed": [
+          "campfire",
+          "bed",
+          "drying_rack",
+        ],
+        "unlocked": [
+          "campfire",
+          "bed",
+          "drying_rack",
+          "fish_trap",
+          "corn_field",
+          "shelter",
+        ],
+      },
+      "craft": {
+        "completed": [
+          "craft_rock_knife",
+          "craft_axe",
+          "craft_spear",
+        ],
+        "unlocked": [
+          "craft_rock_knife",
+          "craft_axe",
+          "craft_spear",
+          "craft_rope",
+          "craft_hoe",
+        ],
+      },
+    },
+    "time": 4695,
+    "timers": {
+      "fire@beach": 0,
+      "fire@forest": 0,
+      "fire@meadows": 0,
+    },
+    "today": {
+      "dried_fish": 2,
+      "eat": 2,
+      "take_dried_fish": 1,
+    },
+    "turn": 82,
+    "warmth": 2,
+  },
+}
+`;
+
+exports[`PR-01 golden traces on frozen content > records the shipwreck knife branch and reloads its open scene 1`] = `
+{
+  "journal": [
+    {
+      "at": 360,
+      "text": "You were three days out when the storm came. All evening the wind rose, and by midnight the boat was climbing black waves and falling into the troughs between them.",
+      "turn": 1,
+    },
+    {
+      "at": 360,
+      "text": "Then, in the dark, a crack like a gunshot. The hull has struck rock. Water roars in below deck and the ship lurches, already lower in the sea.",
+      "turn": 2,
+    },
+    {
+      "at": 360,
+      "text": "There is a moment, no more, to grab one thing before you jump.",
+      "turn": 3,
+    },
+    {
+      "at": 360,
+      "text": "You jump with the knife clenched in your fist. The cold punches the breath out of you. A wave throws you under, then another, and each time you claw back to the surface, still gripping the blade.",
+      "turn": 6,
+    },
+    {
+      "at": 360,
+      "text": "You swim until your arms stop answering. Then sand scrapes your knees. You crawl out of the surf and lie still, the knife in your hand.",
+      "turn": 7,
+    },
+    {
+      "at": 360,
+      "text": "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees.",
+      "turn": 9,
+    },
+  ],
+  "seed": 7,
+  "state": {
+    "actions": [],
+    "buildings": {},
+    "counters": {},
+    "dead": false,
+    "events": {
+      "active": null,
+      "queue": [],
+      "seen": {
+        "shipwreck": {
+          "count": 1,
+          "lastAt": 360,
+        },
+      },
+    },
+    "flags": [],
+    "items": {
+      "knife": 1,
+      "summer_clothes": 1,
+    },
+    "lastText": {
+      "game.start.log": 2,
+    },
+    "location": "beach",
+    "narrativeRng": [
+      1110928617,
+      24128336,
+      2233563659,
+      1312903778,
+    ],
+    "nextAction": 1,
+    "prevStats": {
+      "energy": 75,
+      "health": 80,
+      "hunger": 35,
+      "thirst": 45,
+    },
+    "provisionWarnings": [],
+    "quests": {
+      "survive_first_night": {
+        "startedAt": 360,
+        "status": "active",
+      },
+    },
+    "regions": {
+      "beach": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": true,
+        "visited": true,
+      },
+      "forest": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": false,
+        "visited": false,
+      },
+      "meadows": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": false,
+        "visited": false,
+      },
+    },
+    "rng": [
+      -339149906,
+      288531056,
+      1820961195,
+      19,
+    ],
+    "saveVersion": 7,
+    "seed": 7,
+    "seen": [
+      "summer_clothes",
+      "knife",
+    ],
+    "stats": {
+      "energy": 75,
+      "health": 80,
+      "hunger": 35,
+      "thirst": 45,
+    },
+    "technology": {
+      "build": {
+        "completed": [],
+        "unlocked": [
+          "campfire",
+        ],
+      },
+      "craft": {
+        "completed": [],
+        "unlocked": [
+          "craft_rock_knife",
+        ],
+      },
+    },
+    "time": 360,
+    "timers": {
+      "fire@beach": 0,
+      "fire@forest": 0,
+      "fire@meadows": 0,
+    },
+    "today": {
+      "shipwreck": 1,
+      "shipwreck_knife": 1,
+    },
+    "turn": 9,
+    "warmth": 2,
+  },
+}
+`;
+
+exports[`PR-01 golden traces on frozen content > records the shipwreck water branch and reloads its open scene 1`] = `
+{
+  "journal": [
+    {
+      "at": 360,
+      "text": "You were three days out when the storm came. All evening the wind rose, and by midnight the boat was climbing black waves and falling into the troughs between them.",
+      "turn": 1,
+    },
+    {
+      "at": 360,
+      "text": "Then, in the dark, a crack like a gunshot. The hull has struck rock. Water roars in below deck and the ship lurches, already lower in the sea.",
+      "turn": 2,
+    },
+    {
+      "at": 360,
+      "text": "There is a moment, no more, to grab one thing before you jump.",
+      "turn": 3,
+    },
+    {
+      "at": 360,
+      "text": "You grab the full water can and jump. It drags at you, heavy, but it floats a little, and you hold on to it like a raft while the waves break over your head.",
+      "turn": 6,
+    },
+    {
+      "at": 360,
+      "text": "At last your feet touch bottom. You stagger out of the surf with the can in your arms and fall onto the sand.",
+      "turn": 7,
+    },
+    {
+      "at": 360,
+      "text": "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees.",
+      "turn": 9,
+    },
+  ],
+  "seed": 7,
+  "state": {
+    "actions": [],
+    "buildings": {},
+    "counters": {},
+    "dead": false,
+    "events": {
+      "active": null,
+      "queue": [],
+      "seen": {
+        "shipwreck": {
+          "count": 1,
+          "lastAt": 360,
+        },
+      },
+    },
+    "flags": [],
+    "items": {
+      "can_water": 4,
+      "summer_clothes": 1,
+      "water_can": 1,
+    },
+    "lastText": {
+      "game.start.log": 2,
+    },
+    "location": "beach",
+    "narrativeRng": [
+      1110928617,
+      24128336,
+      2233563659,
+      1312903778,
+    ],
+    "nextAction": 1,
+    "prevStats": {
+      "energy": 75,
+      "health": 80,
+      "hunger": 35,
+      "thirst": 45,
+    },
+    "provisionWarnings": [],
+    "quests": {
+      "survive_first_night": {
+        "startedAt": 360,
+        "status": "active",
+      },
+    },
+    "regions": {
+      "beach": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": true,
+        "visited": true,
+      },
+      "forest": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": false,
+        "visited": false,
+      },
+      "meadows": {
+        "discoveries": [],
+        "explored": 0,
+        "unlocked": false,
+        "visited": false,
+      },
+    },
+    "rng": [
+      -339149906,
+      288531056,
+      1820961195,
+      19,
+    ],
+    "saveVersion": 7,
+    "seed": 7,
+    "seen": [
+      "summer_clothes",
+      "water_can",
+      "can_water",
+    ],
+    "stats": {
+      "energy": 75,
+      "health": 80,
+      "hunger": 35,
+      "thirst": 45,
+    },
+    "technology": {
+      "build": {
+        "completed": [],
+        "unlocked": [
+          "campfire",
+        ],
+      },
+      "craft": {
+        "completed": [],
+        "unlocked": [
+          "craft_rock_knife",
+        ],
+      },
+    },
+    "time": 360,
+    "timers": {
+      "fire@beach": 0,
+      "fire@forest": 0,
+      "fire@meadows": 0,
+    },
+    "today": {
+      "shipwreck": 1,
+      "shipwreck_water": 1,
+    },
+    "turn": 9,
+    "warmth": 2,
+  },
+}
+`;

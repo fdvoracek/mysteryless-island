@@ -800,7 +800,7 @@ What **needs code**:
 ## 15. Testing
 
 - **Unit (Vitest):** conditions (each leaf and combinators), effects, clock, stat steps, temperature bands, player work, local production, saves and weighted picks with fixed seeds. They load frozen `tests/fixtures/content/`, independent of shipped prose and labels.
-- **Golden tests [future]:** a fixture content pack plus a scripted command list → snapshot of the final state. Catches unintended rule changes.
+- **Golden traces [implemented, Studio PR-01]:** `tests/golden-traces.test.ts` replays seeded commands on the frozen content and compares normalized state and journal with committed snapshots. See [testing guidance](TESTING.md) for the baseline contract.
 - **Content validation:** `npm run content:check` validates shipped data structurally, without matching text. Unit tests exercise validator failures with fixed test data.
 - **Browser smoke tests (Playwright):** `npm run test:e2e` builds a separate `dist-test/` using the frozen fixture, then tests core play, saves, pop-ups and the classic layout on desktop and phone widths. The production `dist/` continues to use shipped content. Simulator smoke tests remain future work.
 - **Runtime and scope:** isolated browser contexts run on two workers, including cases in the same file. `.env.engine-test` sets real-time action steps and UI animation durations in milliseconds; engine simulations keep their content-defined game-time costs and run synchronously or with fake timers. The paced browser case advances a controlled clock rather than waiting for seconds. [Testing guidance](TESTING.md) assigns coverage to each layer and describes focused development checks.
