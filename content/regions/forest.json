@@ -4,9 +4,9 @@
   "title": "A Quiet Forest",
   "order": 2,
   "description": [
-    "The forest begins in a close assembly of high trunks, whose crowns admit only a diminished light. The roar of the sea is already remote.",
-    "Tall trees stand so near one another that daylight reaches the ground in broken patches. Behind you, the ocean has sunk to a faint murmur.",
-    "Beneath the interlaced branches, the air is still and cool. Little remains of the coast's incessant noise, and the landward country is hidden among the trees."
+    "Tall trunks, close together. The sea is only a sound now.",
+    "Trunks stand close and the light thins. Behind you, the sea is only a sound.",
+    "Among tall trees the air goes still. You can barely hear the sea."
   ],
   "climate": { "baseC": 18 },
   "travelHours": 0.5,
@@ -15,9 +15,9 @@
   "unlockWhen": { "discovered": "forest_edge" },
   "firstVisit": {
     "log": [
-      "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.",
+      "Somewhere ahead, water runs over stones.",
       "From the interior comes a faint but persistent sound of running water.",
-      "A distant trickling reaches you through the forest, suggesting a spring or stream not yet seen."
+      "You hear water trickling, somewhere deeper in."
     ]
   },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
@@ -35,8 +35,8 @@
     },
     {
       "text": [
-        "At night the forest is almost impenetrably dark. You proceed cautiously between the trunks.",
-        "The branches conceal what little light the sky affords; even your hands are hard to see.",
+        "Under the trees the dark is total. You feel your way between the trunks.",
+        "In the forest at night you can't see your hands.",
         "Deep darkness gathers beneath the trees, obliging you to find your way by touch."
       ],
       "when": { "phase": ["night"] }
@@ -44,9 +44,9 @@
     { "text": ["Fallen branches remain plentiful beneath the trees.", "The forest floor is strewn with dry wood suitable for fuel.", "Dead branches lie scattered among the roots, ready to be gathered."] },
     {
       "text": [
-        "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.",
+        "Somewhere ahead, water runs over stones.",
         "From the interior comes a faint but persistent sound of running water.",
-        "A distant trickling reaches you through the forest, suggesting a spring or stream not yet seen."
+        "You hear water trickling, somewhere deeper in."
       ],
       "when": { "not": { "discovered": "spring" } }
     },
@@ -144,7 +144,7 @@
       "visibleWhen": { "item": "axe" },
       "yields": [{ "item": "timber", "min": 2, "max": 3 }],
       "log": [
-        "The axe bites deeply into a young trunk; chips scatter, and presently the tree falls.",
+        "The axe bites. Chips fly. A young tree comes down.",
         "You fell a slender tree and divide its trunk into lengths fit for building.",
         "Repeated strokes open a deep cut in the wood until the trunk gives way."
       ]
@@ -164,8 +164,8 @@
       "yields": [{ "item": "bark_strips", "min": 4, "max": 4 }],
       "log": [
         "You score the surface of a young tree and strip away long ribbons of inner bark.",
-        "The moist inner bark separates in tough, fibrous strips, each nearly an arm's length.",
-        "By alternating shallow cuts with careful pulling, you obtain a useful bundle of bark fibres."
+        "The bark comes away in strips, wet and stringy, as long as your arm.",
+        "You cut and peel, cut and peel, until you have a bundle of bark strips."
       ]
     },
     {
