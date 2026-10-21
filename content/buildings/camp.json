@@ -145,7 +145,7 @@
       "cost": { "willow_twigs": 20 },
       "log": [
         "You weave the willow into a long basket with a funnel at the mouth.",
-        "By crossing and bending the willow twigs, you fashion a trap through which fish may enter but cannot readily escape.",
+        "You weave willow into a trap with a narrow, one-way entrance.",
         "You bend and weave the willow until you have a trap with a narrow mouth."
       ],
       "requires": { "site": "fishable_water" }
@@ -350,7 +350,7 @@
       "effort": "heavy",
       "cost": { "stone": 6, "timber": 2 },
       "log": [
-        "Standing in the river, you arrange a low barrier of stones and stakes, preserving one narrow entrance.",
+        "You build a stone-and-stake barrier across the river.",
         "Stone by stone, a low wall grows across the river.",
         "A fence of stones and stakes across the river, with one narrow way through."
       ],
