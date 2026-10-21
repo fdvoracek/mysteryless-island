@@ -13,7 +13,7 @@ Existing authority: ARCHITECTURE.md records implemented game invariants; docs/TD
 
 **Primary outcome.** A non-programmer can create a new region with its map placement, discoveries, actions, items, recipes, buildings, tasks, story scenes, conditions, rewards, illustrations and authored text, then validate and playtest a draft and publish it without editing game code. The game remains a static browser app. Authoring new combinations of **supported** mechanics is no-code; adding a fundamentally new engine mechanic still requires code plus corresponding editor and schema support.
 
-**Independent apps and confirmed local-first rollout.** Player game at /mysteryless-island/ and authoring app at /mysteryless-island/studio/ after deployment is enabled. Each can build/test independently and use the shared content/engine contracts. **The first usable editor runs locally** (localhost browser UI plus loopback-only development write service), reads/writes checked-out Git-tracked content, validates and previews it, and publishes proposed changes through an explicit local Git workflow. GitHub Pages remains static: its optional initial Studio deployment is read-only. Authenticated hosted editing is a later optional gated deliverable, not a prerequisite for implementing local authoring.
+**Independent apps — Pages-hosted UI, local files.** The game and Studio are separately built static web apps at /mysteryless-island/ and /mysteryless-island/studio/. In Chrome, the owner opens the **locally cloned Git repository** via browser File System Access API permission and edits its content files directly, from the GitHub Pages-hosted Studio, with no local Node server or GitHub login. The author commits/pushes in terminal, IDE or GitHub Desktop. Brave is best-effort with its experimental File System Access flag. Optional later GitHub API publishing is a separate deliverable.
 
 **Out of scope unless explicitly approved:** arbitrary scripts/eval in authored data; replacing the game UI framework; a multiplayer game; content-hosting backend required by players; user accounts for the game; turning the editor into a generic multi-game commercial product; changing survival balance or story while migrating; replacing the star-shaped route model with an arbitrary travel graph solely to satisfy an editor mockup.
 
@@ -40,16 +40,16 @@ The table distinguishes **resolved owner decisions** from open design gates. Bef
 
 | Gate | Owner decision needed | Required before |
 |---|---|---|
-| D1 Studio editing surface — **RESOLVED** | **Owner decision (2026-10-21): local Studio first, with hosted editing later.** Run the Studio in a local browser via a development server, edit files in the checked-out repository using a loopback-only local writer, validate and playtest locally, and use Git for publishing. Hosted Studio editing/authentication is explicitly deferred; the optional hosted write PR remains gated by D2/D8/D9. | PR-09–10 and PR-27; no further decision required |
-| D2 Hosted publishing authentication | Later, choose GitHub App + trusted service, secure OAuth/backend flow, or no hosted writing. Never ship embedded PATs, unrestricted cross-origin writes or secrets to GitHub Pages. This is **not a blocker for local editing**. | Optional PR-29 only |
+| D1 Studio editing surface — **RESOLVED, UPDATED** | Owner chose **GitHub Pages-hosted Studio + selected local folder editing** in Chrome, superseding the localhost-only editing direction. The browser writes only to locally granted paths; Git commands run outside the browser. Brave is best-effort behind its experimental API flag. | PR-09, PR-10, PR-27–28 |
+| D2 Optional remote GitHub publication | A future API-based GitHub PR/commit workflow may need trusted auth/backend. None is required for hosted UI editing a locally selected folder. No PAT in frontend. | Optional PR-29 |
 | D3 Data authority and format | Maintain current content JSON as canonical and add a text catalog, or migrate all source content to a different canonical representation? Until approved, preserve canonical JSON and add adapters rather than replacing it. | PR-05, PR-07 |
 | D4 Translation and switching policy | Which first additional language, required completion/fallback policy, whether switching must update historical journal/popups instantly? Preserve current English default while unresolved. | PR-07, PR-08, PR-20 |
 | D5 Save compatibility — **RESOLVED** | **Owner decision (2026-10-21): old saves may be incompatible or discarded during migration because only the owner is testing. No legacy save migration is needed.** The app must detect incompatible data, offer a clear start-new-game path and remain playable after every PR. | All PRs; no further decision required |
 | D6 World graph | Keep authored map positions and camp-based travel for now, or support authored per-edge travel networks and shortest paths? No mechanical travel redesign before approval. | PR-21 |
 | D7 Visual/gameplay scope | Does the first complete editor need global game settings, climate/stats and every niche schema field, or is milestone coverage acceptable? Define the completeness inventory before declaring no-code production ready. | PR-22 |
-| D8 Studio access/collaboration | If/when hosted authoring is introduced, decide single-author versus multi-user permissions/collaboration. No accounts or real-time collaboration for the initial local Studio. | Optional PR-29 |
+| D8 Remote collaboration | User accounts and team permissions only need decision if direct remote publishing is later approved. Do not add accounts for local folder authoring. | Optional PR-29 |
 | D9 External assets | Decide whether later media storage extends beyond local repository files. Preserve existing art direction and validated local asset paths for initial local authoring. | PR-22 (if needed), optional PR-29 |
-| D10 Deploy policy | Is publishing a studio build publicly at /studio/ acceptable before hosted editing is supported? Read-only is not a security boundary by itself. | PR-28 |
+| D10 Studio hosting — **RESOLVED** | Studio should deploy publicly at /mysteryless-island/studio/. Published content is read-only unless a user selects a local repository folder and grants write access; such writes affect only that local folder. | PR-09, PR-28 |
 
 For every gate: record the answer, changes to PR scope, migration consequences and acceptance tests. Where the owner defers a decision, the dependent PR must not claim completion. Avoid a speculative “temporary” implementation that forces later save or schema incompatibilities.
 
@@ -71,7 +71,7 @@ docs/                       documentation and PR acceptance evidence
 
 **Dependency rule:** content-model is independent of browser/UI, storage and backend. Engine depends on content-model, not on game or studio. Compiler depends on content-model, not on app UI. Game depends on engine and compiled content. Studio depends on content-model/compiler interfaces and may import the engine for real previews. Studio UI never executes its own reimplementation of game rules. No cycle between packages.
 
-**Supported adapters:** canonical source-to-model reader; deterministic compiler to versioned normalized bundle(s); runtime loader from compiled bundle; source editor adapter; isolated playtest loader that accepts validated drafts. Keep buildRegistry (or equivalent public API) as a single validation entry point. Distinguish source authoring data, compiled content, and serializable player state.
+**Supported adapters:** canonical source-to-model reader; deterministic compiler to versioned normalized bundle(s); runtime loader from compiled bundle; browser File System Access API source editor adapter over user-selected local directory; isolated draft preview. Keep buildRegistry (or equivalent public API) as a single validation entry point. Distinguish source authoring data, compiled content, and serializable player state.
 
 **IDs:** retain existing snake_case entity IDs and every persisted reference. Add stable text IDs distinct from game entity IDs. IDs survive wording changes and file moves. Renames should update cross-references in one transaction or be refused with an actionable list of blockers. Never change IDs implicitly on a display-name edit. Explicit migrations are necessary for persisted state references.
 
@@ -80,6 +80,8 @@ docs/                       documentation and PR acceptance evidence
 **Save/version contract:** the owner explicitly waives backwards compatibility with existing saves. Bump SAVE_VERSION when necessary and expose a clear new-game flow for incompatible saved data; never crash or get stuck on an unreadable save. Ordinary save/load/autosave for **new games produced by each merged PR** must continue to work. Keep editor previews isolated from player save slots. No legacy save migration code or compatibility adapters need be developed solely for old saves.
 
 **Localization contract:** language-independent mechanics plus keyed strings and variant identities. Variant selection must stay independent of gameplay RNG and respect “no immediate repeat” semantics. Modal and narrow journal channels have separate keys. Locale bundles have explicit fallback, placeholder validation and missing-key reporting. Existing English prose must remain equivalent through extraction.
+
+**Browser local-file contract:** Chrome is required for direct editing. On explicit Open Local Project click, call showDirectoryPicker({mode: "readwrite"}) from the HTTPS Pages-hosted app; validate root folder structure; limit file operations to intended content/media paths; never inspect or modify .git, credentials, .env or arbitrary paths. Show local vs published modes distinctly. Handle unsupported API, cancel, revoked permissions, stale outside edits, partial multi-file failure and recovery. Browser cannot run git CLI. Brave support is best effort with the experimental flag enabled and runtime capability checked.
 
 **Publish contract:** draft != released content. Validations and build tests run before content is accepted. Git review is the source of published history. Content changes should be auditable as readable file diffs. Hosted authoring must never grant unauthenticated repository write access.
 
@@ -102,7 +104,7 @@ Every deliverable is a **single independently mergeable PR** with:
 
 ## 6. Delivery sequence
 
-The PRs form a linear path with explicit optional gate-dependent late phases. Their numbers define preferred merge order. Do not claim a future step as implemented when an earlier scaffolding PR lands.
+The PRs form a linear path with explicit optional gate-dependent late phases. Pages hosts Studio from PR-09, it edits chosen local files in PR-10, and PR-28 hardens browser/Pages integration. Their numbers define preferred merge order. Do not claim a future step as implemented when an earlier scaffolding PR lands.
 
 ### PR-01 — Baseline contracts, regression tests and authoring inventory
 
@@ -187,27 +189,26 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 **Manual demo:** play through shipwreck and spring discovery, switch to test locale and back, finish an action, save/reload. If old save exists, a new-game action restores the playable state.
 
-### PR-09 — Studio scaffold, navigation and read-only content browser
+### PR-09 — Pages-hosted Studio shell and released-content browser
 
-**Delivers:** a working independent React/Vite Studio application; browsing actual validated game entities is possible, but there are no save/write buttons yet.
+**Delivers:** separate React/Vite Studio browses actual released game data at the GitHub Pages /studio/ URL; the player game remains playable.
 
-**Implementation:** create apps/studio with own entry, dev/build/test scripts, TypeScript configuration, routing at /studio/, responsive accessible shell, navigation for Regions, Items, Events, Tasks, Crafting, Buildings, Translations and Project. Consume @mysteryless/content-model and compiler-generated readable metadata/manifest; show list/detail for currently shipped data, stable IDs, basic search/filter and a friendly invalid-content state. Use the supplied studio visual mockup only as a design reference, not a fidelity requirement that overrides current game style guides. Keep studio CSS/React out of player game bundle; document local dev port and commands.
+**Implementation:** add apps/studio independent build, responsive navigation for all content groups, typed entity list/details, search and diagnostics. Extend the existing Pages deployment to stage Studio alongside game now; correct Vite base paths and reload/deep-link behavior. Display **Published Content — read only**. No write controls yet. Local dev server remains optional for development only.
 
-**Acceptance:** root npm run dev:studio opens the application; the Forest exists and shows its current metadata/landmarks; searching finds an event and an item; broken JSON produces a readable error without a blank screen. App has zero write authority and does not affect player game.
+**Acceptance:** both apps independently build and open at correct Pages URLs; Forest and an item/event can be browsed, refresh works and the game remains playable/saveable. Invalid content yields useful diagnostics, not blank UI.
 
-**Manual demo:** navigate Regions → Forest → Landmarks → Spring; browse Shipwreck event and Rock Knife recipe.
+**Manual demo:** open Pages game and Studio, browse Forest, then start/save a fresh game.
 
-### PR-10 — Local authoring workspace, change tracking and safe writes
+### PR-10 — Chrome File System Access editor for local repository files
 
-**Delivers:** editors can make an intentional content change and persist it to canonical source files via an authenticated **local-only** authoring service, then see resulting git diffs.
+**Delivers:** from the hosted Pages Studio, open the user's **local Git checkout** and save validated content file edits directly there, without a local Node writer/backend.
 
-**Confirmed approach:** D1 is resolved: implement a locally served Studio and a loopback-only, repository-scoped writer; do not build hosted writing or hosted auth here. **Open decision:** D3 (canonical source format). Until D3 is resolved, continue editing the existing Git-tracked JSON instead of introducing a new canonical store.
+**Implementation:** request directory with window.showDirectoryPicker({mode:"readwrite"}) only from explicit Open Local Project button on HTTPS. Verify folder has expected content structure, then use scoped directory/file handles and createWritable() to load/write only approved authored JSON/media; never touch .git, secrets, arbitrary paths or execute commands. Show **Local Workspace (uncommitted)** versus **Published Content**; validate through shared schema/registry before Save, show exact file-level diff, preserve unrelated fields and author comments, add dirty/undo/revert support. Before writing, re-read disk to reject concurrent external edits. Browser writes spanning multiple files are not atomic: use backups/recoverable journal and error UI. Handle denied/revoked permissions and refresh; re-request permission as needed. Chrome is required. Brave is best-effort if brave://flags/#file-system-access-api is enabled and feature detection passes; unsupported browsers get a clear fallback explanation. No GitHub auth, local write server or silent remote publishing.
 
-**Implementation:** implement a local Node development server/CLI with narrowly scoped endpoints (workspace snapshot, validate, write change, revert change), bound to loopback with appropriate origin/token checks; no unrestricted filesystem path supplied by clients. Source adapter reads existing JSON and maps typed entities to source file+path; editor changes are validated, written atomically (temp file/rename) and preserve unrelated content. Include optimistic conflict detection using file hash or revision token; refuse stale overwrites. Provide undo/redo for the active draft and dirty-state indicator, explicit Save Draft, Cancel/Revert. Support malformed source recovery with backup/error rather than overwriting it. Preserve comments (_note) and the repository's formatting conventions as reasonably as possible; snapshot diff tests prevent unintended rewriting of entire content trees. Ensure no dev write server is bundled in GitHub Pages output.
+**Tests:** Chromium E2E grants test-folder picker permission and validates bytes written to disposable checkout; wrong-folder, invalid content, permission denied/cancelled/revoked, stale file, path traversal, multi-file partial failure and reload cases. Verify deployed game unchanged.
 
-**Acceptance:** update Forest title from studio, save, inspect exactly the intended JSON diff, re-open editor and see it persisted; validator and game build use changed source; reject invalid ID/cross-ref, stale revision, outside-root file path and malformed input. Writing a draft does **not** publish game content automatically. Clean restart/revert returns same working game.
+**Manual demo:** open hosted Studio in Chrome, select cloned mysteryless-island folder, edit Forest label, Save, inspect local git diff, revert with local Git tool.
 
-**Manual demo:** edit a harmless display label, save, use git diff, run game with changed content, revert and run again.
 
 ### PR-11 — Region CRUD and typed metadata editor
 
@@ -376,41 +377,38 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 **Manual acceptance:** bulk-create two temporary food items, inspect, undo and revert; game remains playable.
 
-### PR-27 — Local Git diff, branches, commits and PR proposal workflow
+### PR-27 — Local changed-file review and Git handoff
 
-**Confirmed approach:** D1 is resolved: local Git workflow first. Obtain explicit authorization for individual write/push/PR actions as required; GitHub credentials are optional and must stay outside browser bundles. Never push, merge or publish without explicit user action.
+**Delivers:** Studio shows source diffs and clear instructions to commit/push in existing local Git tools, not fake in-browser Git operations.
 
-**Working deliverable:** Review Studio-created content changes and produce a content-only local commit/branch; optionally initiate a GitHub PR when configured.
+**Implementation:** changed-file list and semantic/raw diffs from selected folder baseline, safe scoped path display and copyable git status/diff/add/commit/push steps. Browser File System Access cannot read Git index or invoke local Git, so no Commit/Push UI claiming success. Existing Git CLI, IDE or GitHub Desktop remains publishing path. Validate before handoff; optional patch/changeset export. Keep remote publishing separate in optional PR-29.
 
-**Implement:** source diff preview (entity-focused and raw Git), staging restricted to Studio-owned changes, explicit branch/commit actions, safe error handling for preexisting dirty worktrees, conflict and stale revisions. Validate/build before offering Publish Proposal; CI on main remains authoritative. GitHub integration must use an authorized developer-local credential/backend, never a browser-embedded token. Saving a draft and proposing a release are separate. Do not push/merge automatically.
+**Tests:** diff correctness, safe shell path display, valid/invalid source, no secret paths and no browser credentials.
 
-**Tests:** unintended source changes excluded; invalid content blocked; Git failure leaves draft intact; no credentials in compiled assets.
+**Manual demo:** edit a landmark in hosted Studio, inspect diff, commit that file from local terminal/IDE and verify git show.
 
-**Manual acceptance:** edit a temporary landmark, review diff, create a local commit with only that change, verify git show and restore working state.
+### PR-28 — Dual Pages deployment and local-file editing hardening
 
-### PR-28 — Two independently built GitHub Pages apps
+**Delivers:** independently built game and Studio at both Pages URLs reliably; local-directory editing works in Chrome. Studio has **already been hosted since PR-09**.
 
-**Decision:** D10; confirm exposure of /studio/ before deployment. Hosted mode is read-only at this milestone.
+**Implementation:** finalize build artifact, manifest coherence, asset/locale base paths, deep link/refresh, desktop/mobile UX, permission denial/revocation, folder-scoped local editing and separation of published vs local project. Never transmit content on Save or imply it changed the deployed site. CI and Playwright exercise both apps and browser picker. No backend credentials or Node write service.
 
-**Working deliverable:** Game URL /mysteryless-island/ still plays; Studio URL /mysteryless-island/studio/ browses released content.
+**Tests:** Pages URLs, nested assets, locale, picker permissions, external edits, local diff, absence of secret writes, fresh-game save/reload.
 
-**Implement:** GitHub Actions builds independently but stages one deploy artifact with root game and nested studio/index.html, validated against same released content manifest. Correct relative/base paths and deep-link refresh (hash routing or fallback). Hosted studio prominently says "Read-only; open local studio to edit"; no inert Save/Publish buttons, no credentials or writer endpoints in static asset bundle. Continue desktop/mobile Playwright smoke for both apps. Entire deploy fails if required build/validation fails.
+**Manual demo:** edit local clone via Pages Studio in Chrome, see local git diff, confirm unchanged published game and both sites refresh correctly.
 
-**Tests:** both URLs, nested asset paths, locale loads, direct refresh, independent build output and matching content revision.
+### PR-29 — Optional remote GitHub API PR publishing (gated)
 
-**Manual acceptance:** navigate game and Studio after Pages deployment, refresh on nested studio view, load a fresh game, save and reload.
+**Decision:** D2/D8/D9 require separate owner approval. This feature is **not required** for Pages-hosted Studio to edit files on the owner's computer.
 
-### PR-29 — Secure hosted authoring (optional; explicitly gated)
+**Delivers:** optional direct remote GitHub branch/PR creation using a trusted authenticated service, without depending on local checkout.
 
-**Decisions:** D1 is resolved in favor of local-first; **D2, D8 and D9 remain open for future hosted writing**. Do not start until the owner selects backend, authentication, write permissions and collaboration scope. Local Studio is the complete first editing workflow, independent of this optional later PR.
+**Implementation:** approved GitHub App/backend, least privileges, CSRF, path/repo/branch restrictions, revision checks, audit trail and explicit PR approval. Never embed PAT in frontend or modify main directly; retain local folder workflow.
 
-**Working deliverable:** Hosted authorized editor proposes changes by GitHub PR without granting general repository write access to the public.
+**Tests:** authorized PR creation; unauthorized/stale/path-traversal/secret exposure denied. Existing local editing still works.
 
-**Implement:** small trusted backend/GitHub App or approved equivalent, least-privilege sessions, CSRF mitigation, repository/branch allowlisting, conflict checks, shared schema validation, strict file path allowlists, audit logs, request limits, safe credentials. Write only proposal branch and create PR; main publishing remains CI/review. No client-side PAT, no static secret, no direct unreviewed write to main.
+**Manual demo:** optional authenticated test proposal PR; confirm local folder workflow independent of remote auth.
 
-**Tests:** authorized success; viewer/unauthenticated/expired token/cross-origin/invalid path/stale branch denied; no secrets in dist or logs.
-
-**Manual acceptance:** authorized user creates temporary content PR through hosted Studio, unauthorized user cannot mutate anything.
 
 ### PR-30 — Full end-to-end authoring acceptance and onboarding
 
@@ -424,15 +422,15 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 ## 7. Dependencies, checkpoints and delivery evidence
 
-**Merge order:** PR-01 baseline → PR-02 workspace → PR-03 model → PR-04 engine → PR-05 compiler → PR-06 text IDs → PR-07 catalog → PR-08 runtime locale → PR-09 browser shell → PR-10 local writes → PR-11–22 content editors → PR-23 live game preview → PR-24 presets → PR-25 diagnostics → PR-26 batch tools → PR-27 local publication → PR-28 dual Pages deployment → optional PR-29 hosted authoring → PR-30 acceptance.
+**Merge order:** PR-01 baseline → PR-02 workspace → PR-03 model → PR-04 engine → PR-05 compiler → PR-06 text IDs → PR-07 catalog → PR-08 locale → PR-09 Pages Studio browser → PR-10 Chrome local folder writing → PR-11–22 authoring → PR-23 draft preview → PR-24 presets → PR-25 diagnostics → PR-26 bulk tools → PR-27 local Git handoff → PR-28 deployment hardening → optional PR-29 remote GitHub PR → PR-30 acceptance.
 
 - **A, after PR-04:** game unchanged, engine/model reusable, snapshots reproducible.
 - **B, after PR-08:** fresh game with compiled content and language controls. Legacy saves can be rejected.
-- **C, after PR-10:** Studio browses and safely persists a valid JSON edit with an inspected diff.
+- **C, after PR-10:** Pages-hosted Studio saves a validated local repository JSON edit in Chrome, visible in local git diff and not published remotely.
 - **D, after PR-14:** create a region, landmark, activity and condition through Studio.
 - **E, after PR-19:** item/recipe/building/task/branching-event authoring usable end to end.
 - **F, after PR-24:** unpublished drafts playable with repeatable state presets.
-- **G, after PR-28:** game and Studio hosted at independent URLs; local editing/publishing complete.
+- **G, after PR-28:** game and Studio deployed at independent URLs; browser-local file editing and Git handoff tested and hardened.
 - **H, after PR-30:** an end-to-end authoring expansion is demonstrated without writing code.
 
 ## 8. Cross-PR constraints and regression matrix
