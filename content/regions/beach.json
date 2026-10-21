@@ -120,7 +120,8 @@
           "You climb the loose sand of the dunes, gaining a better view of the country. Behind the crest the coast gives way to a dense forest, near enough to reach on foot; whether it offers fresh water or useful timber remains to be learned.",
           "From the summit of the dunes you observe a line of tall trees on the landward side. The forest begins within a short walk, promising shade and perhaps a different class of resources.",
           "The climb is laborious in the soft sand, but it reveals the first distinct feature of the island's interior: a forest, scarcely an hour's walk away."
-        ]
+        ],
+        "journal": "You discover a forest beyond the dunes."
       },
       {
         "id": "rock_shelter",
@@ -132,6 +133,7 @@
           "The formation proves more useful on inspection than from a distance. The rocks shut out much of the wind, leaving a space in which to sleep and maintain a campfire.",
           "Between the boulders you find a sheltered hollow. Nature has supplied the walls; a bed and a fire would be enough to make it a serviceable first camp."
         ],
+        "journal": "You find sheltered ground among the rocks.",
         "siteCapabilities": ["camp_ground", "coastal_camp"]
       },
       {
@@ -144,7 +146,8 @@
           "Beneath a low cliff the retreating tide exposes stones thickly covered with shellfish. They may be eaten raw, though heat would render this modest resource more nourishing.",
           "The wet rock at the cliff's foot is occupied by countless shells. Here, at least, the sea offers food without the need for a boat; it would be better still when cooked.",
           "You examine the cliff and discover an accessible bed of shellfish upon the stones below. They promise an immediate meal, and a better one if a fire can be made."
-        ]
+        ],
+        "journal": "You find shellfish clinging to the cliff rocks."
       },
       {
         "id": "school_of_fish",
@@ -156,6 +159,7 @@
           "The water is shallow enough to wade, and fish are plentiful; but their movements are exceedingly rapid. A pointed stick would greatly improve your chances.",
           "Silver bodies dart through the clear water close to shore. The fish cannot be grasped by hand, but they remain within reach of a spear."
         ],
+        "journal": "Fish gather in the shallows. A spear might catch them.",
         "siteCapabilities": ["fishable_water"]
       },
       {
@@ -169,6 +173,7 @@
           "The rope bears your weight as you climb the steep face. At the top you discover what the cliffs had concealed: meadows extending westward, their long grasses stirred by the wind.",
           "The ascent is short, but there is little secure footing. Once above the cliff, you observe a new region to the west, where meadows sweep towards a line of willows about an hour distant."
         ],
+        "journal": "From the cliff, you discover meadows to the west.",
         "requires": { "item": "cordage" },
         "requiresText": "Too steep to climb without a rope"
       }
