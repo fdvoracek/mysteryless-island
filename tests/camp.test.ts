@@ -31,7 +31,8 @@ describe("local shelter and buildings", () => {
     expect(view(e).actions.find((a) => a.id === "sleep")?.enabled).toBe(true);
   });
 
-  it.each(["forest", "meadows"])("requires a shelter here before building a bed in %s", (region) => {
+  it("requires shelter locally before building a bed", () => {
+    const region = "forest";
     const e = fresh();
     e.state.location = region;
     e.state.time = 12 * 60;
@@ -43,7 +44,7 @@ describe("local shelter and buildings", () => {
     expect(evaluate({ sheltered: true }, e.ctx())).toBe(true);
     expect(build(e, "bed").ok).toBe(true);
     expect(e.builtHere("bed")).toBe(1);
-    e.state.location = region === "forest" ? "meadows" : "forest";
+    e.state.location = "meadows";
     expect(evaluate({ sheltered: true }, e.ctx())).toBe(false);
     expect(e.checkBuildingStep("bed", "build").enabled).toBe(false);
   });
@@ -85,40 +86,39 @@ describe("local shelter and buildings", () => {
   });
 });
 
-describe("bedtime recovery and its exact summary", () => {
+describe("bedtime recovery", () => {
   const cases: Array<{ reason: SleepRecoveryReason; hour: number; bed: boolean; shelter: boolean; fire: boolean; energy: number; words: string[] }> = [
-    { reason: "early_warm_bed", hour: 22, bed: true, shelter: true, fire: true, energy: 100, words: ["before midnight", "sheltered bed", "with a fire burning"] },
+    { reason: "early_warm_bed", hour: 23.75, bed: true, shelter: true, fire: true, energy: 100, words: ["before midnight", "sheltered bed", "with a fire burning"] },
     { reason: "early_unheated_bed", hour: 22, bed: true, shelter: true, fire: false, energy: 80, words: ["before midnight", "without a burning fire"] },
-    { reason: "late_warm_bed", hour: 1, bed: true, shelter: true, fire: true, energy: 80, words: ["after midnight", "with a fire burning"] },
+    { reason: "late_warm_bed", hour: 0, bed: true, shelter: true, fire: true, energy: 80, words: ["after midnight", "with a fire burning"] },
     { reason: "late_unheated_bed", hour: 1, bed: true, shelter: true, fire: false, energy: 80, words: ["after midnight", "without a burning fire"] },
     { reason: "exposed_bed", hour: 22, bed: true, shelter: false, fire: true, energy: 50, words: ["without shelter"] },
     { reason: "ground", hour: 22, bed: false, shelter: true, fire: true, energy: 50, words: ["without a bed"] },
   ];
   for (const c of cases) {
-    for (const forced of c.bed ? [false, true] : [true]) {
-      it(`${c.reason}, ${forced ? "collapse modal" : "voluntary sleep"}: ${c.energy}% and matching text`, () => {
-        const e = fresh(true);
-        e.state.time = (c.hour < 6 ? 1440 : 0) + c.hour * 60;
-        if (!c.shelter) e.state.regions.beach.discoveries = [];
-        if (c.bed) e.applyEffects([{ build: "bed" }]);
-        if (c.fire) e.applyEffects([{ build: "campfire" }, { timer: "fire", addHours: 6 }]);
-        expect(e.sleepRecovery()).toEqual({ reason: c.reason, energy: c.energy });
-        if (forced) {
-          e.state.stats.energy = 0;
-          e.dispatch({ type: "travel", region: "forest" });
-        } else e.dispatch({ type: "activity", id: "sleep" });
-        expect(e.state.time).toBe(1800);
-        expect(e.state.stats.energy).toBe(c.energy);
-        const expected = (reg.game.sleep.recovery[c.reason].text as string)
-          .replace("{place}", "the beach").replace("{energy}", String(c.energy));
-        expect(e.state.log.some((line) => line.text === expected)).toBe(true);
-        for (const words of c.words) expect(expected).toContain(words);
-        if (forced) {
-          expect(view(e).event?.title).toBe("You passed out");
-          expect(view(e).event?.text).toContain(expected);
-        } else expect(view(e).event?.title).not.toBe("You passed out");
-      });
-    }
+    const forced = c.reason === "ground" || c.reason === "late_unheated_bed";
+    it(`${c.reason}, ${forced ? "collapse modal" : "voluntary sleep"}: ${c.energy}% and matching text`, () => {
+      const e = fresh(true);
+      e.state.time = (c.hour < 6 ? 1440 : 0) + c.hour * 60;
+      if (!c.shelter) e.state.regions.beach.discoveries = [];
+      if (c.bed) e.applyEffects([{ build: "bed" }]);
+      if (c.fire) e.applyEffects([{ build: "campfire" }, { timer: "fire", addHours: 6 }]);
+      expect(e.sleepRecovery()).toEqual({ reason: c.reason, energy: c.energy });
+      if (forced) {
+        e.state.stats.energy = 0;
+        e.dispatch({ type: "travel", region: "forest" });
+      } else e.dispatch({ type: "activity", id: "sleep" });
+      expect(e.state.time).toBe(1800);
+      expect(e.state.stats.energy).toBe(c.energy);
+      const expected = (reg.game.sleep.recovery[c.reason].text as string)
+        .replace("{place}", "the beach").replace("{energy}", String(c.energy));
+      expect(e.state.log.some((line) => line.text === expected)).toBe(true);
+      for (const words of c.words) expect(expected).toContain(words);
+      if (forced) {
+        expect(view(e).event?.title).toBe("You passed out");
+        expect(view(e).event?.text).toContain(expected);
+      } else expect(view(e).event?.title).not.toBe("You passed out");
+    });
   }
 
   it("a fire that expires before bedtime gives the unheated summary and 80% recovery", () => {

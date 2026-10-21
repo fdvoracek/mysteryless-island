@@ -3,7 +3,7 @@ import { Artwork, type Building, type Game, type Item, type Region } from "../sr
 import { buildRegistry } from "../src/content/registry";
 import { treeView, view } from "../src/core/selectors";
 import { illustrationUrl } from "../src/ui/illustration";
-import { loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
+import { contentProblems, loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
 
 const panorama = { id: "art_beach", src: "illustrations/locations/beach.png", width: 1600, height: 440, alt: "Low cliffs beside a quiet stretch of beach." };
 const object = { id: "art_knife", src: "illustrations/items/knife.webp", width: 160, height: 160, alt: "A small knife with a wooden handle." };
@@ -38,13 +38,15 @@ describe("optional artwork authoring", () => {
     expect(startGame(buildRegistry(illustratedContent()), 7).state).toEqual(engine.state);
   });
 
-  it.each([
-    { src: "/illustrations/knife.png" }, { src: "https://example.com/knife.png" },
-    { src: "data:image/png;base64,x" }, { src: "illustrations/../knife.png" },
-    { src: "illustrations/knife.png?query=x" }, { src: "illustrations/knife.html" },
-    { width: 0 }, { height: -1 }, { width: 1.5 }, { alt: "   " }, { unexpected: true },
-  ])("rejects invalid metadata %j", (change) => {
-    const files = readContentFiles(); files["content/artwork.json"] = [{ ...object, ...change }];
+  it("rejects invalid paths, dimensions and missing descriptions at the schema boundary", () => {
+    for (const change of [
+      { src: "/illustrations/knife.png" }, { src: "https://example.com/knife.png" },
+      { src: "data:image/png;base64,x" }, { src: "illustrations/../knife.png" },
+      { src: "illustrations/knife.png?query=x" }, { src: "illustrations/knife.html" },
+      { width: 0 }, { height: -1 }, { width: 1.5 }, { alt: "   " }, { unexpected: true },
+    ]) expect(Artwork.safeParse({ ...object, ...change }).success, JSON.stringify(change)).toBe(false);
+    // One registry integration check is enough to verify that schema errors keep the filename.
+    const files = readContentFiles(); files["content/artwork.json"] = [{ ...object, width: 0 }];
     expect(() => buildRegistry(files)).toThrow(/content\/artwork\.json/);
   });
 
@@ -53,12 +55,17 @@ describe("optional artwork authoring", () => {
     expect(Artwork.parse({ ...object, alt: "  A knife.  " }).alt).toBe("A knife.");
   });
 
-  it.each(["region", "item", "building"])("validates the %s artwork reference with its file and field", (kind) => {
+  it("reports invalid artwork references for every consumer with its file and field", () => {
     const files = illustratedContent();
-    if (kind === "region") (files["content/regions/beach.json"] as Region).artwork = "missing_art";
-    if (kind === "item") (files["content/items/basics.json"] as Item[])[0].artwork = "missing_art";
-    if (kind === "building") (files["content/buildings/camp.json"] as Building[])[0].artwork = "missing_art";
-    expect(() => buildRegistry(files)).toThrow(/content\/.*\.artwork: unknown artwork "missing_art"/);
+    (files["content/regions/beach.json"] as Region).artwork = "missing_art";
+    (files["content/items/basics.json"] as Item[])[0].artwork = "missing_art";
+    (files["content/buildings/camp.json"] as Building[])[0].artwork = "missing_art";
+    (files["content/game.json"] as Game).panorama = "missing_art";
+    const problems = contentProblems(() => buildRegistry(files));
+    for (const location of ["regions/beach", "items/basics", "buildings/camp"]) {
+      expect(problems).toMatch(new RegExp(`content/${location}\\.json.*\\.artwork: unknown artwork "missing_art"`));
+    }
+    expect(problems).toMatch(/content\/game\.json\.panorama: unknown artwork "missing_art"/);
   });
 
   it("enforces global artwork identities and the region panorama's declared 1600×440 dimensions", () => {
@@ -69,11 +76,6 @@ describe("optional artwork authoring", () => {
     expect(() => buildRegistry(files)).toThrow(/content\/regions\/beach\.json.beach.artwork: region artwork must declare 1600 × 440/);
   });
 
-  it("validates the game-wide panorama reference", () => {
-    const files = illustratedContent();
-    (files["content/game.json"] as Game).panorama = "missing_art";
-    expect(() => buildRegistry(files)).toThrow(/content\/game\.json\.panorama: unknown artwork "missing_art"/);
-  });
 });
 
 describe("resolved artwork views", () => {

@@ -8,15 +8,17 @@ function verify(nodes: LayoutNode[], viewport: number, clearConnections = false)
   const placed = new Map(layout.nodes.map((node) => [node.target, node]));
   expect(placed.size).toBe(nodes.length);
   expect(layout.width).toBeGreaterThanOrEqual(viewport);
+  const overlaps: string[] = [];
   for (const box of layout.nodes) {
     expect(box.width).toBe(CHIP_WIDTH);
     expect(box.x).toBeGreaterThanOrEqual(0);
     expect(box.x + box.width).toBeLessThanOrEqual(layout.width);
     expect(box.y + CHIP_HEIGHT).toBeLessThanOrEqual(layout.height);
-    for (const other of layout.nodes) if (box.target !== other.target) {
-      expect(box.y + CHIP_HEIGHT <= other.y || other.y + CHIP_HEIGHT <= box.y || box.x + box.width <= other.x || other.x + other.width <= box.x).toBe(true);
+    for (const other of layout.nodes) if (box.target < other.target) {
+      if (!(box.y + CHIP_HEIGHT <= other.y || other.y + CHIP_HEIGHT <= box.y || box.x + box.width <= other.x || other.x + other.width <= box.x)) overlaps.push(`${box.target} / ${other.target}`);
     }
   }
+  expect(overlaps, "node overlaps").toEqual([]);
   const groups = new Map<string, LayoutNode[]>();
   for (const node of nodes) {
     const key = JSON.stringify([...node.after].sort());
@@ -34,6 +36,7 @@ function verify(nodes: LayoutNode[], viewport: number, clearConnections = false)
   const connections = treeConnections(nodes, layout.nodes);
   const expected = nodes.flatMap((node) => node.after.map((parent) => `${parent}→${node.target}`)).sort();
   expect(connections.map((edge) => `${edge.parent}→${edge.target}`).sort()).toEqual(expected);
+  const intersections: string[] = [];
   for (const connection of connections) {
     const parent = placed.get(connection.parent)!, child = placed.get(connection.target)!;
     expect(connection.points[0]).toEqual({ x: parent.x + CHIP_WIDTH / 2, y: parent.y + CHIP_HEIGHT });
@@ -47,19 +50,25 @@ function verify(nodes: LayoutNode[], viewport: number, clearConnections = false)
         const intersects = a.x === b.x
           ? a.x > chip.x && a.x < chip.x + chip.width && Math.max(a.y, b.y) > chip.y && Math.min(a.y, b.y) < chip.y + CHIP_HEIGHT
           : a.y > chip.y && a.y < chip.y + CHIP_HEIGHT && Math.max(a.x, b.x) > chip.x && Math.min(a.x, b.x) < chip.x + chip.width;
-        expect(intersects, `${connection.parent} → ${connection.target} intersects ${chip.target}`).toBe(false);
+        if (intersects) intersections.push(`${connection.parent} → ${connection.target} intersects ${chip.target}`);
       }
     }
   }
+  expect(intersections, "connector intersections").toEqual([]);
   return layout;
 }
 
 describe("shared subtree tree layout", () => {
-  it.each([168, 320, 480, 900])("keeps both actual trees' sibling rows and chains aligned without chip or connector collisions at %spx", (width) => {
+  it("keeps both trees' sibling rows and chains aligned, independently of viewport width", () => {
     const e = startGame(loadRegistry(), 7);
     for (const kind of ["craft", "build"] as const) {
       const tree = treeView(e, kind);
-      const layout = verify(tree.nodes, width, true);
+      const layout = verify(tree.nodes, 320, true);
+      const relativePositions = (width: number) => {
+        const positions = compactTreeLayout(tree.nodes, width).nodes;
+        return positions.map((node) => ({ ...node, x: node.x - positions[0].x }));
+      };
+      for (const width of [168, 480, 900]) expect(relativePositions(width)).toEqual(relativePositions(320));
       const centre = (target: string) => layout.nodes.find((node) => node.target === target)!.x + CHIP_WIDTH / 2;
       const chains = kind === "craft" ? [["craft_axe", "craft_hoe"]] : [["bed", "shelter"], ["shelter", "rain_barrel"], ["corn_field", "bee_hive"]];
       for (const [parent, child] of chains) expect(centre(child)).toBe(centre(parent));

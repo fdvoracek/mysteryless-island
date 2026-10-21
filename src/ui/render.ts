@@ -26,6 +26,11 @@ export class UI {
   private treeTooltip: TreeTooltip;
   private treeEngine?: Engine;
   private centreTab: "area" | "craft" | "build" = "area";
+  private animationMs = Number(import.meta.env.VITE_UI_ANIMATION_MS);
+
+  private animationDuration(normalMs: number): number {
+    return Number.isFinite(this.animationMs) && this.animationMs > 0 ? this.animationMs : normalMs;
+  }
 
   constructor(
     root: HTMLElement,
@@ -34,10 +39,11 @@ export class UI {
     private onRestart: () => void,
     /** the saved game ("save." in the menu; "load" on the end screen) */
     private saves: { save(): boolean; load(): boolean; has(): boolean },
-    /** multiplies progress bar durations (?speed=0.2 in tests); 1 = normal */
+    /** multiplies progress bar durations; 1 = the content-defined pace */
     private speed = 1,
   ) {
     this.root = root;
+    if (Number.isFinite(this.animationMs) && this.animationMs > 0) root.style.setProperty("--ui-animation-duration", `${this.animationMs}ms`);
     this.build();
     this.mountClassic();
     this.treeTooltip = new TreeTooltip(root);
@@ -96,7 +102,7 @@ export class UI {
       if (e.state.dead || this.restoring || this.isBusy()) return;
       const ok = this.saves.save();
       this.els.saveBtn.textContent = ok ? "saved." : "could not save.";
-      window.setTimeout(() => { this.els.saveBtn.textContent = "save."; }, 1600);
+      window.setTimeout(() => { this.els.saveBtn.textContent = "save."; }, this.animationDuration(1600));
     });
     const lights = this.root.querySelector<HTMLButtonElement>("#lights")!;
     lights.addEventListener("click", () => {
@@ -436,7 +442,7 @@ export class UI {
       if (active.has(el.dataset.id!) || el.classList.contains("done")) return;
       el.classList.add("done");
       el.setAttribute("aria-label", `${el.dataset.title}: done`);
-      window.setTimeout(() => { el.remove(); this.els.questsBox.hidden = !box.querySelector(".quest"); }, 1800);
+      window.setTimeout(() => { el.remove(); this.els.questsBox.hidden = !box.querySelector(".quest"); }, this.animationDuration(1800));
     });
     // existing rows keep their place (a finished one fades where it was); new ones go after
     // the previous active quest in content order
@@ -603,7 +609,7 @@ export class UI {
     this.restoring = true;
     this.els.fadeText.textContent = v.lastLine;
     this.els.fade.classList.add("show");
-    window.setTimeout(show, Math.round(2400 * this.speed));
+    window.setTimeout(show, this.animationDuration(Math.round(2400 * this.speed)));
   }
 
 

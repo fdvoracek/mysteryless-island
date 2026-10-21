@@ -228,6 +228,8 @@ derived view models; and an injected scheduler for deterministic controller test
   Routine implementation choices within confirmed rules do not need repeated approval.
 - Test observable behavior and invariants, not a duplicate of the implementation. Cover affected
   reservation/completion, pause/resume, save migration, local independence, and timing paths.
+  Keep game-rule scenarios in engine tests; browser cases cover interaction, rendering and
+  application wiring. Avoid replaying the same rule for every content item or at both layers.
 - Use deterministic seeds/variant mode and the existing helpers. Engine and browser tests use
   a frozen test-only content pack; production wording and labels must not set their expectations.
   Validate shipped content separately for schema and references. When adding a mechanic, extend

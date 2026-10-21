@@ -9,3 +9,7 @@ in the same commit.
 The production build still uses the shipped `content/`. `npm run content:check` validates its
 schema and references without matching particular wording. Browser tests use a separate
 `dist-test/` build so that GitHub Pages always receives the production `dist/` build.
+
+Fixture readers return isolated clones of cached definitions and indexes. Tests may alter
+their own registry without affecting another scenario. Custom data still runs through the
+real validator. Browser timings live in `.env.engine-test`, rather than in this content pack.

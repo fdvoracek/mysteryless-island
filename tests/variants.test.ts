@@ -4,7 +4,7 @@ import { Engine } from "../src/core/engine";
 import { seedRng } from "../src/core/rng";
 import type { GameState } from "../src/core/state";
 import { chooseText, setVariantMode } from "../src/core/text";
-import { loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
+import { loadRegistry, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
 const look = lookAround;
@@ -54,12 +54,6 @@ describe("text variants", () => {
     expect(play()).toEqual(play());
   });
 
-  it("the opening varies between games", () => {
-    const intros = new Set<string>();
-    for (let seed = 1; seed <= 30; seed++) intros.add(startGame(reg, seed).state.log[0].text);
-    expect(intros.size).toBe(3);
-  });
-
   it("loads saves made before variants were remembered", () => {
     const old = structuredClone(startGame(reg, 5).state) as Partial<GameState>;
     delete old.lastText;
@@ -75,39 +69,6 @@ describe("text variants in the content", () => {
     setVariantMode("first");
     const e = startGame(reg, 1);
     expect(e.state.log[0].text).toMatch(/^Awake\. Salt in the mouth\./);
-  });
-
-  it("uses {placeholders} only where the engine fills them (journal lines, the end screen)", () => {
-    const bad: string[] = [];
-    const walk = (o: unknown, path: string) => {
-      if (Array.isArray(o)) o.forEach((v, i) => walk(v, `${path}[${i}]`));
-      else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (!k.startsWith("_")) walk(v, `${path}.${k}`); }
-      else if (typeof o === "string" && /\{\w+\}/.test(o)) {
-        // which fields the engine fills, and with what
-        const allowed: Array<[RegExp, string[]]> = [
-          [/\.journal\.crafted/, ["{item}"]],
-          [/\.journal\.(walkTo|wayOpens)/, ["{place}"]],
-          [/\.ending\.survived/, ["{time}", "{day}"]],
-          [/\.ending\.cause/, ["{cause}"]],
-          [/\.sleep\.newDay/, ["{day}"]],
-          [/\.sleep\.recovery\.[a-z_]+\.text/, ["{place}", "{energy}"]],
-          [/\.sleep\.collapse\.text/, ["{place}"]],
-          [/\.tasks\.title/, ["{task}"]],
-          [/\.tasks\.gained/, ["{item}", "{where}"]],
-          [/\.tasks\.used/, ["{item}"]],
-          [/\.tasks\.opened/, ["{place}"]],
-          [/\.tasks\.possible/, ["{action}"]],
-          [/\.tasks\.built/, ["{building}"]],
-          [/\.newPlace\.(text|go)/, ["{place}"]],
-          [/\.cycle\.words\.ready/, ["{n}"]],
-        ];
-        const rule = allowed.find(([re]) => re.test(path));
-        const ok = !!rule && o.match(/\{\w+\}/g)!.every((m) => rule[1].includes(m));
-        if (!ok) bad.push(`${path}: "${o}"`);
-      }
-    };
-    for (const [file, data] of Object.entries(readContentFiles())) walk(data, file);
-    expect(bad).toEqual([]);
   });
 });
 

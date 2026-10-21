@@ -6,6 +6,9 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "e2e",
+  // Every case owns a fresh browser context; lengthy UI flows can run side by side.
+  fullyParallel: true,
+  workers: 2,
   timeout: 30_000,
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",

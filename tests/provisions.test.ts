@@ -74,6 +74,8 @@ describe("automatic provisions", () => {
     e.dispatch({ type: "consume", item: "rations" });
     expect(e.state.items.rations).toBe(1);
     expect(e.state.counters["did:eat"]).toBe(1);
+    e.state.items.rations = 0;
+    expect(e.dispatch({ type: "consume", item: "rations" })).toMatchObject({ ok: false, reason: "no rations left" });
   });
 
   it.each([

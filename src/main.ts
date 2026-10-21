@@ -43,9 +43,12 @@ document.title = reg.game.title;
 /** the autosave after every completed action (a reload continues; a death stays a death) */
 const save = () => writeSave(engine.state);
 
-// ?speed=0.2 makes progress bars 5x faster (used by the browser tests)
+// Optional environment timing; ?speed=0.2 overrides it for manual previews.
+const configuredStepMs = Number(import.meta.env.VITE_ACTION_STEP_MS);
+const defaultSpeed = Number.isFinite(configuredStepMs) && configuredStepMs > 0
+  ? configuredStepMs / engine.progressMs(reg.game.stepMinutes / 60) : 1;
 const speedParam = Number(new URLSearchParams(location.search).get("speed"));
-const speed = speedParam > 0 ? speedParam : 1;
+const speed = speedParam > 0 ? speedParam : defaultSpeed;
 
 let ui: UI;
 const controller = new ActionController(() => engine, () => { save(); ui.render(); }, speed);

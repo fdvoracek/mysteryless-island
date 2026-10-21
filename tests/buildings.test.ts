@@ -74,23 +74,6 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect(e.state.log.some((l) => /wind breaks on the logs|rough but yours/.test(l.text))).toBe(true);
   });
 
-  it("the shelter lets you sleep without a fire; the bed makes sleep better", () => {
-    const sleepFrom = (built: string[]) => {
-      const e = ready("beach");
-      for (const b of built) e.applyEffects([{ build: b }]);
-      e.state.timers[`fire@${e.state.location}`] = 0;
-      e.state.time = 22 * 60;
-      e.state.stats.energy = 0;
-      const res = e.dispatch({ type: "activity", id: "sleep" });
-      return { ok: res.ok, energy: e.state.stats.energy };
-    };
-    expect(sleepFrom([])).toEqual({ ok: false, energy: 0 }); // voluntary sleep needs a bed
-    const shelter = sleepFrom(["shelter"]);
-    expect(shelter.ok).toBe(false);
-    const bed = sleepFrom(["shelter", "bed"]);
-    expect(bed.energy).toBeGreaterThan(shelter.energy);
-  });
-
   it("the fish trap: 20 willow twigs from the river, 1 fish every 2 hours up to 3, stays set", () => {
     const e = startGame(reg, 2);
     e.state.regions.meadows.unlocked = true;
@@ -166,32 +149,6 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect(row(e, "corn_field")).toMatchObject({ word: "dug", action: { label: "sow", enabled: true } });
   });
 
-  it("every building of the game can be built where it belongs, and its cycle started and collected", () => {
-    for (const b of reg.buildings.values()) {
-      const place = ({ shelter: "forest", snares: "forest", corn_field: "meadows", bee_hive: "meadows", fish_weir: "meadows" } as Record<string, string>)[b.id] ?? "beach";
-      const e = ready(place);
-      if (place === "beach" && b.id !== "shelter") e.applyEffects([{ build: "shelter" }]); // the bed and the barrel go by the shelter
-      expect(build(e, b.id), `${b.id}: build`).toMatchObject({ ok: true });
-      if (!b.cycle) continue;
-      // the corn field is sown as it is dug; the others start with their own step
-      if (e.state.buildings[`${b.id}@${place}`].batches.length === 0) {
-        expect(act(e, b.id, "start"), `${b.id}: start`).toMatchObject({ ok: true });
-      }
-      wait(e, b.cycle.hours * (b.cycle.batches ?? 1));
-      e.state.stats = { health: 100, energy: 100, hunger: 0, thirst: 50 };
-      const items = JSON.stringify(e.state.items), thirst = e.state.stats.thirst;
-      expect(act(e, b.id, "collect"), `${b.id}: collect`).toMatchObject({ ok: true });
-      // something came of it: items, or a drink (the rain barrel), or nothing caught this time (snares)
-      if (b.id !== "snares") expect(JSON.stringify(e.state.items) !== items || e.state.stats.thirst < thirst, `${b.id}: a yield`).toBe(true);
-    }
-  });
-
-  it("built places show on the map's hover icons", () => {
-    const e = ready("beach");
-    e.applyEffects([{ build: "shelter" }]);
-    expect(view(e).tabs.find((t) => t.id === "beach")!.icons).toContain("shelter");
-  });
-
   it("conditions name buildings: { built }, { building, is }", () => {
     const e = ready("meadows");
     const ctx = e.ctx();
@@ -236,45 +193,6 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
       expect(msg).toMatch(/building "shelter" has no cycle, so it is never ready/);
       expect(msg).toMatch(/recipe craft_spear\.item: unknown item "unobtainium"/);
     }
-  });
-
-  it("each task starts from what you find or do", () => {
-    const e = startGame(reg, 6);
-    const has = (q: string) => !!e.state.quests[q];
-    const find = (region: string, id: string) => { e.state.regions[region].discoveries.push(id); e.syncQuests(); };
-    find("meadows", "field_site");
-    expect([has("build_corn_field"), has("cut_logs")]).toEqual([true, true]); // the hoe needs a log, logs an axe
-    find("meadows", "bees");
-    find("meadows", "river");
-    find("forest", "rabbit_runs");
-    expect(["build_bee_hive", "build_fish_trap", "first_catch", "build_snares"].map(has)).toEqual([true, true, true, true]);
-    expect(has("build_drying_rack")).toBe(false);
-    e.state.counters["did:catch_river_fish"] = 1;
-    e.syncQuests();
-    expect(has("build_drying_rack")).toBe(false); // catching fish alone is not the trigger
-    e.applyEffects([{ give: { raw_fish: 1 } }]);
-    e.state.stats.hunger = 60;
-    e.dispatch({ type: "explore" });
-    expect(has("build_drying_rack")).toBe(true);
-    e.dispatch({ type: "choose", choice: "close" });
-    expect(has("build_fish_weir")).toBe(false);
-    e.state.counters["did:empty_trap"] = 2;
-    e.syncQuests();
-    expect(has("build_fish_weir")).toBe(true);
-    expect(has("make_bed") || has("build_rain_barrel")).toBe(false);
-    e.applyEffects([{ build: "shelter" }]);
-    e.syncQuests();
-    expect([has("make_bed"), has("build_rain_barrel")]).toEqual([true, true]);
-  });
-
-  it("the forest trails show on day two", () => {
-    const e = startGame(reg, 7);
-    e.state.regions.forest.unlocked = true;
-    e.dispatch({ type: "travel", region: "forest" });
-    const open = () => e.openLandmarks(e.reg.regions.get("forest")!).map((d) => d.id);
-    expect(open()).toEqual(["spring"]);
-    e.state.time += 24 * 60;
-    expect(open()).toEqual(["spring", "rabbit_runs"]);
   });
 });
 

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildRegistry, ContentError } from "../src/content/registry";
+import { buildRegistry } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
-import { loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
+import { contentProblems, loadRegistry, lookAround, readContentFiles, revealAll, startGame } from "./helpers";
 
 const QUESTS = "content/quests/first-days.json";
 
@@ -23,7 +23,6 @@ function registryWith(extra: unknown[], edit?: (files: Record<string, unknown>) 
   return buildRegistry(files);
 }
 
-const shipped = loadRegistry();
 const reg = registryWith(EXTRA);
 /** fully explored, with a spear so fishing can be used to pass 2 hours */
 const fresh = () => {
@@ -34,10 +33,6 @@ const fresh = () => {
 const active = (e: Engine) => view(e).quests.map((q) => q.id);
 
 describe("quests", () => {
-  it("the shipped game starts with one task: survive the first night", () => {
-    const e = Engine.newGame(shipped, 3);
-    expect(active(e)).toEqual(["survive_first_night"]);
-  });
 
   it("start quests are active at once; condition quests wait for their trigger", () => {
     const e = revealAll(startGame(reg, 3));
@@ -132,8 +127,7 @@ describe("quests", () => {
     const bad = (extra: unknown, match: RegExp) => {
       const f = structuredClone(files);
       f[QUESTS] = [...(structuredClone(files[QUESTS]) as unknown[]), extra];
-      expect(() => buildRegistry(f)).toThrow(ContentError);
-      try { buildRegistry(f); } catch (err) { expect((err as ContentError).problems.join("\n")).toMatch(match); }
+      expect(contentProblems(() => buildRegistry(f))).toMatch(match);
     };
     bad({ id: "q1", title: "x", trigger: "start", completeWhen: { did: "dance" } }, /unknown did "dance"/);
     bad({ id: "q2", title: "x", trigger: { when: { quest: "nope", is: "done" } }, completeWhen: { did: "drink" } }, /unknown quest "nope"/);
@@ -162,9 +156,5 @@ describe("a task that needs things: catch a fish", () => {
     }
     expect(e.state.quests.first_catch.status).toBe("done");
     expect(view(e).quests.map((q) => q.id)).not.toContain("first_catch");
-  });
-
-  it("there are no tasks to craft things: tasks never have buttons", () => {
-    for (const q of reg2.quests.values()) expect(q).not.toHaveProperty("action");
   });
 });

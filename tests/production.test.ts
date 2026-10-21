@@ -3,8 +3,8 @@ import { Engine } from "../src/core/engine";
 import { buildingState, batchesReady } from "../src/core/conditions";
 import { collections, idleUnits, startProduction } from "../src/core/production";
 import { restoreState } from "../src/persistence/migrate";
-import { buildRegistry, ContentError } from "../src/content/registry";
-import { loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
+import { buildRegistry } from "../src/content/registry";
+import { contentProblems, loadRegistry, readContentFiles, revealAll, startGame } from "./helpers";
 
 const reg = loadRegistry();
 function fresh() {
@@ -122,11 +122,9 @@ describe("local production batches", () => {
     const buildings = structuredClone(files["content/buildings/camp.json"]) as any[];
     buildings.find((b) => b.id === "drying_rack").cycle.products.meat[0].item = "missing_item";
     files["content/buildings/camp.json"] = buildings;
-    expect(() => buildRegistry(files)).toThrow(ContentError);
-    try { buildRegistry(files); } catch (error) {
-      expect((error as ContentError).problems.join("\n")).toMatch(/unknown production "missing"/);
-      expect((error as ContentError).problems.join("\n")).toMatch(/unknown item "missing_item"/);
-    }
+    const problems = contentProblems(() => buildRegistry(files));
+    expect(problems).toMatch(/unknown production "missing"/);
+    expect(problems).toMatch(/unknown item "missing_item"/);
   });
 });
 

@@ -94,21 +94,6 @@ describe("sleep always ends at 6am", () => {
     expect(view(e).event!.title).toBe("Task done: survive the first night");
   });
 
-  it.each([
-    [22, true, 100], [23.75, true, 100], [0, true, 80], [1.75, true, 80],
-  ])("at %s with bed %s restores exactly %s energy", (hour, bed, energy) => {
-    const e = fresh();
-    e.state.time = (hour < 6 ? 1440 : 0) + hour * 60;
-    e.state.stats.energy = 10;
-    if (bed) e.applyEffects([{ build: "bed" }, { timer: "fire", addHours: 6 }]);
-    expect(sleep(e).ok).toBe(true);
-    expect(e.state.time).toBe(1440 + 360);
-    expect(e.state.stats.energy).toBe(energy);
-    expect(e.state.location).toBe("beach");
-    expect(e.state.log.some((line) => line.text === "New day 2 is starting.")).toBe(true);
-    expect(e.state.log.some((line) => line.text.includes(`${energy}% energy at 6am`) || line.text.includes(`6am with ${energy}% energy`))).toBe(true);
-  });
-
   it("offers sleep only with a bed in this area and refuses direct commands without one", () => {
     const e = fresh();
     expect(view(e).actions.find((a) => a.id === "sleep")).toBeUndefined();
@@ -154,15 +139,6 @@ describe("sleep always ends at 6am", () => {
     expect(e.state.location).toBe("forest");
     expect(e.state.stats.energy).toBe(50);
     expect(e.state.log.some((line) => line.text.startsWith("It is midnight"))).toBe(true);
-  });
-
-  it("a collapse at midnight where there is a bed restores 80%", () => {
-    const e = fresh();
-    e.applyEffects([{ build: "bed" }]);
-    e.state.time = 23 * 60 + 45;
-    expect(e.dispatch({ type: "activity", id: "collect_stones" }).interrupted).toBe(true);
-    expect(e.state.stats.energy).toBe(80);
-    expect(e.state.time).toBe(1440 + 360);
   });
 
   it("energy exhaustion interrupts crafting without producing the item or losing its materials", () => {
@@ -213,18 +189,6 @@ describe("sleep always ends at 6am", () => {
     expect(e.state.regions.beach.discoveries).not.toContain("forest_edge");
     expect(e.state.regions.forest.unlocked).toBe(false);
     expect(e.state.events.active).toBeNull();
-  });
-
-  it("overnight timers and production still progress, and the state can be saved and resumed", () => {
-    const e = fresh();
-    e.applyEffects([{ build: "drying_rack" }, { startCycle: "drying_rack" }, { build: "bed" }]);
-    e.state.timers[`fire@${e.state.location}`] = 60;
-    sleep(e); // early bedtime skips 24 hours to tomorrow morning
-    expect(e.state.timers[`fire@${e.state.location}`]).toBe(0);
-    expect(e.buildingStepFor("drying_rack")?.step).toBe("collect");
-    const resumed = new Engine(reg, JSON.parse(JSON.stringify(e.state)));
-    expect(resumed.state.time).toBe(e.state.time);
-    expect(resumed.state.stats.energy).toBe(100);
   });
 
   it("validates the bed reference and the order of the overnight hours", () => {

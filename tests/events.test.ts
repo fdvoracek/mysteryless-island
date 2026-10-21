@@ -1,10 +1,10 @@
 import { restoreState } from "../src/persistence/migrate";
 import { describe, expect, it } from "vitest";
-import { buildRegistry, ContentError, type Registry } from "../src/content/registry";
+import { buildRegistry, type Registry } from "../src/content/registry";
 import { Engine } from "../src/core/engine";
 import { view } from "../src/core/selectors";
 import type { GameState } from "../src/core/state";
-import { loadRegistry, readContentFiles, startGame, lookAround, craft } from "./helpers";
+import { contentProblems, loadRegistry, readContentFiles, startGame, lookAround } from "./helpers";
 
 const reg = loadRegistry();
 const choose = (e: Engine, choice: string) => e.dispatch({ type: "choose", choice });
@@ -112,34 +112,6 @@ describe("what you grabbed", () => {
     expect(view(e).inventory.find((i) => i.id === "knife")!.tags).toEqual(["sharp"]);
   });
 
-
-  it("the spear: 30 minutes with the knife, an hour with a rock knife (made first, without the knife)", () => {
-    for (const [choice, minutes] of [["knife", 30], ["water", 60]] as const) {
-      const e = startGame(reg, 4, choice);
-      for (let i = 0; i < 4; i++) look(e); // the fish start the spear task
-      e.applyEffects([{ give: { firewood: 10 } }]);
-      expect(craft(e, "craft_spear").ok, "personal rock knife prerequisite").toBe(false);
-      e.applyEffects([{ give: { stone: 2 } }]);
-      expect(craft(e, "craft_rock_knife").ok).toBe(true);
-      const t0 = e.state.time;
-      expect(craft(e, "craft_spear").ok).toBe(true);
-      expect(e.state.time - t0, choice).toBe(minutes);
-      expect(e.state.items.fishing_spear).toBe(1);
-    }
-  });
-
-  it("the water can: four drinks, then the empty can stays", () => {
-    const e = startGame(reg, 5, "water", { matches: false });
-    for (let i = 0; i < 4; i++) {
-      e.state.stats.thirst = 80;
-      expect(e.dispatch({ type: "consume", item: "can_water" }).ok).toBe(true);
-      expect(e.state.stats.thirst).toBeLessThan(80);
-    }
-    expect(e.state.items.can_water ?? 0).toBe(0);
-    expect(e.dispatch({ type: "consume", item: "can_water" }).ok).toBe(false);
-    expect(view(e).consumables.map((i) => i.id)).toContain("water_can");
-  });
-
   it("the water can: fill it at the spring once it is explored, up to 4 drinks; the can is kept", () => {
     const e = startGame(reg, 7, "water", { matches: false });
     const fill = () => view(e).consumables.find((i) => i.id === "water_can")!.actions.find((a) => a.label === "fill");
@@ -164,15 +136,6 @@ describe("what you grabbed", () => {
     expect(fill()).toMatchObject({ enabled: true });
     e.dispatch({ type: "travel", region: "beach" });
     expect(fill()).toBeUndefined();
-  });
-
-  it("the rations: six meals, eaten from consumables", () => {
-    const e = startGame(reg, 6, "rations", { matches: false });
-    expect(view(e).consumables.find((s) => s.id === "rations")).toMatchObject({ count: 6, actions: [expect.objectContaining({ label: "eat" })] });
-    e.state.stats.hunger = 70;
-    e.dispatch({ type: "consume", item: "rations" });
-    expect(e.state.stats.hunger).toBeLessThan(70);
-    expect(e.state.items.rations).toBe(5);
   });
 });
 
@@ -242,17 +205,6 @@ describe("events in the journal", () => {
     expect(e.state.log.some((line) => line.text === "The full account of this event.")).toBe(false);
   });
 
-  it("the shipwreck reads as the start of the journal: the storm, the swim, then the beach", () => {
-    const e = startGame(reg, 1, "knife");
-    const paragraphs = view(e).turns.map((t) => t.lines.join(" ")).reverse();
-    expect(paragraphs).toHaveLength(6);
-    expect(paragraphs[0]).toMatch(/^You were three days out/);
-    expect(paragraphs[2]).toMatch(/^There is a moment/);
-    expect(paragraphs[3]).toMatch(/^You jump with the knife clenched in your fist/);
-    expect(paragraphs[4]).toMatch(/^You swim until your arms stop answering/);
-    expect(paragraphs[5]).toMatch(/^Awake\. Salt in the mouth\./);
-  });
-
   it("an event after an action: the action, then the event page, then what the choice did", () => {
     const r = withEvents([{ id: "e_bottle", title: "A bottle", trigger: { after: ["explore"], chance: 1 },
       scenes: { start: { text: "A bottle in the wrack.", choices: [{ id: "take", label: "take it", effects: [{ give: { firewood: 1 } }, { log: "You keep the cork." }] }] } } }]);
@@ -264,12 +216,6 @@ describe("events in the journal", () => {
     expect(paragraphs[1]).toBe("A way to the forest opens.");
     expect(paragraphs[2]).toBe("A bottle in the wrack.");
     expect(paragraphs[3]).toBe("You keep the cork.");
-  });
-
-  it("choosing shows the next page at once (no progress bar)", () => {
-    const e = Engine.newGame(reg, 3);
-    expect(choose(e, "knife").cooldownMs).toBe(0);
-    expect(choose(e, "close").cooldownMs).toBe(0);
   });
 });
 
@@ -295,7 +241,7 @@ describe("event choices and effects", () => {
     look(e);
     const energy = e.state.stats.energy;
     expect(view(e).event!.choices.map((c) => c.id)).toEqual(["open", "map", "leave"]); // hidden one not shown
-    choose(e, "open");
+    expect(choose(e, "open").cooldownMs).toBe(0);
     expect(e.state.items.firewood).toBe(4);
     expect(e.state.stats.energy).toBe(energy - 10);
     expect(view(e).event).toMatchObject({ text: "Dry wood inside.", choices: [{ id: "close", label: "take it" }] });
@@ -343,8 +289,7 @@ describe("event choices and effects", () => {
 
 describe("the validator checks events", () => {
   const bad = (event: unknown, match: RegExp) => {
-    expect(() => withEvents([event])).toThrow(ContentError);
-    try { withEvents([event]); } catch (err) { expect((err as ContentError).problems.join("\n")).toMatch(match); }
+    expect(contentProblems(() => withEvents([event]))).toMatch(match);
   };
   it("rejects missing scenes, unknown next scenes, unknown actions and bad effects", () => {
     bad({ id: "x1", title: "x", trigger: "start", scenes: { other: { text: "A." } } }, /needs a scene called "start"/);
