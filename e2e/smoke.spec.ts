@@ -249,7 +249,7 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
   await expect(page.locator("#game")).toBeHidden();
 
   await page.locator('#eventChoices [data-choice="matches"]').click();
-  await expect(page.locator("#eventText")).toContainText("The tin is still closed");
+  await expect(page.locator("#eventText")).toContainText("it is still closed");
   // the story before the island ends with a button under the text, not the back arrow
   await expect(page.locator("#eventChoices .btn")).toHaveText(["wash ashore"]);
   await expect(page.locator("#eventBack")).toBeHidden();
@@ -257,7 +257,7 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
   await expect(event).toBeHidden();
   // the journal tells it all as one story: the storm, the swim, then the beach
   await expect(page.locator("#log")).toContainText("A storm wrecks your ship.");
-  await expect(page.locator("#log")).toContainText("The tin is still closed");
+  await expect(page.locator("#log")).toContainText("You reach the shore with your matches.");
   await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
   await expect(page.locator("#inventory")).toContainText("matches");
   await expect(page.locator("#inventory .row .key")).toHaveText(["matches", "summer clothes"]);
@@ -419,7 +419,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(cook).toHaveCount(0);
   await create(page, "build", "campfire");
   await action(page, "light fire").click();
-  await expect(page.locator("#log")).toContainText("flame");
+  await expect(page.locator("#log")).toContainText("The fire takes.");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).toHaveCount(0);
   await expect(cook).toBeVisible();
