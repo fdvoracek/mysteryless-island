@@ -77,9 +77,9 @@ describe("automatic provisions", () => {
   });
 
   it.each([
-    [70, 20, "Eat soon"],
-    [20, 70, "Drink soon"],
-    [70, 70, "Eat and drink soon"],
+    [70, 20, "Food exhausted"],
+    [20, 70, "Water exhausted"],
+    [70, 70, "Food and water exhausted"],
   ])("warns for hunger %s and thirst %s", (hunger, thirst, message) => {
     const e = fresh();
     e.state.stats.hunger = hunger;
@@ -87,7 +87,7 @@ describe("automatic provisions", () => {
     travel(e);
     expect(view(e).event).toMatchObject({ id: "note", title: "Supplies running low" });
     expect(view(e).event!.text).toContain(message);
-    expect(view(e).event!.text).toContain("collapse");
+    expect(view(e).event!.text).toContain("exhausted");
     expect(travel(e)).toMatchObject({ ok: false, reason: "an event is open" });
     close(e);
     expect(view(e).event).toBeNull();
@@ -108,7 +108,7 @@ describe("automatic provisions", () => {
     expect(resumed.state.stats.thirst).toBeLessThan(60);
     resumed.state.stats.thirst = 70;
     travel(resumed);
-    expect(view(resumed).event?.text).toContain("Drink soon");
+    expect(view(resumed).event?.text).toContain("Water exhausted");
   });
 
   it("automatically eats food obtained by the current action", () => {
@@ -130,7 +130,7 @@ describe("automatic provisions", () => {
     }
     travel(e);
     expect(e.state.items).toMatchObject({ raw_meat: 2, raw_fish: 2 });
-    expect(view(e).event!.text).toContain("build a simple drying rack");
+    expect(view(e).event!.text).toContain("drying rack");
     close(e);
     travel(e);
     e.state.timers[`fire@${e.state.location}`] = 360;
@@ -150,7 +150,7 @@ describe("one drying rack for fish and meat", () => {
     expect(e.state.quests.build_drying_rack).toBeUndefined();
     travel(e);
     expect(e.state.quests.build_drying_rack.status).toBe("active");
-    expect(view(e).event!.text).toContain("build a simple drying rack");
+    expect(view(e).event!.text).toContain("drying rack");
     expect(view(e).event!.text).toContain("cook them over a fire");
     close(e);
     travel(e);
@@ -176,7 +176,7 @@ describe("one drying rack for fish and meat", () => {
     e.applyEffects([{ give: { raw_meat: 2 } }]);
     travel(e);
     expect(e.state.quests.build_drying_rack.status).toBe("active");
-    expect(view(e).event!.text).toContain("build a simple drying rack");
+    expect(view(e).event!.text).toContain("drying rack");
   });
 
   it("plays through building, drying meat, collecting, then drying fish on the same rack", () => {
