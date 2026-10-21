@@ -259,3 +259,194 @@ The PRs form a linear path with explicit optional gate-dependent late phases. Th
 
 **Manual demo:** add a temporary edible plant item with a consume log, grant it in a temporary event, eat it, observe stats and journal; revert.
 
+
+### PR-16 — Recipes and crafting progression tree editor
+
+**Working deliverable:** Create/edit/remove crafting recipes and visually manage the real crafting dependency tree.
+
+**Implement:** recipe output item, count, multiple, recipe.requires, ways[] with exclusive visibleWhen, hours/effort/cost/tool requirements, log alternatives, effects and tags. Editable crafting tree branches, nodes, target, all-required parent edges and order. A new recipe gets exactly one tree node in the same atomic source edit. Graph dragging must not invent undocumented mechanics. Display actual engine lock reasons. Prevent cycles, orphan branches, duplicate targets, cross-kind edges and referenced deletions.
+
+**Tests:** schema round-trip; positive recipe plus prerequisite; cycle, missing output and duplicate target failures; old recipe playthrough parity.
+
+**Manual acceptance:** create a temporary craft recipe with an existing supported output; complete prerequisite in the game and craft it. Existing crafting tree stays playable.
+
+### PR-17 — Buildings, production cycles and building progression tree editor
+
+**Working deliverable:** Author buildable structures and production cycles through Studio.
+
+**Implement:** every supported Building field: build step, site requirements, costs, effort/hours, max units, local capabilities, production start/collect/repeat, products, batch/inputs/units, outputs, text, artwork and graph prerequisites. Share tree editor with PR-16. Explain missing site providers, bad production outputs and recipe/build edges. Do not introduce new production mechanics without engine tests; preserve reservation, pause, catch-up-with-game-time-only and collection rules.
+
+**Tests:** building field coverage; cycle validation; no-site rejection; deterministic production from seed; save/reload for a freshly started game; existing fish trap, rack, bed and field tests.
+
+**Manual acceptance:** create a temporary site-bound building, construct it where allowed, start and collect a production batch, and verify the unavailable reason elsewhere.
+
+### PR-18 — Tasks/quests and dependency inspector
+
+**Working deliverable:** Full quest authoring, including start/completion and linked references.
+
+**Implement:** quest ID/title, trigger (all implemented variants), completeWhen, startLog, doneLog, effects; shared condition builder; trace references to discoveries, actions and events. Keep tasks as goals, never creation gates. Validate manual-trigger quests have a starter effect. Categorize provable broken references vs heuristic progression warnings.
+
+**Tests:** task start→complete→reward sequence, invalid manual-start, invalid condition refs and preservation of existing task completion notes.
+
+**Manual acceptance:** create a temporary discovery-triggered task completed by a crafting action and play it through from a fresh game.
+
+### PR-19 — Visual branching event editor
+
+**Working deliverable:** Edit complete branching events on a graph without JSON or code.
+
+**Implement:** event metadata (ID/title, triggers: start/time/when/after+chance, extra condition, cooldown/repeat), scene graph (required start node, choices/next edges, end/close), scene long modal text + short journal text, scene effects, choice label/conditions/effects. Rename scene IDs with validated incoming-edge updates. Preserve authored order. Flag dangling targets, dead scenes, accidental cycles and invalid effects. Graph layout is visual only.
+
+**Tests:** branching rewards, modal vs journal, triggers/repeat, unreachable scenes, missing start and dangling edges; round-trip source→editor→source→compiler.
+
+**Manual acceptance:** temporary three-scene event with two choices gives differing rewards in the real game.
+
+### PR-20 — Localization and prose management workspace
+
+**Decision:** D4 must resolve locales, fallback and switching policy before declaring this deliverable complete. Until then English + synthetic test locale only.
+
+**Working deliverable:** Edit/transcribe localizable prose side by side and audit translation completeness.
+
+**Implement:** searchable text ID table with owner/reference, English original, chosen locale, variants, modal/journal classification, tokens/placeholders and review status; filters for missing/invalid/unused/duplicate; navigate to containing entity. Bulk CSV/TSV import/export supports Unicode, quotes, commas, embedded newlines and spreadsheet formula injection safeguards. Preserve variant identities and exact placeholders. Do not silently introduce unsupported Czech plural grammar.
+
+**Tests:** completeness, key stability after source move, importer round-trip, mismatch failures and independent gameplay RNG under language changes.
+
+**Manual acceptance:** edit the translation for the spring modal and journal, switch locale in the game and import/export that pair without loss.
+
+### PR-21 — Visual island map and region dependency view
+
+**Decision:** D6 must decide whether arbitrary per-edge travel is needed. This PR by default represents *existing* camp-centered travel. If changed, plan a distinct engine graph PR before editing arbitrary edges.
+
+**Working deliverable:** Interactive layout view and authoring of existing region positions/travel fields.
+
+**Implement:** canvas/map of regions, authored grid positions, visibility hints, unlock conditions and supported travel time; pan/zoom/drag with keyboard fallback, selection to region inspector, collision warnings. Node dragging edits region.map only; connections must reflect runtime behavior and never imply authored routes the engine doesn't implement.
+
+**Tests:** round-trip region positions, collision warning, game map and travel-time regression, mobile rendering.
+
+**Manual acceptance:** move a draft region, save, rebuild game and observe correct map position; travel remains valid.
+
+### PR-22 — Art/media, global game settings and schema coverage audit
+
+**Decisions:** D7 (scope/completeness), D9 (media source/publish) before implementation.
+
+**Working deliverable:** Edit all remaining *currently implemented* authorable fields, including artwork references, sites, game settings, timers, climate and stats.
+
+**Implement:** publish a field-coverage matrix mapping every schema field to a Studio control, validation and test; fill gaps with typed forms or safe schema-validated advanced structured editor, never executable scripts. Editing game start, stepMinutes, sleep, provisions, timers, tool tags, climate and damage must report consequences. Media browser for approved local files, dimensions, alt text, safe relative paths and reference checks. Honor shared panorama policy in ARCHITECTURE.md; do not invent per-region headers.
+
+**Tests:** each remaining field has editable round-trip; invalid asset formats/path/size rejected; game clock/start setting changes reflected only when intended.
+
+**Manual acceptance:** change an allowed global time setting and a draft entity artwork reference in Studio, observe game effect, then revert. Entire real game remains playable.
+
+### PR-23 — Actual game embedded as draft preview
+
+**Working deliverable:** Open a full game simulation using *unpublished Studio draft content*.
+
+**Implement:** compile and validate draft in memory/temporary build, then boot the actual apps/game renderer and @mysteryless/engine in isolated iframe or adapter; strict postMessage origin/source checks if messaging is used. Do NOT draw an imitation game UI in React or duplicate rules. Keep preview saves/session state separate from published-game keys (prefer in-memory adapter), seed/variant settings explicit. Invalid draft displays diagnostics with last safe preview or clear empty state. Draft changes require controlled preview reload.
+
+**Tests:** draft content visible, engine match, no public save mutation, malformed draft, preview teardown, cross-origin message denial.
+
+**Manual acceptance:** edit Forest landmark description, launch preview, discover spring, inspect long modal and short journal while public game remains unchanged.
+
+### PR-24 — Deterministic playtest presets and rule inspector
+
+**Working deliverable:** Jump directly into test scenarios and inspect why an action/event is enabled.
+
+**Implement:** versioned test presets (seed, location/time/stats/inventory/discoveries/flags/quests/buildings/timers) validated before use; use engine commands or audited state-factory injection with consistency checks. Explain conditions using the actual engine evaluator; show state before/after and effect trace, no second rule interpreter. Support reset, fast-forward for preview, import/export of test scenario files separate from published content.
+
+**Tests:** same seed+preset+actions gives same output; invalid preset cannot corrupt public saves; condition preview matches runtime.
+
+**Manual acceptance:** start in Forest on day 3 after discovering spring, fill water can, inspect before/after state, repeat identically.
+
+### PR-25 — Global dependency browser and advanced diagnostics
+
+**Working deliverable:** Cross-reference search, safe refactoring and an actionable release-validation screen.
+
+**Implement:** incoming/outgoing refs for every entity/text key; explicit rename preview and transactional reference updates; error links to entity+field. Check missing entities, invalid costs/timing, craft/build cycles, scene graph dead ends, manual quest starters, unavailable site capabilities, localization keys, invalid media and suspicious orphan content. Label static proof as ERROR, uncertain reachability as WARNING (don't promise formal reachability). Optionally run bounded seeded playthrough smoke; no unbounded state-space search. Publish blocked on errors. Test large documents for responsiveness.
+
+**Tests:** failed build on invalid refs, exact diagnostic location, rename update, harmless optional content warning does not block.
+
+**Manual acceptance:** break a recipe parent, follow Studio error to its edit field, repair and pass validation.
+
+### PR-26 — Templates, clone, bulk editing, CSV and archive exchange
+
+**Working deliverable:** Create repeated content faster and exchange flat datasets with spreadsheets safely.
+
+**Implement:** valid blank/sample templates for regions, landmarks, actions, items, tools, crafting, buildings, events and quests; clone with new stable IDs and explicit reference remap; bulk edit/undo; dry-run import changes and atomic rollback. CSV/TSV for simple tabular data and translations, JSON archive for nested scenes/rule graphs. Preserve quotes/newlines/Unicode and guard spreadsheet injection. Never claim CSV captures arbitrary nested event graphs without loss.
+
+**Tests:** all templates validate after required data supplied; import rollback on bad references; clone remaps links; source→export→import semantic round-trip.
+
+**Manual acceptance:** bulk-create two temporary food items, inspect, undo and revert; game remains playable.
+
+### PR-27 — Local Git diff, branches, commits and PR proposal workflow
+
+**Decision:** D1; confirm authorization to use local Git and optional GitHub API credentials. Never push, merge or publish without explicit user action.
+
+**Working deliverable:** Review Studio-created content changes and produce a content-only local commit/branch; optionally initiate a GitHub PR when configured.
+
+**Implement:** source diff preview (entity-focused and raw Git), staging restricted to Studio-owned changes, explicit branch/commit actions, safe error handling for preexisting dirty worktrees, conflict and stale revisions. Validate/build before offering Publish Proposal; CI on main remains authoritative. GitHub integration must use an authorized developer-local credential/backend, never a browser-embedded token. Saving a draft and proposing a release are separate. Do not push/merge automatically.
+
+**Tests:** unintended source changes excluded; invalid content blocked; Git failure leaves draft intact; no credentials in compiled assets.
+
+**Manual acceptance:** edit a temporary landmark, review diff, create a local commit with only that change, verify git show and restore working state.
+
+### PR-28 — Two independently built GitHub Pages apps
+
+**Decision:** D10; confirm exposure of /studio/ before deployment. Hosted mode is read-only at this milestone.
+
+**Working deliverable:** Game URL /mysteryless-island/ still plays; Studio URL /mysteryless-island/studio/ browses released content.
+
+**Implement:** GitHub Actions builds independently but stages one deploy artifact with root game and nested studio/index.html, validated against same released content manifest. Correct relative/base paths and deep-link refresh (hash routing or fallback). Hosted studio prominently says "Read-only; open local studio to edit"; no inert Save/Publish buttons, no credentials or writer endpoints in static asset bundle. Continue desktop/mobile Playwright smoke for both apps. Entire deploy fails if required build/validation fails.
+
+**Tests:** both URLs, nested asset paths, locale loads, direct refresh, independent build output and matching content revision.
+
+**Manual acceptance:** navigate game and Studio after Pages deployment, refresh on nested studio view, load a fresh game, save and reload.
+
+### PR-29 — Secure hosted authoring (optional; explicitly gated)
+
+**Decisions:** D1, D2, D8 and D9. Do not start until owner selects backend, authentication, write permissions and collaboration scope. If declined, record as optional/deferred; local Studio remains complete.
+
+**Working deliverable:** Hosted authorized editor proposes changes by GitHub PR without granting general repository write access to the public.
+
+**Implement:** small trusted backend/GitHub App or approved equivalent, least-privilege sessions, CSRF mitigation, repository/branch allowlisting, conflict checks, shared schema validation, strict file path allowlists, audit logs, request limits, safe credentials. Write only proposal branch and create PR; main publishing remains CI/review. No client-side PAT, no static secret, no direct unreviewed write to main.
+
+**Tests:** authorized success; viewer/unauthenticated/expired token/cross-origin/invalid path/stale branch denied; no secrets in dist or logs.
+
+**Manual acceptance:** authorized user creates temporary content PR through hosted Studio, unauthorized user cannot mutate anything.
+
+### PR-30 — Full end-to-end authoring acceptance and onboarding
+
+**Working deliverable:** Guided "Create a playable expansion" Studio workflow, tested onboarding and evidence of genuinely no-code creation.
+
+**Implement:** guide through new region, discoveries, resource action, item, recipe, building and production, task, branching event, modal/journal writing, text variants, locale and optional illustration, plus editor preview and Git publishing. Keep demo content isolated from released story. Add scripted Studio→source→compiler→actual game E2E scenario using disposable fixture workspace, never editing real production data. Test recovery, accessibility, keyboard interactions, large data performance, invalid drafts and Windows/macOS/Linux setup as supported. Add docs/CONTENT_AUTHORING_GUIDE.md and troubleshooting, screenshots and maintenance notes. Audit all current schema fields against editability matrix; explicitly identify unsupported *new engine mechanics*, not silently skip existing fields.
+
+**Tests:** one end-to-end scenario creates content with UI, persists it, compiles, runs a new game, resolves an event and quest and checks both modal and journal outcomes. Full root check still green.
+
+**Manual acceptance:** another agent can follow handbook to author a small self-contained playable island expansion, validate, preview and create content-only PR without changing application code.
+
+## 7. Dependencies, checkpoints and delivery evidence
+
+**Merge order:** PR-01 baseline → PR-02 workspace → PR-03 model → PR-04 engine → PR-05 compiler → PR-06 text IDs → PR-07 catalog → PR-08 runtime locale → PR-09 browser shell → PR-10 local writes → PR-11–22 content editors → PR-23 live game preview → PR-24 presets → PR-25 diagnostics → PR-26 batch tools → PR-27 local publication → PR-28 dual Pages deployment → optional PR-29 hosted authoring → PR-30 acceptance.
+
+- **A, after PR-04:** game unchanged, engine/model reusable, snapshots reproducible.
+- **B, after PR-08:** fresh game with compiled content and language controls. Legacy saves can be rejected.
+- **C, after PR-10:** Studio browses and safely persists a valid JSON edit with an inspected diff.
+- **D, after PR-14:** create a region, landmark, activity and condition through Studio.
+- **E, after PR-19:** item/recipe/building/task/branching-event authoring usable end to end.
+- **F, after PR-24:** unpublished drafts playable with repeatable state presets.
+- **G, after PR-28:** game and Studio hosted at independent URLs; local editing/publishing complete.
+- **H, after PR-30:** an end-to-end authoring expansion is demonstrated without writing code.
+
+## 8. Cross-PR constraints and regression matrix
+
+Every PR must run its own manual game smoke: new game → shipwreck modal → beach discovery → gather → craft/build → save/reload and check game works. This is independent of old save compatibility. Bump SAVE_VERSION and show a visible restart path when game state representation changes; no need to migrate previous versions. Saving and loading a **new** game under the current PR must work.
+
+Do not regress step-quantized time, reserved inputs, production cycles and pause, independent gameplay/narrative RNG, events blocking commands, quest notes, personal crafting/build tree unlocks, exact condition evaluation, frozen fixture content or shipped registry validation. Content compiler must keep ordering where it affects behavior and never bundle source credentials. Every editor changes only authored definitions; game engine remains authoritative for all mechanics. Preview never writes player localStorage.
+
+Do not confuse modal with journal text (docs/NARRATIVE_STYLE.md), variants with paragraphs, and aesthetic previews with engine features. For graphics read docs/ART_DIRECTION.md and approved art references. Keep the game's currently approved shared panorama policy; don't infer features from mockups.
+
+**Tests per PR:** root npm run test, content:check, typecheck, build and test:e2e (or documented workspace substitutes); Studio unit/E2E where introduced; valid and invalid editor cases; fresh-start browser playthrough; save/reload for current version. Report skipped tests. Include reproducible manual evidence, source diff and acceptance criteria in PR description. No placeholder button is accepted as a working deliverable.
+
+## 9. Handoff contract for implementation agent
+
+Read AGENTS.md, ARCHITECTURE.md, docs/TDD.md, docs/GDD.md, docs/NARRATIVE_STYLE.md, this plan and relevant UI/art guides. Before each PR: inspect latest main; identify unresolved decision gates and obtain owner's decision before that PR; confirm root checks and a fresh game. Keep numbered deliverables one PR each. Update docs only for what that PR actually implements, maintain explicit [implemented] vs [proposal] status, and document any accepted plan changes. Do not rewrite frozen fixtures merely to pass tests, silently add gameplay mechanics, or push/merge without authorization.
+
+**Program completion definition:** an author can create an entirely new region, discovery, item, action, recipe, buildable productive structure, quest, branching event, long modal narrative and concise journal text with locale variation, test it in the *real* game, validate it and create a content-only PR. The old island and each intermediate merged state remain playable with a fresh start. Secure hosted authoring is a separate optional decision.
