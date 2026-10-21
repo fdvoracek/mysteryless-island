@@ -10,7 +10,7 @@
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
     "items": { "summer_clothes": 1 },
     "log": [
-      "You wake alone on a deserted shore. The ship is gone; forest rises beyond the dunes.",
+      "You wake alone on a deserted shore. No ship remains; forest rises inland.",
       "Cold sand beneath your cheek. The sea is empty; trees line the dunes.",
       "You wash ashore, soaked and alone. A dark forest stands inland."
     ]
