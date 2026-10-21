@@ -42,6 +42,8 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 
 ## Content rules
 
+**Narrative authoring:** Follow [docs/NARRATIVE_STYLE.md](docs/NARRATIVE_STYLE.md) for all story, exploration, journal, and descriptive copy. Preserve mechanical information, the `Text` variant semantics, and interpolated placeholders.
+
 - Prefer content over code: conditions (`all/any/not`, `item`, `did`, `today`, `discovered`, `phase`, `stat`, `timer`…), `arrive` lines, activity `thoughts` / `afterwards`. New condition kinds need schema + `conditions.ts` + registry check + a test.
 - Ids are lowercase `snake_case` and unique across all kinds. Keys starting with `_` are comments.
 - Every journal text is `Text`: a string or a list of **variants** (one shown, never the same twice in a row). A list never means "lines in order". Lines the engine writes itself are in `game.json` → `journal` (`{place}` is filled in).
