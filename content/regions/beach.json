@@ -217,9 +217,9 @@
       },
       "requires": { "item": "firewood", "gte": 3 },
       "log": [
-        "You strike the stones repeatedly over a nest of dry grass, seeking a spark that will persist.",
+        "You strike stones over dry tinder, seeking a lasting spark.",
         "Sparks fall upon the tinder, but most vanish before they can set it alight.",
-        "Patient blows of stone against stone produce brief sparks, while the effort leaves your knuckles sore."
+        "Sparks fly as you strike the stones. Your knuckles ache."
       ],
       "outcomes": [
         {
