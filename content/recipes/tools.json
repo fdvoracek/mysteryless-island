@@ -10,8 +10,8 @@
         "cost": { "stone": 2 },
         "log": [
           "Holding one stone against another, you patiently grind away the rough surface until a usable cutting edge emerges.",
-          "After three hours of laborious work the stone has acquired an irregular but effective edge.",
-          "You first detach flakes with sharp blows, then refine the edge by grinding. It is a crude knife, but a serviceable one."
+          "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
+          "You first detach flakes with sharp blows, then refine the edge by grinding."
         ]
       }
     ],
@@ -28,9 +28,9 @@
         "effort": "light",
         "cost": { "firewood": 10 },
         "log": [
-          "With the rough stone knife you labour over a straight branch until its end assumes a point.",
-          "The imperfect edge tears at the wood more than it cuts, but persistence eventually produces a spear.",
-          "Stroke after stroke, the stone blade removes enough wood to form a point fit for fishing."
+          "You hack the straightest branch to a point with the rock knife.",
+          "The rock knife chews more than it cuts, but at last the branch has a point.",
+          "Stroke after stroke with the stone blade, until the tip is sharp enough."
         ]
       },
       {
@@ -39,9 +39,9 @@
         "effort": "light",
         "cost": { "firewood": 10 },
         "log": [
-          "You select a straight, sound branch and use the knife to shape its end into a sharp point.",
-          "A suitable branch is quickly reduced to a point with careful strokes of the knife.",
-          "Thin shavings fall from the wood as the knife gradually gives the branch the form of a spear."
+          "You choose the straightest branch and carve it to a point with the knife.",
+          "You pick the straightest branch and whittle the tip sharp.",
+          "Shaving by shaving, the knife turns a branch into a point."
         ]
       }
     ],
@@ -58,8 +58,8 @@
         "cost": { "firewood": 2, "stone": 2 },
         "log": [
           "You strike a hard stone until it bears a cutting edge, then secure it tightly in a split wooden haft.",
-          "After shaping a stone blade, you wedge it between the halves of a stout branch and bind them firmly.",
-          "A keen stone, a substantial handle, and patient binding together produce a simple axe."
+          "Stone on stone until one has an edge.",
+          "A sharp stone, a stout branch, and a long time binding them."
         ]
       }
     ]
@@ -73,9 +73,9 @@
         "effort": "work",
         "cost": { "timber": 1, "stone": 1 },
         "log": [
-          "You fasten a broad, flat stone crosswise to a wooden handle, fashioning a rudimentary hoe.",
-          "A flat stone and a sound handle are joined by cord until they form a tool for breaking soil.",
-          "The stone is bound firmly across the end of the haft. Crude though the hoe appears, it should turn the earth."
+          "You lash a flat stone across the end of a log handle.",
+          "A flat stone, a handle cut from a log, a lot of cord.",
+          "You bind a flat stone crosswise to a handle. A hoe, of sorts."
         ]
       }
     ]
@@ -93,7 +93,7 @@
         "log": [
           "You twist strips of inner bark into three strands, then lay the strands together to obtain a stronger rope.",
           "Hour after hour the fibres are braided until a length of serviceable rope lies coiled at your feet.",
-          "Under your fingers the bark becomes cord, and the cord becomes rope, though the labour leaves them sore."
+          "Strip by strip, the bark becomes cord, and the cord a rope. Your fingers ache."
         ]
       }
     ]
