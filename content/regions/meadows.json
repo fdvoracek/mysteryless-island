@@ -4,9 +4,9 @@
   "title": "Open Meadows",
   "order": 3,
   "description": [
-    "Beyond the cliff stretches a succession of open meadows, their tall grasses undulating beneath the wind. The sea is hidden behind the rising ground.",
-    "A broad tract of grassland extends towards the next hill, broken only by low bushes. The cliffs have concealed the ocean from view.",
-    "Grasses rise almost to the waist in places, their pale heads bending in long waves. From beyond the cliff comes only the distant murmur of the sea."
+    "Long grass to the knee, moving in waves under the wind.",
+    "Open grass as far as the next hill, bending in the wind.",
+    "Grass, waist-high in places, silver where the wind combs it."
   ],
   "climate": { "baseC": 21 },
   "travelHours": 1,
@@ -15,9 +15,9 @@
   "unlockWhen": { "discovered": "cliff_top" },
   "firstVisit": {
     "log": [
-      "Scattered bushes interrupt the grassy slope; farther down, a belt of willows suggests the presence of water.",
-      "Beyond the nearer shrubs, willows stand in a shallow depression where a stream or river may run.",
-      "Dark bushes mark the meadow here and there. Lower on the slope a line of willows demands closer examination."
+      "Bushes dot the slope ahead.",
+      "Beyond the bushes, a line of willows hints at a stream.",
+      "Here and there a dark bush in the grass. Lower down, a line of willows."
     ]
   },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
@@ -33,9 +33,9 @@
     },
     {
       "text": [
-        "Night leaves the meadow without visible boundaries; the grass whispers about your legs.",
+        "The meadows at night: grass hissing in the dark, no shape to anything.",
         "In the darkness you distinguish the movement of grass more by sound than sight.",
-        "The meadow is dark beneath the stars, and insects call from somewhere among the stems."
+        "Night over the grass. Somewhere, crickets."
       ],
       "when": { "phase": ["night"] }
     },
@@ -240,7 +240,7 @@
       "yields": [{ "item": "willow_twigs", "min": 10, "max": 10 }],
       "log": [
         "You cut a bundle of long, flexible shoots from the willows.",
-        "The fresh willow twigs bend readily without breaking, an excellent property for weaving.",
+        "Willow twigs, green and bending, an armful.",
         "You collect slender willow branches, chosen for their length and suppleness."
       ]
     },
