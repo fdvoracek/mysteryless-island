@@ -74,7 +74,7 @@ describe("text variants in the content", () => {
   it("the first variant mode shows the original wording", () => {
     setVariantMode("first");
     const e = startGame(reg, 1);
-    expect(e.state.log[0].text).toMatch(/^Awake\. Salt in the mouth\./);
+    expect(e.state.log[0].text).toMatch(/^You wake alone on a deserted shore/);
   });
 
   it("uses {placeholders} only where the engine fills them (journal lines, the end screen)", () => {
