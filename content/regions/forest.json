@@ -4,9 +4,9 @@
   "title": "A Quiet Forest",
   "order": 2,
   "description": [
-    "Tall trunks, close together. The sea is only a sound now.",
-    "Trunks stand close and the light thins. Behind you, the sea is only a sound.",
-    "Among tall trees the air goes still. You can barely hear the sea."
+    "Tall trunks close around you. Daylight barely reaches the ground.",
+    "The forest darkens around you; the sea fades behind the trees.",
+    "The air cools beneath the canopy. The coast becomes a murmur."
   ],
   "climate": { "baseC": 18 },
   "travelHours": 0.5,
