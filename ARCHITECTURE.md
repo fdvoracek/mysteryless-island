@@ -228,8 +228,11 @@ derived view models; and an injected scheduler for deterministic controller test
   Routine implementation choices within confirmed rules do not need repeated approval.
 - Test observable behavior and invariants, not a duplicate of the implementation. Cover affected
   reservation/completion, pause/resume, save migration, local independence, and timing paths.
-- Use deterministic seeds/variant mode and the existing helpers. Exercise new content through
-  its real commands/tree nodes and account for blocking notes. Verify the UI at desktop and phone widths.
+- Use deterministic seeds/variant mode and the existing helpers. Engine and browser tests use
+  a frozen test-only content pack; production wording and labels must not set their expectations.
+  Validate shipped content separately for schema and references. When adding a mechanic, extend
+  the fixture with an intentional scenario and exercise its real commands/tree nodes, accounting
+  for blocking notes. Verify the UI at desktop and phone widths.
 - Run checks appropriate to the change and the required workflow in `AGENTS.md`; do not claim
   unrun checks passed. Documentation-only changes need link/diff review, not new behavior tests.
 - Update relevant documentation with the change. Report behavior, validation, compatibility,

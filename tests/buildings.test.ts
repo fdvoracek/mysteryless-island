@@ -159,7 +159,7 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
     expect(row(e, "corn_field")!.word).toBe("growing · 15m");
     const logged = e.state.log.length;
     wait(e, 0.25);
-    expect(e.state.log.slice(0, e.state.log.length - logged).some((l) => l.text === "The corn has reached maturity and may be harvested.")).toBe(true);
+    expect(e.state.log.slice(0, e.state.log.length - logged).some((l) => l.text === "The corn is ripe.")).toBe(true);
     expect(row(e, "corn_field")).toMatchObject({ word: "ripe", action: { label: "harvest" } });
     act(e, "corn_field", "collect");
     expect(e.state.items.corn).toBeGreaterThanOrEqual(6);

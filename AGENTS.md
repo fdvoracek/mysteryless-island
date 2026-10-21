@@ -19,12 +19,12 @@ also changes presentation. Keep detailed visual rules in the guides rather than 
 ## Commands
 
 ```bash
-npm test               # unit tests (vitest), includes the content checks
-npm run content:check  # only the content checks (schema, references, sentence rule)
+npm test               # unit tests (vitest) against frozen test content
+npm run content:check  # shipped content schema and reference validation only
 npm run typecheck
 npm run build          # tsc + vite build into dist/
-npm run test:e2e       # Playwright smoke test of dist/ (needs a build; Chromium)
-npm run check          # all of it, as CI: unit tests, build, browser test (the pre-push hook runs this)
+npm run test:e2e       # builds dist-test/ and runs Playwright smoke tests (Chromium)
+npm run check          # all of it, as CI: tests, content validation, builds, browser test
 ```
 
 URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.
@@ -47,7 +47,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 - Prefer content over code: conditions (`all/any/not`, `item`, `did`, `today`, `discovered`, `phase`, `stat`, `timer`…), `arrive` lines, activity `thoughts` / `afterwards`. New condition kinds need schema + `conditions.ts` + registry check + a test.
 - Ids are lowercase `snake_case` and unique across all kinds. Keys starting with `_` are comments.
 - Every journal text is `Text`: a string or a list of **variants** (one shown, never the same twice in a row). A list never means "lines in order". Lines the engine writes itself are in `game.json` → `journal` (`{place}` is filled in).
-- Sentences start with a capital letter (enforced by `content.test.ts`); labels (buttons, places, items, task titles, stat words, menu) stay lowercase.
+- Sentences start with a capital letter; labels (buttons, places, items, task titles, stat words, menu) stay lowercase. This is an authoring convention rather than a prose-sensitive automated test.
 - JSON files are formatted with short objects on one line (~110 chars); keep that style.
 - Events (`content/events/`): pop-ups with scenes and choices; triggers `"start"`, `{ at }`, `{ when }`, `{ after, chance }`. While one is open, only `{ type: "choose" }` works. Every page has a concise `scene.journal` entry in the narrow journal while its full `text` stays in the modal (legacy scenes fall back to `text`).
 - Exploration: *look around* opens a pop-up (no time) with the region's `explore.view` lines and the unexplored `landmarks` (each with its time); exploring one marks it `discovered`. Its full `text` stays in the modal, while its concise `journal` summarizes the discovery. A `*` on the button means something is left.
@@ -59,7 +59,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 
 ## Tests
 
-- Add a test with every engine feature; check new content with a short playthrough.
+- Add a test with every engine feature. Unit and browser tests use frozen `tests/fixtures/content/`; change it only for an intentional test scenario. Validate shipped content with `npm run content:check`, then check new gameplay content with a short manual playthrough.
 - A new game opens the shipwreck event first: tests use `startGame(reg, seed, choice?)` from `tests/helpers.ts` (picks the knife, closes the event, adds matches); the e2e test calls `escapeShip(page, choice)`.
 - A finished task opens a note pop-up that blocks the game until closed: `startGame` closes notes after every command unless `{ keepNotes: true }`; the e2e test closes it explicitly.
 - Completion notes open when work finishes. Pop-up buttons (`choose`) remain usable whenever a pop-up is open; the scheduler pauses active work until it closes. Other controls remain locked during running work (`UI.send`).
@@ -72,6 +72,6 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 
 - Commit author: `Frantisek Dvoracek <f.dvoracek@gmail.com>`. The user pushes; pushing to `main` deploys via `.github/workflows/pages.yml` (tests, build, e2e, deploy). Do not push.
 - `.githooks/pre-push` runs `npm run check` before a push to `main` and stops the push if it fails (`npm install` sets `core.hooksPath`; the hook installs Playwright's Chromium if it is missing).
-- In a sandbox without Chromium the browser test can't run: `tests/e2e-content.test.ts` checks with the unit tests that every id and label the browser test expects still exists in the content. When a task, label or id is renamed, grep `e2e/smoke.spec.ts` for the old name too.
+- In a sandbox without Chromium the browser test can't run: `tests/e2e-content.test.ts` checks that every id and label expected by the browser test still exists in the frozen test content. When changing the fixture's task, label, or id, grep `e2e/smoke.spec.ts` for the old name too. Shipped content changes do not require fixture or browser-test edits.
 - If you work in a Linux sandbox with this folder mounted from macOS, never install `node_modules` into the repo: copy it elsewhere (e.g. `rsync --exclude node_modules --exclude .git`) and build there.
 - Update `README.md` / `docs/TDD.md` when behaviour or the content model changes.

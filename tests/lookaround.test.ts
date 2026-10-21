@@ -18,9 +18,9 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(e.state.time).toBe(t0);
     const ev = view(e).event!;
     expect(ev.title).toBe("A Grey Beach");
-    expect(ev.text).toMatch(/^The grey strand stretches/);
-    expect(ev.text).toContain("Beyond the dunes you distinguish a continuous dark belt of trees.");
-    expect(ev.text).toContain("An occasional silver flash betrays movement in the shallow water.");
+    expect(ev.text).toMatch(/^Grey sand runs both ways/);
+    expect(ev.text).toContain("Behind the dunes, a dark line of trees.");
+    expect(ev.text).toContain("Something flashes in the shallows.");
     expect(ev.choices).toEqual([
       { id: "forest_edge", label: "the dunes", enabled: true, time: "30m", hours: 0.5 },
       { id: "rock_shelter", label: "the ring of rocks", enabled: true, time: "30m", hours: 0.5 },
@@ -35,19 +35,33 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(e.state.log.length).toBe(logged);
   });
 
-  it("exploring shows the full modal and leaves a brief account in the journal", () => {
+  it("exploring takes the landmark's time, shows what was found (also in the journal) and its results", () => {
     const e = startGame(reg, 2);
     open(e);
     const t0 = e.state.time;
     expect(choose(e, "rock_shelter")).toMatchObject({ ok: true, cooldownMs: 5_000 });
     expect(e.state.time - t0).toBe(30);
     const ev = view(e).event!;
-    expect(ev.text).toMatch(/^At the end of the beach, a natural ring of rocks/);
+    expect(ev.text).toMatch(/^At the far end of the beach, a ring of rocks breaks the sea wind/);
     expect(ev.choices).toEqual([{ id: "close", label: "back", enabled: true }]);
-    expect(e.state.log.some((l) => l.text === "You find sheltered ground among the rocks.")).toBe(true);
-    expect(e.state.log.some((l) => l.text === ev.text)).toBe(false);
+    expect(e.state.log.some((l) => l.text === ev.text)).toBe(true);
     choose(e, "close");
     expect(view(e).trees.build.nodes.find((n) => n.target === "campfire")!.unlocked).toBe(true); // natural shelter opens building a bed and campfire
+  });
+
+  it("records the landmark's short journal passage while showing its full discovery in the modal", () => {
+    const files = readContentFiles();
+    const beach = structuredClone(files["content/regions/beach.json"]) as { explore: { landmarks: Array<{ id: string; text: string; journal?: string }> } };
+    const landmark = beach.explore.landmarks.find((entry) => entry.id === "rock_shelter")!;
+    landmark.text = "A detailed discovery.";
+    landmark.journal = "A short discovery.";
+    files["content/regions/beach.json"] = beach;
+    const e = startGame(buildRegistry(files), 2);
+    open(e);
+    choose(e, "rock_shelter");
+    expect(view(e).event?.text).toBe("A detailed discovery.");
+    expect(e.state.log[0].text).toBe("A short discovery.");
+    expect(e.state.log.some((line) => line.text === "A detailed discovery.")).toBe(false);
   });
 
   it("an explored landmark is not offered again; new ones can appear later (the cliff past the rocks)", () => {
@@ -55,8 +69,8 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     explore(e, "rock_shelter");
     open(e);
     expect(choices(e)).toEqual(["forest_edge", "cliff_shells", "school_of_fish", "close"]);
-    expect(view(e).event!.text).toContain("The cluster of rocks at the end of the shore offers a refuge from the prevailing wind.");
-    expect(view(e).event!.text).toContain("Past the rocks, a low cliff ends abruptly in the surf.");
+    expect(view(e).event!.text).toContain("At the far end, the ring of rocks, out of the wind.");
+    expect(view(e).event!.text).toContain("Past the rocks, a low cliff drops into the surf.");
     choose(e, "close");
   });
 
@@ -69,8 +83,8 @@ describe("look around: a pop-up with what you see and places to explore", () => 
     expect(badge()).toBeUndefined();
     open(e);
     expect(choices(e)).toEqual(["close"]);
-    expect(view(e).event!.text).toContain("A school of small fish turns and scatters among the shallows.");
-    expect(view(e).event!.text).toMatch(/A further survey of the shore reveals no feature overlooked before\.$/);
+    expect(view(e).event!.text).toContain("Fish turn in the shallows.");
+    expect(view(e).event!.text).toMatch(/There is nothing here you have not seen\.$/);
   });
 
   it("a landmark that appears later brings the * back", () => {

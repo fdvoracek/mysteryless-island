@@ -1,0 +1,137 @@
+{
+  "_note": "Global game settings, start state and timers. Times are in hours unless a key says minutes.",
+  "title": "Mysteryless Island",
+  "panorama": "island_panorama",
+  "stepMinutes": 15,
+  "start": {
+    "region": "beach",
+    "day": 1,
+    "hour": 6,
+    "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
+    "items": { "summer_clothes": 1 },
+    "log": [
+      "Awake. Salt in the mouth. The sea is quiet now. The ship is gone. Behind the dunes, a dark line of trees.",
+      "Cold sand under your cheek. Salt on your lips. The sea is flat, grey and empty: no ship. Beyond the dunes, a dark line of trees.",
+      "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees."
+    ]
+  },
+  "cosmetic": { "msPerHour": 10000 },
+  "deathLog": ["The world fades.", "Everything goes grey, then dark.", "The world slips away."],
+  "_sleep": "Every sleep ends at 06:00. At zero energy or 00:00, unfinished work stops and you collapse here.",
+  "sleep": {
+    "bed": "bed",
+    "wakeHour": 6,
+    "passOutHour": 0,
+    "newDay": "New day {day} is starting.",
+    "collapse": {
+      "title": "You passed out",
+      "text": "You did not get to bed in time. You passed out and had to sleep where you were, at {place}."
+    },
+    "midnight": "It is midnight. You can no longer stay awake and pass out where you are.",
+    "exhausted": "Your energy is gone. You collapse where you are and sleep until morning.",
+    "shelter": "shelter",
+    "fire": "fire",
+    "recovery": {
+      "early_warm_bed": {
+        "energy": 100,
+        "text": "You went to sleep before midnight in a sheltered bed at {place}, with a fire burning. You wake at 6am with {energy}% energy."
+      },
+      "early_unheated_bed": {
+        "energy": 80,
+        "text": "You went to sleep before midnight in a sheltered bed at {place}, without a burning fire. You wake at 6am with {energy}% energy."
+      },
+      "late_warm_bed": {
+        "energy": 80,
+        "text": "You went to bed after midnight at {place}, under shelter with a fire burning. The short night leaves you with {energy}% energy at 6am."
+      },
+      "late_unheated_bed": {
+        "energy": 80,
+        "text": "You went to bed after midnight at {place}, under shelter but without a burning fire. You wake at 6am with {energy}% energy."
+      },
+      "exposed_bed": {
+        "energy": 50,
+        "text": "The bed at {place} was exposed, without shelter. You wake at 6am with {energy}% energy."
+      },
+      "ground": {
+        "energy": 50,
+        "text": "You slept without a bed at {place}. The rough sleep restores you to {energy}% energy at 6am."
+      }
+    }
+  },
+  "_provisions": "Eat and drink from carried supplies at this hunger/thirst; warn once per shortage.",
+  "provisions": {
+    "at": 60,
+    "title": "Supplies running low",
+    "hunger": "You have no ready-to-eat food left. Eat soon, or you will collapse.",
+    "thirst": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
+    "both": "You have no ready-to-eat food or drinking water left. Eat and drink soon, or you will collapse. Prepare food and find fresh water.",
+    "preparation": {
+      "when": { "any": [{ "item": "raw_fish" }, { "item": "raw_meat" }] },
+      "text": "Raw fish and meat cannot be eaten. You can build a simple drying rack to process them, or cook them over a fire. A drying rack takes 12 hours; cook over a fire if you need food sooner."
+    }
+  },
+  "_ending": "the end screen (death is permanent): {time} and {day} in survived, {cause} in cause",
+  "ending": {
+    "title": "The journal ends",
+    "survived": [
+      "You lasted {time} on the island, until day {day}.",
+      "You survived {time}. The journal stops on day {day}."
+    ],
+    "cause": "Cause of death: {cause}.",
+    "defaultCause": "your injuries",
+    "restart": "start again",
+    "load": "load the saved game"
+  },
+  "_journal": "lines the engine writes itself; {place} is the name of the place",
+  "journal": {
+    "crafted": "You finish crafting {item}.",
+    "walkTo": ["You walk to {place}.", "You set off for {place}.", "You make your way to {place}."],
+    "wayOpens": [
+      "A way to {place} opens.",
+      "You could reach {place} from here.",
+      "Now you know the way to {place}."
+    ],
+    "nothingNew": ["Nothing new.", "Nothing you haven't seen.", "Nothing more to find."]
+  },
+  "_tasks": "the note when a task is done: {task}; what changed: {item} {where} {place} {action}",
+  "tasks": {
+    "title": "Task done: {task}",
+    "gained": "{item} added to your {where}.",
+    "used": "{item} used.",
+    "opened": "A way to {place} opens.",
+    "possible": "You can now {action}.",
+    "built": "{building} built."
+  },
+  "_newPlace": "a place new on the map ({place}): text under the finding that opened it (or a note titled title), and go, the button that walks there",
+  "newPlace": {
+    "title": "A new place",
+    "text": "A new place is on your map: {place}. You can walk there now, or later from the map.",
+    "go": "go to {place}"
+  },
+  "_tools": "tool tags: the label next to the items that have it, and what a { \"tool\": tag } requirement asks for (without naming an item)",
+  "tools": {
+    "sharp": { "label": "sharp", "needs": "something sharp" },
+    "fire_starter": { "label": "fire starter", "needs": "something to make a fire with" }
+  },
+  "timers": [
+    {
+      "id": "fire",
+      "name": "fire",
+      "region": "beach",
+      "maxHours": 12,
+      "modifiers": { "localHeatC": 6 },
+      "states": [
+        { "upToHours": 0, "word": "out" },
+        { "upToHours": 2, "word": "dying" },
+        { "upToHours": 6, "word": "burning" },
+        { "upToHours": 12, "word": "roaring" }
+      ],
+      "warnAtHours": 1,
+      "warnLog": ["The fire is dying.", "The flames sink low.", "Only a few flames left."],
+      "expireLog": ["The fire goes out. Only embers now.", "The last flame dies. The embers glow, then fade.", "The fire is out. A thin thread of smoke."],
+      "showInStatus": false,
+      "local": true,
+      "building": "campfire"
+    }
+  ]
+}

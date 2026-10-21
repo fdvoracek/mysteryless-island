@@ -7,18 +7,22 @@ import { Engine } from "../src/core/engine";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-/** Read every JSON file under content/ the same way the Vite loader does. */
-export function readContentFiles(dir = join(ROOT, "content")): Record<string, unknown> {
+/** Stable engine scenario: production prose changes never rewrite test expectations. */
+export function readContentFiles(dir = join(ROOT, "tests", "fixtures", "content")): Record<string, unknown> {
   const out: Record<string, unknown> = {};
-  for (const name of readdirSync(dir)) {
-    const p = join(dir, name);
-    if (statSync(p).isDirectory()) Object.assign(out, readContentFiles(p));
-    else if (name.endsWith(".json")) out[relative(ROOT, p).split("\\").join("/")] = JSON.parse(readFileSync(p, "utf8"));
-  }
+  const walk = (current: string) => {
+    for (const name of readdirSync(current)) {
+      const p = join(current, name);
+      if (statSync(p).isDirectory()) walk(p);
+      else if (name.endsWith(".json")) out[`content/${relative(dir, p).split("\\").join("/")}`] = JSON.parse(readFileSync(p, "utf8"));
+    }
+  };
+  walk(dir);
   return out;
 }
 
 export const loadRegistry = () => buildRegistry(readContentFiles());
+export const readShippedContentFiles = () => readContentFiles(join(ROOT, "content"));
 
 /**
  * A new game past the opening event (the shipwreck): `choice` is what you grabbed, "knife" by

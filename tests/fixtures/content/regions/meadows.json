@@ -1,0 +1,258 @@
+{
+  "id": "meadows",
+  "name": "the meadows",
+  "title": "Open Meadows",
+  "order": 3,
+  "description": [
+    "Long grass to the knee, moving in waves under the wind. The sea is behind the cliff now, only a hush.",
+    "Open grass as far as the next hill, bending in the wind. Behind you, the cliff hides the sea.",
+    "Grass, waist-high in places, silver where the wind combs it. The sea is a murmur behind the cliff."
+  ],
+  "climate": { "baseC": 21 },
+  "travelHours": 1,
+  "_map": "position on the route map (grid cells); the camp (travelHours 0) has a path to every place",
+  "map": { "x": -1, "y": 0 },
+  "unlockWhen": { "discovered": "cliff_top" },
+  "firstVisit": {
+    "log": [
+      "Bushes dot the slope ahead. Further down, a line of willows bends as if over water.",
+      "Low bushes stand in the grass, and further down, willows lean the way trees lean over water.",
+      "Here and there a dark bush in the grass. Lower down, a line of willows."
+    ]
+  },
+  "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
+  "arrive": [
+    {
+      "text": [
+        "The grass again, and the wind in it.",
+        "Back in the long grass. The wind combs it flat.",
+        "The meadows open out again, bright after the cliff path.",
+        "Open sky again, and grass to the knee."
+      ],
+      "when": { "phase": ["dawn", "day", "dusk"] }
+    },
+    {
+      "text": [
+        "The meadows at night: grass hissing in the dark, no shape to anything.",
+        "In the dark the grass is only a sound around your legs.",
+        "Night over the grass. Somewhere, crickets."
+      ],
+      "when": { "phase": ["night"] }
+    },
+    {
+      "text": [
+        "The berry bushes are still heavy with fruit.",
+        "Dark berries on the bushes, waiting.",
+        "The bushes, still full of berries."
+      ],
+      "when": { "discovered": "berry_bushes" }
+    },
+    {
+      "text": [
+        "Below, the river runs under the willows.",
+        "You hear the river before you see it.",
+        "The river is still there, quick and clear."
+      ],
+      "when": { "discovered": "river" }
+    },
+    {
+      "text": ["The corn is ripe in the field.", "The corn stands tall and ripe."],
+      "when": { "building": "corn_field", "is": "ready" }
+    }
+  ],
+  "explore": {
+    "name": "look around",
+    "_explore": "look around: a pop-up with what you see (view lines whose 'when' holds) and the landmarks not explored yet; no time passes until you pick one",
+    "view": [
+      {
+        "text": [
+          "Long grass rolls away inland, bending under the wind.",
+          "Grass to the knee, all the way to the next low hill.",
+          "Open meadows, silver-green, moving like water."
+        ]
+      },
+      {
+        "text": "Dark bushes stand here and there in the grass.",
+        "when": { "not": { "discovered": "berry_bushes" } }
+      },
+      { "text": "The berry bushes, dark with fruit.", "when": { "discovered": "berry_bushes" } },
+      { "text": "Lower down, a line of willows.", "when": { "not": { "discovered": "river" } } },
+      { "text": "Under the willows, the river.", "when": { "discovered": "river" } },
+      { "text": "Near the river the ground lies flat.", "when": { "not": { "discovered": "field_site" } } },
+      {
+        "text": "Taller stalks stand out of the grass here and there.",
+        "when": { "not": { "discovered": "wild_corn" } }
+      },
+      {
+        "text": "Past the bushes, a humming in the flowers.",
+        "when": { "all": [{ "discovered": "berry_bushes" }, { "not": { "discovered": "bees" } }] }
+      }
+    ],
+    "nothingLeft": ["Only grass and wind now.", "You know these meadows.", "Nothing new in the grass."],
+    "landmarks": [
+      {
+        "id": "berry_bushes",
+        "label": "the bushes",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "The bushes are heavy with small dark berries. You try one: sour, then sweet. Food, if you pick enough.",
+          "Close up, the bushes are full of berries, dark and soft. One tastes sharp and sweet. You could pick them.",
+          "Berries, hundreds of them, small and nearly black. Sour at first, then sweet. Worth picking."
+        ]
+      },
+      {
+        "id": "river",
+        "label": "the willows",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Under the willows runs a river, quick and clear over stones. You drink, and it is sweet. In the slow pools, fish hang in the current. With a spear you might take one.",
+          "The willows lean over a clear river. The water is cold and good to drink. Where it slows, fish hold still against the current. A spear could reach them.",
+          "A river, hidden by the willows: clear, cold, drinkable. In the deep bends, fish turn slowly. Too quick for hands, but not for a spear."
+        ],
+        "siteCapabilities": ["fishable_water", "flowing_water"]
+      },
+      {
+        "id": "field_site",
+        "label": "the flat ground",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Near the river the ground is flat and dark, the grass soft. Good earth. With a hoe, a field could grow here.",
+          "A flat stretch by the river, deep soil under the grass. A field would do well here, if you could break the ground.",
+          "Level ground near the water, black soil when you dig your fingers in. A place for a field."
+        ],
+        "siteCapabilities": ["cultivable_ground"]
+      },
+      {
+        "id": "wild_corn",
+        "label": "the tall seed heads",
+        "hours": 0.5,
+        "effort": "work",
+        "text": [
+          "Among the grass, taller stalks with thin ears: wild corn. Small, but you could eat it. Or sow it.",
+          "Wild corn grows in a patch of tall stalks, small ears hidden in the leaves. Food, and seed.",
+          "Tall stalks with little ears of corn, gone wild. Enough to eat a little, or to sow."
+        ]
+      },
+      {
+        "id": "bees",
+        "label": "the humming",
+        "hours": 0.5,
+        "effort": "work",
+        "visibleWhen": { "discovered": "berry_bushes" },
+        "text": [
+          "Bees, working the flowers past the bushes. Wild ones, nesting somewhere. A hollow log might bring them to you.",
+          "The humming is bees, hundreds of them, in the flowers. Give them a hollow log and they might stay.",
+          "A swarm of wild bees in the flowers. A hive would keep them, and their honey."
+        ],
+        "siteCapabilities": ["bee_habitat"]
+      }
+    ]
+  },
+  "activities": [
+    {
+      "id": "collect_berries",
+      "name": "pick berries",
+      "hours": 0.5,
+      "effort": "work",
+      "icon": "berries",
+      "visibleWhen": { "discovered": "berry_bushes" },
+      "yields": [{ "item": "berries", "min": 3, "max": 6 }],
+      "log": [
+        "Your fingers come away purple.",
+        "You strip the bushes branch by branch.",
+        "Berries, a handful at a time. Thorns catch your sleeves.",
+        "You fill your hands, then your pockets.",
+        "Small dark berries, soft enough to bruise."
+      ]
+    },
+    {
+      "id": "drink_river",
+      "name": "drink water",
+      "hours": 0.25,
+      "effort": "light",
+      "icon": "water",
+      "visibleWhen": { "discovered": "river" },
+      "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
+      "tags": ["drink"],
+      "log": [
+        "You kneel at the river and drink. Cold and sweet.",
+        "River water, cold enough to ache.",
+        "You drink from your hands, the current pulling at your fingers.",
+        "The river tastes of stone and grass."
+      ]
+    },
+    {
+      "id": "catch_river_fish",
+      "name": "catch fish",
+      "hours": 1.0,
+      "effort": "work",
+      "icon": "fish",
+      "visibleWhen": { "discovered": "river" },
+      "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
+      "outcomes": [
+        {
+          "weight": 4,
+          "text": [
+            "Two fish, flapping in the grass.",
+            "Two fish from the same pool.",
+            "Two fish, silver and cold."
+          ],
+          "effects": [{ "give": { "raw_fish": 2 } }]
+        },
+        {
+          "weight": 4,
+          "text": [
+            "One fish. It will do.",
+            "One fish, flapping on the bank.",
+            "A single fish, heavy for its size."
+          ],
+          "effects": [{ "give": { "raw_fish": 1 } }]
+        },
+        {
+          "weight": 2,
+          "text": [
+            "Nothing. The current carries them off.",
+            "Nothing. They slip back into the deep water.",
+            "The spear comes up with weed, nothing else."
+          ]
+        }
+      ],
+      "log": [
+        "You stand on a stone above a slow pool, spear raised.",
+        "You wade into the river to your knees and wait.",
+        "Under the willows you wait for a fish to hold still."
+      ]
+    },
+    {
+      "id": "cut_willow",
+      "name": "cut willow twigs",
+      "hours": 0.5,
+      "effort": "work",
+      "visibleWhen": { "discovered": "river" },
+      "yields": [{ "item": "willow_twigs", "min": 10, "max": 10 }],
+      "log": [
+        "You cut long, supple twigs from the willows.",
+        "Willow twigs, green and bending, an armful.",
+        "You strip the willows of their long whips."
+      ]
+    },
+    {
+      "id": "gather_corn",
+      "name": "gather corn",
+      "hours": 0.5,
+      "effort": "work",
+      "icon": "corn",
+      "visibleWhen": { "discovered": "wild_corn" },
+      "yields": [{ "item": "corn", "min": 1, "max": 2 }],
+      "log": [
+        "You search the tall grass for the ears of wild corn.",
+        "A few small ears among the grass.",
+        "Wild corn, thin ears, hard kernels."
+      ]
+    }
+  ],
+  "siteCapabilities": ["camp_ground", "shelter_ground"]
+}

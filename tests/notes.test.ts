@@ -20,7 +20,7 @@ describe("a note when a task is done", () => {
     build(e, "fish_trap");
     const v = view(e).event!;
     expect(v).toMatchObject({ id: "note", title: "Task done: build a fish trap", choices: [{ id: "close", label: "back", enabled: true }] });
-    expect(v.text.split("\n\n")).toEqual(["The woven trap is set in the current. The river must now do its part.", "20 willow twigs used.", "Fish trap built."]);
+    expect(v.text.split("\n\n")).toEqual(["The trap is set. The fish will come to it.", "20 willow twigs used.", "Fish trap built."]);
     // the game waits for it, then goes on
     expect(e.dispatch({ type: "activity", id: "drink_river" })).toMatchObject({ ok: false, reason: "an event is open" });
     close(e);
@@ -63,7 +63,7 @@ describe("a note when a task is done", () => {
   it("the note does not write to the journal again (its story is already there)", () => {
     const e = atTheRiver(3);
     build(e, "fish_trap");
-    const story = "The woven trap is set in the current. The river must now do its part.";
+    const story = "The trap is set. The fish will come to it.";
     const logged = e.state.log.filter((l) => l.text === story).length;
     close(e);
     expect(e.state.log.filter((l) => l.text === story).length).toBe(logged);

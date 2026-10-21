@@ -732,8 +732,9 @@ selectors group them in reading order before flattening the classic journal.
 
 ### 13.1 Content validator: `npm run content:check` [implemented]
 
-The command runs `tests/content.test.ts`: Zod structure validation, registry reference and
-ID checks, sentence capitalization and content invariants. `registry.ts` explicitly checks
+The command runs `tests/production-content.spec.ts` against shipped `content/`: Zod structure,
+registry reference, ID, and content-invariant checks. It does not assert prose or labels.
+`registry.ts` explicitly checks
 conditions, costs, effects, yields, tool tags, building production outputs and step durations.
 General progression reachability, unused-item warnings and translation validation are future
 tooling; they are not current guarantees.
@@ -799,10 +800,10 @@ What **needs code**:
 
 ## 15. Testing
 
-- **Unit (Vitest):** conditions (each leaf and combinators), effects, clock, stat steps, temperature bands, player work, local production, saves and weighted picks with fixed seeds.
+- **Unit (Vitest):** conditions (each leaf and combinators), effects, clock, stat steps, temperature bands, player work, local production, saves and weighted picks with fixed seeds. They load frozen `tests/fixtures/content/`, independent of shipped prose and labels.
 - **Golden tests [future]:** a fixture content pack plus a scripted command list → snapshot of the final state. Catches unintended rule changes.
-- **Content tests:** the validator runs inside `npm test`.
-- **Browser smoke tests (Playwright):** CI builds the game and tests core play, saves, pop-ups and the classic layout on desktop and phone widths. Simulator smoke tests remain future work.
+- **Content validation:** `npm run content:check` validates shipped data structurally, without matching text. Unit tests exercise validator failures with fixed test data.
+- **Browser smoke tests (Playwright):** `npm run test:e2e` builds a separate `dist-test/` using the frozen fixture, then tests core play, saves, pop-ups and the classic layout on desktop and phone widths. The production `dist/` continues to use shipped content. Simulator smoke tests remain future work.
 
 ---
 
