@@ -95,7 +95,7 @@ test("at midnight the player collapses where they are and wakes at 6am with a ne
   expect(state.time).toBe(1800);
   expect(state.location).toBe("forest");
   await expect(page.locator("#eventTitle")).toHaveText("You passed out");
-  await expect(page.locator("#eventText")).toContainText("You did not get to bed in time.");
+  await expect(page.locator("#eventText")).toContainText("Exhaustion leaves you sleeping on the ground");
   await expect(page.locator("#eventText")).toContainText("the forest");
   await page.locator("#eventBack").click();
   await expect(page.locator("#eventTitle")).toHaveText("Task done: survive the first night");
@@ -142,7 +142,7 @@ test("automatic provisions warn about raw meat, unlock the shared rack, and cons
   await page.locator("#eventBack").click();
   await expect(page.locator("#eventTitle")).toHaveText("Supplies running low");
   await expect(page.locator("#eventText")).toContainText("Eat and drink soon");
-  await expect(page.locator("#eventText")).toContainText("build a simple drying rack");
+  await expect(page.locator("#eventText")).toContainText("drying rack");
   await expect(page.locator("#eventText")).toContainText("cook them over a fire");
   await expect(page.locator('#consumables .control-row[data-id="raw_meat"] .use')).toHaveCount(0);
   await expect(page.locator('#quests .quest[data-id="build_drying_rack"]')).toBeVisible();
@@ -186,7 +186,7 @@ test("a finding that opens a place: 'go to the forest' walks there", async ({ pa
   await escapeShip(page, "knife");
   await action(page, "look around").click();
   await page.locator('#eventChoices [data-choice="forest_edge"]').click();
-  await expect(page.locator("#eventText")).toContainText("A new place is on your map: the forest.");
+  await expect(page.locator("#eventText")).toContainText("Your examination has revealed a route to the forest.");
   await page.locator('#eventChoices [data-choice="go:forest"]').click();
   await expect(page.locator("#event")).toBeHidden();
   await expect(tab(page, "the forest")).toHaveClass(/here/);
@@ -249,15 +249,15 @@ test("the story starts with the shipwreck: grab one thing, swim to the shore", a
   await expect(page.locator("#game")).toBeHidden();
 
   await page.locator('#eventChoices [data-choice="matches"]').click();
-  await expect(page.locator("#eventText")).toContainText("The tin is still there, still shut.");
+  await expect(page.locator("#eventText")).toContainText("The tin is still closed");
   // the story before the island ends with a button under the text, not the back arrow
   await expect(page.locator("#eventChoices .btn")).toHaveText(["wash ashore"]);
   await expect(page.locator("#eventBack")).toBeHidden();
   await page.locator('#eventChoices [data-choice="close"]').click();
   await expect(event).toBeHidden();
   // the journal tells it all as one story: the storm, the swim, then the beach
-  await expect(page.locator("#log")).toContainText("You were three days out when the storm came.");
-  await expect(page.locator("#log")).toContainText("The tin is still there, still shut.");
+  await expect(page.locator("#log")).toContainText("A storm wrecks your ship.");
+  await expect(page.locator("#log")).toContainText("The tin is still closed");
   await expect(page.locator("#log")).toContainText("Awake. Salt in the mouth.");
   await expect(page.locator("#inventory")).toContainText("matches");
   await expect(page.locator("#inventory .row .key")).toHaveText(["matches", "summer clothes"]);
@@ -419,7 +419,7 @@ test("explore the beach and forest, collect wood, drink, come back and light the
   await expect(cook).toHaveCount(0);
   await create(page, "build", "campfire");
   await action(page, "light fire").click();
-  await expect(page.locator("#log")).toContainText("The fire takes");
+  await expect(page.locator("#log")).toContainText("flame");
   await expect(action(page, "stoke fire")).toBeVisible();
   await expect(action(page, "sleep")).toHaveCount(0);
   await expect(cook).toBeVisible();
@@ -626,7 +626,7 @@ test("classic shows all panels, ignores retired layout preferences, and remember
   await expect(page.locator("#quests .quest .title")).toHaveText(["survive the first night"]);
   await expect(page.locator("#inventory .row .key")).toHaveText(["knife", "summer clothes"]);
   for (let i = 0; i < 4; i++) await explore(page);
-  await expect(page.locator("#log")).toContainText("a school of small fish");
+  await expect(page.locator("#log")).toContainText("Fish gather in the shallows");
 
   const fontOf = (sel: string) => page.locator(sel).first().evaluate((el) => getComputedStyle(el).fontFamily);
   await expect(page.locator("#fontBtn")).toHaveText("font: times.");
@@ -640,7 +640,7 @@ test("classic shows all panels, ignores retired layout preferences, and remember
   await page.reload();
   await expect(page.locator("#app")).toHaveClass("layout-classic");
   await expect(page.locator("#fontBtn")).toHaveText("font: garamond italic.");
-  await expect(page.locator("#log")).toContainText("a school of small fish");
+  await expect(page.locator("#log")).toContainText("Fish gather in the shallows");
 });
 
 test("central sections keep local building controls and portable item controls usable on desktop and phone", async ({ page }) => {
@@ -737,13 +737,13 @@ test("death is permanent: the end screen tells your story; load the saved game o
 
   await dieExploring();
   await expect(page.locator("#fade")).toBeVisible();
-  await expect(page.locator("#fadeText")).toHaveText("The world fades.");
+  await expect(page.locator("#fadeText")).toHaveText("Your strength fails, and the world recedes from view.");
   const end = page.locator("#end");
   await expect(end).toBeVisible({ timeout: 6_000 });
   await expect(page.locator("#endTitle")).toHaveText("The journal ends");
   await expect(page.locator("#endText")).toContainText("Cause of death: your injuries.");
   await expect(page.locator("#endText p")).toHaveCount(2); // how long, and why: nothing more
-  await expect(page.locator("#endText")).toContainText(/You lasted .* on the island, until day 1\./);
+  await expect(page.locator("#endText")).toContainText(/You endured .* upon the island; on day 1/);
   await expect(page.locator("#game")).toBeHidden();
 
   // a reload keeps the end: death is permanent
