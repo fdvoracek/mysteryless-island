@@ -19,7 +19,9 @@ direction for future visual work; storing the guides does not implement a new in
   Preserve the responsive phone layout and readable text at narrow widths.
 - On wide screens, frame the story, action, and sidebar columns with thin shared-edge rules.
   Place the route map in the space above the middle frame so the story and sidebar begin closer
-  to the panorama. Stack the map and three framed sections at narrower widths.
+  to the panorama. Small crossed corner joints and a fine second rule on the middle frame's
+  top edge reflect the approved reference; keep inner status boxes simpler. Stack the map and
+  three framed sections at narrower widths.
 - Use the shared `--font` system and respect the player's font choice. Build hierarchy with
   spacing, type size, weight, and restrained small-cap headings, without adding competing fonts.
 - Prefer white/light neutral surfaces, ink text, thin rules, and understated outlines. Preserve

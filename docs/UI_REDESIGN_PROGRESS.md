@@ -84,3 +84,10 @@ artwork previews must show their actual source files.
   overflow at 1280, 1051, 1050, 900, 601, 600, 375, or 320 px. The browser layout test checks
   frame edges, map placement, sidebar bar containment, and both sides of the breakpoint.
   `npm run check` passed (348 unit tests, production build, 28 Chromium tests). No save change.
+- Reference-frame detail: the three outer frames now have fine crossed corner joints, the
+  middle frame has a second thin top rule, and sidebar box outlines have the same quiet ink
+  weight as the outer frame. Reviewed in the actual game at 1280 and 375 px in light mode and
+  at 1280 px in dark mode; no page-width overflow. The reference image remains unchanged.
+  A browser check exposed a late focus scroll that could dismiss a keyboard-opened tree hint;
+  focused hints now remain visible through that scroll, with a browser regression check.
+  `npm run check` passed (348 unit tests, production build, 28 Chromium tests). No save change.
