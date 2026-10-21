@@ -99,7 +99,8 @@
           "A closer inspection reveals that the shrubs are laden with small, almost black berries. Their first taste is sharp, but sweetness follows; here is food requiring little preparation.",
           "The dark fruit proves soft and ripe. You sample a berry and find it tart but wholesome, promising a useful addition to your provisions.",
           "Hundreds of berries hang among the leaves. Though small and rather sour at first, they are edible and may readily be gathered."
-        ]
+        ],
+        "journal": "You find edible berries among the shrubs."
       },
       {
         "id": "river",
@@ -111,6 +112,7 @@
           "The line of willows conceals a brisk river. Its cold water is fit to drink, and fish can be seen waiting in the sheltered bends, within reach of a careful spear thrust.",
           "A stream of considerable size flows beneath the trees, swift in its shallows and quiet in its deeper turns. It promises both drinking water and fish, if proper tools can be made."
         ],
+        "journal": "You discover a river, with fresh water and fish.",
         "siteCapabilities": ["fishable_water", "flowing_water"]
       },
       {
@@ -123,6 +125,7 @@
           "The grass here conceals unusually deep and fertile earth. The proximity of water makes this an excellent site for cultivation, once the ground can be turned.",
           "A small plain beside the river offers the two chief requirements of a field: workable soil and ready water. It remains only to fashion a suitable hoe."
         ],
+        "journal": "You find fertile, level ground beside the river.",
         "siteCapabilities": ["cultivable_ground"]
       },
       {
@@ -134,7 +137,8 @@
           "Among the grasses you recognise a patch of wild corn, whose slender ears hold edible grain. The kernels might be consumed now, or reserved for sowing.",
           "Several taller stalks bear the unmistakable ears of corn, though the grain is small. Thus the meadow offers not only present nourishment but the possibility of a future crop.",
           "You discover wild corn growing between the grasses. Its ears are modest, yet they provide both food and, more importantly, seed."
-        ]
+        ],
+        "journal": "Wild corn offers food now and seed for planting."
       },
       {
         "id": "bees",
@@ -147,6 +151,7 @@
           "The flowers are alive with bees, whose movements suggest a nest nearby. A suitable hollow log could perhaps persuade them to remain within easy reach.",
           "Hundreds of bees work among the blossoms. Their presence suggests a new resource: a managed hive, and in time a supply of honey."
         ],
+        "journal": "Wild bees visit the flowers. A hive may attract them.",
         "siteCapabilities": ["bee_habitat"]
       }
     ]
