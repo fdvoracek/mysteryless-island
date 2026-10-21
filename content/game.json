@@ -16,7 +16,11 @@
     ]
   },
   "cosmetic": { "msPerHour": 10000 },
-  "deathLog": ["Your strength fails, and the world recedes from view.", "The shore and sky lose their colour; presently even their outlines disappear.", "Consciousness deserts you, and the island is lost to darkness."],
+  "deathLog": [
+    "Your strength fails, and the world recedes from view.",
+    "The shore and sky lose their colour; presently even their outlines disappear.",
+    "Consciousness deserts you, and the island is lost to darkness."
+  ],
   "_sleep": "Every sleep ends at 06:00. At zero energy or 00:00, unfinished work stops and you collapse here.",
   "sleep": {
     "bed": "bed",
@@ -52,10 +56,7 @@
         "energy": 50,
         "text": "Your bed at {place} offers no shelter. Energy at dawn: {energy}%."
       },
-      "ground": {
-        "energy": 50,
-        "text": "You sleep on bare ground at {place}. Energy at dawn: {energy}%."
-      }
+      "ground": { "energy": 50, "text": "You sleep on bare ground at {place}. Energy at dawn: {energy}%." }
     }
   },
   "_provisions": "Eat and drink from carried supplies at this hunger/thirst; warn once per shortage.",
@@ -85,13 +86,21 @@
   "_journal": "lines the engine writes itself; {place} is the name of the place",
   "journal": {
     "crafted": "You finish crafting {item}.",
-    "walkTo": ["You take the path towards {place}.", "You set out in the direction of {place}.", "You make your way across the island towards {place}."],
+    "walkTo": [
+      "You take the path towards {place}.",
+      "You set out in the direction of {place}.",
+      "You make your way across the island towards {place}."
+    ],
     "wayOpens": [
       "A practicable route to {place} has been discovered.",
       "The ground now offers a passage towards {place}.",
       "You have at last determined how to reach {place}."
     ],
-    "nothingNew": ["Your examination reveals nothing further.", "The ground yields no sign that has escaped your earlier attention.", "For the present, there is nothing more to discover."]
+    "nothingNew": [
+      "Your examination reveals nothing further.",
+      "The ground yields no sign that has escaped your earlier attention.",
+      "For the present, there is nothing more to discover."
+    ]
   },
   "_tasks": "the note when a task is done: {task}; what changed: {item} {where} {place} {action}",
   "tasks": {
@@ -127,8 +136,16 @@
         { "upToHours": 12, "word": "roaring" }
       ],
       "warnAtHours": 1,
-      "warnLog": ["The fire has diminished to an uncertain flame.", "The flames sink low among the embers.", "Only a few wavering tongues of fire remain."],
-      "expireLog": ["The fire expires, leaving a bed of glowing embers.", "The last flame disappears, and the embers slowly lose their light.", "The hearth is cold; a narrow thread of smoke marks where the fire had been."],
+      "warnLog": [
+        "The fire has diminished to an uncertain flame.",
+        "The flames sink low among the embers.",
+        "Only a few wavering tongues of fire remain."
+      ],
+      "expireLog": [
+        "The fire expires, leaving a bed of glowing embers.",
+        "The last flame disappears, and the embers slowly lose their light.",
+        "The hearth is cold; a narrow thread of smoke marks where the fire had been."
+      ],
       "showInStatus": false,
       "local": true,
       "building": "campfire"

@@ -1,0 +1,16 @@
+{
+  "id": "craft_axe",
+  "item": "axe",
+  "ways": [
+    {
+      "hours": 1,
+      "effort": "work",
+      "cost": { "firewood": 2, "stone": 2 },
+      "log": [
+        "You knock one stone against another until it has an edge, and lash it into a split branch.",
+        "Stone on stone until one has an edge. Then a split branch, and the stone wedged in tight.",
+        "A sharp stone, a stout branch, and a long time binding them."
+      ]
+    }
+  ]
+}

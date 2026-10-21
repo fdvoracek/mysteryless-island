@@ -1,0 +1,35 @@
+{
+  "id": "raw_meat",
+  "order": 240,
+  "name": "raw meat",
+  "category": "food",
+  "actions": [
+    {
+      "id": "dry",
+      "building": "drying_rack",
+      "label": "dry",
+      "hours": 0.25,
+      "effort": "light",
+      "uses": 2,
+      "visibleWhen": { "all": [{ "at": "beach" }, { "built": "drying_rack" }] },
+      "requires": { "all": [{ "tool": "sharp" }, { "building": "drying_rack", "is": "idle" }] },
+      "effects": [{ "startCycle": "drying_rack", "production": "meat" }],
+      "log": "You cut two portions of meat into thin strips and hang them on the drying rack."
+    },
+    {
+      "id": "cook",
+      "building": "campfire",
+      "label": "cook",
+      "hours": 0.5,
+      "effort": "light",
+      "visibleWhen": { "timer": "fire" },
+      "effects": [{ "give": { "cooked_meat": 1 } }],
+      "log": [
+        "Meat on a stick over the fire, dripping into the flames.",
+        "The meat browns slowly above the fire, giving off a rich aroma.",
+        "You turn the meat carefully until the heat has penetrated it throughout."
+      ],
+      "tags": ["cook"]
+    }
+  ]
+}

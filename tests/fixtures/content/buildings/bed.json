@@ -1,0 +1,20 @@
+{
+  "id": "bed",
+  "order": 10,
+  "name": "bed",
+  "icon": "sleep",
+  "hint": "A sheltered bed. Light a fire here and sleep before midnight for 100% energy.",
+  "build": {
+    "label": "make",
+    "hours": 1,
+    "effort": "work",
+    "cost": { "timber": 2, "firewood": 4 },
+    "log": [
+      "You lash two logs into a frame and heap it with springy branches.",
+      "A frame of logs, a deep layer of branches on top. It creaks when you test it.",
+      "Two logs, a mattress of branches. Not soft, but off the cold sand."
+    ],
+    "requires": { "sheltered": true }
+  },
+  "word": "made"
+}

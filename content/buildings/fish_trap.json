@@ -1,0 +1,53 @@
+{
+  "id": "fish_trap",
+  "order": 40,
+  "name": "fish trap",
+  "icon": "fish",
+  "_note": "anywhere you can fish: the shallows, the river. 1 fish every 2 hours, up to 3; stays set",
+  "hint": "A trap of woven willow, yielding 1 fish every 2 hours, up to 3. Once placed, it remains set.",
+  "max": 3,
+  "build": {
+    "hours": 1,
+    "effort": "work",
+    "cost": { "willow_twigs": 20 },
+    "log": [
+      "You weave the willow into a long basket with a funnel at the mouth.",
+      "You weave willow into a trap with a narrow, one-way entrance.",
+      "You bend and weave the willow until you have a trap with a narrow mouth."
+    ],
+    "requires": { "site": "fishable_water" }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_trap",
+      "label": "set",
+      "hours": 0.25,
+      "effort": "light",
+      "log": [
+        "You secure the trap in the current with stones, its entrance facing upstream.",
+        "The woven basket is lowered into a channel frequented by fish.",
+        "A heavy stone holds the trap in place beneath the running water."
+      ]
+    },
+    "hours": 2,
+    "batches": 3,
+    "repeat": true,
+    "collect": {
+      "id": "empty_trap",
+      "label": "empty",
+      "hours": 0.25,
+      "effort": "light",
+      "yields": [{ "item": "raw_fish", "min": 1, "max": 1 }],
+      "log": [
+        "You draw the trap from the stream, water streaming between its willow ribs.",
+        "The basket rises heavily from the current; something moves within.",
+        "You lift the dripping trap for examination."
+      ]
+    },
+    "words": { "idle": "not set", "working": "set", "ready": "{n} fish" },
+    "readyLog": [
+      "A sudden movement within the woven trap suggests a catch.",
+      "The basket stirs in the current; a fish has apparently entered."
+    ]
+  }
+}

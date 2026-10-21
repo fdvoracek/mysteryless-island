@@ -1,0 +1,17 @@
+{
+  "id": "cooked_shells",
+  "order": 40,
+  "name": "cooked shells",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -15, "energy": 8 },
+    "tags": ["eat"],
+    "log": [
+      "Tender and hot. The smell of the sea.",
+      "Hot and tender, tasting of the sea.",
+      "Soft meat from hot shells. Better cooked."
+    ]
+  }
+}

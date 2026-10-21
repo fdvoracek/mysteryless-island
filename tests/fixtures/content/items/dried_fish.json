@@ -1,0 +1,17 @@
+{
+  "id": "dried_fish",
+  "order": 230,
+  "name": "dried fish",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -22, "energy": 11 },
+    "tags": ["eat"],
+    "log": [
+      "Hard and salty. You tear it with your teeth.",
+      "Dry fish, chewy and smoky.",
+      "It takes a long time to chew. It fills you."
+    ]
+  }
+}

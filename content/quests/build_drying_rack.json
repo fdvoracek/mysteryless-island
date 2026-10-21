@@ -1,0 +1,18 @@
+{
+  "id": "build_drying_rack",
+  "order": 70,
+  "title": "build a drying rack",
+  "trigger": {
+    "when": {
+      "all": [
+        { "flag": "auto_hunger_unavailable" },
+        { "any": [{ "item": "raw_fish" }, { "item": "raw_meat" }] }
+      ]
+    }
+  },
+  "completeWhen": { "built": "drying_rack" },
+  "doneLog": [
+    "The rack stands by the fire, ready for fish or meat.",
+    "A rack for drying fish and meat. Food for the bad days."
+  ]
+}

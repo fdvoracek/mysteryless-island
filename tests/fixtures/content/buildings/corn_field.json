@@ -1,0 +1,50 @@
+{
+  "id": "corn_field",
+  "order": 60,
+  "name": "corn field",
+  "icon": "corn",
+  "hint": "Corn sown here is ripe in 3 days.",
+  "max": 3,
+  "build": {
+    "label": "dig",
+    "hours": 3,
+    "effort": "heavy",
+    "requires": { "all": [{ "site": "cultivable_ground" }, { "item": "hoe" }] },
+    "cost": { "corn": 2 },
+    "effects": [{ "startCycle": "corn_field", "units": 1 }],
+    "log": [
+      "You break the ground with the hoe, row by row, and press the kernels in.",
+      "Hours of hacking at the turf. Then rows of dark earth, and the kernels pressed into them.",
+      "The hoe turns the soil over in long rows. You sow the corn and cover it."
+    ]
+  },
+  "cycle": {
+    "start": {
+      "id": "sow_corn",
+      "label": "sow",
+      "hours": 1,
+      "effort": "work",
+      "cost": { "corn": 2 },
+      "log": [
+        "You hoe the rows again and sow them.",
+        "Kernels into the earth, one by one.",
+        "You sow the rows and cover them."
+      ]
+    },
+    "hours": 72,
+    "collect": {
+      "id": "harvest_corn",
+      "label": "harvest",
+      "hours": 1.5,
+      "effort": "work",
+      "yields": [{ "item": "corn", "min": 6, "max": 10 }],
+      "log": [
+        "You snap the ears off the stalks.",
+        "The stalks rustle as you break the ears off.",
+        "Ear after ear into your arms."
+      ]
+    },
+    "words": { "idle": "dug", "working": "growing", "ready": "ripe" },
+    "readyLog": ["The corn is ripe.", "The ears on the corn have filled out."]
+  }
+}

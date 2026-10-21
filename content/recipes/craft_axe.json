@@ -1,0 +1,16 @@
+{
+  "id": "craft_axe",
+  "item": "axe",
+  "ways": [
+    {
+      "hours": 1,
+      "effort": "work",
+      "cost": { "firewood": 2, "stone": 2 },
+      "log": [
+        "You shape a stone blade and lash it into a split wooden haft.",
+        "Stone on stone until one has an edge.",
+        "A sharp stone, a stout branch, and a long time binding them."
+      ]
+    }
+  ]
+}

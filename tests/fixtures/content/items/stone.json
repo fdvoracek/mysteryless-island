@@ -1,0 +1,8 @@
+{
+  "id": "stone",
+  "order": 140,
+  "name": "stones",
+  "category": "material",
+  "tool": { "tags": ["fire_starter"], "amount": 2 },
+  "_note": "picked up under the cliff; 2 strike sparks for a fire; for the rock knife, the axe, the hoe and the weir"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "honey",
+  "order": 270,
+  "name": "honey",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -8, "health": 4, "energy": 4 },
+    "tags": ["eat"],
+    "log": [
+      "Sweet enough to make your eyes water.",
+      "Honey and wax and a dead bee. Sweet.",
+      "You suck the comb dry."
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "id": "make_bed",
+  "order": 50,
+  "title": "make a bed",
+  "trigger": { "when": { "sheltered": true } },
+  "completeWhen": { "built": "bed" },
+  "doneLog": [
+    "You lie down to try it. Off the sand, for the first time.",
+    "Not soft, but dry and off the ground. It will do."
+  ]
+}

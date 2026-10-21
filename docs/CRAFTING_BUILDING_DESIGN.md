@@ -169,7 +169,7 @@ from possessions. Invalid progression shapes must not silently become an empty h
 
 ## 4. Local site capabilities
 
-Declare capability IDs and player-facing labels/requirement text in `content/sites.json`.
+Declare capability IDs and player-facing labels/requirement text in `content/sites/<id>.json`.
 For example, `fishable_water` means a suitable fishing site, not merely any water source.
 Use a region's optional `siteCapabilities: Id[]` for capabilities available without exploring,
 and the same field on landmarks for capabilities granted by discovering that landmark.
@@ -387,6 +387,6 @@ constructed shelter. Do not silently reverse the agreed edge or remove the shelt
 The behavior and initial dependency questions are resolved, including required tools on resume
 and first personal crafts of already-owned non-repeatable items. The diagram above records
 the confirmed initial links. `content/trees/crafting.json` and `content/trees/building.json`
-define their category assignments and edges; `content/sites.json` and region/landmark
+define their category assignments and edges; `content/sites/<id>.json` and region/landmark
 `siteCapabilities` define local construction eligibility. These validated files are the
 authoritative configuration for extending or rebalancing the trees.

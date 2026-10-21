@@ -1,0 +1,17 @@
+{
+  "id": "roasted_corn",
+  "order": 220,
+  "name": "roasted corn",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -16, "energy": 8 },
+    "tags": ["eat"],
+    "log": [
+      "The roasted grain is sweet and carries a flavour of woodsmoke.",
+      "You eat the hot corn from the cob, taking care not to burn your fingers.",
+      "The cooked corn affords a simple but satisfying meal."
+    ]
+  }
+}

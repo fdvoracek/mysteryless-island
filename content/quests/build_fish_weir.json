@@ -1,0 +1,11 @@
+{
+  "id": "build_fish_weir",
+  "order": 120,
+  "title": "build a fish weir",
+  "trigger": { "when": { "did": "empty_trap", "gte": 2 } },
+  "completeWhen": { "built": "fish_weir" },
+  "doneLog": [
+    "The weir stretches across the river. The water runs through; the fish don't.",
+    "A wall across the river, with one way in."
+  ]
+}

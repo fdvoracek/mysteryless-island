@@ -1,0 +1,35 @@
+{
+  "id": "corn",
+  "order": 210,
+  "name": "corn",
+  "category": "food",
+  "_note": "also the seed for the corn field",
+  "consume": {
+    "verb": "eat raw",
+    "hours": 0.25,
+    "stats": { "hunger": -6, "energy": 3 },
+    "tags": ["eat"],
+    "log": [
+      "Hard, starchy kernels. You chew a long time.",
+      "Raw corn, tough and faintly sweet.",
+      "You gnaw the kernels off the cob."
+    ]
+  },
+  "actions": [
+    {
+      "id": "cook",
+      "building": "campfire",
+      "label": "roast",
+      "hours": 0.25,
+      "effort": "light",
+      "visibleWhen": { "timer": "fire" },
+      "effects": [{ "give": { "roasted_corn": 1 } }],
+      "log": [
+        "You roast the ear in the embers until the kernels split.",
+        "The husk blackens; the kernels inside go gold.",
+        "Corn in the embers, turned until it smells sweet."
+      ],
+      "tags": ["cook"]
+    }
+  ]
+}

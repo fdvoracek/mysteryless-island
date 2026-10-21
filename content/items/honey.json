@@ -1,0 +1,17 @@
+{
+  "id": "honey",
+  "order": 270,
+  "name": "honey",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -8, "health": 4, "energy": 4 },
+    "tags": ["eat"],
+    "log": [
+      "The honey is so sweet that its flavour seems almost overwhelming.",
+      "Honey and wax and a dead bee. Sweet.",
+      "The rich honey is drawn from the cells until the comb is nearly empty."
+    ]
+  }
+}

@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "content:format": "node tools/content-format.mjs",
     "content:check": "vitest run --config vitest.content.config.ts",
     "test:e2e": "npm run build:test && playwright test",
     "check": "npm test && npm run content:check && npm run build && npm run test:e2e",

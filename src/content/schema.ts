@@ -292,6 +292,7 @@ export const BuildingStep = z
 export const Building = z
   .object({
     id: Id,
+    order: z.number().optional(),
     artwork: Id.optional(),
     name: z.string(),
     /** shown on hover in the buildings panel */
@@ -377,6 +378,7 @@ export const ItemAction = z
 export const Item = z
   .object({
     id: Id,
+    order: z.number().optional(),
     artwork: Id.optional(),
     name: z.string(),
     plural: z.string().optional(),
@@ -593,6 +595,7 @@ export type RecipeWay = z.infer<typeof RecipeWay>;
 export const Quest = z
   .object({
     id: Id,
+    order: z.number().optional(),
     title: z.string(),
     trigger: QuestTrigger,
     completeWhen: Condition,
@@ -656,6 +659,7 @@ export const EventTrigger = z.union([
 export const GameEvent = z
   .object({
     id: Id,
+    order: z.number().optional(),
     title: z.string(),
     trigger: EventTrigger,
     /** an extra condition for any trigger (e.g. only on the beach) */

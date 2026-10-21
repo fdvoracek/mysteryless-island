@@ -1,0 +1,31 @@
+{
+  "id": "craft_spear",
+  "item": "fishing_spear",
+  "ways": [
+    {
+      "visibleWhen": { "all": [{ "item": "rock_knife" }, { "not": { "item": "knife" } }] },
+      "requires": { "tool": "sharp" },
+      "hours": 0.5,
+      "effort": "light",
+      "cost": { "firewood": 10 },
+      "log": [
+        "You hack the straightest branch to a point with the rock knife.",
+        "The rock knife chews more than it cuts, but at last the branch has a point.",
+        "Stroke after stroke with the stone blade, until the tip is sharp enough."
+      ]
+    },
+    {
+      "requires": { "tool": "sharp" },
+      "hours": 0.5,
+      "effort": "light",
+      "cost": { "firewood": 10 },
+      "log": [
+        "You choose the straightest branch and carve it to a point with the knife.",
+        "You pick the straightest branch and whittle the tip sharp.",
+        "Shaving by shaving, the knife turns a branch into a point."
+      ]
+    }
+  ],
+  "_note": "needs something sharp: the knife 30 min; the rock knife is slower (its tool.hoursFactor 2), with its own texts",
+  "requires": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] }
+}

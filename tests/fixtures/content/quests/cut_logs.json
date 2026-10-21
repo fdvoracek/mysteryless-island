@@ -1,0 +1,20 @@
+{
+  "id": "cut_logs",
+  "order": 40,
+  "title": "cut logs",
+  "trigger": {
+    "when": {
+      "any": [
+        { "quest": "build_shelter", "is": "active" },
+        { "quest": "build_drying_rack", "is": "active" },
+        { "quest": "build_rain_barrel", "is": "active" },
+        { "quest": "build_corn_field", "is": "active" },
+        { "quest": "build_bee_hive", "is": "active" },
+        { "quest": "build_fish_weir", "is": "active" },
+        { "quest": "make_bed", "is": "active" }
+      ]
+    }
+  },
+  "completeWhen": { "did": "chop_wood" },
+  "doneLog": ["Real logs, heavy and straight.", "Logs at last: wood to build with."]
+}

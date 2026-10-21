@@ -55,10 +55,10 @@ describe("a new place on the map: the pop-up that opened it offers to walk there
     const forest = structuredClone(files["content/regions/forest.json"]) as { unlockWhen: unknown };
     forest.unlockWhen = { discovered: "spring" }; // not by the dunes any more
     files["content/regions/forest.json"] = forest;
-    files["content/events/test.json"] = [{
+    files["content/events/e_path.json"] = {
       id: "e_path", title: "A path", trigger: { when: { discovered: "rock_shelter" } },
       scenes: { start: { text: "A path leads inland.", choices: [{ id: "follow", label: "remember it", effects: [{ unlock: "forest" }] }] } },
-    }];
+    };
     const e = startGame(buildRegistry(files), 4, "knife", { keepNotes: true });
     e.dispatch({ type: "explore" });
     choose(e, "rock_shelter");

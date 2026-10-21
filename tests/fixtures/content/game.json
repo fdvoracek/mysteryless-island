@@ -128,7 +128,11 @@
       ],
       "warnAtHours": 1,
       "warnLog": ["The fire is dying.", "The flames sink low.", "Only a few flames left."],
-      "expireLog": ["The fire goes out. Only embers now.", "The last flame dies. The embers glow, then fade.", "The fire is out. A thin thread of smoke."],
+      "expireLog": [
+        "The fire goes out. Only embers now.",
+        "The last flame dies. The embers glow, then fade.",
+        "The fire is out. A thin thread of smoke."
+      ],
       "showInStatus": false,
       "local": true,
       "building": "campfire"

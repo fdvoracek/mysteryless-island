@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 implemented; PR-02 to PR-10 proposal]**
+Status: **[PR-01 and PR-02 implemented; PR-03 to PR-10 proposal]**
 Revised: 2026-10-21 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -48,6 +48,7 @@ editor; arbitrary travel graphs.
 | C9 | **Story = composition of existing vocabulary** (landmark effects → `startQuest` / flags → quest `trigger`/`completeWhen` → event `when`). The Studio adds a derived story view; no new story mechanic now. |
 | C10 | **Branch handling is the owner's job.** The Studio edits whatever checkout it runs from; no branch or version checks. |
 | C11 | **Graph views use React Flow** (`@xyflow/react`) with `@dagrejs/dagre` auto-layout, imported only from `src/studio` (owner, 2026-10-21). |
+| C12 | Order of list kinds is an optional per-entity `order` field (sorted by order, then id); no central manifest. |
 
 ## 3. Open gates — ask before the affected PR
 
@@ -142,7 +143,9 @@ transition or dual-layout support is needed. The game must still work after ever
 1. **Additive by default.** Studio code lives only in `studio/`, `src/studio/` and `tools/`. The
    game never imports it and the production build excludes it.
 2. **Shared code is touched only where listed**, keeping current behavior: PR-02 loader/registry
-   (file layout), PR-03 schema/registry/engine (activity links), PR-04 structured `ContentError`
+   (file layout), `src/content/format.ts`, the `content:format` script and the optional `order`
+   field for observably ordered list kinds; PR-03 schema/registry/engine (activity links),
+   PR-04 structured `ContentError`
    (string output unchanged), PR-05 `ref()` metadata (no validation change), PR-06 preview save
    keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
    `src/persistence` or `src/main.ts` is out of scope; stop and ask.
@@ -166,10 +169,11 @@ building + production, a quest, an event branch, sleep and save/reload.
 Implementation: [trace scripts](../tests/golden-traces.test.ts) and their committed
 [snapshots](../tests/__snapshots__/golden-traces.test.ts.snap).
 
-**PR-02 — Formatter and one file per entity.** Add the formatter and `content:format`; loader and
-registry read one object per file for every list kind, enforce `file name == id`, and keep
-singletons. A one-off migration script splits content and fixtures, then is deleted. No schema or
-behavior change.
+**PR-02 — Formatter and one file per entity.** **[implemented]** Add the formatter and
+`content:format`; loader and registry read one object per file for every list kind, enforce
+`file name == id`, and keep singletons. A one-off migration script splits content and fixtures,
+then is deleted. The only schema change is optional `order: number` on observably ordered list kinds; the registry sorts by `(order ?? +Infinity, id)`. Migration assigns original array
+index × 10 to preserve behavior. Kinds without observable order have no new field. No behavior change.
 *Done when:* golden traces unchanged; `content:check` passes and rejects an unformatted file, a
 legacy multi-entity file and a file/id mismatch. *Owner test:* play a fresh game to the first craft.
 

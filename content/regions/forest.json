@@ -41,7 +41,13 @@
       ],
       "when": { "phase": ["night"] }
     },
-    { "text": ["Fallen branches remain plentiful beneath the trees.", "The forest floor is strewn with dry wood suitable for fuel.", "Dead branches lie scattered among the roots, ready to be gathered."] },
+    {
+      "text": [
+        "Fallen branches remain plentiful beneath the trees.",
+        "The forest floor is strewn with dry wood suitable for fuel.",
+        "Dead branches lie scattered among the roots, ready to be gathered."
+      ]
+    },
     {
       "text": [
         "Somewhere ahead, water runs over stones.",
@@ -77,14 +83,24 @@
           "Among the undergrowth you observe fallen branches, dry enough to serve as fuel."
         ]
       },
-      { "text": "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.", "when": { "not": { "discovered": "spring" } } },
-      { "text": "The spring continues to issue from the moss-covered stones.", "when": { "discovered": "spring" } },
+      {
+        "text": "Somewhere beyond the nearest trunks you hear the unmistakable movement of water over stone.",
+        "when": { "not": { "discovered": "spring" } }
+      },
+      {
+        "text": "The spring continues to issue from the moss-covered stones.",
+        "when": { "discovered": "spring" }
+      },
       {
         "text": "Under the ferns, narrow passages run through the undergrowth, evidently used by small animals.",
         "when": { "all": [{ "day": { "gte": 2 } }, { "not": { "discovered": "rabbit_runs" } }] }
       }
     ],
-    "nothingLeft": ["No new feature distinguishes these trees from those already examined.", "Your survey has, for the present, accounted for all that is readily visible here.", "The remaining depths show only more trunks and undergrowth."],
+    "nothingLeft": [
+      "No new feature distinguishes these trees from those already examined.",
+      "Your survey has, for the present, accounted for all that is readily visible here.",
+      "The remaining depths show only more trunks and undergrowth."
+    ],
     "landmarks": [
       {
         "id": "spring",

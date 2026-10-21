@@ -1,0 +1,19 @@
+{
+  "id": "can_water",
+  "order": 120,
+  "name": "water in the can",
+  "category": "water",
+  "consume": {
+    "verb": "drink",
+    "hours": 0.25,
+    "stats": { "thirst": -35, "energy": 18 },
+    "tags": ["drink"],
+    "log": [
+      "You drink from the can. It tastes of tin, but it is water.",
+      "A long swallow from the can.",
+      "You drink, then screw the lid back on tight."
+    ]
+  },
+  "max": 4,
+  "_note": "up to 4 drinks; refilled from the water can's 'fill'"
+}

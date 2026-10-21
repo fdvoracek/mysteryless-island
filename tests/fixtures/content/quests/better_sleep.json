@@ -1,0 +1,9 @@
+{
+  "id": "better_sleep",
+  "order": 130,
+  "title": "better sleep",
+  "trigger": { "when": { "quest": "survive_first_night", "is": "done" } },
+  "completeWhen": { "all": [{ "sheltered": true }, { "built": "bed", "here": true }, { "timer": "fire" }] },
+  "startLog": "For better sleep, make a bed and light a fire under shelter. The beach rocks already shelter you.",
+  "doneLog": "A sheltered bed and a fire in the same place. Sleep before midnight for a full recovery."
+}

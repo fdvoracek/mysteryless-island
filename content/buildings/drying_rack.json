@@ -1,0 +1,51 @@
+{
+  "id": "drying_rack",
+  "order": 20,
+  "name": "drying rack",
+  "icon": "fish",
+  "hint": "A rack on which fish or meat dries for 12 hours. Process one batch at a time; use meat's dry action to hang it.",
+  "build": {
+    "hours": 1,
+    "effort": "work",
+    "cost": { "timber": 2 },
+    "log": [
+      "You drive two logs into the sand by the fire and lay a third across them.",
+      "Two uprights, a crossbar: a rack beside the fire, where the smoke drifts.",
+      "You erect the rack downwind of the hearth, where fish and meat may dry slowly."
+    ],
+    "requires": { "site": "coastal_camp" }
+  },
+  "cycle": {
+    "start": {
+      "id": "hang_fish",
+      "label": "hang fish",
+      "hours": 0.25,
+      "effort": "light",
+      "cost": { "raw_fish": 2 },
+      "log": [
+        "You clean and split two fish before hanging them from the crossbar.",
+        "Two prepared fish are suspended on the rack to dry.",
+        "You arrange the fish where the rising smoke can reach them."
+      ]
+    },
+    "hours": 12,
+    "products": { "meat": [{ "item": "dried_meat", "min": 2, "max": 2 }] },
+    "collect": {
+      "id": "take_dried_fish",
+      "label": "take down",
+      "hours": 0.25,
+      "effort": "light",
+      "yields": [{ "item": "dried_fish", "min": 2, "max": 2 }],
+      "log": [
+        "The preserved food has become firm and dark during its time above the fire.",
+        "Dry, hard, smelling of smoke. They will keep.",
+        "The food leaves the rack thoroughly dry, and should now keep far longer."
+      ]
+    },
+    "words": { "idle": "empty", "working": "drying", "ready": "dry" },
+    "readyLog": [
+      "The food upon the rack has become sufficiently dry for storage.",
+      "The provisions have finished drying and may now be collected."
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "rock_knife",
+  "order": 80,
+  "name": "rock knife",
+  "category": "tool",
+  "tool": { "tags": ["sharp"], "hoursFactor": 2 },
+  "_note": "a sharpened stone: sharp like the knife, but everything takes twice as long with it"
+}

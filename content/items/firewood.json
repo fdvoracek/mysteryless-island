@@ -1,0 +1,8 @@
+{
+  "id": "firewood",
+  "order": 0,
+  "name": "firewood",
+  "category": "material",
+  "tool": { "tags": ["fire_starter"], "amount": 2 },
+  "_note": "fuel; 2 dry sticks also make a fire by friction"
+}

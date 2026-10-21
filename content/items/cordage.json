@@ -1,0 +1,7 @@
+{
+  "id": "cordage",
+  "order": 180,
+  "name": "rope",
+  "category": "material",
+  "_note": "twisted from bark strips (craft menu, 3 h); climbs the cliff (kept) and makes snares"
+}

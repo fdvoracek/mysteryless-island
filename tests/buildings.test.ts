@@ -175,16 +175,11 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 
   it("the validator checks buildings, their conditions and tasks that build them", () => {
     const files = readContentFiles();
-    const list = structuredClone(files["content/buildings/camp.json"]) as Array<Record<string, unknown>>;
-    (list[0].build as Record<string, unknown>).requires = { site: "atlantis" };
-    files["content/buildings/camp.json"] = list;
-    const quests = structuredClone(files["content/quests/first-days.json"]) as Array<Record<string, unknown>>;
-    quests.find((q) => q.id === "build_shelter")!.completeWhen = { built: "castle" };
-    quests.find((q) => q.id === "make_bed")!.completeWhen = { building: "shelter", is: "ready" }; // the shelter has no cycle
-    files["content/quests/first-days.json"] = quests;
-    const recipes = structuredClone(files["content/recipes/tools.json"]) as Array<Record<string, unknown>>;
-    recipes.find((r) => r.id === "craft_spear")!.item = "unobtainium";
-    files["content/recipes/tools.json"] = recipes;
+    const shelter = files["content/buildings/shelter.json"] as { build: { requires: unknown } };
+    shelter.build.requires = { site: "atlantis" };
+    (files["content/quests/build_shelter.json"] as { completeWhen: unknown }).completeWhen = { built: "castle" };
+    (files["content/quests/make_bed.json"] as { completeWhen: unknown }).completeWhen = { building: "shelter", is: "ready" };
+    (files["content/recipes/craft_spear.json"] as { item: string }).item = "unobtainium";
     try { buildRegistry(files); throw new Error("expected a ContentError"); } catch (err) {
       expect(err).toBeInstanceOf(ContentError);
       const msg = (err as ContentError).problems.join("\n");

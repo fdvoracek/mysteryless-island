@@ -1,0 +1,18 @@
+{
+  "id": "craft_rock_knife",
+  "item": "rock_knife",
+  "_note": "The root craft: 2 stones and 3 hours of grinding after discovering the cliff; personal completion unlocks descendants even when another sharp tool is already owned.",
+  "ways": [
+    {
+      "hours": 3,
+      "effort": "work",
+      "cost": { "stone": 2 },
+      "log": [
+        "You grind two stones together until a cutting edge appears.",
+        "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
+        "You first detach flakes with sharp blows, then refine the edge by grinding."
+      ]
+    }
+  ],
+  "requires": { "discovered": "cliff_shells" }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "matches",
+  "order": 100,
+  "name": "matches",
+  "category": "material",
+  "tool": { "tags": ["fire_starter"] },
+  "_note": "a box of 10 from the shipwreck; light fire uses one"
+}

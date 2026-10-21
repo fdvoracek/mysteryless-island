@@ -63,8 +63,8 @@ describe("death is permanent, with an end screen", () => {
 
   it("an event that kills you is named as the cause", () => {
     const files = readContentFiles();
-    files["content/events/test.json"] = [{ id: "e_wave", title: "A rogue wave", trigger: { after: ["explore"], chance: 1 },
-      scenes: { start: { text: "A wave.", choices: [{ id: "stand", label: "stand", effects: [{ stat: { health: -200 } }] }] } } }];
+    files["content/events/e_wave.json"] = { id: "e_wave", title: "A rogue wave", trigger: { after: ["explore"], chance: 1 },
+      scenes: { start: { text: "A wave.", choices: [{ id: "stand", label: "stand", effects: [{ stat: { health: -200 } }] }] } } };
     const e = startGame(buildRegistry(files), 7);
     lookAround(e);
     e.dispatch({ type: "choose", choice: "stand" });

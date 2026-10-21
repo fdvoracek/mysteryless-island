@@ -24,8 +24,9 @@ Do not copy its decisions into other files. Working rules for a Studio PR:
 
 1. Implement exactly one numbered PR. Read the plan, ARCHITECTURE.md, docs/TESTING.md and the
    current code first. If the PR touches an open gate, ask the owner before coding.
-2. Planned paths (`src/studio/`, `content/<kind>/<id>.json`, `tools/vite-content-api.ts`) do not
-   exist until their PR lands; the sections below describe the current code.
+2. Studio and API paths (`src/studio/`, `tools/vite-content-api.ts`) remain planned.
+   **[implemented, PR-02]** Content entities use `content/<kind>/<id>.json`; activities remain
+   embedded until PR-03. The sections below describe the current code.
 3. No Studio PR may break the game: follow the plan's game safety rules (§5.1). The game must
    play from a fresh start and save/reload after every PR. Old saves may be dropped (bump
    `SAVE_VERSION`, keep the recovery screen); no legacy-save migrations.
@@ -36,7 +37,7 @@ Do not copy its decisions into other files. Working rules for a Studio PR:
 
 ```bash
 npm test               # unit tests (vitest) against frozen test content
-npm run content:check  # shipped content schema and reference validation only
+npm run content:check  # shipped schema/references and canonical content/fixture formatting
 npm run typecheck
 npm run build          # tsc + vite build into dist/
 npm run test:e2e       # builds dist-test/ and runs Playwright smoke tests (Chromium)
@@ -64,13 +65,15 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 - Ids are lowercase `snake_case` and unique across all kinds. Keys starting with `_` are comments.
 - Every journal text is `Text`: a string or a list of **variants** (one shown, never the same twice in a row). A list never means "lines in order". Lines the engine writes itself are in `game.json` → `journal` (`{place}` is filled in).
 - Sentences start with a capital letter; labels (buttons, places, items, task titles, stat words, menu) stay lowercase. This is an authoring convention rather than a prose-sensitive automated test.
-- JSON files are formatted with short objects on one line (~110 chars); keep that style.
+- **[implemented, Studio PR-02]** One object per entity file, with filename equal to ID.
+  Use `npm run content:format` for canonical formatting; `content:check` enforces it.
+  Items, quests, events and buildings accept optional `order`; the registry sorts by order then ID.
 - Events (`content/events/`): pop-ups with scenes and choices; triggers `"start"`, `{ at }`, `{ when }`, `{ after, chance }`. While one is open, only `{ type: "choose" }` works. Every page has a concise `scene.journal` entry in the narrow journal while its full `text` stays in the modal (legacy scenes fall back to `text`).
 - Exploration: *look around* opens a pop-up (no time) with the region's `explore.view` lines and the unexplored `landmarks` (each with its time); exploring one marks it `discovered`. Its full `text` stays in the modal, while its concise `journal` summarizes the discovery. A `*` on the button means something is left.
 - Tool tags (`game.json` → `tools`: `sharp`, `fire_starter`): requirements name a use, `{ "tool": "sharp" }` ("needs something sharp"), never "needs a knife". Items carry `tool: { tags, amount?, hoursFactor? }` (shown next to them: *knife · sharp*); a slow tool (rock knife ×2) slows the action. Texts that differ by item use item conditions (`{ "item": "rock_knife" }`) or separate activities (the three ways to light a fire).
 - When an action can be done with or without an item (fire with or without matches, the spear with the knife or a stone), each way gets its own texts: separate activities, recipe `ways` (`visibleWhen`), or conditions on lines. Make such conditions exclusive (`not`), or both lines will show.
 - Crafting (`content/recipes/`) and building use separate centre tabs with one shared tree renderer. `content/trees/*.json` defines category branches and all-required prerequisite edges; every recipe/building has exactly one node. Only personal creation completion counts, and unlocks are permanent/global. Quests stay title-only goals and never gate creation. Compact tree canvases scroll in both directions inside the centre panel; category names and requirements live in floating hover/focus/inspection tooltips. Non-repeatable items allow a first personal craft even if already owned, leaving exactly one output copy. Repeatable recipes retain `multiple`/`count`; buildings retain local `max`.
-- Buildings (`content/buildings/`): created in the current area from the building tree; site requirements use `{ "site": id }` in `build.requires`, with capabilities defined in `content/sites.json` and granted by region/landmark `siteCapabilities`; only locally discovered landmarks contribute; cycles the player starts (`start` → `hours` × `batches` → `collect`, optional `repeat`); state key `id@region`, with local `{ count, builtAt, batches, nextBatch }`. Batches record units, start time, locked inputs and optional named output (`cycle.products`, selected by `startCycle.production`). Input-free additions join a shared clock; required-input units stay empty until supplied. `startCycle.units` limits how many empty units begin (a newly built corn field plants one). Effects on the rules go through `{ built }` / `{ building, is }` conditions (stats multipliers, requires) or `warmthC`.
+- Buildings (`content/buildings/`): created in the current area from the building tree; site requirements use `{ "site": id }` in `build.requires`, with capabilities defined in `content/sites/<id>.json` and granted by region/landmark `siteCapabilities`; only locally discovered landmarks contribute; cycles the player starts (`start` → `hours` × `batches` → `collect`, optional `repeat`); state key `id@region`, with local `{ count, builtAt, batches, nextBatch }`. Batches record units, start time, locked inputs and optional named output (`cycle.products`, selected by `startCycle.production`). Input-free additions join a shared clock; required-input units stay empty until supplied. `startCycle.units` limits how many empty units begin (a newly built corn field plants one). Effects on the rules go through `{ built }` / `{ building, is }` conditions (stats multipliers, requires) or `warmthC`.
 - Death is permanent (end screen from `game.json` → `ending`; damage rules have a `cause`). The saved game (`src/persistence/save.ts`): *save.* in the menu and just before every sleep; the autosave after every action and committed work step is separate.
 
 ## Tests

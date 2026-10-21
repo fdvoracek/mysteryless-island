@@ -1,0 +1,35 @@
+{
+  "id": "corn",
+  "order": 210,
+  "name": "corn",
+  "category": "food",
+  "_note": "also the seed for the corn field",
+  "consume": {
+    "verb": "eat raw",
+    "hours": 0.25,
+    "stats": { "hunger": -6, "energy": 3 },
+    "tags": ["eat"],
+    "log": [
+      "The raw kernels are hard and starchy, requiring patient chewing.",
+      "The uncooked corn proves tough, with only a trace of sweetness.",
+      "You strip the small kernels from the cob with your teeth."
+    ]
+  },
+  "actions": [
+    {
+      "id": "cook",
+      "building": "campfire",
+      "label": "roast",
+      "hours": 0.25,
+      "effort": "light",
+      "visibleWhen": { "timer": "fire" },
+      "effects": [{ "give": { "roasted_corn": 1 } }],
+      "log": [
+        "You turn an ear of corn among the embers until its kernels begin to burst.",
+        "The outer husk blackens, but the grain beneath ripens to a golden colour.",
+        "A pleasant sweetness rises from the corn as it roasts over the heat."
+      ],
+      "tags": ["cook"]
+    }
+  ]
+}

@@ -9,25 +9,24 @@ const panorama = { id: "art_beach", src: "illustrations/locations/beach.png", wi
 const object = { id: "art_knife", src: "illustrations/items/knife.webp", width: 160, height: 160, alt: "A small knife with a wooden handle." };
 function illustratedContent() {
   const files = readContentFiles();
-  files["content/artwork.json"] = [panorama, object,
+  for (const art of [panorama, object,
     { ...object, id: "art_rock_knife", src: "illustrations/items/rock_knife.png", alt: "A stone sharpened into a blade." },
     { ...object, id: "art_can", src: "illustrations/items/can.png", alt: "An empty metal water can." },
     { ...object, id: "art_fire", src: "illustrations/structures/fire.png", alt: "A small ring of stones." },
-    { ...panorama, id: "art_forest", src: "illustrations/locations/forest.png", alt: "A spring beneath quiet trees." }];
+    { ...panorama, id: "art_forest", src: "illustrations/locations/forest.png", alt: "A spring beneath quiet trees." }]) files[`content/artwork/${art.id}.json`] = art;
   (files["content/game.json"] as Game).panorama = "art_beach";
   (files["content/regions/beach.json"] as Region).artwork = "art_beach";
   (files["content/regions/forest.json"] as Region).artwork = "art_forest";
-  const items = files["content/items/basics.json"] as Item[];
-  items.find((item) => item.id === "knife")!.artwork = "art_knife";
-  items.find((item) => item.id === "rock_knife")!.artwork = "art_rock_knife";
-  items.find((item) => item.id === "water_can")!.artwork = "art_can";
-  (files["content/buildings/camp.json"] as Building[]).find((building) => building.id === "campfire")!.artwork = "art_fire";
+  (files["content/items/knife.json"] as Item).artwork = "art_knife";
+  (files["content/items/rock_knife.json"] as Item).artwork = "art_rock_knife";
+  (files["content/items/water_can.json"] as Item).artwork = "art_can";
+  (files["content/buildings/campfire.json"] as Building).artwork = "art_fire";
   return files;
 }
 
 describe("optional artwork authoring", () => {
   it("accepts an empty or absent catalog without adding images or game state", () => {
-    const files = readContentFiles(); delete files["content/artwork.json"];
+    const files = readContentFiles(); for (const path of Object.keys(files)) if (path.startsWith("content/artwork/")) delete files[path];
     delete (files["content/game.json"] as Game).panorama;
     const reg = buildRegistry(files), engine = startGame(reg, 7);
     expect(reg.artwork.size).toBe(0);
@@ -46,8 +45,8 @@ describe("optional artwork authoring", () => {
       { width: 0 }, { height: -1 }, { width: 1.5 }, { alt: "   " }, { unexpected: true },
     ]) expect(Artwork.safeParse({ ...object, ...change }).success, JSON.stringify(change)).toBe(false);
     // One registry integration check is enough to verify that schema errors keep the filename.
-    const files = readContentFiles(); files["content/artwork.json"] = [{ ...object, width: 0 }];
-    expect(() => buildRegistry(files)).toThrow(/content\/artwork\.json/);
+    const files = readContentFiles(); files["content/artwork/art_knife.json"] = { ...object, width: 0 };
+    expect(() => buildRegistry(files)).toThrow(/content\/artwork\/art_knife\.json/);
   });
 
   it("requires descriptive alternative text even when a paired-label consumer may render it decoratively", () => {
@@ -58,11 +57,11 @@ describe("optional artwork authoring", () => {
   it("reports invalid artwork references for every consumer with its file and field", () => {
     const files = illustratedContent();
     (files["content/regions/beach.json"] as Region).artwork = "missing_art";
-    (files["content/items/basics.json"] as Item[])[0].artwork = "missing_art";
-    (files["content/buildings/camp.json"] as Building[])[0].artwork = "missing_art";
+    (files["content/items/firewood.json"] as Item).artwork = "missing_art";
+    (files["content/buildings/shelter.json"] as Building).artwork = "missing_art";
     (files["content/game.json"] as Game).panorama = "missing_art";
     const problems = contentProblems(() => buildRegistry(files));
-    for (const location of ["regions/beach", "items/basics", "buildings/camp"]) {
+    for (const location of ["regions/beach", "items/firewood", "buildings/shelter"]) {
       expect(problems).toMatch(new RegExp(`content/${location}\\.json.*\\.artwork: unknown artwork "missing_art"`));
     }
     expect(problems).toMatch(/content\/game\.json\.panorama: unknown artwork "missing_art"/);
@@ -70,9 +69,10 @@ describe("optional artwork authoring", () => {
 
   it("enforces global artwork identities and the region panorama's declared 1600×440 dimensions", () => {
     const files = illustratedContent();
-    (files["content/artwork.json"] as unknown[]).push({ ...object, id: "knife" });
+    files["content/artwork/knife.json"] = { ...object, id: "knife" };
     expect(() => buildRegistry(files)).toThrow(/duplicate id "knife"/);
-    files["content/artwork.json"] = [{ ...panorama, width: 800, height: 220 }];
+    delete files["content/artwork/knife.json"];
+    files["content/artwork/art_beach.json"] = { ...panorama, width: 800, height: 220 };
     expect(() => buildRegistry(files)).toThrow(/content\/regions\/beach\.json.beach.artwork: region artwork must declare 1600 × 440/);
   });
 

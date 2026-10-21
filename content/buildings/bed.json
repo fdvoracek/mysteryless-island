@@ -1,0 +1,20 @@
+{
+  "id": "bed",
+  "order": 10,
+  "name": "bed",
+  "icon": "sleep",
+  "hint": "A bed raised above the ground. Under shelter, with a fire, retiring before midnight restores 100% energy.",
+  "build": {
+    "label": "make",
+    "hours": 1,
+    "effort": "work",
+    "cost": { "timber": 2, "firewood": 4 },
+    "log": [
+      "You lash two logs into a frame and heap it with springy branches.",
+      "You assemble a low wooden frame and cover it thickly with boughs.",
+      "A narrow bed of timber and branches now raises you above the cold ground."
+    ],
+    "requires": { "sheltered": true }
+  },
+  "word": "made"
+}

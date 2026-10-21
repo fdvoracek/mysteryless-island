@@ -1,0 +1,23 @@
+{
+  "id": "raw_fish",
+  "order": 10,
+  "name": "raw fish",
+  "category": "food",
+  "actions": [
+    {
+      "id": "cook",
+      "building": "campfire",
+      "label": "cook",
+      "hours": 0.25,
+      "effort": "light",
+      "visibleWhen": { "timer": "fire" },
+      "effects": [{ "give": { "cooked_fish": 1 } }],
+      "log": [
+        "The fish begins to hiss upon the flat stone warmed by the fire.",
+        "The heat curls the fish upon the stone and brings its juices to the surface.",
+        "As the fish browns, drops of fat fall into the glowing embers."
+      ],
+      "tags": ["cook"]
+    }
+  ]
+}

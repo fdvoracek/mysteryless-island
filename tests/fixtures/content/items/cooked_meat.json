@@ -1,0 +1,17 @@
+{
+  "id": "cooked_meat",
+  "order": 260,
+  "name": "cooked meat",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -35, "health": 3, "energy": 18 },
+    "tags": ["eat"],
+    "log": [
+      "Hot meat, fat running down your chin.",
+      "Rich and hot. The best meal on the island.",
+      "You eat slowly. Real meat."
+    ]
+  }
+}

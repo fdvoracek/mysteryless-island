@@ -82,7 +82,10 @@
         "text": "Beyond the dunes you distinguish a continuous dark belt of trees.",
         "when": { "not": { "discovered": "forest_edge" } }
       },
-      { "text": "Beyond the sandy ridges begins the forest, its foliage closing over the inland ground.", "when": { "discovered": "forest_edge" } },
+      {
+        "text": "Beyond the sandy ridges begins the forest, its foliage closing over the inland ground.",
+        "when": { "discovered": "forest_edge" }
+      },
       {
         "text": "At the farther extremity of the beach, dark rocks stand together in an irregular ring.",
         "when": { "not": { "discovered": "rock_shelter" } }
@@ -91,19 +94,34 @@
         "text": "The cluster of rocks at the end of the shore offers a refuge from the prevailing wind.",
         "when": { "discovered": "rock_shelter" }
       },
-      { "text": "A thin column of smoke rises above the rocks and disperses in the sea breeze.", "when": { "timer": "fire" } },
+      {
+        "text": "A thin column of smoke rises above the rocks and disperses in the sea breeze.",
+        "when": { "timer": "fire" }
+      },
       {
         "text": "Past the rocks, a low cliff ends abruptly in the surf.",
         "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "discovered": "cliff_shells" } }] }
       },
-      { "text": "Molluscs cling in numbers to the wet stone beneath the cliff.", "when": { "discovered": "cliff_shells" } },
+      {
+        "text": "Molluscs cling in numbers to the wet stone beneath the cliff.",
+        "when": { "discovered": "cliff_shells" }
+      },
       {
         "text": "The face of the cliff is steep, though a securely fastened rope might make its ascent possible.",
         "when": { "all": [{ "discovered": "cliff_shells" }, { "not": { "discovered": "cliff_top" } }] }
       },
-      { "text": "Beyond the cliff, towards the west, the ground opens into broad meadows.", "when": { "discovered": "cliff_top" } },
-      { "text": "An occasional silver flash betrays movement in the shallow water.", "when": { "not": { "discovered": "school_of_fish" } } },
-      { "text": "A school of small fish turns and scatters among the shallows.", "when": { "discovered": "school_of_fish" } }
+      {
+        "text": "Beyond the cliff, towards the west, the ground opens into broad meadows.",
+        "when": { "discovered": "cliff_top" }
+      },
+      {
+        "text": "An occasional silver flash betrays movement in the shallow water.",
+        "when": { "not": { "discovered": "school_of_fish" } }
+      },
+      {
+        "text": "A school of small fish turns and scatters among the shallows.",
+        "when": { "discovered": "school_of_fish" }
+      }
     ],
     "nothingLeft": [
       "A further survey of the shore reveals no feature overlooked before.",
@@ -187,9 +205,11 @@
       "hours": 0.25,
       "effort": "light",
       "icon": "fire",
-      "visibleWhen": { "all": [{"built": "campfire", "here": true}, {"not": {"timer": "fire"}}, {"item": "matches"}] },
+      "visibleWhen": {
+        "all": [{ "built": "campfire", "here": true }, { "not": { "timer": "fire" } }, { "item": "matches" }]
+      },
       "cost": { "firewood": 3, "matches": 1 },
-      "effects": [{"timer": "fire", "addHours": 6}],
+      "effects": [{ "timer": "fire", "addHours": 6 }],
       "log": [
         "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
         "You shelter the tiny flame from the wind until it passes to the kindling.",
@@ -204,14 +224,14 @@
       "building": "campfire",
       "name": "light fire",
       "_note": "without matches, with 2 stones: sparks, 1 h, catches 2 times in 3; the stones stay; the wood is only used when it catches",
-      "hours": 1.0,
+      "hours": 1,
       "effort": "work",
       "icon": "fire",
       "visibleWhen": {
         "all": [
           { "built": "campfire", "here": true },
-          { "not": {"timer": "fire"} },
-          { "not": {"item": "matches"} },
+          { "not": { "timer": "fire" } },
+          { "not": { "item": "matches" } },
           { "item": "stone", "gte": 2 }
         ]
       },
@@ -229,7 +249,7 @@
             "The dry fibres begin to smoke; an instant later a small flame rises among them.",
             "The tinder catches at last. You feed it twig by twig."
           ],
-          "effects": [{"take": {"firewood": 3}}, {"timer": "fire", "addHours": 6}]
+          "effects": [{ "take": { "firewood": 3 } }, { "timer": "fire", "addHours": 6 }]
         },
         {
           "weight": 1,
@@ -248,18 +268,18 @@
       "building": "campfire",
       "name": "light fire",
       "_note": "without matches or 2 stones: friction with 2 dry sticks (firewood), 1 h, catches 2 times in 3; the wood (3 to burn, 2 sticks) is only used when it catches",
-      "hours": 1.0,
+      "hours": 1,
       "effort": "work",
       "icon": "fire",
       "visibleWhen": {
         "all": [
           { "built": "campfire", "here": true },
-          { "not": {"timer": "fire"} },
-          { "not": {"item": "matches"} },
-          { "not": {"item": "stone", "gte": 2} }
+          { "not": { "timer": "fire" } },
+          { "not": { "item": "matches" } },
+          { "not": { "item": "stone", "gte": 2 } }
         ]
       },
-      "requires": { "all": [{"tool": "fire_starter"}, {"item": "firewood", "gte": 5}] },
+      "requires": { "all": [{ "tool": "fire_starter" }, { "item": "firewood", "gte": 5 }] },
       "log": [
         "You twist a dry stick against a branch, again and again, until your palms burn.",
         "No matches. You spin a stick between your hands until your arms ache.",
@@ -273,7 +293,7 @@
             "The wisp of smoke becomes an ember, then a flame.",
             "Finally, a flame. You feed it, careful as with a newborn."
           ],
-          "effects": [{"take": {"firewood": 5}}, {"timer": "fire", "addHours": 6}]
+          "effects": [{ "take": { "firewood": 5 } }, { "timer": "fire", "addHours": 6 }]
         },
         {
           "weight": 1,
@@ -294,9 +314,9 @@
       "hours": 0.25,
       "effort": "light",
       "icon": "fire",
-      "visibleWhen": { "all": [{"built": "campfire", "here": true}, {"timer": "fire"}] },
+      "visibleWhen": { "all": [{ "built": "campfire", "here": true }, { "timer": "fire" }] },
       "cost": { "firewood": 2 },
-      "effects": [{"timer": "fire", "addHours": 4}],
+      "effects": [{ "timer": "fire", "addHours": 4 }],
       "log": [
         "The new fuel catches, and the hearth crackles steadily.",
         "The flames rise higher above the stones.",
@@ -342,7 +362,7 @@
     {
       "id": "catch_fish",
       "name": "catch fish",
-      "hours": 1.0,
+      "hours": 1,
       "effort": "work",
       "icon": "fish",
       "visibleWhen": { "discovered": "school_of_fish" },
@@ -626,7 +646,11 @@
               "when": { "today": "collect_shells" }
             },
             {
-              "text": ["You remember how welcome the first fresh water tasted.", "The thought of clear water refreshes even your memory of the day's labour.", "You recall a long drink of clean, cold water."],
+              "text": [
+                "You remember how welcome the first fresh water tasted.",
+                "The thought of clear water refreshes even your memory of the day's labour.",
+                "You recall a long drink of clean, cold water."
+              ],
               "when": { "today": "drink" }
             },
             {
@@ -703,10 +727,20 @@
               "when": { "warmth": ["freezing", "cold"] }
             },
             {
-              "text": ["You awake refreshed and fit for the day's work.", "The night's rest has restored a welcome measure of strength.", "For once, you rise with strength enough for the coming day."],
+              "text": [
+                "You awake refreshed and fit for the day's work.",
+                "The night's rest has restored a welcome measure of strength.",
+                "For once, you rise with strength enough for the coming day."
+              ],
               "when": { "stat": "energy", "gte": 70 }
             },
-            { "text": ["You have slept, yet the fatigue of yesterday has not wholly disappeared.", "Despite the night's rest, your limbs remain heavy.", "The hours of sleep have afforded less relief than you had hoped."] }
+            {
+              "text": [
+                "You have slept, yet the fatigue of yesterday has not wholly disappeared.",
+                "Despite the night's rest, your limbs remain heavy.",
+                "The hours of sleep have afforded less relief than you had hoped."
+              ]
+            }
           ]
         },
         {

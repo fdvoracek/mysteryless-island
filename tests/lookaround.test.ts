@@ -105,7 +105,7 @@ describe("look around: a pop-up with what you see and places to explore", () => 
 
   it("exploring counts for 'after explore' events, which open when the finding is closed", () => {
     const files = readContentFiles();
-    files["content/events/test.json"] = [{ id: "e_gull", title: "A gull", trigger: { after: ["school_of_fish"], chance: 1 }, scenes: { start: { text: "A gull." } } }];
+    files["content/events/e_gull.json"] = { id: "e_gull", title: "A gull", trigger: { after: ["school_of_fish"], chance: 1 }, scenes: { start: { text: "A gull." } } };
     const e = startGame(buildRegistry(files), 6);
     explore(e, "forest_edge");
     expect(view(e).event).toBeNull(); // another landmark: no event

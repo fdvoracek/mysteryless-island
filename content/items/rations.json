@@ -1,0 +1,17 @@
+{
+  "id": "rations",
+  "order": 130,
+  "name": "rations",
+  "category": "food",
+  "consume": {
+    "verb": "eat",
+    "hours": 0.25,
+    "stats": { "hunger": -30, "energy": 15 },
+    "tags": ["eat"],
+    "log": [
+      "Hard biscuit and salt meat, soaked with sea water. Still food.",
+      "You chew a ration slowly, making it last.",
+      "The salted meat and softened biscuit are plain fare, but restore your strength."
+    ]
+  }
+}

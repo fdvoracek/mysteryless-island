@@ -1,0 +1,50 @@
+{
+  "id": "fish_trap",
+  "order": 40,
+  "name": "fish trap",
+  "icon": "fish",
+  "_note": "anywhere you can fish: the shallows, the river. 1 fish every 2 hours, up to 3; stays set",
+  "hint": "A woven willow trap: 1 fish every 2 hours, up to 3. It stays set.",
+  "max": 3,
+  "build": {
+    "hours": 1,
+    "effort": "work",
+    "cost": { "willow_twigs": 20 },
+    "log": [
+      "You weave the willow into a long basket with a funnel at the mouth.",
+      "Twig over twig, the trap takes shape: a basket the fish can swim into and not out of.",
+      "You bend and weave the willow until you have a trap with a narrow mouth."
+    ],
+    "requires": { "site": "fishable_water" }
+  },
+  "cycle": {
+    "start": {
+      "id": "set_trap",
+      "label": "set",
+      "hours": 0.25,
+      "effort": "light",
+      "log": [
+        "You weigh the trap down with stones, mouth to the current.",
+        "You sink the trap where the fish pass.",
+        "The trap goes in, weighted with a stone."
+      ]
+    },
+    "hours": 2,
+    "batches": 3,
+    "repeat": true,
+    "collect": {
+      "id": "empty_trap",
+      "label": "empty",
+      "hours": 0.25,
+      "effort": "light",
+      "yields": [{ "item": "raw_fish", "min": 1, "max": 1 }],
+      "log": [
+        "You haul the trap up, water streaming from the willow.",
+        "You lift the trap. Something heavy shifts inside.",
+        "Up comes the trap, dripping."
+      ]
+    },
+    "words": { "idle": "not set", "working": "set", "ready": "{n} fish" },
+    "readyLog": ["Something thrashes in the trap.", "The trap twitches: a fish."]
+  }
+}

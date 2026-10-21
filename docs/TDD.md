@@ -77,7 +77,7 @@ edits with the same function.
 | Location | Responsibility |
 |---|---|
 | `content/**/*.json` | Authored entities, rules and English text |
-| `src/content/{loader,schema,registry,text-keys}.ts` | JSON adaptation, validation, reference indexing and stable text identity |
+| `src/content/{loader,schema,registry,text-keys,format}.ts` | JSON adaptation, validation, reference indexing and stable text identity |
 | `src/core/engine.ts` | Command checks, live simulation, rewards, events and task completion |
 | `src/core/{state,state-schema,work}.ts` | Serializable state, validation and persisted player work |
 | `src/core/{action-rules,conditions,timers,production}.ts` | Shared costs/tools, conditions, local timers and production batches |
@@ -89,6 +89,24 @@ edits with the same function.
 | `tests/`, `e2e/` | Content/unit checks and browser smoke tests |
 
 Runtime dependency: Zod. Build/test tools: TypeScript, Vite, Vitest and Playwright.
+
+### Content files [implemented, Studio PR-02]
+
+Items, recipes, buildings, quests, events, sites and artwork each live in
+`content/<kind>/<id>.json` as one object; regions already follow this layout. The registry rejects
+arrays and filename/ID mismatches. Singletons remain `game.json`, `stats.json`, `climate.json`
+and `trees/{crafting,building}.json`. Activities remain embedded in regions until PR-03.
+
+Items, quests, events and buildings accept optional numeric `order`. The registry sorts these
+kinds by `(order ?? +Infinity, id)`; the migrated values preserve their prior array order in
+increments of ten. Item order breaks ties in automatic provisions and tool enumeration; quest
+order controls goal processing and display; event order controls queueing and seeded trigger
+checks; building order controls local panel rows. Recipes use tree node order for creation;
+sites and artwork are resolved by ID, so these three kinds have no `order` field.
+
+`npm run content:format` rewrites shipped content and frozen fixtures with the shared formatter:
+two spaces, inline objects/arrays when they fit 110 columns without multiline children, original
+key order, preserved `_` comment keys and one trailing newline. It only changes formatting.
 
 ---
 
@@ -372,7 +390,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 
 ### 6.8 Buildings **[implemented]**
 
-`content/buildings/*.json`: a list of buildings. A building is put up in a place and produces over time in **cycles the player starts** (no idle income).
+`content/buildings/<id>.json`: one building object per file. A building is put up in a place and produces over time in **cycles the player starts** (no idle income).
 
 ```json
 {
@@ -388,7 +406,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 }
 ```
 
-- **Where:** `build.requires` uses `{ "site": capabilityId }` and other current requirements. `content/sites.json` defines capabilities; region and landmark `siteCapabilities` grant them locally, with landmark grants available only after discovery. The state key remains `"<id>@<region>"` with `{ count, builtAt, batches, nextBatch }`. Tree completion unlocks the building globally; capabilities determine whether the current area permits it.
+- **Where:** `build.requires` uses `{ "site": capabilityId }` and other current requirements. `content/sites/<id>.json` defines capabilities; region and landmark `siteCapabilities` grant them locally, with landmark grants available only after discovery. The state key remains `"<id>@<region>"` with `{ count, builtAt, batches, nextBatch }`. Tree completion unlocks the building globally; capabilities determine whether the current area permits it.
 - **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from its tree node where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest identifies its building goal through `completeWhen`; costs appear on the tree node, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
 - **Cycles:** `start` locks materials in a player action; completion creates a local production batch with `{ id, units, startedAt, inputs, production? }`. Every `hours` one output is ready per unit, up to `cycle.batches` (default 1); readiness derives from game time without browser scheduling. Production advances while away or asleep, never while the game is closed. `collect` locks ready batch IDs, unit counts and output counts when work starts; completion applies `collect.yields` (or the batch’s named `cycle.products` yields) and `outcomes` per claimed output/unit, plus `effects`. Unready batches and units added after collection began remain; collected units become empty, or with `repeat` start again from collection completion. Drying meat selects `production: "meat"` on the local rack rather than setting a global flag. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
 - **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Conditions include `{ "built": id }` (any place), `{ "built": id, "here": true }` (current place), `{ "sheltered": true }` (local built or natural shelter), and `{ "building": id, "is": "idle" | "working" | "ready" }`. Bed health regeneration is local; morning energy comes from `game.sleep.recovery`, not hourly multipliers.
@@ -396,7 +414,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 - **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in the classic layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
 - **Validator:** site capabilities, tree membership, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
-The 10 buildings in `content/buildings/camp.json`:
+The 10 buildings in `content/buildings/`:
 
 | Building | Place | Task starts when | Build | Cycle |
 |---|---|---|---|---|
@@ -463,7 +481,7 @@ The original design (levels, modifiers) is kept below for later.
 
 ### 6.10 Events
 
-**[implemented, simpler than the design below]** `content/events/*.json` holds a list of events: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. A scene may provide a compact `journal: Text` alongside its full modal `text: Text`: the journal records the summary before choice effects; legacy scenes without `journal` fall back to logging `text` (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
+**[implemented, simpler than the design below]** `content/events/<id>.json` holds one event object: `{ id, title, trigger, when?, repeat?: { cooldownHours }, scenes }`. Triggers: `"start"` (a new game opens it before the first journal line; `game.start.log` is written when it ends), `{ "at": { day, hour } }`, `{ "when": Condition }` (both checked after each action), `{ "after"?: [activity id | tag | item id | "explore" | "travel"], "chance" }` (a seeded roll after a matching action). An event happens once unless it has `repeat`. Scenes: `{ text, effects?, choices?, close? }`; the event opens on `start`. A choice: `{ id, label, visibleWhen?, requires?, requiresText?, effects?, next? }` (no `next` ends the event); a scene without choices shows one button, `close` (default label "close"), that ends it. While an event is open the engine refuses every command except `{ type: "choose", choice }`. A scene may provide a compact `journal: Text` alongside its full modal `text: Text`: the journal records the summary before choice effects; legacy scenes without `journal` fall back to logging `text` (for the shipwreck: the storm, the swim, then `game.start.log`). Ordinary event choices take no game time and return no progress bar; landmark and travel choices use the shared timed-command rate. New effect `{ "unlock": regionId }`. The design below (weights per scene, phase/sleep triggers, priorities, images) is not built yet.
 
 | Field | Meaning |
 |---|---|
@@ -500,7 +518,7 @@ Example of an additional task (not shipped):
 }
 ```
 
-- Files: `content/quests/*.json`, each an array. The tasks panel lists active quests in file order.
+- Files: `content/quests/<id>.json`, each one object. The tasks panel lists active quests in registry order (`order`, then ID).
 - Tasks are goals, not recipes **[implemented]**: no task asks you to craft a tool; requirements belong to the activity, item action or craft/build step that fulfills the goal. Quest `hint`, `needs`, and `build` fields were removed because the title-only task panel does not use them. The task panel displays titles only; requirements and costs appear on creation-tree nodes. Tasks have no buttons and never unlock creation; things are made in the crafting and building tabs (below). The quest finishes through its normal `completeWhen` (e.g. `{ "seen": "raw_fish" }`, `{ "built": "shelter" }`).
 
 **Tool tags [implemented]:** requirements name a use, not an item. `game.json` → `tools` defines the tags (`sharp`, `fire_starter`) with a `label` (shown next to items that have it: *knife · sharp*) and `needs` (what `explain` says: "needs something sharp"). An item has `tool: { tags, amount?, hoursFactor? }`: knife `sharp`; rock knife `sharp`, ×2; matches `fire_starter`; stones and firewood `fire_starter` with `amount: 2`. The condition `{ "tool": tag }` holds when you have `amount` of any item with the tag. An action whose `visibleWhen` / `requires` ask for a tool (not under `not`) takes the quickest such item's `hoursFactor` times as long (`toolFactor`, `Engine.hoursFor`; activities, recipe ways, item actions, landmarks, building steps; the shown times too). When the way differs by item (texts, chance), content uses separate activities or recipe ways with item conditions: the three *light fire* activities (`light_fire` matches, `strike_fire` 2 stones, `make_fire` friction, which requires `{ "tool": "fire_starter" }` and 5 firewood: 3 to burn, 2 sticks), the spear's two ways (rock knife texts when it is the only sharp thing).
@@ -687,7 +705,7 @@ interface SaveFile {
   tokens in `ui/styles.css` give controls and panels a restrained hierarchy in both themes.
   All typography retains the selected `--font`; classic placement stays in its scoped CSS.
 - **Illustration support [implemented]:** optional
-  `content/artwork.json` entries define `{ id, src, width, height, alt }`. `game.json` chooses
+  `content/artwork/<id>.json` objects define `{ id, src, width, height, alt }`. `game.json` chooses
   one global `panorama` ID; regions can supply fallback artwork if it is absent. Items and
   buildings reference them with `artwork: id`; the registry validates IDs, nonblank alt text,
   local `illustrations/` paths, positive integer dimensions, and 1600 × 440 region fallback metadata.
@@ -732,7 +750,9 @@ selectors group them in reading order before flattening the classic journal.
 ### 13.1 Content validator: `npm run content:check` [implemented]
 
 The command runs `tests/production-content.spec.ts` against shipped `content/`: Zod structure,
-registry reference, ID, and content-invariant checks. It does not assert prose or labels.
+registry reference, ID, and content-invariant checks. **[implemented, Studio PR-02]** It also
+checks canonical formatting of shipped content and frozen fixtures; use `npm run content:format`
+to fix formatting. It rejects legacy arrays and filename/ID mismatches. It does not assert prose or labels.
 `registry.ts` explicitly checks
 conditions, costs, effects, yields, tool tags, building production outputs and step durations.
 General progression reachability, unused-item warnings and translation validation are future

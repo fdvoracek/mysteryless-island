@@ -1,0 +1,11 @@
+{
+  "id": "climb_cliff",
+  "order": 20,
+  "title": "climb the cliff",
+  "trigger": { "when": { "discovered": "cliff_shells" } },
+  "completeWhen": { "discovered": "cliff_top" },
+  "doneLog": [
+    "You stand on the cliff top, the rope coiled at your feet, and look inland.",
+    "The cliff is behind you. The island is bigger than you thought."
+  ]
+}

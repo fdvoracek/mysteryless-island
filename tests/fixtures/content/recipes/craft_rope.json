@@ -1,0 +1,18 @@
+{
+  "id": "craft_rope",
+  "item": "cordage",
+  "multiple": true,
+  "_note": "Four bark strips twisted into rope; personal rock knife completion unlocks the recipe.",
+  "ways": [
+    {
+      "hours": 3,
+      "effort": "work",
+      "cost": { "bark_strips": 4 },
+      "log": [
+        "You twist the bark strips together, three strands at a time, and twist the strands into a rope.",
+        "Hour after hour you braid the bark, until a rope as long as your arms are wide lies coiled at your feet.",
+        "Strip by strip, the bark becomes cord, and the cord a rope. Your fingers ache."
+      ]
+    }
+  ]
+}
