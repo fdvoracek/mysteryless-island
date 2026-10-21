@@ -4,9 +4,9 @@
   "title": "A Grey Beach",
   "order": 1,
   "description": [
-    "Wet sand, broken shells, a line of wrack. The wind never quite stops.",
-    "Wet sand and broken shells, and a line of wrack. The wind does not stop.",
-    "Grey sand, grey sea, a line of wrack. The wind is always here."
+    "Grey sand and broken shells stretch along the wind-scoured shore.",
+    "The tide leaves wrack upon the sand; the sea wind never rests.",
+    "Open sea before you, dunes behind. The beach offers little shelter."
   ],
   "climate": { "baseC": 20 },
   "travelHours": 0,
@@ -17,10 +17,10 @@
   "arrive": [
     {
       "text": [
-        "Back on the sand. The wind finds you at once.",
-        "The sand again, and the wind with it.",
-        "You come out onto the beach. The wind is waiting.",
-        "The beach again: wet sand, a line of wrack.",
+        "The familiar beach opens before you, and the salt wind meets you at once.",
+        "You emerge upon the shore once more, where sand and wind appear unchanged.",
+        "The sea comes into view, and with it the beach exposed to every passing gust.",
+        "You return to the damp strand, its tide line darkened by seaweed.",
         "The beach: the same wet sand, the same wrack.",
         "Wet sand underfoot again. Wrack along the tide line."
       ],
@@ -36,33 +36,33 @@
     },
     {
       "text": [
-        "Smoke rises from the ring of rocks.",
-        "A thread of smoke above the ring of rocks.",
-        "The fire is still alive in the rocks."
+        "A thread of smoke rises from the circle of rocks, marking the living hearth.",
+        "Smoke ascends steadily above the stones and is scattered by the wind.",
+        "The fire still burns within the sheltering rocks."
       ],
       "when": { "all": [{ "discovered": "rock_shelter" }, { "timer": "fire" }] }
     },
     {
       "text": [
-        "The ring of rocks waits, cold.",
-        "The ring of rocks, and cold ash inside it.",
-        "No smoke from the rocks. The fire is out."
+        "The hearth among the rocks is cold and silent.",
+        "Only cold ashes occupy the ring of stones.",
+        "No smoke rises from the rocks; the fire has expired."
       ],
       "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "timer": "fire" } }] }
     },
     {
       "text": [
-        "Shells on the stone under the cliff.",
-        "The shells still cling under the cliff.",
-        "Under the cliff, the shells wait for the tide."
+        "Shellfish remain attached to the wet rock beneath the cliff.",
+        "The stones at the cliff's foot are still crowded with shells.",
+        "Beneath the cliff, the shellfish lie exposed until the returning tide."
       ],
       "when": { "discovered": "cliff_shells" }
     },
     {
       "text": [
-        "Fish flash in the shallows.",
-        "Something silver turns in the shallows.",
-        "The fish are still in the shallows."
+        "Small fish flash in the shallow water beside the shore.",
+        "An occasional silver movement betrays fish among the shallows.",
+        "The school of fish continues to frequent the water near the beach."
       ],
       "when": { "discovered": "school_of_fish" }
     }
@@ -73,42 +73,42 @@
     "view": [
       {
         "text": [
-          "Grey sand runs both ways until it bends out of sight. Wrack and broken shells mark the tide line.",
-          "The beach stretches both ways, grey and empty. Wrack marks the tide line.",
-          "Sand, wrack and broken shells, as far as you can see."
+          "The grey strand stretches in either direction until it disappears beyond the bends of the coast. Broken shells and long banks of wrack mark the reach of the tide.",
+          "From this point you can follow the empty beach with your eyes for some distance. Its upper margin is strewn with shells and seaweed.",
+          "Sand and fragments cast up by the waves cover the shore; beyond its distant curves, the course of the coastline remains unknown."
         ]
       },
       {
-        "text": "Behind the dunes, a dark line of trees.",
+        "text": "Beyond the dunes you distinguish a continuous dark belt of trees.",
         "when": { "not": { "discovered": "forest_edge" } }
       },
-      { "text": "Behind the dunes, the forest.", "when": { "discovered": "forest_edge" } },
+      { "text": "Beyond the sandy ridges begins the forest, its foliage closing over the inland ground.", "when": { "discovered": "forest_edge" } },
       {
-        "text": "At the far end of the beach, a ring of dark rocks.",
+        "text": "At the farther extremity of the beach, dark rocks stand together in an irregular ring.",
         "when": { "not": { "discovered": "rock_shelter" } }
       },
       {
-        "text": "At the far end, the ring of rocks, out of the wind.",
+        "text": "The cluster of rocks at the end of the shore offers a refuge from the prevailing wind.",
         "when": { "discovered": "rock_shelter" }
       },
-      { "text": "Smoke rises from the rocks.", "when": { "timer": "fire" } },
+      { "text": "A thin column of smoke rises above the rocks and disperses in the sea breeze.", "when": { "timer": "fire" } },
       {
-        "text": "Past the rocks, a low cliff drops into the surf.",
+        "text": "Past the rocks, a low cliff ends abruptly in the surf.",
         "when": { "all": [{ "discovered": "rock_shelter" }, { "not": { "discovered": "cliff_shells" } }] }
       },
-      { "text": "Under the cliff, shells on the wet stone.", "when": { "discovered": "cliff_shells" } },
+      { "text": "Molluscs cling in numbers to the wet stone beneath the cliff.", "when": { "discovered": "cliff_shells" } },
       {
-        "text": "The cliff above them is steep. With a rope, it could be climbed.",
+        "text": "The face of the cliff is steep, though a securely fastened rope might make its ascent possible.",
         "when": { "all": [{ "discovered": "cliff_shells" }, { "not": { "discovered": "cliff_top" } }] }
       },
-      { "text": "Beyond the cliff, to the west, the meadows.", "when": { "discovered": "cliff_top" } },
-      { "text": "Something flashes in the shallows.", "when": { "not": { "discovered": "school_of_fish" } } },
-      { "text": "Fish turn in the shallows.", "when": { "discovered": "school_of_fish" } }
+      { "text": "Beyond the cliff, towards the west, the ground opens into broad meadows.", "when": { "discovered": "cliff_top" } },
+      { "text": "An occasional silver flash betrays movement in the shallow water.", "when": { "not": { "discovered": "school_of_fish" } } },
+      { "text": "A school of small fish turns and scatters among the shallows.", "when": { "discovered": "school_of_fish" } }
     ],
     "nothingLeft": [
-      "There is nothing here you have not seen.",
-      "You know this beach now.",
-      "Nothing new along the shore."
+      "A further survey of the shore reveals no feature overlooked before.",
+      "By now the principal features of this stretch of coast are familiar to you.",
+      "The tide may bring other things in time, but today the shore yields no new discovery."
     ],
     "landmarks": [
       {
@@ -117,10 +117,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "You climb the dunes. From the top the beach runs both ways until it bends out of sight. Behind them the trees begin. A forest, close and hard to miss.",
-          "Up the soft sand of the dunes. On the other side, trunks and shade: a forest, close enough to walk to.",
-          "From the crest of the dunes you see the island's edge give way to trees. A forest, an hour's walk at most."
-        ]
+          "You climb the loose sand of the dunes, gaining a better view of the country. Behind the crest the coast gives way to a dense forest, near enough to reach on foot; whether it offers fresh water or useful timber remains to be learned.",
+          "From the summit of the dunes you observe a line of tall trees on the landward side. The forest begins within a short walk, promising shade and perhaps a different class of resources.",
+          "The climb is laborious in the soft sand, but it reveals the first distinct feature of the island's interior: a forest, scarcely an hour's walk away."
+        ],
+        "journal": "You discover a forest beyond the dunes."
       },
       {
         "id": "rock_shelter",
@@ -128,10 +129,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "At the far end of the beach, a ring of rocks breaks the sea wind. It is a natural shelter. You can make a bed here, and build a campfire for warmth.",
-          "Rocks stand in a ring, out of the wind. A natural shelter, ready for a bed and a campfire.",
-          "The wind cannot reach inside the rock formation. Shelter already made. You can build a bed and a campfire here."
+          "At the end of the beach, a natural ring of rocks breaks the full force of the sea wind. Its enclosed ground would serve admirably for a bed, and a hearth could be established there with little labour.",
+          "The formation proves more useful on inspection than from a distance. The rocks shut out much of the wind, leaving a space in which to sleep and maintain a campfire.",
+          "Between the boulders you find a sheltered hollow. Nature has supplied the walls; a bed and a fire would be enough to make it a serviceable first camp."
         ],
+        "journal": "You find sheltered ground among the rocks.",
         "siteCapabilities": ["camp_ground", "coastal_camp"]
       },
       {
@@ -141,10 +143,11 @@
         "effort": "work",
         "visibleWhen": { "discovered": "rock_shelter" },
         "text": [
-          "Past the rocks, a low cliff drops into the surf. Shells cling to the wet stone below it. You could pick them and eat them as they are. Cooked, they would go further.",
-          "Beyond the rocks, a low cliff meets the sea. Shells crowd the wet stone at its foot. You could eat them raw, or cook them for more.",
-          "Under a low cliff past the rocks, shells cover the wet stone. Food, of a kind: raw, or better cooked."
-        ]
+          "Beneath a low cliff the retreating tide exposes stones thickly covered with shellfish. They may be eaten raw, though heat would render this modest resource more nourishing.",
+          "The wet rock at the cliff's foot is occupied by countless shells. Here, at least, the sea offers food without the need for a boat; it would be better still when cooked.",
+          "You examine the cliff and discover an accessible bed of shellfish upon the stones below. They promise an immediate meal, and a better one if a fire can be made."
+        ],
+        "journal": "You find shellfish clinging to the cliff rocks."
       },
       {
         "id": "school_of_fish",
@@ -152,10 +155,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "In the shallows, a school of small fish turns and flashes. Too quick for bare hands. With a sharp stick you might spear one.",
-          "Small fish dart in the shallows, a whole school of them. Your hands are too slow. A spear might do it.",
-          "Silver flashes in the shallow water: fish, many of them. Too fast to grab. A sharp stick could reach them."
+          "A school of small fish moves through the shallows in quick, coordinated turns. Too swift for the unaided hand, they might nevertheless be taken with a properly sharpened spear.",
+          "The water is shallow enough to wade, and fish are plentiful; but their movements are exceedingly rapid. A pointed stick would greatly improve your chances.",
+          "Silver bodies dart through the clear water close to shore. The fish cannot be grasped by hand, but they remain within reach of a spear."
         ],
+        "journal": "Fish gather in the shallows. A spear might catch them.",
         "siteCapabilities": ["fishable_water"]
       },
       {
@@ -165,10 +169,11 @@
         "effort": "work",
         "visibleWhen": { "discovered": "cliff_shells" },
         "text": [
-          "You tie the rope around a rock and climb, hand over hand. From the top the land opens out to the west: long grass in waves, bushes, a line of willows. Meadows, an hour's walk away.",
-          "With the rope looped round a boulder you haul yourself up, the wind pulling at you. At the top you see what the cliff was hiding: meadows to the west, wide and green, an hour away.",
-          "The rope holds. The climb is short but steep. From the top, inland to the west, grass rolls away under the wind: meadows, maybe an hour's walk."
+          "Having secured the rope about a firm boulder, you ascend the cliff with considerable caution. From its summit the western country comes into view: a broad expanse of grassland, dotted with bushes and willows, perhaps an hour's walk away.",
+          "The rope bears your weight as you climb the steep face. At the top you discover what the cliffs had concealed: meadows extending westward, their long grasses stirred by the wind.",
+          "The ascent is short, but there is little secure footing. Once above the cliff, you observe a new region to the west, where meadows sweep towards a line of willows about an hour distant."
         ],
+        "journal": "From the cliff, you discover meadows to the west.",
         "requires": { "item": "cordage" },
         "requiresText": "Too steep to climb without a rope"
       }
@@ -187,8 +192,8 @@
       "effects": [{"timer": "fire", "addHours": 6}],
       "log": [
         "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
-        "You shield a match in your hands. The flame jumps to the kindling.",
-        "One match, struck carefully. The fire is lit."
+        "You shelter the tiny flame from the wind until it passes to the kindling.",
+        "With a carefully struck match, you kindle the prepared wood."
       ],
       "tags": ["kindle"],
       "_note": "with matches: 15 min, always works, one match each time",
@@ -212,16 +217,16 @@
       },
       "requires": { "item": "firewood", "gte": 3 },
       "log": [
-        "You strike one stone against the other over a nest of dry grass, again and again.",
-        "Stone on stone, sparks jumping into the tinder, most of them dying at once.",
-        "You knock the stones together until your knuckles bleed, coaxing sparks into the kindling."
+        "You strike stones over dry tinder, seeking a lasting spark.",
+        "Sparks fall upon the tinder, but most vanish before they can set it alight.",
+        "Sparks fly as you strike the stones. Your knuckles ache."
       ],
       "outcomes": [
         {
           "weight": 2,
           "text": [
             "A spark holds. You blow, and it becomes a flame.",
-            "One spark lands right. Smoke, a glow, then fire.",
+            "The dry fibres begin to smoke; an instant later a small flame rises among them.",
             "The tinder catches at last. You feed it twig by twig."
           ],
           "effects": [{"take": {"firewood": 3}}, {"timer": "fire", "addHours": 6}]
@@ -230,7 +235,7 @@
           "weight": 1,
           "text": [
             "The sparks die in the tinder, one after another. Not this time.",
-            "Smoke, then nothing. The wood will keep for another try.",
+            "A little smoke appears, then vanishes. The wood is still fit for another trial.",
             "Your hands are numb before a spark holds."
           ]
         }
@@ -275,7 +280,7 @@
           "text": [
             "Smoke, but no flame. The wood will do for another try.",
             "The ember dies before it catches. You keep the wood.",
-            "Your hands give out first. No fire, not yet."
+            "At length fatigue compels you to stop; the sticks have yielded no fire."
           ]
         }
       ],
@@ -293,12 +298,12 @@
       "cost": { "firewood": 2 },
       "effects": [{"timer": "fire", "addHours": 4}],
       "log": [
-        "The fire crackles.",
-        "The flames climb higher.",
-        "You feed the fire. It answers.",
-        "Sparks climb into the dark.",
-        "Sparks drift up on the wind.",
-        "The new wood catches with a hiss."
+        "The new fuel catches, and the hearth crackles steadily.",
+        "The flames rise higher above the stones.",
+        "You add dry wood, and the fire responds with renewed vigour.",
+        "Sparks ascend into the darkening air.",
+        "A shower of sparks is carried upwards by the wind.",
+        "Fresh wood catches with a sudden hiss of escaping moisture."
       ],
       "global": true
     },
@@ -311,12 +316,12 @@
       "visibleWhen": { "discovered": "cliff_shells" },
       "yields": [{ "item": "shells", "min": 2, "max": 4 }],
       "log": [
-        "You prise shells off the wet stone. The surf soaks your legs.",
+        "You prise the shellfish from the rocks as the surf washes around your legs.",
         "You work the shells loose with your fingers. The surf breaks over your knees.",
-        "Shell by shell, off the wet stone. Your hands go numb.",
-        "A handful of shells, cold and heavy.",
-        "A pocketful of shells, cold and wet.",
-        "Shells, heavy and dripping."
+        "One shell after another comes free, though the cold soon numbs your fingers.",
+        "You gather a handful of shells, heavy with seawater.",
+        "The day's collection begins with a pocketful of fresh shellfish.",
+        "You carry away shells still dripping from the tide."
       ]
     },
     {
@@ -329,8 +334,8 @@
       "yields": [{ "item": "stone", "min": 2, "max": 3 }],
       "log": [
         "Under the cliff, stones of every size. You pick the hardest.",
-        "You choose stones from the foot of the cliff, flat and heavy.",
-        "You gather stones where the cliff has crumbled."
+        "You select flat, weighty stones from the debris beneath the cliff.",
+        "The fallen rock provides stones suitable for rough tools and a hearth."
       ],
       "_note": "stones lie under the cliff: 2 strike sparks for a fire; also for the rock knife, the axe, the hoe and the weir"
     },
@@ -346,34 +351,34 @@
         {
           "weight": 4,
           "text": [
-            "Two fish, flapping on the sand.",
-            "Two fish, one on each strike.",
-            "Two fish thrash on the sand."
+            "Two fish lie upon the sand, taken by successive strokes of the spear.",
+            "Your patience has secured two fish from the shallow water.",
+            "Two small fish struggle briefly upon the shore: a useful return for the effort."
           ],
           "effects": [{ "give": { "raw_fish": 2 } }]
         },
         {
           "weight": 4,
           "text": [
-            "One fish. It will do.",
-            "One fish, wriggling on the point.",
-            "A single fish. Enough for now."
+            "A single fish is taken. It will provide at least one meal.",
+            "The spear rises with one fish upon its point.",
+            "Your effort produces one fish, a modest but welcome catch."
           ],
           "effects": [{ "give": { "raw_fish": 1 } }]
         },
         {
           "weight": 2,
           "text": [
-            "Nothing. The fish are quicker than you.",
-            "Nothing. They scatter every time.",
-            "The water swirls. The spear comes up empty."
+            "The fish turn aside before the spear can reach them.",
+            "At each movement the school disperses into deeper water.",
+            "The water clouds around the spear, which returns without a catch."
           ]
         }
       ],
       "log": [
-        "You wade into the shallows, spear raised.",
-        "You stand knee-deep in the cold water and wait.",
-        "Spear ready, you wade out slowly."
+        "You wade cautiously into the shallows with the spear held ready.",
+        "Standing knee-deep in cold water, you wait for the fish to approach.",
+        "With the spear prepared, you advance slowly through the water."
       ]
     },
     {
@@ -392,69 +397,69 @@
           "lines": [
             {
               "text": [
-                "You lie down, too exhausted to think.",
+                "You lie down so utterly exhausted that thought is beyond your power.",
                 "You fall down where you are. You can't keep your eyes open.",
-                "Your legs give way. Too tired to care."
+                "Your remaining strength deserts you, leaving only the desire for sleep."
               ],
               "when": { "stat": "energy", "lte": 20 }
             },
             {
               "text": [
-                "You lie down. Every muscle aches.",
-                "You lie down. Everything hurts.",
+                "You rest upon the bed, conscious of an ache in every muscle.",
+                "Weariness settles heavily upon your limbs after the day's exertions.",
                 "You curl up, aching all over."
               ],
               "when": { "stat": "energy", "lte": 40 }
             },
             {
               "text": [
-                "You lie down, tired in a slow, heavy way.",
-                "You stretch out. A slow tiredness comes over you.",
-                "You lie down, heavy and tired."
+                "You lie down beneath the weight of a long day's labour.",
+                "A slow fatigue overtakes you as you stretch out upon your bed.",
+                "With the day's work behind you, a welcome heaviness draws you towards sleep."
               ],
               "when": { "stat": "energy", "lte": 80 }
             },
             {
               "text": [
-                "You lie down, not really tired. Sleep is slow to come.",
-                "You lie down and close your eyes. Sleep takes its time.",
-                "You are not tired. You lie down and wait for sleep."
+                "You retire while still wakeful, uncertain whether sleep will soon visit you.",
+                "You close your eyes and listen to the island, waiting for tiredness to come.",
+                "Your strength is not yet spent, and for some time you lie awake."
               ]
             }
           ]
         },
         {
           "intro": [
-            "The day comes back to you in pieces.",
-            "Pieces of the day drift back.",
-            "You think back over the day.",
-            "Lying still, you go over the day.",
-            "In the quiet, the day replays.",
-            "Before sleep, the day returns to you."
+            "In the quiet before sleep, the day's discoveries return to your mind.",
+            "You review in turn the small events which have occupied the day.",
+            "The day's labours present themselves again to your memory.",
+            "Lying awake, you consider what your efforts have gained.",
+            "The silence invites reflection upon the country around you.",
+            "Before sleep, you recall the observations and exertions of the day."
           ],
           "max": 3,
           "lines": [
             {
               "text": [
                 "The cold sea. Waking alone on the sand.",
-                "The shock of waking on the beach, alone.",
-                "Salt, cold, and no ship on the horizon."
+                "The deserted shore and your solitary awakening return vividly to mind.",
+                "Again you see the empty horizon where your vessel should have been."
               ],
               "when": { "not": { "did": "sleep" } }
             },
             {
               "text": [
-                "Carving the spear with the knife, shaving by shaving.",
-                "The knife turning a branch into a spear.",
-                "The spear you carved, its point sharp under your thumb."
+                "The knife shaving the point of a spear comes back to you.",
+                "You recall the care with which the blade was used to shape a straight branch.",
+                "The newly fashioned spear, keen beneath your thumb, is a modest satisfaction."
               ],
               "when": { "all": [{ "today": "craft_spear" }, { "item": "knife" }] }
             },
             {
               "text": [
-                "Hacking at a branch with the rock knife until it had a point.",
-                "The blunt rock knife, and the spear it made, slowly.",
-                "A spear made with a blade of stone."
+                "You remember how slowly the stone knife cut into the wood.",
+                "The crude blade demanded patience before the branch acquired its point.",
+                "A simple spear, formed with a stone edge, seemed a substantial achievement."
               ],
               "when": {
                 "all": [{ "today": "craft_spear" }, { "item": "rock_knife" }, { "not": { "item": "knife" } }]
@@ -462,80 +467,80 @@
             },
             {
               "text": [
-                "Grinding a stone into a blade, for hours.",
-                "Stone on stone, until it had an edge.",
-                "The rock knife, and how long it took."
+                "You recall the many hours spent grinding a useful edge upon stone.",
+                "The sound of stone against stone still seems to linger in your ears.",
+                "The crude knife cost more labour than its appearance could suggest."
               ],
               "when": { "today": "craft_rock_knife" }
             },
             {
               "text": [
-                "Fish flashing in the shallows, just out of reach.",
-                "Silver fish in the shallows, too quick to catch.",
-                "The fish in the shallows, so close."
+                "You picture the fish turning like flashes of silver beneath the water.",
+                "The quick movements of the fish in the shallows occupy your thoughts.",
+                "Those small fish remain tantalisingly near the shore, yet difficult to take."
               ],
               "when": { "today": "school_of_fish" }
             },
             {
               "text": [
-                "Building the shelter, log by log.",
-                "The shelter against the rocks, and how still it is inside.",
-                "The wind breaking on the logs you raised."
+                "Log by log, the shelter rose beside the rocks; you remember the labour well.",
+                "You recall the quiet within the shelter after the wind had been excluded.",
+                "The walls you raised now meet the force of the sea breeze in your place."
               ],
               "when": { "today": "shelter" }
             },
             {
               "text": [
-                "The first harvest from the field.",
-                "Breaking the corn off the stalks.",
-                "Arms full of corn."
+                "You think with satisfaction of the field's first harvest.",
+                "The ripe ears of corn, separated from their stalks, return to memory.",
+                "You remember carrying away an armful of grain grown upon the island."
               ],
               "when": { "today": "harvest_corn" }
             },
             {
               "text": [
-                "Hacking at the wood with the axe.",
-                "The axe biting into wood.",
-                "Logs, real logs, at last."
+                "The work of felling timber with the axe remains fresh in your arms.",
+                "You recall the axe's repeated blows upon the standing wood.",
+                "The acquisition of sound logs seemed another step towards a proper settlement."
               ],
               "when": { "today": "chop_wood" }
             },
             {
               "text": [
-                "Standing in the surf with the spear raised.",
-                "Cold water to your knees, the spear ready.",
-                "Waiting in the surf for the fish to come close."
+                "You remember standing in the breaking surf with the spear held ready.",
+                "The chill of the shallow sea about your knees returns to mind.",
+                "You recall waiting motionless for a fish to venture within reach."
               ],
               "when": { "today": "catch_fish" }
             },
             {
               "text": [
-                "The view from the cliff top: grass all the way inland.",
-                "The wind at the top of the cliff, and the meadows below.",
-                "Climbing the cliff, and the green land behind it."
+                "The view from the cliff top comes back to you: broad grasslands inland.",
+                "You remember the wind upon the summit, and the meadows below.",
+                "The difficult ascent revealed a green country beyond the barren shore."
               ],
               "when": { "today": "cliff_top" }
             },
             {
               "text": [
-                "A clear river under the willows.",
-                "The river, cold and quick over the stones.",
-                "Fish holding still in the river's slow pools."
+                "The clear river beneath the willows remains vivid in memory.",
+                "You remember the cold current passing rapidly over its stones.",
+                "You picture the fish poised in the sheltered pools of the river."
               ],
               "when": { "today": "river" }
             },
             {
               "text": [
-                "Wading in the river with the spear raised.",
-                "The river pulling at your legs while you waited for a fish.",
-                "Fishing in the slow pools under the willows."
+                "You recall wading into the river, careful of your footing.",
+                "The pull of the current upon your legs seemed strongest while you waited.",
+                "Beneath the willows you hunted fish in the slower reaches of the stream."
               ],
               "when": { "today": "catch_river_fish" }
             },
             {
               "text": [
-                "A match flaring in your cupped hands, then warmth.",
-                "One match, and the fire took.",
+                "The little flame of a match returns to mind, followed by the welcome warmth.",
+                "You remember how readily the kindling caught from a single match.",
                 "The smell of a struck match, then woodsmoke."
               ],
               "when": { "today": "light_fire" }
@@ -543,92 +548,92 @@
             {
               "text": [
                 "Wood against wood until your palms burned, and at last a flame.",
-                "Hours of rubbing sticks before the fire came.",
-                "Your raw palms, and the first ember."
+                "The long work of turning dry sticks seemed almost without end.",
+                "Your sore palms and the small first ember are not easily forgotten."
               ],
               "when": { "today": "make_fire" }
             },
             {
               "text": [
-                "Striking stone on stone until a spark held.",
-                "Sparks in the tinder, and at last a flame.",
-                "Your sore knuckles, and the fire the stones made."
+                "The blows of stone upon stone at last produced a spark which endured.",
+                "You remember the tinder beginning to smoke, then yielding a flame.",
+                "Your knuckles still bear witness to the labour of kindling fire with stones."
               ],
               "when": { "today": "strike_fire" }
             },
             {
               "text": [
-                "Cold water from a spring between mossy stones.",
-                "The spring, and how cold the water was.",
-                "Drinking from the spring until your teeth ached."
+                "The cold spring among the mossy rocks rises again in memory.",
+                "You remember the astonishing freshness of the water at the spring.",
+                "The taste of water drawn straight from the stones is a welcome recollection."
               ],
               "when": { "today": "spring" }
             },
             {
               "text": [
-                "A ring of rocks, out of the wind.",
-                "The ring of rocks where the wind can't reach.",
-                "Shelter among the rocks."
+                "You remember the circle of rocks that shelters your camp from the wind.",
+                "The stillness within the rocky enclosure remains a precious comfort.",
+                "Among the boulders you found a natural refuge from the weather."
               ],
               "when": { "today": "rock_shelter" }
             },
             {
               "text": [
-                "The cool dark under the trees.",
-                "The forest, quiet and dim.",
-                "Tall trunks and the smell of moss."
+                "The cool shade beneath the forest canopy returns to you.",
+                "You picture the forest, dim and quiet beneath its branches.",
+                "The straight trunks and damp scent of moss remain vivid in memory."
               ],
               "when": { "today": "forest" }
             },
             {
               "text": [
-                "Long grass, and the wind moving through it.",
-                "The open meadows under a wide sky.",
-                "Grass to the knee, silver in the wind."
+                "You recall the meadow grasses bending in the wind.",
+                "The broad sky above the open grassland comes again before your eyes.",
+                "You picture pale grasses rolling in waves across the hills."
               ],
               "when": { "today": "meadows" }
             },
             {
               "text": [
-                "Purple fingers from the berries.",
-                "Picking berries, thorns in your sleeves.",
-                "The sour, sweet taste of the berries."
+                "The berry juice staining your fingers returns to mind.",
+                "You remember the sharp thorns as you gathered the small fruit.",
+                "The berries' first tartness, then their sweetness, is easily recalled."
               ],
               "when": { "today": "collect_berries" }
             },
             {
               "text": [
-                "The smell of food over the fire.",
-                "Food cooking on the hot stones.",
-                "The smell of something cooking."
+                "You remember the welcome scent of food cooking beside the fire.",
+                "The heat of the stones and the smell of roasting provisions return to you.",
+                "A simple meal prepared over the fire seemed no small luxury."
               ],
               "when": { "today": "cook" }
             },
             {
               "text": [
-                "Armful after armful of dry branches.",
-                "Dragging dry branches out of the forest.",
-                "Bark and twigs, scratching your arms."
+                "You recall collecting bundle after bundle of fallen branches.",
+                "The long walk through the woods with fuel upon your arms returns to mind.",
+                "Even now you seem to feel the bark and twigs scratching your skin."
               ],
               "when": { "today": "gather_wood" }
             },
             {
               "text": [
-                "Shells pried from the wet stone.",
-                "Cold fingers on wet shells.",
-                "Shells, and the surf soaking your legs."
+                "The stubborn shellfish clinging to the tide-wet stone come back to mind.",
+                "You remember prising the shells loose with fingers numbed by cold.",
+                "Again you feel the surf breaking around your legs while you worked."
               ],
               "when": { "today": "collect_shells" }
             },
             {
-              "text": ["The taste of fresh water.", "Water, at last.", "Cold, clean water."],
+              "text": ["You remember how welcome the first fresh water tasted.", "The thought of clear water refreshes even your memory of the day's labour.", "You recall a long drink of clean, cold water."],
               "when": { "today": "drink" }
             },
             {
               "text": [
-                "Something in your stomach, at least.",
-                "Food, of a kind.",
-                "You ate. That is something."
+                "You remember your modest meal, enough at least to carry you onward.",
+                "However plain the food, it was a necessary provision against hunger.",
+                "You recall eating what the island afforded, grateful that it was sufficient."
               ],
               "when": { "today": "eat" }
             }
@@ -637,20 +642,20 @@
             "A day of small things. You hardly remember it.",
             "The day blurs. Nothing stands out.",
             "Little to remember. Sand, waiting, more sand.",
-            "Nothing much. Sand, wind, waiting.",
-            "An empty sort of day.",
+            "The island revealed no novelty today, though its familiar demands remained.",
+            "It has been a quiet day, with few events worthy of the journal.",
             "Hours of wind and waiting."
           ],
           "_lines": "most memorable first; the fire and the spear are remembered the way you did them (matches, stones or friction; knife or rock knife)"
         }
       ],
       "log": [
-        "Sleep takes you.",
-        "Your eyes close.",
-        "Darkness, and then nothing.",
-        "At last, sleep.",
-        "Sleep comes quickly.",
-        "You drift off."
+        "At length sleep overcomes you.",
+        "Your eyelids grow heavy, and the day's concerns fall silent.",
+        "Presently the world fades into darkness.",
+        "The long-expected rest arrives.",
+        "Sleep comes more swiftly than you had supposed.",
+        "You sink into a deep and welcome sleep."
       ],
       "_afterwards": "the night itself is quiet; on waking: the engine announces the new day and sleep quality, then one line on how your body is (worst first), then the fire",
       "afterwards": [
@@ -659,49 +664,49 @@
           "lines": [
             {
               "text": [
-                "Your body is weak and shaking. The night took something from you.",
-                "You are weak. Your hands won't stop shaking.",
-                "You can barely sit up. The night was hard on you."
+                "You awake trembling and weak; the night has exacted a heavy price.",
+                "The effort of sitting upright sets your hands shaking.",
+                "Your strength is so diminished that even rising proves difficult."
               ],
               "when": { "stat": "health", "lte": 25 }
             },
             {
               "text": [
-                "Hunger and thirst, both at once.",
-                "Your stomach aches and your mouth is dry.",
-                "Hungry, thirsty, both."
+                "Hunger and thirst make themselves felt together, with unpleasant urgency.",
+                "An empty stomach and a dry mouth are the first sensations of the morning.",
+                "You wake in immediate need of both food and water."
               ],
               "when": { "all": [{ "stat": "hunger", "gte": 41 }, { "stat": "thirst", "gte": 41 }] }
             },
             {
               "text": [
-                "Your mouth is dry, your tongue thick.",
-                "Your throat is dry as sand.",
-                "Thirst wakes you before the light does."
+                "Your tongue is dry, and swallowing has become difficult.",
+                "An oppressive thirst leaves your throat as dry as the sand.",
+                "Before daylight is fully established, thirst has already awakened you."
               ],
               "when": { "stat": "thirst", "gte": 41 }
             },
             {
               "text": [
-                "Your stomach is a hollow ache.",
-                "Hunger, first thing.",
-                "Your belly is empty and loud."
+                "A persistent ache in the stomach reminds you how little you have eaten.",
+                "Hunger is your first concern upon waking.",
+                "Your empty stomach demands attention before any other labour."
               ],
               "when": { "stat": "hunger", "gte": 41 }
             },
             {
               "text": [
-                "You are stiff with cold.",
-                "The cold has got into your joints.",
-                "You wake shivering."
+                "Cold has left your limbs stiff and reluctant to move.",
+                "The night's chill seems to have settled in your joints.",
+                "You awake shivering in the morning air."
               ],
               "when": { "warmth": ["freezing", "cold"] }
             },
             {
-              "text": ["You feel rested.", "You feel stronger.", "Rested, for once."],
+              "text": ["You awake refreshed and fit for the day's work.", "The night's rest has restored a welcome measure of strength.", "For once, you rise with strength enough for the coming day."],
               "when": { "stat": "energy", "gte": 70 }
             },
-            { "text": ["You are still tired.", "Tired still, though you slept.", "The sleep did little."] }
+            { "text": ["You have slept, yet the fatigue of yesterday has not wholly disappeared.", "Despite the night's rest, your limbs remain heavy.", "The hours of sleep have afforded less relief than you had hoped."] }
           ]
         },
         {
@@ -709,20 +714,20 @@
           "lines": [
             {
               "text": [
-                "The fire still smoulders in the ring of rocks.",
-                "Embers still glow in the rocks.",
-                "A little smoke still rises from the fire."
+                "The fire continues to smoulder within the circle of stones.",
+                "A faint red glow survives among the embers.",
+                "A little smoke still rises from the hearth, which has endured the night."
               ],
               "when": { "all": [{ "at": "beach" }, { "timer": "fire" }] }
             },
             {
               "text": [
-                "The fire is long out. Only cold ash.",
-                "Cold ash where the fire was.",
-                "The fire is gone. Not even smoke.",
-                "The fire died in the night.",
-                "Sometime in the night, the fire went out.",
-                "The fire did not last the night."
+                "The hearth has been extinguished; nothing remains but cold ash.",
+                "Where the fire burned, a pale heap of ashes is now cold.",
+                "Not a trace of smoke rises from the dead hearth.",
+                "The fire exhausted its fuel during the night.",
+                "At some hour before dawn, the last embers went out.",
+                "The fuel did not suffice to keep the fire alive until morning."
               ],
               "when": { "at": "beach" }
             }

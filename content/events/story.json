@@ -6,7 +6,8 @@
     "_note": "opens before the first journal line; the opening journal text (game.json start.log) follows when it ends",
     "scenes": {
       "start": {
-        "text": "You were three days out when the storm came. All evening the wind rose, and by midnight the boat was climbing black waves and falling into the troughs between them.\n\nThen, in the dark, a crack like a gunshot. The hull has struck rock. Water roars in below deck and the ship lurches, already lower in the sea.\n\nThere is a moment, no more, to grab one thing before you jump.",
+        "text": "For three days your vessel had held her course without incident; then, towards evening, the wind began to rise. By midnight the little ship was labouring among enormous seas, climbing each black ridge only to plunge into the gulf beyond.\n\nWithout warning, a violent shock ran from stem to stern. The hull had struck a submerged rock. You heard timber give way below, and presently the unmistakable rush of water entering the hold. Already the deck was settling beneath your feet.\n\nThere was no time to save the ship. One object, perhaps, might be carried through the surf. Which would you choose?",
+        "journal": "A storm wrecks your ship. You must decide what to save.",
         "choices": [
           {
             "id": "knife",
@@ -60,19 +61,23 @@
         ]
       },
       "swim_knife": {
-        "text": "You jump with the knife clenched in your fist. The cold punches the breath out of you. A wave throws you under, then another, and each time you claw back to the surface, still gripping the blade.\n\nYou swim until your arms stop answering. Then sand scrapes your knees. You crawl out of the surf and lie still, the knife in your hand.",
+        "text": "You leap with the knife firmly grasped in your hand. The icy water drives the breath from your lungs; a breaker overwhelms you, and a second follows before you can recover. Yet each time you regain the surface, the blade remains in your possession.\n\nHow long this struggle lasts you cannot determine. At length your knees strike sand. You crawl beyond the reach of the waves and remain motionless, still clutching the one useful instrument rescued from the wreck.",
+        "journal": "You reach the shore with the knife still in hand.",
         "close": "wash ashore"
       },
       "swim_matches": {
-        "text": "You stuff the tin of matches inside your shirt and jump. The sea is black and freezing. Waves roll you over and over until you lose which way is up.\n\nA swell lifts you and drops you on something hard: sand. You drag yourself above the tide line and press a hand to your chest. The tin is still there, still shut.",
+        "text": "You secure the little tin of matches beneath your shirt and abandon the sinking vessel. The sea receives you with a cold that seems to stop the heart. Wave after wave turns you helplessly, until even the direction of the surface becomes uncertain.\n\nA final swell bears you forward and casts you upon the sand. With considerable effort you drag yourself above the tide. Your first thought is for the tin: it is still closed, and there may yet be fire within your reach.",
+        "journal": "You reach the shore with your matches.",
         "close": "wash ashore"
       },
       "swim_water": {
-        "text": "You grab the full water can and jump. It drags at you, heavy, but it floats a little, and you hold on to it like a raft while the waves break over your head.\n\nAt last your feet touch bottom. You stagger out of the surf with the can in your arms and fall onto the sand.",
+        "text": "You seize the full water can and spring into the sea. Its weight hinders every movement, though its slight buoyancy affords a precarious support. Clinging to it, you endure the waves as they break above your head.\n\nAt last the ground rises beneath your feet. You stagger out of the surf, the can held close, and fall upon the beach. The vessel is lost; this small provision, at least, has survived.",
+        "journal": "You struggle ashore carrying the water can.",
         "close": "wash ashore"
       },
       "swim_rations": {
-        "text": "You snatch the bag of rations and jump. The cold closes like a fist. A wave tears at the bag, so you wrap the strap around your wrist and kick, and kick.\n\nThe shore comes out of the dark all at once. You crawl onto the sand, the sodden bag still tied to your arm. Food for three days, if you are careful.",
+        "text": "You take up the bag of provisions and leap from the deck. The cold water closes over you. A wave nearly wrests the bag away, but you wind its strap about your wrist and struggle towards the dark outline of the shore.\n\nThe breakers fling you upon the sand. There you lie for some moments, scarcely conscious, the sodden provisions still attached to your arm. Carefully husbanded, they may suffice for three days.",
+        "journal": "You reach the shore with your rescued provisions.",
         "close": "wash ashore"
       }
     }

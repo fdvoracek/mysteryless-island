@@ -217,8 +217,10 @@ export const Landmark = z
     visibleWhen: Condition.optional(),
     requires: Condition.optional(),
     requiresText: z.string().optional(),
-    /** what you find: shown in the pop-up and written to the journal */
+    /** Full discovery passage shown in the exploration pop-up. */
     text: Text,
+    /** Concise discovery result for the narrow journal; defaults to text for older content. */
+    journal: Text.optional(),
     effects: z.array(Effect).optional(),
   })
   .strict();
@@ -623,6 +625,8 @@ export const EventChoice = z
 export const EventScene = z
   .object({
     text: Text,
+    /** Brief journal record of a scene; the modal retains the full passage. */
+    journal: Text.optional(),
     /** applied when the scene opens */
     effects: z.array(Effect).optional(),
     choices: z.array(EventChoice).min(1).optional(),

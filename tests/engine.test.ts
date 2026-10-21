@@ -116,7 +116,7 @@ describe("engine: the prototype loop", () => {
     e.dispatch({ type: "activity", id: "light_fire" });
     e.advance(7, "rest");
     expect(e.state.timers[`fire@${e.state.location}`]).toBe(0);
-    expect(e.state.log.some((l) => l.text.includes("fire goes out"))).toBe(true);
+    expect(e.state.log.some((l) => l.text.includes("fire expires"))).toBe(true);
   });
 
   it("is deterministic for the same seed and commands", () => {

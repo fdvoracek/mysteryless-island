@@ -14,25 +14,25 @@ const sleep = (e: Engine) => {
 /** the lines written by the last command, in reading order */
 const lastTurn = (e: Engine) => e.state.log.filter((l) => l.turn === e.state.log[0]?.turn).map((l) => l.text).reverse();
 
-const INTRO = ["The day comes back to you in pieces.", "Lying still, you go over the day."];
-const NOTHING = ["A day of small things. You hardly remember it.", "Nothing much. Sand, wind, waiting."];
+const INTRO = ["In the quiet before sleep, the day's discoveries return to your mind.", "Lying awake, you consider what your efforts have gained."];
+const NOTHING = ["A day of small things. You hardly remember it.", "The island revealed no novelty today, though its familiar demands remained."];
 const MEMORIES = [
   "The cold sea. Waking alone on the sand.",
-  "Carving the spear with the knife, shaving by shaving.",
-  "Hacking at a branch with the rock knife until it had a point.",
-  "Grinding a stone into a blade, for hours.",
-  "Fish flashing in the shallows, just out of reach.",
-  "Standing in the surf with the spear raised.",
-  "A match flaring in your cupped hands, then warmth.",
+  "The knife shaving the point of a spear comes back to you.",
+  "You remember how slowly the stone knife cut into the wood.",
+  "You recall the many hours spent grinding a useful edge upon stone.",
+  "You picture the fish turning like flashes of silver beneath the water.",
+  "You remember standing in the breaking surf with the spear held ready.",
+  "The little flame of a match returns to mind, followed by the welcome warmth.",
   "Wood against wood until your palms burned, and at last a flame.",
-  "Cold water from a spring between mossy stones.",
-  "A ring of rocks, out of the wind.",
-  "The cool dark under the trees.",
-  "The smell of food over the fire.",
-  "Armful after armful of dry branches.",
-  "Shells pried from the wet stone.",
-  "The taste of fresh water.",
-  "Something in your stomach, at least.",
+  "The cold spring among the mossy rocks rises again in memory.",
+  "You remember the circle of rocks that shelters your camp from the wind.",
+  "The cool shade beneath the forest canopy returns to you.",
+  "You remember the welcome scent of food cooking beside the fire.",
+  "You recall collecting bundle after bundle of fallen branches.",
+  "The stubborn shellfish clinging to the tide-wet stone come back to mind.",
+  "You remember how welcome the first fresh water tasted.",
+  "You remember your modest meal, enough at least to carry you onward.",
 ];
 
 /** a game where you can sleep: the rocks found and a fire lit */
@@ -48,10 +48,10 @@ function readyToSleep(seed: number, looks = 2): Engine {
 describe("going to sleep", () => {
   it("says how tired you are, from your energy as you lie down", () => {
     const cases: Array<[number, string]> = [
-      [10, "You lie down, too exhausted to think."],
-      [30, "You lie down. Every muscle aches."],
-      [60, "You lie down, tired in a slow, heavy way."],
-      [95, "You lie down, not really tired. Sleep is slow to come."],
+      [10, "You lie down so utterly exhausted that thought is beyond your power."],
+      [30, "You rest upon the bed, conscious of an ache in every muscle."],
+      [60, "You lie down beneath the weight of a long day's labour."],
+      [95, "You retire while still wakeful, uncertain whether sleep will soon visit you."],
     ];
     for (const [energy, line] of cases) {
       const e = readyToSleep(1);
@@ -71,11 +71,11 @@ describe("going to sleep", () => {
     const remembered = lines.filter((l) => MEMORIES.includes(l));
     expect(remembered).toEqual([
       "The cold sea. Waking alone on the sand.",
-      "Fish flashing in the shallows, just out of reach.",
-      "A match flaring in your cupped hands, then warmth.", // the fire was lit with a match
+      "You picture the fish turning like flashes of silver beneath the water.",
+      "The little flame of a match returns to mind, followed by the welcome warmth.", // the fire was lit with a match
     ]);
     // the order of the paragraph: tired, intro, memories, falling asleep, waking
-    expect(lines.indexOf(remembered[2])).toBeLessThan(lines.findIndex((l) => l === "Sleep takes you." || l === "At last, sleep."));
+    expect(lines.indexOf(remembered[2])).toBeLessThan(lines.findIndex((l) => l === "At length sleep overcomes you." || l === "The long-expected rest arrives."));
   });
 
   it("remembers the fire and the spear the way you did them: match or friction, knife or rock knife", () => {
@@ -95,11 +95,11 @@ describe("going to sleep", () => {
       return lastTurn(e).filter((l) => MEMORIES.includes(l));
     };
     const knifeAndMatches = memory("knife", true);
-    expect(knifeAndMatches).toContain("Carving the spear with the knife, shaving by shaving.");
-    expect(knifeAndMatches).not.toContain("Hacking at a branch with the rock knife until it had a point.");
+    expect(knifeAndMatches).toContain("The knife shaving the point of a spear comes back to you.");
+    expect(knifeAndMatches).not.toContain("You remember how slowly the stone knife cut into the wood.");
     const stoneAndFriction = memory("rations", false);
-    expect(stoneAndFriction).toContain("Hacking at a branch with the rock knife until it had a point.");
-    expect(stoneAndFriction).not.toContain("Carving the spear with the knife, shaving by shaving.");
+    expect(stoneAndFriction).toContain("You remember how slowly the stone knife cut into the wood.");
+    expect(stoneAndFriction).not.toContain("The knife shaving the point of a spear comes back to you.");
     // the fire on its own (only the dunes and the rocks explored): match or friction
     const fireMemory = (matches: boolean) => {
       const e = startGame(reg, 12, "rations", { matches });
@@ -111,9 +111,9 @@ describe("going to sleep", () => {
       sleep(e);
       return lastTurn(e).filter((l) => MEMORIES.includes(l));
     };
-    expect(fireMemory(true)).toContain("A match flaring in your cupped hands, then warmth.");
+    expect(fireMemory(true)).toContain("The little flame of a match returns to mind, followed by the welcome warmth.");
     expect(fireMemory(false)).toContain("Wood against wood until your palms burned, and at last a flame.");
-    expect(fireMemory(false)).not.toContain("A match flaring in your cupped hands, then warmth.");
+    expect(fireMemory(false)).not.toContain("The little flame of a match returns to mind, followed by the welcome warmth.");
   });
 
   it("remembers only today: the next night starts with an empty day", () => {
@@ -144,7 +144,7 @@ describe("going to sleep", () => {
     sleep(e);
     const remembered = lastTurn(e).filter((l) => MEMORIES.includes(l));
     expect(remembered).toHaveLength(3);
-    expect(remembered[0]).toBe("Fish flashing in the shallows, just out of reach.");
+    expect(remembered[0]).toBe("You picture the fish turning like flashes of silver beneath the water.");
     expect(remembered).not.toContain("The cold sea. Waking alone on the sand."); // not the first night any more
   });
 
@@ -168,7 +168,7 @@ describe("going to sleep", () => {
 });
 
 describe("waking up", () => {
-  const FALL_ASLEEP = ["Sleep takes you.", "At last, sleep."];
+  const FALL_ASLEEP = ["At length sleep overcomes you.", "The long-expected rest arrives."];
   /** the lines after falling asleep: the morning summary (and any task finished on waking) */
   const morning = (e: Engine) => {
     const lines = lastTurn(e);
@@ -182,13 +182,13 @@ describe("waking up", () => {
     e.state.timers[`fire@${e.state.location}`] = 60; // the fire dies during the night
     sleep(e);
     const m = morning(e);
-    for (const quiet of ["Your lips crack. The world tilts.", "The fire is dying.", "The fire goes out. Only embers now."]) {
+    for (const quiet of ["Your lips crack. The world tilts.", "The fire has diminished to an uncertain flame.", "The fire expires, leaving a bed of glowing embers."]) {
       expect(lastTurn(e)).not.toContain(quiet);
     }
     // instead: when you wake, how your body is, and the fire
-    expect(m[0]).toBe("New day 2 is starting.");
-    expect(m).toContain("Your mouth is dry, your tongue thick.");
-    expect(m.some((l) => l === "The fire is long out. Only cold ash." || l === "The fire died in the night.")).toBe(true);
+    expect(m[0]).toBe("Day 2 dawns over the island.");
+    expect(m).toContain("Your tongue is dry, and swallowing has become difficult.");
+    expect(m.some((l) => l === "The hearth has been extinguished; nothing remains but cold ash." || l === "The fire exhausted its fuel during the night.")).toBe(true);
   });
 
   it("names the worst thing first, one line about the body", () => {
@@ -199,9 +199,9 @@ describe("waking up", () => {
       sleep(e);
       return morning(e)[2];
     };
-    expect(body((e) => { e.state.stats.thirst = 90; e.state.stats.hunger = 90; })).toBe("Hunger and thirst, both at once.");
-    expect(body((e) => { e.state.stats.hunger = 85; e.state.stats.thirst = 0; })).toBe("Your stomach is a hollow ache.");
-    expect(body((e) => { e.state.stats.hunger = 0; e.state.stats.thirst = 0; })).toMatch(/^You feel rested\./);
+    expect(body((e) => { e.state.stats.thirst = 90; e.state.stats.hunger = 90; })).toBe("Hunger and thirst make themselves felt together, with unpleasant urgency.");
+    expect(body((e) => { e.state.stats.hunger = 85; e.state.stats.thirst = 0; })).toBe("A persistent ache in the stomach reminds you how little you have eaten.");
+    expect(body((e) => { e.state.stats.hunger = 0; e.state.stats.thirst = 0; })).toMatch(/^You awake refreshed/);
   });
 
   it("says when the fire is still burning", () => {
@@ -209,7 +209,7 @@ describe("waking up", () => {
     e.state.time = 22 * 60;
     e.state.timers[`fire@${e.state.location}`] = 11 * 60; // more than the night
     sleep(e);
-    expect(morning(e)).toContain("The fire still smoulders in the ring of rocks.");
+    expect(morning(e)).toContain("The fire continues to smoulder within the circle of stones.");
   });
 
   it("dying in your sleep is never quiet", () => {

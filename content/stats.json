@@ -72,7 +72,7 @@
     {
       "when": { "warmth": ["freezing"] },
       "healthPerHour": -3,
-      "log": ["The cold is in your bones.", "You can't stop shivering.", "The cold numbs your fingers."],
+      "log": ["The cold penetrates your clothing and settles painfully in your limbs.", "You shiver despite every effort to remain still.", "Your fingers are growing numb beneath the persistent chill."],
       "cause": "cold"
     }
   ],

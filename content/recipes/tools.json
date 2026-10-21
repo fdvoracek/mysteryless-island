@@ -9,9 +9,9 @@
         "effort": "work",
         "cost": { "stone": 2 },
         "log": [
-          "You grind one stone against the other, hour after hour, until an edge comes up that cuts.",
+          "You grind two stones together until a cutting edge appears.",
           "Three hours of grinding stone on stone. The edge is rough, but it cuts.",
-          "You knock flakes off one stone with the other, then grind the edge. It will never be a knife, but it will do."
+          "You first detach flakes with sharp blows, then refine the edge by grinding."
         ]
       }
     ],
@@ -28,7 +28,7 @@
         "effort": "light",
         "cost": { "firewood": 10 },
         "log": [
-          "You hack the straightest branch to a point with the rock knife. It is slow, blunt work.",
+          "You hack the straightest branch to a point with the rock knife.",
           "The rock knife chews more than it cuts, but at last the branch has a point.",
           "Stroke after stroke with the stone blade, until the tip is sharp enough."
         ]
@@ -57,8 +57,8 @@
         "effort": "work",
         "cost": { "firewood": 2, "stone": 2 },
         "log": [
-          "You knock one stone against another until it has an edge, and lash it into a split branch.",
-          "Stone on stone until one has an edge. Then a split branch, and the stone wedged in tight.",
+          "You shape a stone blade and lash it into a split wooden haft.",
+          "Stone on stone until one has an edge.",
           "A sharp stone, a stout branch, and a long time binding them."
         ]
       }
@@ -91,8 +91,8 @@
         "effort": "work",
         "cost": { "bark_strips": 4 },
         "log": [
-          "You twist the bark strips together, three strands at a time, and twist the strands into a rope.",
-          "Hour after hour you braid the bark, until a rope as long as your arms are wide lies coiled at your feet.",
+          "You twist strips of bark into a length of strong rope.",
+          "After hours of braiding, the rope lies coiled at your feet.",
           "Strip by strip, the bark becomes cord, and the cord a rope. Your fingers ache."
         ]
       }

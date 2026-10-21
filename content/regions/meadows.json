@@ -4,9 +4,9 @@
   "title": "Open Meadows",
   "order": 3,
   "description": [
-    "Long grass to the knee, moving in waves under the wind. The sea is behind the cliff now, only a hush.",
-    "Open grass as far as the next hill, bending in the wind. Behind you, the cliff hides the sea.",
-    "Grass, waist-high in places, silver where the wind combs it. The sea is a murmur behind the cliff."
+    "Long grasses bend in waves. The cliffs conceal the sea.",
+    "Open grassland stretches to the next hill beneath a wide sky.",
+    "Tall grasses ripple in the wind; the sea is hidden beyond the cliff."
   ],
   "climate": { "baseC": 21 },
   "travelHours": 1,
@@ -15,48 +15,48 @@
   "unlockWhen": { "discovered": "cliff_top" },
   "firstVisit": {
     "log": [
-      "Bushes dot the slope ahead. Further down, a line of willows bends as if over water.",
-      "Low bushes stand in the grass, and further down, willows lean the way trees lean over water.",
-      "Here and there a dark bush in the grass. Lower down, a line of willows."
+      "Shrubs dot the slope. Willows below may conceal water.",
+      "Beyond the bushes, a line of willows hints at a stream.",
+      "Dark bushes dot the grass. Willows mark the lower ground."
     ]
   },
   "_arrive": "what you see each time you come back: every line whose 'when' holds, in order",
   "arrive": [
     {
       "text": [
-        "The grass again, and the wind in it.",
-        "Back in the long grass. The wind combs it flat.",
-        "The meadows open out again, bright after the cliff path.",
-        "Open sky again, and grass to the knee."
+        "The open meadows spread once more beneath the wind.",
+        "You return to the tall grass, which bends in broad waves across the slope.",
+        "The country opens before you, bright and spacious after the narrow cliff path.",
+        "Here the sky is unconfined, and grasses brush against your knees."
       ],
       "when": { "phase": ["dawn", "day", "dusk"] }
     },
     {
       "text": [
         "The meadows at night: grass hissing in the dark, no shape to anything.",
-        "In the dark the grass is only a sound around your legs.",
+        "In the darkness you distinguish the movement of grass more by sound than sight.",
         "Night over the grass. Somewhere, crickets."
       ],
       "when": { "phase": ["night"] }
     },
     {
       "text": [
-        "The berry bushes are still heavy with fruit.",
-        "Dark berries on the bushes, waiting.",
-        "The bushes, still full of berries."
+        "The berry bushes remain laden with ripe fruit.",
+        "Dark fruit still hangs in clusters upon the bushes.",
+        "The shrubs continue to offer a considerable supply of berries."
       ],
       "when": { "discovered": "berry_bushes" }
     },
     {
       "text": [
-        "Below, the river runs under the willows.",
-        "You hear the river before you see it.",
-        "The river is still there, quick and clear."
+        "Below the meadow the river follows its course between the willows.",
+        "The murmur of the river reaches you before its water comes into view.",
+        "The river still runs clear and swift beneath the trees."
       ],
       "when": { "discovered": "river" }
     },
     {
-      "text": ["The corn is ripe in the field.", "The corn stands tall and ripe."],
+      "text": ["The ears of corn have ripened in your cultivated field.", "The planted corn stands tall, its ears heavy and ready for harvest."],
       "when": { "building": "corn_field", "is": "ready" }
     }
   ],
@@ -66,29 +66,29 @@
     "view": [
       {
         "text": [
-          "Long grass rolls away inland, bending under the wind.",
-          "Grass to the knee, all the way to the next low hill.",
-          "Open meadows, silver-green, moving like water."
+          "Tall grass extends inland over gently rising ground, its surface stirred into waves by the wind.",
+          "From here the meadow reaches the next low hill without interruption.",
+          "The grasses move in pale green and silver bands across the open country."
         ]
       },
       {
-        "text": "Dark bushes stand here and there in the grass.",
+        "text": "Several dark shrubs break the otherwise continuous expanse of grass.",
         "when": { "not": { "discovered": "berry_bushes" } }
       },
-      { "text": "The berry bushes, dark with fruit.", "when": { "discovered": "berry_bushes" } },
-      { "text": "Lower down, a line of willows.", "when": { "not": { "discovered": "river" } } },
-      { "text": "Under the willows, the river.", "when": { "discovered": "river" } },
-      { "text": "Near the river the ground lies flat.", "when": { "not": { "discovered": "field_site" } } },
+      { "text": "The bushes you examined are heavy with dark, ripe fruit.", "when": { "discovered": "berry_bushes" } },
+      { "text": "Lower on the slope the crowns of willows form a narrow line.", "when": { "not": { "discovered": "river" } } },
+      { "text": "The river runs beneath the willows, its water broken by stones.", "when": { "discovered": "river" } },
+      { "text": "Near the river lies a level tract where the grass grows unusually thick.", "when": { "not": { "discovered": "field_site" } } },
       {
-        "text": "Taller stalks stand out of the grass here and there.",
+        "text": "Among the grasses stand a few taller stems bearing conspicuous seed heads.",
         "when": { "not": { "discovered": "wild_corn" } }
       },
       {
-        "text": "Past the bushes, a humming in the flowers.",
+        "text": "Beyond the bushes a steady humming rises from the flowers.",
         "when": { "all": [{ "discovered": "berry_bushes" }, { "not": { "discovered": "bees" } }] }
       }
     ],
-    "nothingLeft": ["Only grass and wind now.", "You know these meadows.", "Nothing new in the grass."],
+    "nothingLeft": ["The open ground presents no new feature, only grass bending before the wind.", "By now you have examined the principal resources of these meadows.", "Your survey of the grassy slope reveals nothing further today."],
     "landmarks": [
       {
         "id": "berry_bushes",
@@ -96,10 +96,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "The bushes are heavy with small dark berries. You try one: sour, then sweet. Food, if you pick enough.",
-          "Close up, the bushes are full of berries, dark and soft. One tastes sharp and sweet. You could pick them.",
-          "Berries, hundreds of them, small and nearly black. Sour at first, then sweet. Worth picking."
-        ]
+          "A closer inspection reveals that the shrubs are laden with small, almost black berries. Their first taste is sharp, but sweetness follows; here is food requiring little preparation.",
+          "The dark fruit proves soft and ripe. You sample a berry and find it tart but wholesome, promising a useful addition to your provisions.",
+          "Hundreds of berries hang among the leaves. Though small and rather sour at first, they are edible and may readily be gathered."
+        ],
+        "journal": "You find edible berries among the shrubs."
       },
       {
         "id": "river",
@@ -107,10 +108,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "Under the willows runs a river, quick and clear over stones. You drink, and it is sweet. In the slow pools, fish hang in the current. With a spear you might take one.",
-          "The willows lean over a clear river. The water is cold and good to drink. Where it slows, fish hold still against the current. A spear could reach them.",
-          "A river, hidden by the willows: clear, cold, drinkable. In the deep bends, fish turn slowly. Too quick for hands, but not for a spear."
+          "Beneath the willows you discover a river running clear over a bed of stones. Its water is fresh; in the quieter pools, fish hold their position against the current and might be taken with a spear.",
+          "The line of willows conceals a brisk river. Its cold water is fit to drink, and fish can be seen waiting in the sheltered bends, within reach of a careful spear thrust.",
+          "A stream of considerable size flows beneath the trees, swift in its shallows and quiet in its deeper turns. It promises both drinking water and fish, if proper tools can be made."
         ],
+        "journal": "You discover a river, with fresh water and fish.",
         "siteCapabilities": ["fishable_water", "flowing_water"]
       },
       {
@@ -119,10 +121,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "Near the river the ground is flat and dark, the grass soft. Good earth. With a hoe, a field could grow here.",
-          "A flat stretch by the river, deep soil under the grass. A field would do well here, if you could break the ground.",
-          "Level ground near the water, black soil when you dig your fingers in. A place for a field."
+          "Near the river you find a stretch of level ground with a dark, friable soil. With a hoe to break the turf, it might be converted into a productive field.",
+          "The grass here conceals unusually deep and fertile earth. The proximity of water makes this an excellent site for cultivation, once the ground can be turned.",
+          "A small plain beside the river offers the two chief requirements of a field: workable soil and ready water. It remains only to fashion a suitable hoe."
         ],
+        "journal": "You find fertile, level ground beside the river.",
         "siteCapabilities": ["cultivable_ground"]
       },
       {
@@ -131,10 +134,11 @@
         "hours": 0.5,
         "effort": "work",
         "text": [
-          "Among the grass, taller stalks with thin ears: wild corn. Small, but you could eat it. Or sow it.",
-          "Wild corn grows in a patch of tall stalks, small ears hidden in the leaves. Food, and seed.",
-          "Tall stalks with little ears of corn, gone wild. Enough to eat a little, or to sow."
-        ]
+          "Among the grasses you recognise a patch of wild corn, whose slender ears hold edible grain. The kernels might be consumed now, or reserved for sowing.",
+          "Several taller stalks bear the unmistakable ears of corn, though the grain is small. Thus the meadow offers not only present nourishment but the possibility of a future crop.",
+          "You discover wild corn growing between the grasses. Its ears are modest, yet they provide both food and, more importantly, seed."
+        ],
+        "journal": "Wild corn offers food now and seed for planting."
       },
       {
         "id": "bees",
@@ -143,10 +147,11 @@
         "effort": "work",
         "visibleWhen": { "discovered": "berry_bushes" },
         "text": [
-          "Bees, working the flowers past the bushes. Wild ones, nesting somewhere. A hollow log might bring them to you.",
-          "The humming is bees, hundreds of them, in the flowers. Give them a hollow log and they might stay.",
-          "A swarm of wild bees in the flowers. A hive would keep them, and their honey."
+          "Following the hum, you find wild bees visiting a bank of flowers. If a hollow log could be offered as shelter, a colony might be established and its honey collected.",
+          "The flowers are alive with bees, whose movements suggest a nest nearby. A suitable hollow log could perhaps persuade them to remain within easy reach.",
+          "Hundreds of bees work among the blossoms. Their presence suggests a new resource: a managed hive, and in time a supply of honey."
         ],
+        "journal": "Wild bees visit the flowers. A hive may attract them.",
         "siteCapabilities": ["bee_habitat"]
       }
     ]
@@ -161,11 +166,11 @@
       "visibleWhen": { "discovered": "berry_bushes" },
       "yields": [{ "item": "berries", "min": 3, "max": 6 }],
       "log": [
-        "Your fingers come away purple.",
-        "You strip the bushes branch by branch.",
-        "Berries, a handful at a time. Thorns catch your sleeves.",
-        "You fill your hands, then your pockets.",
-        "Small dark berries, soft enough to bruise."
+        "The fruit stains your fingers a deep purple.",
+        "You gather the berries steadily, examining one branch after another.",
+        "The thorns catch upon your sleeves as you collect the small fruit.",
+        "You fill your hands and pockets with the berries growing here.",
+        "You select the dark, ripe berries carefully to avoid bruising them."
       ]
     },
     {
@@ -178,10 +183,10 @@
       "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
       "tags": ["drink"],
       "log": [
-        "You kneel at the river and drink. Cold and sweet.",
-        "River water, cold enough to ache.",
-        "You drink from your hands, the current pulling at your fingers.",
-        "The river tastes of stone and grass."
+        "You kneel at the riverbank and drink the clear, sweet water.",
+        "The fresh water is cold enough to set your teeth aching.",
+        "You drink from your cupped hands while the current runs between your fingers.",
+        "The river water carries a faint taste of stone and grasses."
       ]
     },
     {
@@ -196,34 +201,34 @@
         {
           "weight": 4,
           "text": [
-            "Two fish, flapping in the grass.",
-            "Two fish from the same pool.",
-            "Two fish, silver and cold."
+            "Two fish are taken from the pool, and lie struggling in the grass.",
+            "The same quiet reach of river yields two useful fish.",
+            "You secure two silver fish, a satisfactory return for your patience."
           ],
           "effects": [{ "give": { "raw_fish": 2 } }]
         },
         {
           "weight": 4,
           "text": [
-            "One fish. It will do.",
-            "One fish, flapping on the bank.",
-            "A single fish, heavy for its size."
+            "One fish rewards your labour in the river.",
+            "You draw one struggling fish out of the water.",
+            "Your spear takes a single fish, surprisingly heavy for its size."
           ],
           "effects": [{ "give": { "raw_fish": 1 } }]
         },
         {
           "weight": 2,
           "text": [
-            "Nothing. The current carries them off.",
-            "Nothing. They slip back into the deep water.",
-            "The spear comes up with weed, nothing else."
+            "The current carries the disturbed fish beyond your reach.",
+            "At the first movement the fish vanish into deeper water.",
+            "The spear rises bearing nothing but a strand of river weed."
           ]
         }
       ],
       "log": [
-        "You stand on a stone above a slow pool, spear raised.",
-        "You wade into the river to your knees and wait.",
-        "Under the willows you wait for a fish to hold still."
+        "You take your position on a stone above the pool and wait with spear raised.",
+        "You wade knee-deep into the current, seeking a fish that holds still.",
+        "In the shade of the willows, you wait for the proper moment to strike."
       ]
     },
     {
@@ -234,9 +239,9 @@
       "visibleWhen": { "discovered": "river" },
       "yields": [{ "item": "willow_twigs", "min": 10, "max": 10 }],
       "log": [
-        "You cut long, supple twigs from the willows.",
+        "You cut a bundle of long, flexible shoots from the willows.",
         "Willow twigs, green and bending, an armful.",
-        "You strip the willows of their long whips."
+        "You collect slender willow branches, chosen for their length and suppleness."
       ]
     },
     {
@@ -248,9 +253,9 @@
       "visibleWhen": { "discovered": "wild_corn" },
       "yields": [{ "item": "corn", "min": 1, "max": 2 }],
       "log": [
-        "You search the tall grass for the ears of wild corn.",
-        "A few small ears among the grass.",
-        "Wild corn, thin ears, hard kernels."
+        "You search the taller grasses for the seed heads of wild corn.",
+        "Several slender ears of corn reward your search.",
+        "The wild corn bears small ears filled with hard, usable grain."
       ]
     }
   ],

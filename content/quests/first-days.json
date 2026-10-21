@@ -7,7 +7,7 @@
     "completeWhen": { "reached": { "day": 2, "hour": 6 } },
     "doneLog": [
       "Grey light over the water. You made it through the night.",
-      "The sky pales over the sea. You are still here.",
+      "Daybreak reveals the empty sea once more. You have survived the night.",
       "Dawn, thin and cold. You lived through the first night."
     ]
   },
@@ -18,8 +18,8 @@
     "completeWhen": { "seen": "raw_fish" },
     "doneLog": [
       "A fish, cold and slippery, and yours.",
-      "Your first fish on the island. Food the water gives.",
-      "A fish at last. You will not starve, not today."
+      "The sea has provided your first fish, and with it some hope of regular food.",
+      "At last a fish is secured. Hunger need not be your immediate enemy today."
     ]
   },
   {
@@ -46,7 +46,7 @@
     ],
     "completeWhen": { "built": "shelter" },
     "doneLog": [
-      "The wind breaks on the logs. Inside, it is almost still.",
+      "The wind strikes the outer logs, but within the shelter the air is almost still.",
       "A shelter, rough but yours. The wind can't reach you here."
     ]
   },
@@ -119,7 +119,7 @@
     "trigger": { "when": { "any": [{ "discovered": "school_of_fish" }, { "discovered": "river" }] } },
     "completeWhen": { "built": "fish_trap" },
     "doneLog": [
-      "The trap is set. The fish will come to it.",
+      "The woven trap is set in the current. The river must now do its part.",
       "Willow and patience. Now the fish do the work."
     ]
   },
@@ -128,7 +128,7 @@
     "title": "set snares",
     "trigger": { "when": { "discovered": "rabbit_runs" } },
     "completeWhen": { "built": "snares" },
-    "doneLog": ["The snares wait along the trails.", "Nooses on the runs. Now leave them alone."]
+    "doneLog": ["Your snares stand ready across the small animal paths.", "Nooses on the runs. Now leave them alone."]
   },
   {
     "id": "build_corn_field",
@@ -145,7 +145,7 @@
     "title": "build a bee hive",
     "trigger": { "when": { "discovered": "bees" } },
     "completeWhen": { "built": "bee_hive" },
-    "doneLog": ["The hive log stands among the flowers.", "A home for the bees, if they want it."]
+    "doneLog": ["The hollow hive stands among the flowers, awaiting its industrious occupants.", "A home for the bees, if they want it."]
   },
   {
     "id": "build_fish_weir",
@@ -162,7 +162,7 @@
     "title": "better sleep",
     "trigger": { "when": {"quest": "survive_first_night", "is": "done"} },
     "completeWhen": { "all": [{"sheltered": true}, {"built": "bed", "here": true}, {"timer": "fire"}] },
-    "startLog": "For better sleep, make a bed and light a fire under shelter. The beach rocks already shelter you.",
-    "doneLog": "A sheltered bed and a fire in the same place. Sleep before midnight for a full recovery."
+    "startLog": "For sounder rest, establish a bed beneath shelter and maintain a fire there.",
+    "doneLog": "A sheltered bed and a fire in the same place."
   }
 ]
