@@ -15,17 +15,17 @@ describe("arriving in a region", () => {
     look(e); // finds the forest
     go(e, "forest");
     expect(lastTurn(e)).toEqual([
-      "You walk to the forest.", "Tall trunks, close together. The sea is only a sound now.",
+      "You take the path towards the forest.", "Tall trunks close around you. Daylight barely reaches the ground.",
       "Somewhere ahead, water runs over stones.",
     ]);
     go(e, "beach");
     const beach = lastTurn(e);
-    expect(beach[0]).toBe("You walk to the beach.");
-    expect(beach[1]).toMatch(/^Back on the sand|^The beach again/);
+    expect(beach[0]).toBe("You take the path towards the beach.");
+    expect(beach[1]).toMatch(/^The familiar beach opens/);
     expect(beach).toHaveLength(2); // nothing else found on the beach yet
     go(e, "forest");
     const forest = lastTurn(e);
-    expect(forest[1]).toMatch(/^The trees close in again|^Back under the trees/);
+    expect(forest[1]).toMatch(/^Once more the trees gather/);
     expect(forest).toContain("Somewhere ahead, water runs over stones."); // the spring is not found yet
   });
 
@@ -38,8 +38,8 @@ describe("arriving in a region", () => {
     go(e, "beach");
     go(e, "forest");
     const forest = lastTurn(e);
-    expect(forest).toContain("Dry branches everywhere.");
-    expect(forest).toContain("The spring trickles between mossy stones.");
+    expect(forest).toContain("Fallen branches remain plentiful beneath the trees.");
+    expect(forest).toContain("The spring continues to issue from the moss-covered stones.");
     expect(forest).not.toContain("Somewhere ahead, water runs over stones.");
   });
 
@@ -52,15 +52,15 @@ describe("arriving in a region", () => {
     go(e, "forest");
     go(e, "beach");
     const lit = lastTurn(e);
-    expect(lit).toContain("Smoke rises from the ring of rocks.");
-    expect(lit).toContain("Shells on the stone under the cliff.");
-    expect(lit).toContain("Fish flash in the shallows.");
-    expect(lit).not.toContain("The ring of rocks waits, cold.");
+    expect(lit).toContain("A thread of smoke rises from the circle of rocks, marking the living hearth.");
+    expect(lit).toContain("Shellfish remain attached to the wet rock beneath the cliff.");
+    expect(lit).toContain("Small fish flash in the shallow water beside the shore.");
+    expect(lit).not.toContain("The hearth among the rocks is cold and silent.");
 
     e.state.timers[`fire@${e.state.location}`] = 0; // the fire goes out
     go(e, "forest");
     go(e, "beach");
-    expect(lastTurn(e)).toContain("The ring of rocks waits, cold.");
+    expect(lastTurn(e)).toContain("The hearth among the rocks is cold and silent.");
   });
 
   it("at night you see less", () => {
