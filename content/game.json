@@ -10,51 +10,51 @@
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
     "items": { "summer_clothes": 1 },
     "log": [
-      "Awake. Salt in the mouth. The sea is quiet now. The ship is gone. Behind the dunes, a dark line of trees.",
-      "Cold sand under your cheek. Salt on your lips. The sea is flat, grey and empty: no ship. Beyond the dunes, a dark line of trees.",
-      "You come to at the tide line, clothes heavy with water. Nothing on the horizon, nothing left of the ship. Behind the dunes, trees."
+      "You regain consciousness upon a deserted shore. The sea, which so recently threatened to swallow you, now lies strangely calm. Of the ship there is no trace; beyond the dunes rises a dark belt of forest.",
+      "Cold sand presses against your cheek, and the taste of salt remains upon your lips. A grey, empty sea extends to the horizon. Behind the dunes, a line of trees marks the beginning of an unknown country.",
+      "At the edge of the tide you awaken, your clothes heavy with seawater. Neither sail nor spar is visible offshore. Inland, beyond the sandy ridges, stands a forest whose depths you have yet to discover."
     ]
   },
   "cosmetic": { "msPerHour": 10000 },
-  "deathLog": ["The world fades.", "Everything goes grey, then dark.", "The world slips away."],
+  "deathLog": ["Your strength fails, and the world recedes from view.", "The shore and sky lose their colour; presently even their outlines disappear.", "Consciousness deserts you, and the island is lost to darkness."],
   "_sleep": "Every sleep ends at 06:00. At zero energy or 00:00, unfinished work stops and you collapse here.",
   "sleep": {
     "bed": "bed",
     "wakeHour": 6,
     "passOutHour": 0,
-    "newDay": "New day {day} is starting.",
+    "newDay": "Day {day} dawns over the island.",
     "collapse": {
       "title": "You passed out",
-      "text": "You did not get to bed in time. You passed out and had to sleep where you were, at {place}."
+      "text": "Having failed to reach a bed before exhaustion overtook you, you were obliged to pass the night where you fell, at {place}."
     },
-    "midnight": "It is midnight. You can no longer stay awake and pass out where you are.",
-    "exhausted": "Your energy is gone. You collapse where you are and sleep until morning.",
+    "midnight": "Midnight has passed. Exhaustion overcomes your efforts to remain awake, and you fall where you stand.",
+    "exhausted": "Your remaining strength is spent. You sink to the ground and do not stir until morning.",
     "shelter": "shelter",
     "fire": "fire",
     "recovery": {
       "early_warm_bed": {
         "energy": 100,
-        "text": "You went to sleep before midnight in a sheltered bed at {place}, with a fire burning. You wake at 6am with {energy}% energy."
+        "text": "You retired before midnight beneath shelter at {place}, with a fire to keep off the cold. At six in the morning your strength has returned to {energy}%."
       },
       "early_unheated_bed": {
         "energy": 80,
-        "text": "You went to sleep before midnight in a sheltered bed at {place}, without a burning fire. You wake at 6am with {energy}% energy."
+        "text": "You slept before midnight in a sheltered bed at {place}, though without the comfort of a fire. By six o'clock your energy has recovered to {energy}%."
       },
       "late_warm_bed": {
         "energy": 80,
-        "text": "You went to bed after midnight at {place}, under shelter with a fire burning. The short night leaves you with {energy}% energy at 6am."
+        "text": "Though you reached your sheltered bed at {place} after midnight, the fire lent some warmth to your short rest. At six o'clock your energy stands at {energy}%."
       },
       "late_unheated_bed": {
         "energy": 80,
-        "text": "You went to bed after midnight at {place}, under shelter but without a burning fire. You wake at 6am with {energy}% energy."
+        "text": "You retired after midnight beneath shelter at {place}, but had no fire against the chill. At six o'clock your strength has recovered to {energy}%."
       },
       "exposed_bed": {
         "energy": 50,
-        "text": "The bed at {place} was exposed, without shelter. You wake at 6am with {energy}% energy."
+        "text": "Your bed at {place} offered no protection from the open air. By six in the morning your energy has recovered to {energy}%."
       },
       "ground": {
         "energy": 50,
-        "text": "You slept without a bed at {place}. The rough sleep restores you to {energy}% energy at 6am."
+        "text": "You passed the night upon the bare ground at {place}. Such rest as it afforded has restored your energy to {energy}% by six o'clock."
       }
     }
   },
@@ -62,20 +62,20 @@
   "provisions": {
     "at": 60,
     "title": "Supplies running low",
-    "hunger": "You have no ready-to-eat food left. Eat soon, or you will collapse.",
-    "thirst": "You have no drinking water left. Drink soon, or you will collapse. Find fresh water or refill your can.",
-    "both": "You have no ready-to-eat food or drinking water left. Eat and drink soon, or you will collapse. Prepare food and find fresh water.",
+    "hunger": "Your ready provisions are exhausted. Unless food is obtained soon, your strength will fail.",
+    "thirst": "Your supply of drinking water is exhausted. Find fresh water or replenish your can before thirst overcomes you.",
+    "both": "Neither prepared food nor drinking water remains. Both must be secured without delay if you are to continue.",
     "preparation": {
       "when": { "any": [{ "item": "raw_fish" }, { "item": "raw_meat" }] },
-      "text": "Raw fish and meat cannot be eaten. You can build a simple drying rack to process them, or cook them over a fire. A drying rack takes 12 hours; cook over a fire if you need food sooner."
+      "text": "Raw fish and meat cannot safely serve as provisions. You may preserve them upon a drying rack, a process requiring twelve hours, or cook them over a fire if your need is urgent."
     }
   },
   "_ending": "the end screen (death is permanent): {time} and {day} in survived, {cause} in cause",
   "ending": {
     "title": "The journal ends",
     "survived": [
-      "You lasted {time} on the island, until day {day}.",
-      "You survived {time}. The journal stops on day {day}."
+      "You endured {time} upon the island; on day {day}, your account came to an end.",
+      "For {time} you survived in this unknown land. The journal closes upon day {day}."
     ],
     "cause": "Cause of death: {cause}.",
     "defaultCause": "your injuries",
@@ -85,27 +85,27 @@
   "_journal": "lines the engine writes itself; {place} is the name of the place",
   "journal": {
     "crafted": "You finish crafting {item}.",
-    "walkTo": ["You walk to {place}.", "You set off for {place}.", "You make your way to {place}."],
+    "walkTo": ["You take the path towards {place}.", "You set out in the direction of {place}.", "You make your way across the island towards {place}."],
     "wayOpens": [
-      "A way to {place} opens.",
-      "You could reach {place} from here.",
-      "Now you know the way to {place}."
+      "A practicable route to {place} has been discovered.",
+      "The ground now offers a passage towards {place}.",
+      "You have at last determined how to reach {place}."
     ],
-    "nothingNew": ["Nothing new.", "Nothing you haven't seen.", "Nothing more to find."]
+    "nothingNew": ["Your examination reveals nothing further.", "The ground yields no sign that has escaped your earlier attention.", "For the present, there is nothing more to discover."]
   },
   "_tasks": "the note when a task is done: {task}; what changed: {item} {where} {place} {action}",
   "tasks": {
     "title": "Task done: {task}",
     "gained": "{item} added to your {where}.",
     "used": "{item} used.",
-    "opened": "A way to {place} opens.",
+    "opened": "A practicable route to {place} has been discovered.",
     "possible": "You can now {action}.",
     "built": "{building} built."
   },
   "_newPlace": "a place new on the map ({place}): text under the finding that opened it (or a note titled title), and go, the button that walks there",
   "newPlace": {
     "title": "A new place",
-    "text": "A new place is on your map: {place}. You can walk there now, or later from the map.",
+    "text": "Your examination has revealed a route to {place}. You may proceed there now, or return by way of the map at a later hour.",
     "go": "go to {place}"
   },
   "_tools": "tool tags: the label next to the items that have it, and what a { \"tool\": tag } requirement asks for (without naming an item)",
@@ -127,8 +127,8 @@
         { "upToHours": 12, "word": "roaring" }
       ],
       "warnAtHours": 1,
-      "warnLog": ["The fire is dying.", "The flames sink low.", "Only a few flames left."],
-      "expireLog": ["The fire goes out. Only embers now.", "The last flame dies. The embers glow, then fade.", "The fire is out. A thin thread of smoke."],
+      "warnLog": ["The fire has diminished to an uncertain flame.", "The flames sink low among the embers.", "Only a few wavering tongues of fire remain."],
+      "expireLog": ["The fire expires, leaving a bed of glowing embers.", "The last flame disappears, and the embers slowly lose their light.", "The hearth is cold; a narrow thread of smoke marks where the fire had been."],
       "showInStatus": false,
       "local": true,
       "building": "campfire"
