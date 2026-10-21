@@ -10,9 +10,9 @@
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
     "items": { "summer_clothes": 1 },
     "log": [
-      "You regain consciousness upon a deserted shore.",
-      "Cold sand under your cheek.",
-      "At the edge of the tide you awaken, your clothes heavy with seawater."
+      "You wake alone on a deserted shore. The ship is gone; forest rises beyond the dunes.",
+      "Cold sand beneath your cheek. The sea is empty; trees line the dunes.",
+      "You wash ashore, soaked and alone. A dark forest stands inland."
     ]
   },
   "cosmetic": { "msPerHour": 10000 },
