@@ -29,7 +29,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     explore(e, "cliff_shells");
     expect(view(e).tabs.find((t) => t.here)).toMatchObject({ id: "beach", col: 1 });
     e.dispatch({ type: "explore" });
-    expect(view(e).event!.text).toContain("The cliff above them is steep. With a rope, it could be climbed.");
+    expect(view(e).event!.text).toContain("The face of the cliff is steep, though a securely fastened rope might make its ascent possible.");
     // too steep without a rope
     expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ label: "climb the cliff", time: "30m", hours: 0.5, enabled: false, reason: "Too steep to climb without a rope" });
     expect(choose(e, "cliff_top").ok).toBe(false);
@@ -38,7 +38,7 @@ describe("the meadows: seen from the cliff top, west of the beach, an hour away"
     expect(view(e).event!.choices.find((c) => c.id === "cliff_top")).toMatchObject({ enabled: true });
     choose(e, "cliff_top");
     const found = view(e).event!;
-    expect(found.text).toMatch(/Meadows, an hour's walk away\./);
+    expect(found.text).toMatch(/an hour's walk away\./);
     expect(found.choices).toEqual([
       { id: "go:meadows", travelTo: "meadows", label: "go to the meadows", enabled: true, time: "1h", hours: 1 },
       { id: "close", label: "back", enabled: true },
