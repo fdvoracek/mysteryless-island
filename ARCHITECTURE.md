@@ -22,7 +22,8 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Build a minimalist, content-driven survival game with understandable, consistent mechanics.
 - Prefer new content expressed through existing systems over one-off engine branches.
 - Favor small, cohesive modules and shared rules; fewer lines alone is not the goal.
-- Keep JSON authoring now. Future CSV imports and editors must produce the same validated model.
+- Keep JSON as the canonical authoring format. The planned Studio edits the same files and validates
+  them with the same registry; CSV import is not planned.
 - Preserve stable content/text identities for saves, translations, and future authoring tools.
 - Classic is the only supported layout. Do not restore retired layouts or a layout picker
   unless the user requests them; keep font selection independent.
@@ -40,17 +41,25 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
-## Content Studio program — confirmed future direction, not implemented
+## Content Studio program — confirmed direction, not implemented
 
-As confirmed in the design discussion on 2026-10-21, build **one npm-workspaces monorepo with two independent web apps**: keep the existing non-React player game, add a separate React/Vite Content Studio, and extract a shared typed content-model, pure simulation engine and deterministic content-compiler incrementally. The studio will support no-code authoring of all currently supported gameplay vocabulary and handcrafted modal/journal texts, without forking engine rules. Git-tracked authored data and Git review remain the release foundation. The planned hosted URLs are /mysteryless-island/ and /mysteryless-island/studio/; hosted editing authentication/backend is NOT yet decided. GitHub Pages by itself is static and cannot securely accept writes.
+A localhost-only React Content Studio inside this single npm package edits content files through a
+dev-server API and previews them in the real game. Scope, the owner's confirmed decisions
+(2026-10-21), open gates and PR order are recorded **only** in
+[docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+Architectural consequences that bind all work:
 
-Detailed scope, decision gates and acceptance criteria are in [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md), PR-01 through PR-30. **Each numbered deliverable is a separate, independently mergeable PR; every merged PR leaves the player game fully playable and testable.** Current code/layout remains authoritative until individual PRs implement changes. Do not treat planned source paths as already present. Gameplay invariant tests remain deterministic and use frozen content; align browser testing with [docs/TESTING.md](docs/TESTING.md).
-
-**Save-compatibility decision (2026-10-21):** the owner is the only tester and explicitly accepts abandoning existing saves during this migration. Do not implement migration code solely to preserve earlier save versions. If a PR changes save schema, bump the version and give a clear fresh-game recovery path. In the **current PR** a new game must start, play, save and reload correctly. No merged PR may break player gameplay, production validation or the runtime build.
-
-**Studio editing surface decision (D1/D10, updated 2026-10-21): RESOLVED.** The user wants the **Content Studio UI hosted on GitHub Pages** as a separate static app. **Chrome is the primary supported browser**; the user clicks Open Local Project, selects the locally cloned Git repository with the browser File System Access API and grants explicit read/write permission. The Studio edits local source files (not hosted GitHub files), validates and previews them, and clearly labels local unsaved/uncommitted content versus published content. No local Node write server or hosted authentication is required for this workflow. The static website cannot run Git commands: commits and pushes use terminal, IDE or GitHub Desktop. Brave may work with the experimental `brave://flags/#file-system-access-api` flag, but is best-effort and must be feature-detected. Writes must be restricted to approved content/asset paths, never `.git` or secrets, with external-edit conflict checks, permission handling, and recovery from partial multi-file writes. PR-09 first hosts a read-only Studio; PR-10 adds local directory writes; PR-28 hardens deployment. Direct remote GitHub API publication is a separate optional, gated PR-29.
-
-**Still open:** optional direct remote GitHub API authentication/authorization and collaboration policy, canonical source format beyond existing JSON, localization switching/completeness policy, whether authored travel edges replace camp-centered routes and media hosting outside the local repository. GitHub Pages Studio availability and local folder editing are confirmed. Ask the owner before implementing affected milestones; record decision and rationale here.
+- The game never depends on the Studio: Studio PRs are additive and keep game behavior unchanged
+  (plan §5.1). Engine and game-content work is paused while the program runs.
+- The Studio uses the shared schema, registry and engine; it never reimplements rules and is never
+  part of the production build. `src/content` and `src/core` stay free of UI, storage and Studio imports.
+- Planned content layout: one entity per file; items, activities, recipes, buildings, quests,
+  events, sites and artwork are independent definitions; areas link to activities by ID and own
+  their landmarks, view and arrival lines. Until that PR lands, the current layout is authoritative.
+- Content stays English-only; translations are out of scope for now.
+- **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
+  explicit recovery screen. This overrides the old-save testing rule in "Save and presentation
+  compatibility" for Studio PRs only. Fresh-game save/reload must always work.
 
 ## Crafting and building trees — implemented
 
@@ -211,7 +220,8 @@ derived view models; and an injected scheduler for deterministic controller test
 ## Save and presentation compatibility
 
 - Change saved shapes through `state-schema.ts` and the loading/migration boundary. Bump the
-  version when needed and test actual old saves, including paused work and collection claims.
+  version when needed and test actual old saves, including paused work and collection claims
+  (waived for Content Studio PRs, see above).
 - Preserve compatible progress and RNG streams. Reconcile removed references and return surviving
   reserved inputs when their work definition disappears. Keep unsupported/malformed saves intact
   and offer an explicit recovery choice. Major prototype resets require an announced decision.
@@ -254,5 +264,5 @@ derived view models; and an injected scheduler for deterministic controller test
 - Follow session authorization and `AGENTS.md` for commits/pushes; keep unrelated work untouched.
 
 Deferred work includes multitasking controls, perks, bait/crop interaction details, translations,
-CSV importing, an authoring editor, and a balance simulator. Their mention here constrains future
+the Content Studio (see its plan), and a balance simulator. Their mention here constrains future
 design; it does not expand the current task.

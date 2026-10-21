@@ -1,0 +1,118 @@
+<!doctype html>
+<!-- Content Studio mockup: UX reference only, NOT implemented UI. See README.md in this folder. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio — event shipwreck (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FAD}a:hover{color:#16477F}
+</style>
+</head>
+<body>
+<div style="min-height: 1100px; background: #F3F4F6; color: #16191D; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #D9DCE1">
+  <a href="area-workspace.html" style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; text-decoration: none; color: #16191D">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5FAD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20c3-6 6-9 9-9s6 3 9 9"/><circle cx="12" cy="6" r="2.5"/></svg>
+    <span>Mysteryless Island <span style="font-weight: 500; color: #545C66">Studio</span></span>
+  </a>
+  <nav aria-label="Sections" style="display: flex; gap: 4px; flex-wrap: wrap">
+    <a href="area-workspace.html" style="display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px; text-decoration: none; color: #16191D">Areas</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px; text-decoration: none; color: #16191D">Definitions</a>
+    <a href="story-view.html" style="display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px; text-decoration: none; color: #16191D">Story</a>
+    <a href="event-editor.html" aria-current="page" style="display: flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 6px; text-decoration: none; background: #E6EEF8; color: #16477F; font-weight: 600">Events</a>
+  </nav>
+  <div style="display: flex; align-items: center; gap: 12px; margin-left: auto">
+    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E5F0E8; color: #245733; font-size: 13px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Valid · 0 problems</span>
+    <button style="height: 36px; padding: 0 16px; border: 0; border-radius: 6px; background: #1F5FAD; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Save  ⌘S</button>
+  </div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; flex: 1; align-items: stretch">
+<main style="flex: 999 1 640px; min-width: 0; padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 14px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; color: #545C66">Events / shipwreck</span>
+      <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">The storm</h1>
+      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #545C66">content/events/shipwreck.json</span>
+    </div>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end">
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Trigger<select style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px; background: #FFFFFF; color: #16191D"><option selected>on game start</option><option>at day / hour</option><option>when condition</option><option>after action (chance)</option></select></label>
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Repeat<select style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px; background: #FFFFFF; color: #16191D"><option selected>once</option><option>with cooldown</option></select></label>
+      <button style="height: 34px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; color: #1F5FAD; cursor: pointer">+ Scene</button>
+    </div>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; overflow-x: auto">
+  <div style="position: relative; width: 900px; height: 340px">
+<svg width="8" height="64" viewBox="0 0 8 64" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 446px; top: 104px; width: 8px; height: 64px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 4 0 L 4 64"></path></svg>
+<svg width="648" height="8" viewBox="0 0 648 8" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 138px; top: 164px; width: 648px; height: 8px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><path d="M 0 4 L 648 4"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 134px; top: 168px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-1" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#6B727C" stroke="none" style="stroke: none; fill: #6B727C; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-1)"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 350px; top: 168px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-2" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#6B727C" stroke="none" style="stroke: none; fill: #6B727C; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-2)"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 566px; top: 168px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-3" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#6B727C" stroke="none" style="stroke: none; fill: #6B727C; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-3)"></path></svg>
+<svg width="8" height="63" viewBox="0 0 8 63" preserveAspectRatio="none" aria-hidden="true" style="position: absolute; left: 782px; top: 168px; width: 8px; height: 63px; overflow: visible; fill: none; stroke: #6B727C; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round"><defs><marker id="dc-arrow-head-filled-4" orient="auto" markerWidth="5" markerHeight="5" refX="2" refY="2" overflow="visible"><path d="M0 0 L4 2 L0 4 Z" fill="#6B727C" stroke="none" style="stroke: none; fill: #6B727C; fill: context-stroke"/></marker></defs><path d="M 4 0 L 4 59" marker-end="url(#dc-arrow-head-filled-4)"></path></svg>
+
+<div style="position: absolute; left: 330px; top: 40px; width: 240px; height: 64px; box-sizing: border-box; padding: 8px 14px; display: flex; align-items: center; background: #EFE9F6; border: 3px solid #1F5FAD; border-radius: 8px; font-size: 13px; line-height: 18px; color: #3A2660"><span><b>start</b> · opening scene<br>4 choices · modal + journal</span></div>
+<div style="position: absolute; left: 54px; top: 232px; width: 168px; height: 72px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #6A4C93; border-radius: 8px; font-size: 13px; line-height: 18px; color: #3A2660"><span><b>swim_knife</b><br>ends · “wash ashore”</span></div>
+<div style="position: absolute; left: 270px; top: 232px; width: 168px; height: 72px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #6A4C93; border-radius: 8px; font-size: 13px; line-height: 18px; color: #3A2660"><span><b>swim_matches</b><br>ends · “wash ashore”</span></div>
+<div style="position: absolute; left: 486px; top: 232px; width: 168px; height: 72px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #6A4C93; border-radius: 8px; font-size: 13px; line-height: 18px; color: #3A2660"><span><b>swim_water</b><br>ends · “wash ashore”</span></div>
+<div style="position: absolute; left: 702px; top: 232px; width: 168px; height: 72px; box-sizing: border-box; padding: 8px 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #6A4C93; border-radius: 8px; font-size: 13px; line-height: 18px; color: #3A2660"><span><b>swim_rations</b><br>ends · “wash ashore”</span></div>
+
+<div style="position: absolute; left: 150px; top: 191px; width: 72px; font-size: 12px; line-height: 16px; color: #545C66">the knife</div>
+<div style="position: absolute; left: 366px; top: 191px; width: 88px; font-size: 12px; line-height: 16px; color: #545C66">the matches</div>
+<div style="position: absolute; left: 582px; top: 191px; width: 104px; font-size: 12px; line-height: 16px; color: #545C66">the water can</div>
+<div style="position: absolute; left: 798px; top: 191px; width: 88px; font-size: 12px; line-height: 16px; color: #545C66">the rations</div>
+  </div>
+  </div>
+
+  <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+    <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Scene start</h2>
+      <span style="font-size: 12px; color: #545C66">Rename scene ID updates every incoming “next”.</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px">
+      <label style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #545C66"><span><b>Modal text</b> · full scene in the pop-up</span><span>3 paragraphs</span></span><textarea rows="11" style="border: 1px solid #C9CDD3; border-radius: 6px; padding: 10px 12px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 22px; resize: vertical; color: #16191D">For three days your vessel had held her course without incident; then, towards evening, the wind began to rise. By midnight the little ship was labouring among enormous seas, climbing each black ridge only to plunge into the gulf beyond.
+
+Without warning, a violent shock ran from stem to stern. The hull had struck a submerged rock. You heard timber give way below, and presently the unmistakable rush of water entering the hold. Already the deck was settling beneath your feet.
+
+There was no time to save the ship. One object, perhaps, might be carried through the surf. Which would you choose?</textarea></label>
+      <div style="display: flex; flex-direction: column; gap: 14px">
+        <label style="display: flex; flex-direction: column; gap: 6px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #545C66"><span><b>Journal</b> · short summary, written before choice effects</span><span>55 / 80</span></span><input value="A storm wrecks your ship. You must decide what to save." style="height: 38px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 12px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; color: #16191D"></label>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 12px; color: #545C66"><b>Choices</b></span>
+          <div style="display: flex; flex-direction: column; border: 1px solid #E3E5E9; border-radius: 6px; font-size: 13px">
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.6fr); gap: 8px; padding: 6px 10px; background: #F8F9FA; border-bottom: 1px solid #E3E5E9; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #545C66"><span>Label</span><span>Next</span><span>Effects</span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.6fr); gap: 8px; padding: 8px 10px; border-bottom: 1px solid #E3E5E9"><span>the knife</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">swim_knife</span><span>give knife ×1</span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.6fr); gap: 8px; padding: 8px 10px; border-bottom: 1px solid #E3E5E9"><span>the matches</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">swim_matches</span><span>give matches ×10</span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.6fr); gap: 8px; padding: 8px 10px; border-bottom: 1px solid #E3E5E9"><span>the water can</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">swim_water</span><span>give water_can ×1, can_water ×4</span></div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1.6fr); gap: 8px; padding: 8px 10px"><span>the rations</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">swim_rations</span><span>give rations ×6</span></div>
+          </div>
+          <button style="align-self: flex-start; height: 28px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ choice</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<aside aria-label="Checks" style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border-left: 1px solid #D9DCE1; padding: 18px; display: flex; flex-direction: column; gap: 14px">
+  <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Graph checks</h2>
+  <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px">
+    <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>start scene present</span>
+    <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>all 5 scenes reachable</span>
+    <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>no dangling “next”</span>
+    <span style="display: flex; align-items: center; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>every scene has a journal summary</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid #E3E5E9">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Play it</h2>
+    <a href="area-workspace.html" style="display: flex; align-items: center; justify-content: center; height: 36px; border-radius: 6px; background: #1F5FAD; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: 600">Open in preview (new game)</a>
+    <span style="font-size: 12px; color: #545C66">The shipwreck opens before the first journal line; <span style="font-family: 'JetBrains Mono', ui-monospace, monospace">game.start.log</span> follows when it ends.</span>
+  </div>
+</aside>
+</div>
+</div>
+</body>
+</html>

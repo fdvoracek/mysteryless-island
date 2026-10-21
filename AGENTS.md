@@ -16,35 +16,21 @@ Include these requirements when delegating visual work. Gameplay, persistence, c
 and tooling changes without visual impact do not require these guides; read them when a task
 also changes presentation. Keep detailed visual rules in the guides rather than copying them here.
 
-## Planned Content Studio and monorepo migration — [proposal, not implemented]
+## Planned Content Studio — [proposal, not implemented]
 
-**Implementation authority:** [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md). It defines **PR-01 through PR-30**, decision gates, migrations, tests, and per-PR manual acceptance criteria. **Each numbered deliverable must be a separate independently mergeable PR and leave the player game playable and testable after merging.** Do not implement an entire phase in one PR or deliver a nonworking intermediate application. Update plan status/evidence as PRs merge.
+[docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md) is the
+single source for Studio scope, confirmed decisions, open gates and PR order (PR-01 to PR-10).
+Do not copy its decisions into other files. Working rules for a Studio PR:
 
-**Owner decision (2026-10-21):** There is **no need to preserve compatibility with prior player save files** during this migration. The owner is the only tester and may start a fresh game after any PR. A save schema change may bump SAVE_VERSION and clearly request a restart; do not write unnecessary legacy-save migrations. However, newly created games in **each merged PR** must start, run, save and reload correctly. Old invalid saves must not leave the player stranded on an error screen without a clear fresh-start action.
-
-**Target arrangement after PR-02+ (not current paths):**
-
-- apps/game/: existing non-React player game, independent build and UI; gameplay unchanged during package extraction.
-- apps/studio/: separate React + Vite Content Studio for editing content; standalone app at /mysteryless-island/studio/ when hosted.
-- packages/content-model/: shared Zod schema, IDs, registry, validation and references; one authority for game and Studio.
-- packages/engine/: deterministic simulation shared by game and Studio preview; no React, DOM, storage, scheduler or file-system dependency.
-- packages/content-compiler/: deterministic build-time source → validated game/locale bundles; runtime does not process source CSV files.
-- content/: canonical, Git-tracked authoring data. Current JSON remains authoritative until the owner decides otherwise at plan gate D3. Translatable text gets stable IDs and localized bundles, preserving long modal prose vs short journal entries.
-
-**Dependency direction:** game and Studio depend on shared packages; shared packages must never import the Studio or app-specific UI. Studio must reuse the real engine, condition evaluator and game renderer for preview, not duplicate gameplay logic. A future new mechanic requires schema, engine, validation, Studio field and tests in the implementing PR. **Do not move folders or change imports according to the target layout until that PR actually performs the migration.**
-
-**Content Studio feature guidance:** separate panels for Regions, Landmarks, Activities, Items, Crafting, Buildings, Tasks, Events and Translations. Visual condition/effect builder uses only the engine's validated vocabulary, never arbitrary JavaScript/eval. All IDs remain stable on display-name changes; protect deletions with incoming-reference checks. Explicitly differentiate draft edits, save-to-local-source, validated publish proposal and deployed released content. Do not wire a hosted browser editor directly to arbitrary local files or expose GitHub write tokens/secrets in a static bundle.
-
-**Environment and publishing — UPDATED decision (2026-10-21):** the Studio UI runs **on GitHub Pages** at /mysteryless-island/studio/ alongside the still-playable game at /mysteryless-island/. **Chrome is the supported browser for writing files directly into a user-selected local Git checkout** through the File System Access API. Use explicit directory-picker permission, source-folder validation, safe allowlisted paths, stale-edit checks and recoverable writes; never inspect/mutate .git, secrets or arbitrary filesystem paths. Brave support is best-effort behind its experimental browser flag; feature-detect availability. No local Node writer or GitHub credentials needed. The static hosted editor can display changes but cannot execute local Git commands; authors commit/push in terminal, IDE or GitHub Desktop. A remote GitHub API publisher is an optional future backend-authenticated PR, not required for this primary workflow. Distinguish published released content from local uncommitted workspace.
-
-**PR execution instructions:**
-
-1. Before each PR, read the plan, ARCHITECTURE.md, docs/TDD.md, docs/TESTING.md and current code/tests. Check the selected PR's unresolved decision gates. **Ask the owner when a design choice is unresolved; do not invent mechanics, hosted authorization or a new canonical format.**
-2. Run the original root commands (`npm test`, `npm run content:check`, `npm run typecheck`, `npm run build`, `npm run test:e2e`) or their documented workspace equivalents once implemented. Preserve stable root npm run check and test fixtures throughout.
-3. Demonstrate the new working capability in the actual app or in an independently invocable package/CLI and attach before/after results. Always smoke-test a fresh new game through shipwreck, exploration, an action, crafting/building and current-version save/reload. Studio-specific PRs also need automated editor tests, bad-input cases and browser/manual steps. Follow docs/TESTING.md: reserve browser tests for interaction/wiring and cover game mechanics with deterministic engine tests; preserve test-only Vite timing overrides and controlled-clock pacing checks.
-4. Keep status markers honest: old paths and scripts above describe **current implemented code**, while this section and the plan describe **future target architecture**. Do not mark a proposed feature implemented until its PR has been merged. Keep implementation history and API changes aligned across docs, not by rewriting historical design intent.
-5. Respect docs/NARRATIVE_STYLE.md for modal/journal separation and variants; docs/VISUAL_STYLE.md and docs/ART_DIRECTION.md for changes to player UI/assets. Studio may use a distinct modern tooling style. Never regenerate or change published story/balance merely to exercise the editor; use isolated fixtures or revert test content.
-6. Work only on the authorized PR. Do not merge or push on the owner's behalf; existing workflow conventions below remain in force.
+1. Implement exactly one numbered PR. Read the plan, ARCHITECTURE.md, docs/TESTING.md and the
+   current code first. If the PR touches an open gate, ask the owner before coding.
+2. Planned paths (`src/studio/`, `content/<kind>/<id>.json`, `tools/vite-content-api.ts`) do not
+   exist until their PR lands; the sections below describe the current code.
+3. No Studio PR may break the game: follow the plan's game safety rules (§5.1). The game must
+   play from a fresh start and save/reload after every PR. Old saves may be dropped (bump
+   `SAVE_VERSION`, keep the recovery screen); no legacy-save migrations.
+4. Keep game-rule tests on the frozen fixtures; the Studio never reimplements engine rules.
+5. Never change shipped story or balance to exercise the editor; use fixtures or revert test content.
 
 ## Commands
 

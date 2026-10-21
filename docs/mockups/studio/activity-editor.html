@@ -1,0 +1,228 @@
+<!doctype html>
+<!-- Content Studio mockup: UX reference only, NOT implemented UI. See README.md in this folder. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio — activity strip_bark (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FAD}a:hover{color:#16477F}
+</style>
+</head>
+<body>
+<div style="min-height: 1100px; background: #F3F4F6; color: #16191D; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #D9DCE1">
+  <a href="area-workspace.html" style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; text-decoration: none; color: #16191D">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5FAD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20c3-6 6-9 9-9s6 3 9 9"/><circle cx="12" cy="6" r="2.5"/></svg>
+    <span>Mysteryless Island <span style="font-weight: 500; color: #545C66">Studio</span></span>
+  </a>
+  <label style="display: flex; align-items: center; gap: 8px; flex: 1 1 280px; max-width: 460px; height: 36px; padding: 0 10px; border: 1px solid #C9CDD3; border-radius: 6px; background: #F8F9FA">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#545C66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <input type="search" aria-label="Search" placeholder="Search IDs, names, text…" style="border: 0; background: transparent; font: inherit; flex: 1; min-width: 0; outline: none; color: #16191D">
+  </label>
+  <div style="display: flex; align-items: center; gap: 12px; margin-left: auto; flex-wrap: wrap">
+    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E5F0E8; color: #245733; font-size: 13px; font-weight: 500"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Valid · 0 problems</span>
+    <span style="font-size: 13px; color: #8A4608; font-weight: 500">1 unsaved file</span>
+    <button aria-label="Undo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></button>
+    <button aria-label="Redo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg></button>
+    <button style="height: 36px; padding: 0 16px; border: 0; border-radius: 6px; background: #1F5FAD; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Save  ⌘S</button>
+  </div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; flex: 1; align-items: stretch">
+
+<nav aria-label="Activities" style="flex: 1 1 200px; max-width: 232px; background: #FFFFFF; border-right: 1px solid #D9DCE1; padding: 16px 12px; display: flex; flex-direction: column; gap: 10px">
+  <a href="area-workspace.html" style="font-size: 13px; text-decoration: none; padding: 0 8px">← forest</a>
+  <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #545C66; padding: 0 8px">Activities · 17</span>
+  <input aria-label="Filter activities" placeholder="Filter…" style="height: 32px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 13px">
+  <div style="display: flex; flex-direction: column; gap: 2px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">chop_wood</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">drink_stream</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">gather_wood</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">light_fire <span style="font-family: Inter, sans-serif; font-size: 11px; color: #545C66">global</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">sleep <span style="font-family: Inter, sans-serif; font-size: 11px; color: #545C66">global</span></a>
+    <a href="activity-editor.html" aria-current="page" style="display: flex; align-items: center; justify-content: space-between; height: 30px; padding: 0 8px; border-radius: 6px; text-decoration: none; background: #E6EEF8; color: #16477F; font-weight: 500">strip_bark <span style="font-family: Inter, sans-serif; font-size: 11px; color: #8A4608">edited</span></a>
+    <span style="padding: 4px 8px; font-family: Inter, sans-serif; color: #545C66">… 11 more</span>
+  </div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; color: #545C66">Activities / strip_bark</span>
+      <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">strip bark</h1>
+      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #545C66">content/activities/strip_bark.json · linked in forest</span>
+    </div>
+    <div role="group" aria-label="View" style="display: flex; border: 1px solid #C9CDD3; border-radius: 6px; overflow: hidden">
+      <button id="showForm" aria-pressed="true" style="height: 34px; padding: 0 14px; border: 0; font: inherit; font-size: 13px; cursor: pointer; background: #1F5FAD; color: #FFFFFF">Form</button>
+      <button id="showJson" aria-pressed="false" style="height: 34px; padding: 0 14px; border: 0; border-left: 1px solid #C9CDD3; font: inherit; font-size: 13px; cursor: pointer; background: #FFFFFF; color: #16191D">JSON</button>
+    </div>
+  </div>
+
+  <div id="jsonView" hidden>
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Source as saved (house format)</h2>
+      <pre style="margin: 0; padding: 14px; background: #F8F9FA; border: 1px solid #E3E5E9; border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 18px; white-space: pre-wrap; overflow-x: auto">{
+  "id": "strip_bark",
+  "name": "strip bark",
+  "hours": 1,
+  "effort": "work",
+  "visibleWhen": {
+    "any": [
+      { "discovered": "cliff_shells" },
+      { "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }] }
+    ]
+  },
+  "requires": { "tool": "sharp" },
+  "yields": [{ "item": "bark_strips", "min": 4, "max": 4 }],
+  "log": [
+    "You score the surface of a young tree and strip away long ribbons of inner bark.",
+    "The bark comes away in strips, wet and stringy, as long as your arm.",
+    "You cut and peel, cut and peel, until you have a bundle of bark strips."
+  ]
+}</pre>
+    </section>
+  </div>
+
+  <div id="formView">
+  <div style="display: flex; flex-direction: column; gap: 16px">
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Basics</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 12px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">ID<input value="strip_bark" readonly style="height: 34px; border: 1px solid #D9DCE1; border-radius: 6px; padding: 0 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; background: #F8F9FA; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Name (button)<input value="strip bark" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Hours · steps of 0.25<input value="1" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Effort<select style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 14px; background: #FFFFFF; color: #16191D"><option>heavy</option><option selected>work</option><option>light</option><option>rest</option><option>sleep</option></select></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Map icon<select style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 14px; background: #FFFFFF; color: #16191D"><option selected>none</option><option>wood</option><option>water</option><option>stone</option></select></label>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px">
+        <span style="font-size: 12px; color: #545C66">Linked in</span>
+        <a href="area-workspace.html" style="padding: 3px 10px; border-radius: 999px; background: #E5F0E8; color: #245733; text-decoration: none; font-size: 13px">forest</a>
+        <button style="height: 26px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ link to area</button>
+        <label style="display: flex; align-items: center; gap: 6px; margin-left: 12px"><input type="checkbox">global (offered in every area)</label>
+      </div>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+        <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Visible when</h2>
+        <span style="font-size: 12px; color: #545C66">button exists only while this holds</span>
+      </div>
+      <div style="border: 1px solid #C9CDD3; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: #F8F9FA">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <select aria-label="Group type" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; font-weight: 600; background: #FFFFFF"><option>all of</option><option selected>any of</option><option>none of</option></select>
+          <span style="font-size: 12px; color: #545C66">2 conditions</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px; background: #FFFFFF; border: 1px solid #E3E5E9; border-radius: 6px">
+          <select aria-label="Condition kind" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option selected>discovered</option><option>item</option><option>quest</option><option>tool</option><option>phase</option></select>
+          <select aria-label="Landmark" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF"><option selected>cliff_shells — beach · the low cliff</option></select>
+          <button aria-label="Remove condition" style="margin-left: auto; width: 30px; height: 30px; border: 0; background: transparent; color: #545C66; font-size: 18px; cursor: pointer">×</button>
+        </div>
+        <div style="border: 1px solid #C9CDD3; border-radius: 8px; padding: 10px; margin-left: 20px; display: flex; flex-direction: column; gap: 8px; background: #EEF0F3">
+          <div style="display: flex; align-items: center; gap: 8px">
+            <select aria-label="Group type" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; font-weight: 600; background: #FFFFFF"><option>all of</option><option selected>any of</option><option>none of</option></select>
+            <button aria-label="Remove group" style="margin-left: auto; width: 30px; height: 30px; border: 0; background: transparent; color: #545C66; font-size: 18px; cursor: pointer">×</button>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px; background: #FFFFFF; border: 1px solid #E3E5E9; border-radius: 6px">
+            <select aria-label="Condition kind" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option selected>task</option></select>
+            <select aria-label="Task" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF"><option selected>build_snares — set snares</option></select>
+            <select aria-label="Task state" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option selected>is active</option><option>is done</option></select>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px; background: #FFFFFF; border: 1px solid #E3E5E9; border-radius: 6px">
+            <select aria-label="Condition kind" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option selected>task</option></select>
+            <select aria-label="Task" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF"><option selected>build_snares — set snares</option></select>
+            <select aria-label="Task state" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option>is active</option><option selected>is done</option></select>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px">
+          <button style="height: 30px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ condition</button>
+          <button style="height: 30px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ group</button>
+        </div>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #16191D"><b>Reads as:</b> cliff_shells discovered, or task “set snares” active or done.</p>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Requires</h2>
+        <div style="display: flex; align-items: center; gap: 8px; padding: 8px; border: 1px solid #E3E5E9; border-radius: 6px">
+          <select aria-label="Condition kind" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font: inherit; font-size: 13px; background: #FFFFFF"><option selected>tool</option></select>
+          <select aria-label="Tool tag" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF"><option selected>sharp</option><option>fire_starter</option></select>
+        </div>
+        <span style="font-size: 12px; color: #545C66">Disabled reason in game: “needs something sharp”</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Yields</h2>
+        <div style="display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); gap: 8px; align-items: end">
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Item<select style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF"><option selected>bark_strips</option></select></label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Min<input value="4" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px"></label>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Max<input value="4" style="height: 30px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 13px"></label>
+        </div>
+        <button style="align-self: flex-start; height: 28px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ yield</button>
+      </div>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+        <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Journal log · 3 variants</h2>
+        <span style="font-size: 12px; color: #545C66">alternatives — one is shown, never twice in a row</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px">
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #8A4608"><span>Variant 1</span><span>80 / 80 · at journal limit</span></span><textarea rows="2" style="border: 1px solid #C98A47; border-radius: 6px; padding: 8px 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 22px; resize: vertical; color: #16191D">You score the surface of a young tree and strip away long ribbons of inner bark.</textarea></label>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #545C66"><span>Variant 2</span><span>68 / 80</span></span><textarea rows="2" style="border: 1px solid #C9CDD3; border-radius: 6px; padding: 8px 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 22px; resize: vertical; color: #16191D">The bark comes away in strips, wet and stringy, as long as your arm.</textarea></label>
+        <label style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #545C66"><span>Variant 3</span><span>71 / 80</span></span><textarea rows="2" style="border: 1px solid #C9CDD3; border-radius: 6px; padding: 8px 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 22px; resize: vertical; color: #16191D">You cut and peel, cut and peel, until you have a bundle of bark strips.</textarea></label>
+      </div>
+      <button style="align-self: flex-start; height: 28px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ variant</button>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: #545C66">
+      <span>Optional fields:</span>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ cost</button>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ outcomes</button>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ effects</button>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ thoughts</button>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ tags</button>
+      <button style="height: 28px; padding: 0 10px; border: 1px solid #D9DCE1; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">+ building</button>
+    </div>
+  </div>
+  </div>
+</main>
+
+<aside aria-label="Context" style="flex: 1 1 300px; max-width: 360px; background: #FFFFFF; border-left: 1px solid #D9DCE1; padding: 16px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Pending change</h2>
+    <pre style="margin: 0; padding: 10px; background: #F8F9FA; border: 1px solid #E3E5E9; border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; line-height: 16px; white-space: pre-wrap"><span style="color: #9A2A1F">-  "hours": 0.5,</span>
+<span style="color: #245733">+  "hours": 1,</span></pre>
+    <span style="font-size: 12px; color: #545C66">One file, one line. The formatter keeps your layout and <span style="font-family: 'JetBrains Mono', ui-monospace, monospace">_note</span> keys.</span>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">References</h2>
+    <a href="area-workspace.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>uses</b> cliff_shells, build_snares, bark_strips, sharp</a>
+    <a href="area-workspace.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>used by</b> area forest</a>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Try it</h2>
+    <a href="area-workspace.html" style="display: inline-flex; align-items: center; justify-content: center; height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px">Open preview in forest with knife</a>
+  </div>
+</aside>
+</div>
+</div>
+<script>
+// Mockup only: switch between the form and the saved JSON source.
+const form = document.getElementById("formView"), json = document.getElementById("jsonView");
+const bForm = document.getElementById("showForm"), bJson = document.getElementById("showJson");
+function show(isJson) {
+  form.hidden = isJson; json.hidden = !isJson;
+  bForm.setAttribute("aria-pressed", String(!isJson)); bJson.setAttribute("aria-pressed", String(isJson));
+  bForm.style.background = isJson ? "#FFFFFF" : "#1F5FAD"; bForm.style.color = isJson ? "#16191D" : "#FFFFFF";
+  bJson.style.background = isJson ? "#1F5FAD" : "#FFFFFF"; bJson.style.color = isJson ? "#FFFFFF" : "#16191D";
+}
+bForm.addEventListener("click", () => show(false));
+bJson.addEventListener("click", () => show(true));
+</script>
+</body>
+</html>

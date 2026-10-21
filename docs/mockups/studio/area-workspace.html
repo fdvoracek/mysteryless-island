@@ -1,0 +1,205 @@
+<!doctype html>
+<!-- Content Studio mockup: UX reference only, NOT implemented UI. See README.md in this folder. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio — area forest (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FAD}a:hover{color:#16477F}
+</style>
+</head>
+<body>
+<div style="min-height: 1100px; background: #F3F4F6; color: #16191D; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-direction: column">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #D9DCE1">
+  <div style="display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1F5FAD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 20c3-6 6-9 9-9s6 3 9 9"/><circle cx="12" cy="6" r="2.5"/></svg>
+    <span>Mysteryless Island <span style="font-weight: 500; color: #545C66">Studio</span></span>
+  </div>
+  <label style="display: flex; align-items: center; gap: 8px; flex: 1 1 280px; max-width: 460px; height: 36px; padding: 0 10px; border: 1px solid #C9CDD3; border-radius: 6px; background: #F8F9FA">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#545C66" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+    <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Search</span>
+    <input type="search" placeholder="Search IDs, names, text…" style="border: 0; background: transparent; font: inherit; flex: 1; min-width: 0; outline: none; color: #16191D">
+  </label>
+  <div style="display: flex; align-items: center; gap: 12px; margin-left: auto; flex-wrap: wrap">
+    <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #545C66">localhost:5173 · content/</span>
+    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: #E5F0E8; color: #245733; font-size: 13px; font-weight: 500">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#245733" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L19 7"/></svg>Valid · 0 problems</span>
+    <span style="font-size: 13px; color: #8A4608; font-weight: 500">1 unsaved file</span>
+    <button aria-label="Undo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 010 10h-3"/></svg></button>
+    <button aria-label="Redo" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#16191D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 14l5-5-5-5"/><path d="M20 9H9a5 5 0 000 10h3"/></svg></button>
+    <button style="height: 36px; padding: 0 16px; border: 0; border-radius: 6px; background: #1F5FAD; color: #FFFFFF; font: inherit; font-weight: 600; cursor: pointer">Save  ⌘S</button>
+  </div>
+</header>
+
+<div style="display: flex; flex-wrap: wrap; flex: 1; align-items: stretch">
+
+<nav aria-label="Content" style="flex: 1 1 200px; max-width: 232px; background: #FFFFFF; border-right: 1px solid #D9DCE1; padding: 16px 12px; display: flex; flex-direction: column; gap: 18px">
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #545C66; padding: 0 8px 6px">World</span>
+    <a href="story-view.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Story</a>
+    <span style="display: flex; align-items: center; height: 32px; padding: 0 8px; color: #16191D">Areas</span>
+    <a href="area-workspace.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px 0 20px; border-radius: 6px; text-decoration: none; color: #16191D">beach <span style="font-size: 12px; color: #545C66">camp</span></a>
+    <a href="area-workspace.html" aria-current="page" style="display: flex; align-items: center; height: 32px; padding: 0 8px 0 20px; border-radius: 6px; text-decoration: none; background: #E6EEF8; color: #16477F; font-weight: 600">forest</a>
+    <a href="area-workspace.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px 0 20px; border-radius: 6px; text-decoration: none; color: #16191D">meadows</a>
+    <a href="new-area-wizard.html" style="display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 20px; border-radius: 6px; text-decoration: none; color: #1F5FAD; font-weight: 500">+ new area</a>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #545C66; padding: 0 8px 6px">Definitions</span>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Activities <span style="font-size: 12px; color: #545C66">17</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Items <span style="font-size: 12px; color: #545C66">28</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Recipes <span style="font-size: 12px; color: #545C66">5</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Buildings <span style="font-size: 12px; color: #545C66">10</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Tasks <span style="font-size: 12px; color: #545C66">14</span></a>
+    <a href="event-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Events <span style="font-size: 12px; color: #545C66">1</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Sites <span style="font-size: 12px; color: #545C66">8</span></a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; justify-content: space-between; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Artwork <span style="font-size: 12px; color: #545C66">1</span></a>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 2px">
+    <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #545C66; padding: 0 8px 6px">Progression &amp; game</span>
+    <a href="story-view.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Crafting tree</a>
+    <a href="story-view.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Building tree</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Game settings</a>
+    <a href="activity-editor.html" style="display: flex; align-items: center; height: 32px; padding: 0 8px; border-radius: 6px; text-decoration: none; color: #16191D">Stats &amp; climate</a>
+  </div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 20px 24px 32px; display: flex; flex-direction: column; gap: 16px">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+    <div style="display: flex; flex-direction: column; gap: 4px">
+      <span style="font-size: 13px; color: #545C66">Areas / forest</span>
+      <h1 style="margin: 0; font-size: 24px; line-height: 32px; font-weight: 700">A Quiet Forest</h1>
+      <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: #545C66">id forest · content/regions/forest.json</span>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <button style="height: 36px; padding: 0 14px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; cursor: pointer">Rename ID…</button>
+      <button disabled title="Referenced by 4 definitions" style="height: 36px; padding: 0 14px; border: 1px solid #D9DCE1; border-radius: 6px; background: #F8F9FA; color: #6B727C; font: inherit">Delete (used 4×)</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px">
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Properties</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Name (label)<input value="the forest" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Journal title<input value="A Quiet Forest" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Base temperature °C<input value="18" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Walk from camp (h)<input value="0.5" style="height: 34px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D"></label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #545C66">Site capabilities</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px">
+          <span style="padding: 3px 10px; border-radius: 999px; background: #EEF0F3; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">camp_ground</span>
+          <span style="padding: 3px 10px; border-radius: 999px; background: #EEF0F3; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">shelter_ground</span>
+          <button style="height: 26px; padding: 0 10px; border: 1px dashed #9AA1AB; border-radius: 999px; background: #FFFFFF; font: inherit; font-size: 12px; color: #1F5FAD; cursor: pointer">+ add</button>
+        </div>
+      </div>
+    </section>
+
+    <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Map &amp; unlock</h2>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px">
+        <div style="height: 52px; border: 1px solid #D9DCE1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #545C66">meadows<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px">−1, 0</span></div>
+        <div style="height: 52px; border: 1px solid #D9DCE1; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #545C66">beach · camp<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px">0, 0</span></div>
+        <div style="height: 52px; border: 2px solid #1F5FAD; border-radius: 6px; background: #E6EEF8; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; color: #16477F; font-weight: 600">forest<span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; font-weight: 400">1, 0</span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #545C66">Unlocks when</span>
+        <a href="activity-editor.html" style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid #D9DCE1; border-radius: 6px; text-decoration: none; color: #16191D; background: #F8F9FA"><span style="font-size: 12px; font-weight: 600; color: #545C66">discovered</span><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">forest_edge</span><span style="font-size: 12px; color: #545C66">beach · “the dunes”</span></a>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 12px; color: #545C66">“?” on the map</span>
+        <span style="font-size: 13px">From the start <span style="color: #545C66">(no hint condition)</span></span>
+      </div>
+    </section>
+  </div>
+
+  <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Landmarks · area-owned</h2>
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; color: #1F5FAD; cursor: pointer">+ Add landmark</button>
+    </div>
+    <div style="display: flex; flex-direction: column; border: 1px solid #E3E5E9; border-radius: 6px">
+      <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 2.2fr); gap: 12px; padding: 10px 12px; border-bottom: 1px solid #E3E5E9; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">spring</span><span style="font-size: 13px">the sound of water</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #545C66"><span>0.5 h · work</span><span>always offered</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #545C66">Journal · 52 / 80</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 14px">You discover a freshwater spring among mossy stones.</span></div>
+      </div>
+      <div style="display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 2.2fr); gap: 12px; padding: 10px 12px; align-items: start">
+        <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">rabbit_runs</span><span style="font-size: 13px">the small trails</span></div>
+        <div style="display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: #545C66"><span>0.5 h · work</span><span>visible when day ≥ 2</span><span>grants small_game_trails</span></div>
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #545C66">Journal · 58 / 80</span><span style="font-family: 'Source Serif 4', Georgia, serif; font-size: 14px">Rabbit trails cross the undergrowth. You could set snares.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+      <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Linked activities · independent definitions</h2>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; color: #1F5FAD; cursor: pointer">+ Link existing</button>
+        <a href="activity-editor.html" style="display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 6px; background: #1F5FAD; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: 600">+ New activity</a>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; border: 1px solid #E3E5E9; border-radius: 6px">
+      <a href="activity-editor.html" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 2fr) auto; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #E3E5E9; align-items: center; text-decoration: none; color: #16191D"><span style="display: flex; flex-direction: column"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">gather_wood</span><span style="font-size: 13px">collect wood</span></span><span style="font-size: 12px; color: #545C66">0.5 h · work</span><span style="font-size: 13px; color: #545C66">always visible · yields firewood 3–5</span><span style="font-size: 12px; color: #1F5FAD">Unlink</span></a>
+      <a href="activity-editor.html" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 2fr) auto; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #E3E5E9; align-items: center; text-decoration: none; color: #16191D"><span style="display: flex; flex-direction: column"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">chop_wood</span><span style="font-size: 13px">chop wood</span></span><span style="font-size: 12px; color: #545C66">1 h · heavy</span><span style="font-size: 13px; color: #545C66">visible when carrying axe · yields timber 2–3</span><span style="font-size: 12px; color: #1F5FAD">Unlink</span></a>
+      <a href="activity-editor.html" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 2fr) auto; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #E3E5E9; align-items: center; text-decoration: none; color: #16191D; background: #F8F9FA"><span style="display: flex; flex-direction: column"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">strip_bark</span><span style="font-size: 13px">strip bark</span></span><span style="font-size: 12px; color: #545C66">1 h · work</span><span style="font-size: 13px; color: #545C66">3 visibility conditions · needs something sharp</span><span style="font-size: 12px; color: #1F5FAD">Unlink</span></a>
+      <a href="activity-editor.html" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 2fr) auto; gap: 12px; padding: 10px 12px; align-items: center; text-decoration: none; color: #16191D"><span style="display: flex; flex-direction: column"><span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 500">drink_stream</span><span style="font-size: 13px">drink water</span></span><span style="font-size: 12px; color: #545C66">0.25 h · light</span><span style="font-size: 13px; color: #545C66">visible after spring discovered · thirst −40, energy +10</span><span style="font-size: 12px; color: #1F5FAD">Unlink</span></a>
+    </div>
+    <span style="font-size: 12px; color: #545C66">Also offered here (global): <span style="font-family: 'JetBrains Mono', ui-monospace, monospace">light_fire, strike_fire, make_fire, stoke_fire, sleep</span></span>
+  </section>
+
+  <section style="background: #FFFFFF; border: 1px solid #D9DCE1; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Used by · 4</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 8px">
+      <a href="story-view.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>task</b> build_snares — starts on rabbit_runs</a>
+      <a href="activity-editor.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>item</b> water_can › action — at forest after spring</a>
+      <a href="activity-editor.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>activity</b> sleep › day memories (forest, spring)</a>
+      <a href="story-view.html" style="padding: 8px 10px; border: 1px solid #E3E5E9; border-radius: 6px; text-decoration: none; color: #16191D; font-size: 13px"><b>activity</b> drink_stream — visible after spring</a>
+    </div>
+  </section>
+</main>
+
+<aside aria-label="Live preview" style="flex: 1 1 360px; max-width: 420px; background: #FFFFFF; border-left: 1px solid #D9DCE1; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+    <h2 style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #545C66">Live preview</h2>
+    <span style="font-size: 12px; color: #245733; font-weight: 500">reloaded on save</span>
+  </div>
+  <div style="border: 1px solid #C9CDD3; border-radius: 8px; background: #FBFAF7; padding: 16px; display: flex; flex-direction: column; gap: 12px; font-family: 'Source Serif 4', Georgia, serif; color: #1E1C18">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><span style="font-size: 18px; font-weight: 600">A Quiet Forest</span><span style="font-size: 13px; color: #5A554C">day 1 · 14:30</span></div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px">
+      <button style="height: 34px; padding: 0 12px; border: 1px solid #8F887B; border-radius: 4px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1E1C18">look around *</button>
+      <button style="height: 34px; padding: 0 12px; border: 1px solid #8F887B; border-radius: 4px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1E1C18">collect wood</button>
+      <button style="height: 34px; padding: 0 12px; border: 1px solid #8F887B; border-radius: 4px; background: #FFFFFF; font: inherit; font-size: 14px; color: #1E1C18">drink water</button>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 20px">
+      <span>You discover a freshwater spring among mossy stones.</span>
+      <span style="color: #4A463E">Somewhere ahead, water runs over stones.</span>
+      <span style="color: #6A655B">Tall trunks close around you. Daylight barely reaches the ground.</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 4px">
+    <span style="font-size: 12px; font-weight: 600; color: #545C66">Test controls</span>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer">New game</button>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: #545C66">Seed <input value="1234" style="width: 64px; height: 32px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; color: #16191D"></label>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px"><input type="checkbox">first variants</label>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap">
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer">Give item…</button>
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer">+1 hour</button>
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer">Unlock area…</button>
+      <button style="height: 32px; padding: 0 12px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 13px; cursor: pointer">Go to forest</button>
+    </div>
+    <span style="font-size: 12px; color: #545C66">Preview saves use <span style="font-family: 'JetBrains Mono', ui-monospace, monospace">textisland.preview.*</span>; your own game save is untouched.</span>
+  </div>
+</aside>
+</div>
+</div>
+</body>
+</html>

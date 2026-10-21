@@ -1,450 +1,236 @@
-# Mysteryless Island — Content Studio implementation and migration plan
+# Mysteryless Island — Content Studio implementation plan
 
-Status: **[proposal — agent handoff; not implemented]**  
-Prepared: 2026-10-21  
-Scope: monorepo migration; separate game and Content Studio web applications; shared engine/content contracts; graphical no-code authoring, localization, preview, validation and publishing.  
-Existing authority: ARCHITECTURE.md records implemented game invariants; docs/TDD.md documents technical behavior; docs/GDD.md documents game design. Code and tests determine actual current behavior.
+Status: **[proposal — agent handoff; not implemented]**
+Revised: 2026-10-21 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
+Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
+ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
 
-> **Execution contract:** Every numbered deliverable below is **exactly one separate pull request**, with a coherent working and manually testable result. Do not combine numbered deliverables in one PR or start dependent PRs against unmerged work without an explicit stacked-PR arrangement. The game must remain playable at the end of every merged PR; incomplete studio screens must be hidden, read-only or explicitly labeled nonfunctional. All changes to production content must pass the existing content validator. Never treat the mockup as already implemented.
->
-> **Unresolved decisions:** Do not silently invent an answer. See §3, “Decision gates”. An agent must obtain the owner's decision before implementing a gated behavior. The rest of the plan may proceed independently; a PR that needs an unresolved decision stays out of scope until it is answered.
+> **Execution contract:** each numbered deliverable is exactly one PR with a working, manually
+> testable result. No PR may break the game, its build or its tests (§5.1): the game stays fully
+> playable after every merged PR. Do not start a PR whose open gate (§3) is unanswered; ask the
+> owner. Never treat the mockup as implemented.
 
-## 1. Outcome and non-goals
+## 1. Goal and non-goals
 
-**Primary outcome.** A non-programmer can create a new region with its map placement, discoveries, actions, items, recipes, buildings, tasks, story scenes, conditions, rewards, illustrations and authored text, then validate and playtest a draft and publish it without editing game code. The game remains a static browser app. Authoring new combinations of **supported** mechanics is no-code; adding a fundamentally new engine mechanic still requires code plus corresponding editor and schema support.
+**Goal.** A local tool that lets the owner create and edit content (areas, landmarks, activities,
+items, recipes, buildings, creation trees, tasks, events, story links, English texts) through forms and
+graphs instead of hand-editing several JSON files, and see the result immediately in the real game.
+First real use: building the Stone Age chapter. Adding a new engine mechanic must make it appear in
+the Studio with little or no Studio code.
 
-**Independent apps — Pages-hosted UI, local files.** The game and Studio are separately built static web apps at /mysteryless-island/ and /mysteryless-island/studio/. In Chrome, the owner opens the **locally cloned Git repository** via browser File System Access API permission and edits its content files directly, from the GitHub Pages-hosted Studio, with no local Node server or GitHub login. The author commits/pushes in terminal, IDE or GitHub Desktop. Brave is best-effort with its experimental File System Access flag. Optional later GitHub API publishing is a separate deliverable.
+**UX reference.** [docs/mockups/studio/](mockups/studio/README.md): five static, clickable screens
+(area workspace, activity editor with condition builder, story view, event scene editor, new-area
+wizard), their PR mapping and the Studio's visual tokens. They show intended layout and flows only;
+this plan wins where they differ. PR-04 adopts the tokens; each UI PR updates its screen when a UX
+decision changes.
 
-**Out of scope unless explicitly approved:** arbitrary scripts/eval in authored data; replacing the game UI framework; a multiplayer game; content-hosting backend required by players; user accounts for the game; turning the editor into a generic multi-game commercial product; changing survival balance or story while migrating; replacing the star-shaped route model with an arbitrary travel graph solely to satisfy an editor mockup.
+**User.** Only the owner. Runs Node and Git locally, commits with own tools. AI agents implement;
+the owner reviews and tests manually.
 
-**Quality bars:** no regression to deterministic RNG, timed work, reserved inputs, production batches, pause/resume, quests, starting event or frozen test fixtures. Incompatible old saves may be retired; a fresh game must work at the end of every PR. Preserve IDs and reference meaning. No editor-only fork of the engine. All user-visible texts comply with docs/NARRATIVE_STYLE.md. Narrative variants are alternative wordings, not sequential paragraphs. Test content remains frozen; production data is validated independently.
+**Non-goals.** Hosting the Studio on GitHub Pages; Chrome File System Access; npm workspaces or a
+monorepo; a content compiler or build-time bundles; remote GitHub publishing, accounts or a backend;
+CSV/archive exchange; translations or any localization; multi-user collaboration; scripts or
+`eval` in content; a React rewrite of the game; balance or story changes made only to exercise the
+editor; arbitrary travel graphs.
 
-## 2. Verified baseline — inspect again before implementation
+## 2. Confirmed decisions (owner, 2026-10-21)
 
-This plan was based on the main branch on 2026-10-21; implementations must check the latest branch and reconcile any changes before editing.
+| # | Decision |
+|---|---|
+| C1 | **Localhost only.** `npm run studio` starts one Vite dev server serving the game at `/` and the Studio at `/studio/`. The Studio is never part of the production build or the Pages deploy. |
+| C2 | **Single npm package.** Studio code lives in `studio/index.html` + `src/studio/`. Import boundaries are enforced by a lint rule, not by packages (§4.1). |
+| C3 | **Content entities are independent.** Items, activities, recipes, buildings, quests, events, sites and artwork are standalone definitions that never name an area. **Areas link to them by ID** (`region.activities: ["gather_firewood"]`). One definition may be linked into several areas. |
+| C4 | **Area-owned parts stay in the area:** description, arrival lines, `explore.view`, `nothingLeft` and **landmarks** (discoveries). |
+| C5 | **One file per entity:** `content/<kind>/<id>.json` holds one object whose `id` equals the file name. Singletons stay single files: `game.json`, `stats.json`, `climate.json`, `trees/crafting.json`, `trees/building.json`. |
+| C6 | **One-time reformat.** A deterministic JSON formatter defines the canonical layout; all content and fixtures are rewritten once; CI rejects unformatted content; Studio saves use the same formatter so diffs only show real edits. `_`-prefixed comment keys are preserved. |
+| C7 | **English only.** Translations and localization are out of scope (owner, 2026-10-21). No language fields in the schema, no language switch, no translation tooling. |
+| C8 | **Old saves may be discarded.** Bump `SAVE_VERSION` when the state shape changes and show the existing "start a new game" recovery. Fresh-game save/reload must work after every PR. |
+| C9 | **Story = composition of existing vocabulary** (landmark effects → `startQuest` / flags → quest `trigger`/`completeWhen` → event `when`). The Studio adds a derived story view; no new story mechanic now. |
+| C10 | **Branch handling is the owner's job.** The Studio edits whatever checkout it runs from; no branch or version checks. |
+| C11 | **Graph views use React Flow** (`@xyflow/react`) with `@dagrejs/dagre` auto-layout, imported only from `src/studio` (owner, 2026-10-21). |
 
-- Current source: src/main.ts bootstraps the game; src/content/loader.ts uses Vite import.meta.glob for content/**/*.json or tests/fixtures/content/**/*.json in engine-test mode.
-- src/content/schema.ts defines the Zod schemas for Region, Landmark, Activity, Item, Recipe, Building, Quest, GameEvent, CreationTree, Condition, Effect, Text, game, stats and climate.
-- src/content/registry.ts provides buildRegistry, cross-reference checks, uniqueness, site capabilities and textKey indexing. src/content/text-keys.ts derives legacy inline keys and supports explicit IDs. Source-of-truth descriptions are in content/.
-- src/core/engine.ts and src/core/* own a serializable deterministic simulation; separate gameplay and narrative RNG streams exist. Browser timing is handled by src/app/action-controller.ts, not the engine.
-- src/core/state.ts reports SAVE_VERSION = 7. src/core/state-schema.ts has rendered strings in log entries and popups. src/persistence/save.ts uses localStorage keys textisland.save and textisland.saved; src/persistence/migrate.ts reconciles referenced definitions. Changing stored text representations demands a planned save migration.
-- Region coordinates are authored in region.map; travel is currently centered around the starting camp using travelHours, not an arbitrary authored edge list. Region description/arrival are journal text; explore.view and landmark.text are modal text.
-- Content validation command: npm run content:check. Frozen fixture tests: npm test and npm run test:e2e. CI workflow .github/workflows/pages.yml deploys dist/ from main; existing pre-push hook and AGENTS.md have repository-specific workflow rules.
-- Current single-package Vite/TypeScript project; React, workspaces, editor source APIs and content compiler are **not** present. Latest test guidance is docs/TESTING.md: bounded Vitest workers, focused browser tests, separate frozen test-content build, .env.engine-test timing overrides and a Playwright controlled clock for paced-work tests.
+## 3. Open gates — ask before the affected PR
 
-**Baseline inventory task:** an implementing agent must enumerate every string-valued translatable field, field meaning, reference and special case before performing text extraction. Inventory includes UI labels, game.json templates, variant pools, event choices, landmark labels, recipe ways, creation branches, condition explanation strings, built-in text and journal fallback behavior.
+None open. Record any new owner decision in §2 and adjust the PR text before implementation.
 
-## 3. Decision gates — request explicit answers, do not guess
+## 4. Target architecture
 
-The table distinguishes **resolved owner decisions** from open design gates. Before a PR reaches an unresolved gate, discuss its concrete alternatives with the owner and add the decision to ARCHITECTURE.md (and where appropriate the GDD/TDD). Until then follow conservative boundaries without implementing irreversible changes.
-
-| Gate | Owner decision needed | Required before |
-|---|---|---|
-| D1 Studio editing surface — **RESOLVED, UPDATED** | Owner chose **GitHub Pages-hosted Studio + selected local folder editing** in Chrome, superseding the localhost-only editing direction. The browser writes only to locally granted paths; Git commands run outside the browser. Brave is best-effort behind its experimental API flag. | PR-09, PR-10, PR-27–28 |
-| D2 Optional remote GitHub publication | A future API-based GitHub PR/commit workflow may need trusted auth/backend. None is required for hosted UI editing a locally selected folder. No PAT in frontend. | Optional PR-29 |
-| D3 Data authority and format | Maintain current content JSON as canonical and add a text catalog, or migrate all source content to a different canonical representation? Until approved, preserve canonical JSON and add adapters rather than replacing it. | PR-05, PR-07 |
-| D4 Translation and switching policy | Which first additional language, required completion/fallback policy, whether switching must update historical journal/popups instantly? Preserve current English default while unresolved. | PR-07, PR-08, PR-20 |
-| D5 Save compatibility — **RESOLVED** | **Owner decision (2026-10-21): old saves may be incompatible or discarded during migration because only the owner is testing. No legacy save migration is needed.** The app must detect incompatible data, offer a clear start-new-game path and remain playable after every PR. | All PRs; no further decision required |
-| D6 World graph | Keep authored map positions and camp-based travel for now, or support authored per-edge travel networks and shortest paths? No mechanical travel redesign before approval. | PR-21 |
-| D7 Visual/gameplay scope | Does the first complete editor need global game settings, climate/stats and every niche schema field, or is milestone coverage acceptable? Define the completeness inventory before declaring no-code production ready. | PR-22 |
-| D8 Remote collaboration | User accounts and team permissions only need decision if direct remote publishing is later approved. Do not add accounts for local folder authoring. | Optional PR-29 |
-| D9 External assets | Decide whether later media storage extends beyond local repository files. Preserve existing art direction and validated local asset paths for initial local authoring. | PR-22 (if needed), optional PR-29 |
-| D10 Studio hosting — **RESOLVED** | Studio should deploy publicly at /mysteryless-island/studio/. Published content is read-only unless a user selects a local repository folder and grants write access; such writes affect only that local folder. | PR-09, PR-28 |
-
-For every gate: record the answer, changes to PR scope, migration consequences and acceptance tests. Where the owner defers a decision, the dependent PR must not claim completion. Avoid a speculative “temporary” implementation that forces later save or schema incompatibilities.
-
-## 4. Target boundaries and contracts
-
-Proposed workspace layout (final names may change only with a recorded decision):
+### 4.1 Layout and boundaries
 
 ~~~text
-apps/game/                  existing player-facing Vite app, controls, UI, saves
-apps/studio/                React + TypeScript + Vite authoring UI
-packages/content-model/     schema, types, reference validation, IDs, text metadata
-packages/engine/            pure engine, RNG, simulation, selectors and state schemas
-packages/content-compiler/  pure + CLI deterministic source-to-bundle conversion
-content/                    canonical authoring data, locales, validated artwork refs
-tests/                      frozen fixture data and integration tests (may be relocated carefully)
-e2e/                        game smoke tests + separate studio e2e
-docs/                       documentation and PR acceptance evidence
+index.html                 game entry (unchanged)
+studio/index.html          Studio entry, dev server only
+src/content/               schema, registry, loader, text keys, formatter, reference metadata
+src/core/                  engine, rules, state, selectors (pure, unchanged boundary)
+src/app/ src/persistence/ src/ui/ src/main.ts src/debug/   game only
+src/studio/                React Studio: document store, forms, widgets, views
+tools/vite-content-api.ts  dev-only Vite plugin: read/write content files
+content/<kind>/<id>.json   one entity per file (C5)
 ~~~
 
-**Dependency rule:** content-model is independent of browser/UI, storage and backend. Engine depends on content-model, not on game or studio. Compiler depends on content-model, not on app UI. Game depends on engine and compiled content. Studio depends on content-model/compiler interfaces and may import the engine for real previews. Studio UI never executes its own reimplementation of game rules. No cycle between packages.
+Rules (lint: `no-restricted-imports` or dependency-cruiser in `npm run typecheck`/`check`):
+`src/content` and `src/core` never import `src/ui`, `src/app`, `src/persistence` or `src/studio`;
+the game never imports `src/studio`; the Studio may import `src/content` and `src/core` but never
+reimplements rules. React and graph libraries are imported only from `src/studio`. Production
+`vite build` uses only `index.html`; a test asserts that `dist/` contains no Studio code.
 
-**Supported adapters:** canonical source-to-model reader; deterministic compiler to versioned normalized bundle(s); runtime loader from compiled bundle; browser File System Access API source editor adapter over user-selected local directory; isolated draft preview. Keep buildRegistry (or equivalent public API) as a single validation entry point. Distinguish source authoring data, compiled content, and serializable player state.
+### 4.2 Local file API (dev server plugin, `apply: "serve"`)
 
-**IDs:** retain existing snake_case entity IDs and every persisted reference. Add stable text IDs distinct from game entity IDs. IDs survive wording changes and file moves. Renames should update cross-references in one transaction or be refused with an actionable list of blockers. Never change IDs implicitly on a display-name edit. Explicit migrations are necessary for persisted state references.
+- Binds to `127.0.0.1`; rejects requests whose `Host`/`Origin` is not the local dev server
+  (protection against DNS rebinding and other sites).
+- `GET /__studio/files` → every file under `content/` and `public/illustrations/`, as raw text plus
+  a content hash. `PUT /__studio/files/<path>` with the expected hash → writes atomically
+  (temp file + rename). `DELETE` and `POST …/rename` for entity delete/rename.
+- Path allowlist: normalized relative paths under `content/` (`.json`) and
+  `public/illustrations/` (images). Rejects `..`, absolute paths, symlinks leaving the allowlist,
+  and everything else (`.git`, `.githooks`, `package.json`, configs, `.env*`).
+- Hash mismatch → `409` so the Studio can show "changed on disk" and reload or overwrite.
+- Multi-file operations (rename with reference updates) write files one by one and report exactly
+  which files changed. Git is the recovery mechanism; no extra backup journal.
 
-**Compiler:** from the same source revision, repeated builds must produce byte-stable output (normalized ordering/formatting and no timestamps in hashed content), fail with file/entity/path diagnostics, validate all cross-references and placeholders and reject invalid releases. The shipped game never parses CSV at each startup; it loads validated built artifacts. Do not require a runtime CMS service.
+### 4.3 Document model, formatter and validation
 
-**Save/version contract:** the owner explicitly waives backwards compatibility with existing saves. Bump SAVE_VERSION when necessary and expose a clear new-game flow for incompatible saved data; never crash or get stuck on an unreadable save. Ordinary save/load/autosave for **new games produced by each merged PR** must continue to work. Keep editor previews isolated from player save slots. No legacy save migration code or compatibility adapters need be developed solely for old saves.
+- The Studio holds every content file as a raw JSON tree (including `_` comment keys). Edits change
+  the raw tree; validation runs `buildRegistry` on a comment-stripped copy (debounced). Saving
+  serializes the raw tree with the shared formatter.
+- Formatter (`src/content/format.ts`, also `npm run content:format`): 2-space indent; an object or
+  array is printed on one line when it fits in 110 characters and contains no multi-line child;
+  key order preserved; trailing newline. `content:check` fails on unformatted files.
+- `ContentError` gains structured problems `{ file, path, message }` (string output unchanged) so
+  the Studio can link each problem to its entity and field.
+- Undo/redo per Studio session; dirty markers per file; explicit save (button and Ctrl/Cmd+S).
 
-**Localization contract:** language-independent mechanics plus keyed strings and variant identities. Variant selection must stay independent of gameplay RNG and respect “no immediate repeat” semantics. Modal and narrow journal channels have separate keys. Locale bundles have explicit fallback, placeholder validation and missing-key reporting. Existing English prose must remain equivalent through extraction.
+### 4.4 Schema metadata, generic forms, widgets
 
-**Browser local-file contract:** Chrome is required for direct editing. On explicit Open Local Project click, call showDirectoryPicker({mode: "readwrite"}) from the HTTPS Pages-hosted app; validate root folder structure; limit file operations to intended content/media paths; never inspect or modify .git, credentials, .env or arbitrary paths. Show local vs published modes distinctly. Handle unsupported API, cancel, revoked permissions, stale outside edits, partial multi-file failure and recovery. Browser cannot run git CLI. Brave support is best effort with the experimental flag enabled and runtime capability checked.
+- Reference metadata: ID fields that point at another entity use a helper in `schema.ts`, e.g.
+  `ref("item")`, `ref("activity")`, implemented with Zod `.describe()` — no validation change.
+  The same metadata drives reference pickers, "where used", safe delete, rename and the story view.
+- Generic form: a Zod schema walker renders any object/array/union/enum/number/string/boolean/
+  record/optional/lazy node. Discriminated condition/effect unions become a "kind" selector.
+- Widget registry keyed by schema node (Condition, Effect, Outcome, Text, Amounts, Yield) or by
+  `ref` kind overrides the generic renderer. Optional per-field labels/help live in one Studio
+  metadata file; missing metadata falls back to the field name.
+- **Adding a mechanic** = schema + engine + registry check + test (as today). The field appears in
+  the Studio automatically; a custom widget or label is optional polish.
 
-**Publish contract:** draft != released content. Validations and build tests run before content is accepted. Git review is the source of published history. Content changes should be auditable as readable file diffs. Hosted authoring must never grant unauthenticated repository write access.
+### 4.5 Preview
 
-## 5. PR conventions (mandatory for each PR)
+- The Studio shows the real game in an iframe (`/?preview`). Saving a content file triggers Vite's
+  reload of the game; nothing else is needed for fresh content.
+- `?preview` switches the save keys to `textisland.preview.*` so the owner's own saves are untouched,
+  and enables the existing `ti` debug console. The Studio preview panel offers new game (optional
+  seed), `?variants=first`, and buttons wrapping existing `ti` commands (give item, advance time,
+  unlock area). New debug commands only if a PR needs them, with tests.
 
-Every deliverable is a **single independently mergeable PR** with:
+## 5. PR conventions
 
-1. A concise feature contract, exact migration steps, changed directories and upgrade/rollback notes; link its parent requirements in this plan.
-2. Tests added with the feature, including at least one negative/validation case where applicable; shipped production validation separately from frozen fixtures.
-3. Green npm test, npm run content:check, npm run typecheck, npm run build and npm run test:e2e (or the documented workspace replacements, including separate studio tests when present). Report any unrun test and why.
-4. At least one meaningful manual demonstration of a **working** behavior; attach commands, screenshot or text transcript to the PR. “Code compiles” is not sufficient for an editor feature.
-5. No placeholder buttons presented as functional, no disconnected second content schema, no silent fixture rewrites and no unreviewed production gameplay/balance changes.
-6. When migrating code/data contracts, use temporary adapters **within the PR** if necessary to prove parity; remove dead adapters when the new path is tested. Old player saves do not require preservation.
-7. A rollback must restore a playable game for a fresh start and must never leak an editor draft into the published game; legacy save continuity is not required.
-8. Tests of malicious or malformed authored content and safe error reporting where user input crosses trust boundaries.
-9. Updates to AGENTS.md, docs/TDD.md, ARCHITECTURE.md, docs/NARRATIVE_STYLE.md or README.md only if that PR changes the relevant implemented contract; distinguish [implemented] from [proposal].
-10. Keep scope small enough for review. If implementation becomes larger than described, update the plan with a separate approved PR instead of silently splitting an acceptance criterion or delivering half a working feature.
+1. Contract: what changes, which files, what the owner tests manually (a short numbered list).
+2. Tests with the change, including at least one rejection case for new validation or API input.
+   Game rules stay in engine tests on the frozen fixtures; browser tests only for wiring/UI.
+3. `npm run check` green (plus Studio tests once they exist). Report anything not run and why.
+4. Automated game smoke stays in `e2e/smoke.spec.ts`; the owner's manual test focuses on the new
+   capability.
+5. No placeholder controls presented as working; hide unfinished UI.
+6. Fixtures change only through the PR's stated migration (PR-02, PR-03), with parity proof.
+7. Update docs only for what the PR implements; mark [implemented] vs [proposal].
 
-**Test evidence template:** PR ID; manual setup; action performed; observed before/after; automated test commands + results; bundle/snapshot diffs; save migration result; compatibility check; screenshots for visible UI; risks/gates resolved.
+### 5.1 Game safety rules
+
+The owner pauses engine and game-content work while this program runs (owner, 2026-10-21), so no
+transition or dual-layout support is needed. The game must still work after every PR:
+
+1. **Additive by default.** Studio code lives only in `studio/`, `src/studio/` and `tools/`. The
+   game never imports it and the production build excludes it.
+2. **Shared code is touched only where listed**, keeping current behavior: PR-02 loader/registry
+   (file layout), PR-03 schema/registry/engine (activity links), PR-04 structured `ContentError`
+   (string output unchanged), PR-05 `ref()` metadata (no validation change), PR-06 preview save
+   keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
+   `src/persistence` or `src/main.ts` is out of scope; stop and ask.
+3. **Golden traces (PR-01) must stay unchanged** in every Studio PR.
+4. **Saves.** Only PR-03 may bump `SAVE_VERSION` (and only if text keys or state actually change).
+   Preview mode never reads or writes the player's save keys.
+5. **Future engine work stays cheap.** The generic form renders unsupported Zod node kinds as a
+   validated raw-JSON field instead of failing, widgets bind to schema objects (Condition, Effect,
+   Text) rather than field names, and Studio code imports shared code only through
+   `src/content/index.ts` and the public engine API. Adding or renaming a schema field later must
+   not require Studio changes.
 
 ## 6. Delivery sequence
 
-The PRs form a linear path with explicit optional gate-dependent late phases. Pages hosts Studio from PR-09, it edits chosen local files in PR-10, and PR-28 hardens browser/Pages integration. Their numbers define preferred merge order. Do not claim a future step as implemented when an earlier scaffolding PR lands.
-
-### PR-01 — Baseline contracts, regression tests and authoring inventory
-
-**Delivers:** a tested snapshot of current player behavior that later migration PRs can compare; no game UI change.
-
-**Implementation:** catalogue all content entity kinds, fields, nested translatable strings, refs, id uniqueness, Vite globs and fixture divergence; record current build outputs, important selectors and edge cases. Add parity fixtures testing shipwreck initial event, region discovery, activity costs/timing, quests, creation-tree unlocks, interrupted work, local production, event branching, seeded narrative variants, reload and preserved save behavior. Write a small inventory report under docs/ including known gaps and desired export mapping.
-
-**Acceptance:** existing game plays as before; smoke tests and content validation remain green; inventory accounts for all schema text locations and every special runtime-written sentence. A future agent can mechanically verify old versus migrated outcomes from stable seeds and commands. No rebalancing or prose edits.
-
-**Manual demo:** new game → shipwreck choice → beach discovery → craft action → save/reload; record expected journal, work and state results.
-
-### PR-02 — npm-workspaces skeleton and game application move
-
-**Delivers:** real monorepo structure with the unchanged playable game as apps/game, root npm workspaces and stable scripts. **Not** yet a studio.
-
-**Implementation:** move game-specific Vite entry, source, assets, CSS and config carefully; retain canonical content/ and test fixtures; configure TypeScript paths/project references only where needed; root commands proxy tests/build/e2e; update Playwright paths, pre-push hooks and GitHub Pages workflow to publish the same game URL and same file tree. Ensure Vite base resolves /mysteryless-island/ and static assets correctly (relative base is currently ./). Use a temporary compatibility directory or imports rather than changing behavior. Preserve useful npm run dev/test/check entrypoints.
-
-**Acceptance:** clean npm ci, npm run dev, npm run check work from repo root; player game remains at current URL with 320px/mobile and desktop smoke coverage; old saves may require a fresh start; starting a new game, saving and reloading must work. One deploy still publishes only the game. Test from fresh start, including saving/reloading under this PR.
-
-**Manual demo:** load the unchanged GitHub Pages game after branch preview or local production build; traverse a region and reload a saved action.
-
-### PR-03 — Extract the shared content-model package
-
-**Delivers:** game imports one reusable @mysteryless/content-model package; working content validation still matches baseline.
-
-**Implementation:** extract src/content/schema.ts, registry.ts and text-keys.ts into packages/content-model, export typed APIs (parse, buildRegistry, ContentError, entity types, stable text identity and reference diagnostics); keep the game loader as an adapter. Preserve strict Zod behavior and stripping of underscore-prefixed author notes. Expose typed helpers needed by editors (entity listing, reference enumeration, validation errors), but do not create new feature behavior. Avoid copies of schema/validator inside apps.
-
-**Acceptance:** parity snapshots from PR-01 match; existing production and fixture validations give equivalent pass/fail results and file/path error messages; importing the package in a minimal Node script works.
-
-**Manual demo:** introduce an invalid item reference, show the shared validator rejects it with a location; revert and play.
-
-### PR-04 — Extract engine and state contracts without gameplay changes
-
-**Delivers:** pure @mysteryless/engine package used by the game, allowing later studio previews to reuse actual simulation code.
-
-**Implementation:** relocate core engine, rules, state schemas, RNG, selectors and pure helpers without changing command semantics. Keep scheduling, UI and browser persistence in apps/game or clearly named adapters; decide exact placement of narrative formatting helpers based on their dependencies. Avoid DOM/Date/localStorage access from engine code. Preserve functioning save/load for a newly started game; change SAVE_VERSION when data contract changes and present a clear incompatible-save reset path. No backward migration of old saves is required; test engine against frozen fixtures.
-
-**Acceptance:** identical seeded command traces, game-time advancement, pending action resumption, outcome rolls, work input reservations, timers, production and journal selection. npm run check remains green; standalone Node import can run Engine.newGame and dispatch without a browser.
-
-**Manual demo:** simulate a timed gather with a deterministic seed from the package and repeat the same sequence in the browser.
-
-### PR-05 — Deterministic content-compiler v1 and runtime adapter
-
-**Delivers:** content can be compiled at build time and loaded by the game without loading authored source JSON directly in its production bundle.
-
-**Implementation:** add packages/content-compiler with a Node CLI accepting source directory, output directory, mode (production/fixture) and diagnostics options. Validate source with shared registry; generate manifest including formatVersion, source schema version, stable content IDs and hash; emit normalized gameplay data to an immutable bundle. Keep a reader/adapter producing the same Registry; keep fixture mode independent. In the first iteration compile the current JSON without extracting prose yet. Ensure in-browser runtime does not parse CSV or load a CMS. Update Vite build scripts to run compilation before bundling or to import a generated manifest; do not require side effects during arbitrary package imports.
-
-**Acceptance:** same input yields identical bytes/hash across two builds; invalid references/time increments fail before emitting publishable output; game still plays with same behavior; fixture build uses only fixtures; no authoring paths or credentials leaked to dist.
-
-**Manual demo:** edit a copied production JSON file, compile, inspect its manifest, run a game build and verify authored behavior; repeat compilation and compare hashes.
-
-### PR-06 — Stable translatable-text IDs and extraction audit
-
-**Delivers:** a mechanically checked English text catalog with key-level traceability and a compiler that preserves current visible English wording, including alternatives.
-
-**Implementation:** enumerate every user-facing source field in schema and game code; define separate UI/system text classification, modal prose, journal prose, labels, warnings and narrative variants. Design stable IDs independent of path/order, with deterministic generated initial IDs recorded to source (not recomputed silently when arrays move). Create an extraction/mapping script and catalog lint; preserve interpolation placeholders and narrative variant order/indices. Show old path → text key → locale entry and source references in a report. Keep compatibility between old Text shapes and new keyed references during the transition; no forced replacement of all JSON in one commit unless proven safe by parity tests.
-
-**Acceptance:** 100% of shipped text fields are classified; stable explicit IDs survive file moves; extraction rerun is idempotent and does not modify game mechanics; snapshot of modal/journal English output matches prior build in first-variant test mode; no missing keys. Unchanged gameplay seed traces.
-
-**Manual demo:** change the English label for one discovery using its catalog entry, compile, and see the expected change only in the target UI text.
-
-### PR-07 — English runtime catalog resolution and locale bundles
-
-**Delivers:** game loads a build-produced English locale bundle through a shared text resolver; compiler enforces key/placeholder correctness.
-
-**Implementation:** split mechanics and locale data in build output while retaining the canonical authoring source structure approved at D3. Define format for single text and variant groups; create independent locale bundles with stable keys and the same variant identity/order; validate missing/duplicate keys, unsafe placeholder changes and semantic text type mismatches. Resolve strings at presentation/runtime boundaries; preserve the seeded choice and no-repeat semantics. Add a locale abstraction that defaults to English; do not invent translated game copy. Avoid adding runtime reload of authored CSV/JSON source.
-
-**Acceptance:** English matches baseline; invalid or missing locale keys fail release validation (or satisfy explicitly decided fallback policy); no gameplay RNG drift when text variants change; switching the resolver to an identical test locale does not change inventory/quests/progression.
-
-**Manual demo:** change only a locale catalog string, build, and verify the game displays the change; confirm production bundle contains independent mechanics and text assets.
-
-
-### PR-08 — Runtime language switching and text-bearing state redesign
-
-**Delivers:** an English-capable language picker/resolver whose runtime can switch catalogs without resetting gameplay; test with a deliberately synthetic second locale, not hand-written final translation.
-
-**Decision gate:** D4 (switch behavior / fallback). Old saved games do **not** need to survive this PR per resolved D5.
-
-**Implementation:** add locale selection in app state and persist the user's preferred locale separately from the game save. Replace reliance on irreversible rendered strings for journal/popup entries with serializable message descriptors where feasible: { textId, variantId/index, vars, renderedFallback? }, timestamp and turn. At selection time capture variant identity once; changing language must not reroll text or advance gameplay RNG. For dynamically synthesized phrases, introduce stable template references/structured fragments and keep an explicit safe fallback for truly unresolvable historical lines. Update selectors/UI and popup serialization to resolve at render time. Reuse the same registry and catalog resolver for events, exploration, game templates and UI chrome. Keep save controls and autosave fully functioning for newly created sessions; bump SAVE_VERSION if necessary and handle old saves with a clear restart. Do not change event order, clock, actions, rewards or effects.
-
-**Acceptance:** choose a synthetic test locale during an active game; region name, event modal, newly generated log and (if selected at D4) past journal entries change language without duplicating entries or selecting new variants. Switching back to English restores original English. Command trace and RNG states remain unchanged; create, save, refresh and load a **new** game successfully. No missing-key placeholder appears silently.
-
-**Manual demo:** play through shipwreck and spring discovery, switch to test locale and back, finish an action, save/reload. If old save exists, a new-game action restores the playable state.
-
-### PR-09 — Pages-hosted Studio shell and released-content browser
-
-**Delivers:** separate React/Vite Studio browses actual released game data at the GitHub Pages /studio/ URL; the player game remains playable.
-
-**Implementation:** add apps/studio independent build, responsive navigation for all content groups, typed entity list/details, search and diagnostics. Extend the existing Pages deployment to stage Studio alongside game now; correct Vite base paths and reload/deep-link behavior. Display **Published Content — read only**. No write controls yet. Local dev server remains optional for development only.
-
-**Acceptance:** both apps independently build and open at correct Pages URLs; Forest and an item/event can be browsed, refresh works and the game remains playable/saveable. Invalid content yields useful diagnostics, not blank UI.
-
-**Manual demo:** open Pages game and Studio, browse Forest, then start/save a fresh game.
-
-### PR-10 — Chrome File System Access editor for local repository files
-
-**Delivers:** from the hosted Pages Studio, open the user's **local Git checkout** and save validated content file edits directly there, without a local Node writer/backend.
-
-**Implementation:** request directory with window.showDirectoryPicker({mode:"readwrite"}) only from explicit Open Local Project button on HTTPS. Verify folder has expected content structure, then use scoped directory/file handles and createWritable() to load/write only approved authored JSON/media; never touch .git, secrets, arbitrary paths or execute commands. Show **Local Workspace (uncommitted)** versus **Published Content**; validate through shared schema/registry before Save, show exact file-level diff, preserve unrelated fields and author comments, add dirty/undo/revert support. Before writing, re-read disk to reject concurrent external edits. Browser writes spanning multiple files are not atomic: use backups/recoverable journal and error UI. Handle denied/revoked permissions and refresh; re-request permission as needed. Chrome is required. Brave is best-effort if brave://flags/#file-system-access-api is enabled and feature detection passes; unsupported browsers get a clear fallback explanation. No GitHub auth, local write server or silent remote publishing.
-
-**Tests:** Chromium E2E grants test-folder picker permission and validates bytes written to disposable checkout; wrong-folder, invalid content, permission denied/cancelled/revoked, stale file, path traversal, multi-file partial failure and reload cases. Verify deployed game unchanged.
-
-**Manual demo:** open hosted Studio in Chrome, select cloned mysteryless-island folder, edit Forest label, Save, inspect local git diff, revert with local Git tool.
-
-
-### PR-11 — Region CRUD and typed metadata editor
-
-**Delivers:** author can create a region, edit its properties and delete an unreferenced draft region without touching source code.
-
-**Implementation:** typed region form for id (created once), name, title, description, order, climate baseC, travelHours, map x/y, siteCapabilities, artwork, shelterWhen, hintWhen, unlockWhen and firstVisit/arrival configuration as supported. Use selectors for references; validate missing required fields, duplicate IDs, step-compatible durations and appropriate coordinate constraints. New region scaffolding uses valid defaults approved by schema only, **not** invented biome/gameplay. Explicitly show all required fields and don't create dummy valid-looking text. Provide reference-aware deletion with blocking dependencies; globally referenced region IDs cannot be silently renamed. A draft-only region that has no landmark or activities may be valid if schema permits.
-
-**Acceptance:** create region with ID and authored title, see it in Studio and in game's validated registry/map when built; edit climate/travel position and see correct effect; duplicate ID and deletion of referenced region are blocked; player can still navigate existing regions and start a fresh game.
-
-**Manual demo:** create a temporary 'coastal_grotto' with an unlock rule, build/play to verify it can become visible, then delete/revert and confirm no lingering reference.
-
-### PR-12 — Landmarks, regional views, and dual-channel prose editor
-
-**Delivers:** fully usable authoring for look-around view lines, discovery landmarks, and their modal vs journal texts.
-
-**Implementation:** region > explore inspector; edit view[].{text,when}, nothingLeft, landmark id/label/hours/effort, visibleWhen, requires/requiresText, siteCapabilities, effects, and per-landmark long text + short journal. Allow multiple text variants with clear semantics (alternatives, **not** ordered paragraphs); distinct presentation fields for modal and journal. Include live character guidance (journal recommended <=80 characters, not a hard schema rejection until approved), placeholder checks, rich paragraph breaks with safe plain-text persistence, edit/reorder/remove, and fallback warning when journal is absent. Do not add fictional discoveries to production content as the demo; use test fixture or revert.
-
-**Acceptance:** author a new landmark in an existing region via UI; look around lists it under authored conditions, duration and effort apply, discovery applies stated effects, modal shows full passage and journal shows its short summary; a variant edit does not change game outcomes. Deletion reports downstream references. Test multiline/newline, unsafe/missing placeholders, variants and no-immediate-repeat behavior.
-
-**Manual demo:** add a temporary forest landmark with a distinct two-sentence modal and 10-word journal; reach it in a new game, then revert.
-
-### PR-13 — Region activities, outputs and action authoring
-
-**Delivers:** editor supports complete Region.activities CRUD, timed work, yields, conditional outcomes, log text and action tags.
-
-**Implementation:** typed activity list and inspector for global/local, building grouping, icon, name/id, hours, effort, visibleWhen, requires, requiresText, cost, yields with min/max/chance/condition, outcomes (weight, when, text, effects), thoughts/afterwards and tags. Reuse a schema-validated structured form for fields whose rich widgets arrive in PR-14, so authors can save without changing application code; all saved data passes schema. Warn when icon vocabulary doesn't contain requested value instead of inventing icon type. Provide reusable action template only with exact existing semantics.
-
-**Acceptance:** author a gather action from a temporary region, see its button after the applicable discovery, spend game time/resources, receive expected yields/log; probability tests can seed expected outcomes; invalid quantity, time step, unknown item, mismatched tool are rejected. Existing actions keep working.
-
-**Manual demo:** add a temporary gather-stone activity in the test region via Studio, execute it once with a deterministic seed, show inventory and journal.
-
-### PR-14 — Shared visual condition, effect and outcome builder
-
-**Delivers:** a reusable and accessible graphical editor for every **currently implemented** Condition and Effect variant used by the preceding Studio forms, events, tasks and creation.
-
-**Implementation:** recursive AND/OR/NOT group controls; leaf condition forms for item quantity, seen, flag, timer, region/at, stat, warmth, phase, effort, day, did, today, reached, quest, discovered, explored, tool, site, built/sheltered and building status; effect forms for give/take/stat delta/timer/flag/unflag/log/weighted roll/startQuest/unlock/build/startCycle. Reference pickers filtered by entity kind, local-vs-global scope shown, help text consistent with engine semantics, validation at each nested node, preview of generated JSON and human-readable explanation. Reuse rule builder for visibility, eligibility and effects without conflating them. No arbitrary executable expressions or user code. Keep recursive depth and UI responsiveness bounded; large rule trees accessible via keyboard. Changes must round-trip through source, compiler and engine identically.
-
-**Acceptance:** create combinations of nested conditions and effects without entering JSON, preview exact resulting data, edit and save; negative refs, invalid recursion and unsatisfiable conditions flagged or warned appropriately. Engine's evaluation must agree with the Studio tester for a chosen game state; randomized outcomes retain seeded determinism.
-
-**Manual demo:** "Show action only after spring found and when water can owned" then grant a stat/resource on success; play through before and after the condition.
-
-### PR-15 — Items, tools, consumables and item-action editor
-
-**Delivers:** complete authoring of current Item fields, item actions and consumption without changing code.
-
-**Implementation:** item CRUD with ID, name/plural, category, artwork, maximum quantity, tool capabilities/tags/amount/hoursFactor, consumption verb/duration/stats/effects/log/tags, nested item actions (id/label, building, uses, cost, visibleWhen, requires, outcomes, effects, log) and any other fields in the **current** schema. Use generated metadata to prevent omitted fields and keep dynamic forms aligned with Zod; display gameplay impact and references. Show inventory/consumables preview and capacity constraints. Existing special cases like water can and raw fish must remain correctly authored and interpreted by generic engine mechanics.
-
-**Acceptance:** add a new item and a consumable action using Studio; connect it to a supported yield or event, play and consume it; quantity/cap/reference validation and proper tool requirements hold. Remove an unreferenced temporary item; referenced deletion is rejected with dependency list. All current items round-trip with no semantic changes.
-
-**Manual demo:** add a temporary edible plant item with a consume log, grant it in a temporary event, eat it, observe stats and journal; revert.
-
-
-### PR-16 — Recipes and crafting progression tree editor
-
-**Working deliverable:** Create/edit/remove crafting recipes and visually manage the real crafting dependency tree.
-
-**Implement:** recipe output item, count, multiple, recipe.requires, ways[] with exclusive visibleWhen, hours/effort/cost/tool requirements, log alternatives, effects and tags. Editable crafting tree branches, nodes, target, all-required parent edges and order. A new recipe gets exactly one tree node in the same atomic source edit. Graph dragging must not invent undocumented mechanics. Display actual engine lock reasons. Prevent cycles, orphan branches, duplicate targets, cross-kind edges and referenced deletions.
-
-**Tests:** schema round-trip; positive recipe plus prerequisite; cycle, missing output and duplicate target failures; old recipe playthrough parity.
-
-**Manual acceptance:** create a temporary craft recipe with an existing supported output; complete prerequisite in the game and craft it. Existing crafting tree stays playable.
-
-### PR-17 — Buildings, production cycles and building progression tree editor
-
-**Working deliverable:** Author buildable structures and production cycles through Studio.
-
-**Implement:** every supported Building field: build step, site requirements, costs, effort/hours, max units, local capabilities, production start/collect/repeat, products, batch/inputs/units, outputs, text, artwork and graph prerequisites. Share tree editor with PR-16. Explain missing site providers, bad production outputs and recipe/build edges. Do not introduce new production mechanics without engine tests; preserve reservation, pause, catch-up-with-game-time-only and collection rules.
-
-**Tests:** building field coverage; cycle validation; no-site rejection; deterministic production from seed; save/reload for a freshly started game; existing fish trap, rack, bed and field tests.
-
-**Manual acceptance:** create a temporary site-bound building, construct it where allowed, start and collect a production batch, and verify the unavailable reason elsewhere.
-
-### PR-18 — Tasks/quests and dependency inspector
-
-**Working deliverable:** Full quest authoring, including start/completion and linked references.
-
-**Implement:** quest ID/title, trigger (all implemented variants), completeWhen, startLog, doneLog, effects; shared condition builder; trace references to discoveries, actions and events. Keep tasks as goals, never creation gates. Validate manual-trigger quests have a starter effect. Categorize provable broken references vs heuristic progression warnings.
-
-**Tests:** task start→complete→reward sequence, invalid manual-start, invalid condition refs and preservation of existing task completion notes.
-
-**Manual acceptance:** create a temporary discovery-triggered task completed by a crafting action and play it through from a fresh game.
-
-### PR-19 — Visual branching event editor
-
-**Working deliverable:** Edit complete branching events on a graph without JSON or code.
-
-**Implement:** event metadata (ID/title, triggers: start/time/when/after+chance, extra condition, cooldown/repeat), scene graph (required start node, choices/next edges, end/close), scene long modal text + short journal text, scene effects, choice label/conditions/effects. Rename scene IDs with validated incoming-edge updates. Preserve authored order. Flag dangling targets, dead scenes, accidental cycles and invalid effects. Graph layout is visual only.
-
-**Tests:** branching rewards, modal vs journal, triggers/repeat, unreachable scenes, missing start and dangling edges; round-trip source→editor→source→compiler.
-
-**Manual acceptance:** temporary three-scene event with two choices gives differing rewards in the real game.
-
-### PR-20 — Localization and prose management workspace
-
-**Decision:** D4 must resolve locales, fallback and switching policy before declaring this deliverable complete. Until then English + synthetic test locale only.
-
-**Working deliverable:** Edit/transcribe localizable prose side by side and audit translation completeness.
-
-**Implement:** searchable text ID table with owner/reference, English original, chosen locale, variants, modal/journal classification, tokens/placeholders and review status; filters for missing/invalid/unused/duplicate; navigate to containing entity. Bulk CSV/TSV import/export supports Unicode, quotes, commas, embedded newlines and spreadsheet formula injection safeguards. Preserve variant identities and exact placeholders. Do not silently introduce unsupported Czech plural grammar.
-
-**Tests:** completeness, key stability after source move, importer round-trip, mismatch failures and independent gameplay RNG under language changes.
-
-**Manual acceptance:** edit the translation for the spring modal and journal, switch locale in the game and import/export that pair without loss.
-
-### PR-21 — Visual island map and region dependency view
-
-**Decision:** D6 must decide whether arbitrary per-edge travel is needed. This PR by default represents *existing* camp-centered travel. If changed, plan a distinct engine graph PR before editing arbitrary edges.
-
-**Working deliverable:** Interactive layout view and authoring of existing region positions/travel fields.
-
-**Implement:** canvas/map of regions, authored grid positions, visibility hints, unlock conditions and supported travel time; pan/zoom/drag with keyboard fallback, selection to region inspector, collision warnings. Node dragging edits region.map only; connections must reflect runtime behavior and never imply authored routes the engine doesn't implement.
-
-**Tests:** round-trip region positions, collision warning, game map and travel-time regression, mobile rendering.
-
-**Manual acceptance:** move a draft region, save, rebuild game and observe correct map position; travel remains valid.
-
-### PR-22 — Art/media, global game settings and schema coverage audit
-
-**Decisions:** D7 (scope/completeness), D9 (media source/publish) before implementation.
-
-**Working deliverable:** Edit all remaining *currently implemented* authorable fields, including artwork references, sites, game settings, timers, climate and stats.
-
-**Implement:** publish a field-coverage matrix mapping every schema field to a Studio control, validation and test; fill gaps with typed forms or safe schema-validated advanced structured editor, never executable scripts. Editing game start, stepMinutes, sleep, provisions, timers, tool tags, climate and damage must report consequences. Media browser for approved local files, dimensions, alt text, safe relative paths and reference checks. Honor shared panorama policy in ARCHITECTURE.md; do not invent per-region headers.
-
-**Tests:** each remaining field has editable round-trip; invalid asset formats/path/size rejected; game clock/start setting changes reflected only when intended.
-
-**Manual acceptance:** change an allowed global time setting and a draft entity artwork reference in Studio, observe game effect, then revert. Entire real game remains playable.
-
-### PR-23 — Actual game embedded as draft preview
-
-**Working deliverable:** Open a full game simulation using *unpublished Studio draft content*.
-
-**Implement:** compile and validate draft in memory/temporary build, then boot the actual apps/game renderer and @mysteryless/engine in isolated iframe or adapter; strict postMessage origin/source checks if messaging is used. Do NOT draw an imitation game UI in React or duplicate rules. Keep preview saves/session state separate from published-game keys (prefer in-memory adapter), seed/variant settings explicit. Invalid draft displays diagnostics with last safe preview or clear empty state. Draft changes require controlled preview reload.
-
-**Tests:** draft content visible, engine match, no public save mutation, malformed draft, preview teardown, cross-origin message denial.
-
-**Manual acceptance:** edit Forest landmark description, launch preview, discover spring, inspect long modal and short journal while public game remains unchanged.
-
-### PR-24 — Deterministic playtest presets and rule inspector
-
-**Working deliverable:** Jump directly into test scenarios and inspect why an action/event is enabled.
-
-**Implement:** versioned test presets (seed, location/time/stats/inventory/discoveries/flags/quests/buildings/timers) validated before use; use engine commands or audited state-factory injection with consistency checks. Explain conditions using the actual engine evaluator; show state before/after and effect trace, no second rule interpreter. Support reset, fast-forward for preview, import/export of test scenario files separate from published content.
-
-**Tests:** same seed+preset+actions gives same output; invalid preset cannot corrupt public saves; condition preview matches runtime.
-
-**Manual acceptance:** start in Forest on day 3 after discovering spring, fill water can, inspect before/after state, repeat identically.
-
-### PR-25 — Global dependency browser and advanced diagnostics
-
-**Working deliverable:** Cross-reference search, safe refactoring and an actionable release-validation screen.
-
-**Implement:** incoming/outgoing refs for every entity/text key; explicit rename preview and transactional reference updates; error links to entity+field. Check missing entities, invalid costs/timing, craft/build cycles, scene graph dead ends, manual quest starters, unavailable site capabilities, localization keys, invalid media and suspicious orphan content. Label static proof as ERROR, uncertain reachability as WARNING (don't promise formal reachability). Optionally run bounded seeded playthrough smoke; no unbounded state-space search. Publish blocked on errors. Test large documents for responsiveness.
-
-**Tests:** failed build on invalid refs, exact diagnostic location, rename update, harmless optional content warning does not block.
-
-**Manual acceptance:** break a recipe parent, follow Studio error to its edit field, repair and pass validation.
-
-### PR-26 — Templates, clone, bulk editing, CSV and archive exchange
-
-**Working deliverable:** Create repeated content faster and exchange flat datasets with spreadsheets safely.
-
-**Implement:** valid blank/sample templates for regions, landmarks, actions, items, tools, crafting, buildings, events and quests; clone with new stable IDs and explicit reference remap; bulk edit/undo; dry-run import changes and atomic rollback. CSV/TSV for simple tabular data and translations, JSON archive for nested scenes/rule graphs. Preserve quotes/newlines/Unicode and guard spreadsheet injection. Never claim CSV captures arbitrary nested event graphs without loss.
-
-**Tests:** all templates validate after required data supplied; import rollback on bad references; clone remaps links; source→export→import semantic round-trip.
-
-**Manual acceptance:** bulk-create two temporary food items, inspect, undo and revert; game remains playable.
-
-### PR-27 — Local changed-file review and Git handoff
-
-**Delivers:** Studio shows source diffs and clear instructions to commit/push in existing local Git tools, not fake in-browser Git operations.
-
-**Implementation:** changed-file list and semantic/raw diffs from selected folder baseline, safe scoped path display and copyable git status/diff/add/commit/push steps. Browser File System Access cannot read Git index or invoke local Git, so no Commit/Push UI claiming success. Existing Git CLI, IDE or GitHub Desktop remains publishing path. Validate before handoff; optional patch/changeset export. Keep remote publishing separate in optional PR-29.
-
-**Tests:** diff correctness, safe shell path display, valid/invalid source, no secret paths and no browser credentials.
-
-**Manual demo:** edit a landmark in hosted Studio, inspect diff, commit that file from local terminal/IDE and verify git show.
-
-### PR-28 — Dual Pages deployment and local-file editing hardening
-
-**Delivers:** independently built game and Studio at both Pages URLs reliably; local-directory editing works in Chrome. Studio has **already been hosted since PR-09**.
-
-**Implementation:** finalize build artifact, manifest coherence, asset/locale base paths, deep link/refresh, desktop/mobile UX, permission denial/revocation, folder-scoped local editing and separation of published vs local project. Never transmit content on Save or imply it changed the deployed site. CI and Playwright exercise both apps and browser picker. No backend credentials or Node write service.
-
-**Tests:** Pages URLs, nested assets, locale, picker permissions, external edits, local diff, absence of secret writes, fresh-game save/reload.
-
-**Manual demo:** edit local clone via Pages Studio in Chrome, see local git diff, confirm unchanged published game and both sites refresh correctly.
-
-### PR-29 — Optional remote GitHub API PR publishing (gated)
-
-**Decision:** D2/D8/D9 require separate owner approval. This feature is **not required** for Pages-hosted Studio to edit files on the owner's computer.
-
-**Delivers:** optional direct remote GitHub branch/PR creation using a trusted authenticated service, without depending on local checkout.
-
-**Implementation:** approved GitHub App/backend, least privileges, CSRF, path/repo/branch restrictions, revision checks, audit trail and explicit PR approval. Never embed PAT in frontend or modify main directly; retain local folder workflow.
-
-**Tests:** authorized PR creation; unauthorized/stale/path-traversal/secret exposure denied. Existing local editing still works.
-
-**Manual demo:** optional authenticated test proposal PR; confirm local folder workflow independent of remote auth.
-
-
-### PR-30 — Full end-to-end authoring acceptance and onboarding
-
-**Working deliverable:** Guided "Create a playable expansion" Studio workflow, tested onboarding and evidence of genuinely no-code creation.
-
-**Implement:** guide through new region, discoveries, resource action, item, recipe, building and production, task, branching event, modal/journal writing, text variants, locale and optional illustration, plus editor preview and Git publishing. Keep demo content isolated from released story. Add scripted Studio→source→compiler→actual game E2E scenario using disposable fixture workspace, never editing real production data. Test recovery, accessibility, keyboard interactions, large data performance, invalid drafts and Windows/macOS/Linux setup as supported. Add docs/CONTENT_AUTHORING_GUIDE.md and troubleshooting, screenshots and maintenance notes. Audit all current schema fields against editability matrix; explicitly identify unsupported *new engine mechanics*, not silently skip existing fields.
-
-**Tests:** one end-to-end scenario creates content with UI, persists it, compiles, runs a new game, resolves an event and quest and checks both modal and journal outcomes. Full root check still green.
-
-**Manual acceptance:** another agent can follow handbook to author a small self-contained playable island expansion, validate, preview and create content-only PR without changing application code.
-
-## 7. Dependencies, checkpoints and delivery evidence
-
-**Merge order:** PR-01 baseline → PR-02 workspace → PR-03 model → PR-04 engine → PR-05 compiler → PR-06 text IDs → PR-07 catalog → PR-08 locale → PR-09 Pages Studio browser → PR-10 Chrome local folder writing → PR-11–22 authoring → PR-23 draft preview → PR-24 presets → PR-25 diagnostics → PR-26 bulk tools → PR-27 local Git handoff → PR-28 deployment hardening → optional PR-29 remote GitHub PR → PR-30 acceptance.
-
-- **A, after PR-04:** game unchanged, engine/model reusable, snapshots reproducible.
-- **B, after PR-08:** fresh game with compiled content and language controls. Legacy saves can be rejected.
-- **C, after PR-10:** Pages-hosted Studio saves a validated local repository JSON edit in Chrome, visible in local git diff and not published remotely.
-- **D, after PR-14:** create a region, landmark, activity and condition through Studio.
-- **E, after PR-19:** item/recipe/building/task/branching-event authoring usable end to end.
-- **F, after PR-24:** unpublished drafts playable with repeatable state presets.
-- **G, after PR-28:** game and Studio deployed at independent URLs; browser-local file editing and Git handoff tested and hardened.
-- **H, after PR-30:** an end-to-end authoring expansion is demonstrated without writing code.
-
-## 8. Cross-PR constraints and regression matrix
-
-Every PR must run its own manual game smoke: new game → shipwreck modal → beach discovery → gather → craft/build → save/reload and check game works. This is independent of old save compatibility. Bump SAVE_VERSION and show a visible restart path when game state representation changes; no need to migrate previous versions. Saving and loading a **new** game under the current PR must work.
-
-Do not regress step-quantized time, reserved inputs, production cycles and pause, independent gameplay/narrative RNG, events blocking commands, quest notes, personal crafting/build tree unlocks, exact condition evaluation, frozen fixture content or shipped registry validation. Content compiler must keep ordering where it affects behavior and never bundle source credentials. Every editor changes only authored definitions; game engine remains authoritative for all mechanics. Preview never writes player localStorage.
-
-Do not confuse modal with journal text (docs/NARRATIVE_STYLE.md), variants with paragraphs, and aesthetic previews with engine features. For graphics read docs/ART_DIRECTION.md and approved art references. Keep the game's currently approved shared panorama policy; don't infer features from mockups.
-
-**Tests per PR:** root npm run test, content:check, typecheck, build and test:e2e (or documented workspace substitutes); Studio unit/E2E where introduced; valid and invalid editor cases; fresh-start browser playthrough; save/reload for current version. Report skipped tests. Include reproducible manual evidence, source diff and acceptance criteria in PR description. No placeholder button is accepted as a working deliverable.
-
-## 9. Handoff contract for implementation agent
-
-Read AGENTS.md, ARCHITECTURE.md, docs/TDD.md, docs/TESTING.md, docs/GDD.md, docs/NARRATIVE_STYLE.md, this plan and relevant UI/art guides. Before each PR: inspect latest main; identify unresolved decision gates and obtain owner's decision before that PR; confirm root checks and a fresh game. Keep numbered deliverables one PR each. Update docs only for what that PR actually implements, maintain explicit [implemented] vs [proposal] status, and document any accepted plan changes. Do not rewrite frozen fixtures merely to pass tests, silently add gameplay mechanics, or push/merge without authorization.
-
-**Program completion definition:** an author can create an entirely new region, discovery, item, action, recipe, buildable productive structure, quest, branching event, long modal narrative and concise journal text with locale variation, test it in the *real* game, validate it and create a content-only PR. The old island and each intermediate merged state remain playable with a fresh start. Secure hosted authoring is a separate optional decision.
+### Phase A — content foundations (no Studio yet)
+
+**PR-01 — Golden traces.** Seeded command scripts on the frozen fixtures produce a normalized
+snapshot (state + journal). Covers shipwreck, exploration, an activity with outcomes, crafting,
+building + production, a quest, an event branch, sleep and save/reload.
+*Done when:* snapshots are committed and stable across runs. *Owner test:* none beyond CI.
+
+**PR-02 — Formatter and one file per entity.** Add the formatter and `content:format`; loader and
+registry read one object per file for every list kind, enforce `file name == id`, and keep
+singletons. A one-off migration script splits content and fixtures, then is deleted. No schema or
+behavior change.
+*Done when:* golden traces unchanged; `content:check` passes and rejects an unformatted file, a
+legacy multi-entity file and a file/id mismatch. *Owner test:* play a fresh game to the first craft.
+
+**PR-03 — Independent activities.** Move activities to `content/activities/<id>.json`;
+`region.activities` becomes a list of IDs; `global` keeps its meaning (offered everywhere, not
+linked). The registry records each activity's linked areas; engine/selector checks use "linked to
+the current area or global". Validator: unknown activity ID, an activity neither linked nor global.
+`did`/`today` counters stay per activity ID across areas. Bump `SAVE_VERSION` if text keys or state
+change.
+*Done when:* golden traces equal (except intentionally re-keyed text memo), a test links one activity
+into two areas. *Owner test:* fresh game, actions appear in the same places as before.
+
+### Phase B — Studio core
+
+**PR-04 — Studio shell, file API, browser.** `npm run studio`; the dev plugin (§4.2) with
+path-traversal, foreign-origin, non-allowlisted and stale-hash tests; React shell with navigation
+by kind and by area, entity list with search, read-only formatted JSON, structured diagnostics
+linked to entities. Lint boundary rule, the "no Studio in dist" test and the public shared surface
+`src/content/index.ts` (re-exports only; no behavior change).
+*Owner test:* open the Studio, browse Forest and an item, break a reference by hand, see the error.
+
+**PR-05 — Generic editor and save.** `ref()` metadata in the schema; generic form + widget registry
+(§4.4) with reference pickers; edit, create (from a valid minimal object), duplicate, delete with
+"where used" blocking; undo/redo; save through the formatter; conflict dialog on `409`.
+*Done when:* every current entity kind round-trips through the form unchanged (test over all fixture
+files), invalid edits show inline errors and cannot be saved. *Owner test:* create an item, link it
+as a yield of an activity, save, see a one-entity git diff.
+
+**PR-06 — Live preview.** Game iframe with `?preview` save isolation, reload on save, preview panel
+(§4.5).
+*Done when:* a test shows preview mode never writes `textisland.save`/`textisland.saved`.
+*Owner test:* edit a landmark text, see it in the preview without touching your own save.
+
+**PR-07 — Condition/effect builder and text widget.** Recursive all/any/not tree, a form per leaf
+and effect kind generated from the schema unions, human-readable summary using the engine's
+`explain`, JSON view; text widget with variants (alternatives, never paragraphs), modal vs journal
+labeling and the 80-character journal guidance from docs/NARRATIVE_STYLE.md.
+*Done when:* every condition/effect kind in `schema.ts` can be built without typing JSON (test
+iterates the union), and the summary matches `explain`. *Owner test:* "visible after the spring is
+discovered and while carrying the water can".
+
+### Phase C — authoring views
+
+**PR-08 — Area workspace and rename.** One screen per area: properties, map position, unlock/hint
+conditions, view/arrive lines, landmarks, linked activities, and everything that references the
+area or its landmarks. "New area" wizard: ID, name, map cell, unlock link to an existing discovery.
+Rename any entity ID with a preview of all files that change.
+*Owner test:* create a temporary area unlocked by a landmark, add a landmark and a linked activity,
+reach it in the preview, then delete it (blocked while referenced).
+
+**PR-09 — Story view and event editor.** Adds React Flow (C11). Derived read-only graph of
+landmarks, quests, events, flags and area unlocks with edges from conditions/effects; click opens
+the entity. Event editor: scenes as nodes, choices as edges, side panel uses the generic form;
+flags dangling `next`, unreachable scenes and missing `start`.
+*Owner test:* landmark → task → event chain created in the Studio and played in the preview.
+
+**PR-10 — Creation tree and map editors.** React Flow tree editor for crafting/building
+(parents, branch, order; new recipe/building gets its node in the same save; cycles rejected);
+area map editor that drags `region.map` cells and shows the existing camp-centered paths and travel hours.
+*Owner test:* add a recipe under the axe, craft it in the preview; move an area on the map.
+
+## 7. Definition of done for the program
+
+The owner can build a new Stone Age area — with landmarks, linked activities, new items, recipes,
+buildings with production, tree nodes, tasks and a branching event connected through discoveries —
+without opening a JSON file, playtest it in the preview and commit a content-only diff.
