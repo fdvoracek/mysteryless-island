@@ -5,8 +5,9 @@ and feature-branch push for every delivered milestone. The large area panorama r
 the route map and all three tabs: Area, Crafting, and Building. Tab changes do not hide it.
 
 Milestones 1–3 were merged in PR #8 on 2026-10-20. Subsequent work starts from current main
-on `art/area-master-review`; its first review checkpoint contains the unapproved beach master
-and actual-file previews, not a delivered artwork milestone or production integration.
+on `art/area-master-review`. The user rejected the first beach preview as unlike the supplied
+design. The revised checkpoint includes a new unapproved engraving candidate and a CSS pass on
+the actual game layout. This is still not a delivered artwork milestone or production integration.
 
 Follow [VISUAL_STYLE.md](VISUAL_STYLE.md) and [ART_DIRECTION.md](ART_DIRECTION.md). The supplied
 panoramic UI mockup supplies composition and hierarchy; use a white, neutral book-page
@@ -22,17 +23,20 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
 3. **Validated artwork support — verified.** Optional content-driven illustration metadata,
    validated references, selector views, shared image rendering, reserved dimensions, alt-text
    policy, missing-image fallback, and GitHub Pages base-path compatibility. No save migration.
-4. **Coordinated region artwork — master candidate in review.** Locate the actual approved simpler beach master,
+4. **Coordinated region artwork — revised master candidate in review.** Locate the actual approved simpler beach master,
    or produce a concrete master candidate for approval. Generate beach, forest, and meadows
    against that one master, verify 1600 × 440 exports, compare the complete set, and integrate
    the approved files on all tabs. Never substitute searched images as previews.
-5. **Functional component styling — pending.** Consistent item illustrations and consumable
+5. **Functional component styling — started early after visual feedback, incomplete.** The
+   actual journal, action, and sidebar columns now have stronger book-page hierarchy. Consistent item illustrations and consumable
    rows, quantities/capacity from existing content, informational task markers, and matching
    creation-tree tooltip treatment while preserving compact nodes and shared grab panning.
 6. **Remaining screens and verification — pending.** Popups, menus, progress, ending screen,
    light/dark treatments, fonts, narrow screens, keyboard/touch behavior, and complete checks.
 
-Finish, inspect, verify, commit, and push each milestone before starting the next. Record its
+Finish, inspect, verify, commit, and push each milestone before starting the next. The CSS
+correction above was requested while the artwork master remains under review; do not mark
+milestones 4 or 5 complete because of this checkpoint. Record its
 acceptance evidence here. Screenshots must show the actual running UI; artwork previews must
 show the actual exported files. A missing master does not block the first three milestones.
 Do not mark the artwork milestone delivered until its required approval and whole-set review
@@ -59,9 +63,14 @@ are complete.
   cached failures, stale callbacks, and removing metadata. Independent source and integration
   review found no material issues. No production assets or save changes were introduced.
   Delivered as `4b9f43b` on `feature/illustrated-book-ui`; remote commit verified.
-- Milestone 4 is not delivered: a new beach candidate is being reviewed before companion
-  generation. Its raw output is 2041 × 770, not the required 1600 × 440 production export.
-  See [the candidate review packet](../assets/art/candidates/area-book-v1/README.md).
-  A fresh production build and six labelled browser previews at 1280/375 px confirm the
-  proposed CSS framing above Area, Crafting, and Building. The original image checksum is
-  unchanged. No production catalog entry, crop/resize export, or companion image exists yet.
+- Milestone 4 is not delivered: the first 2041 × 770 candidate was rejected as too flat and
+  unlike the book engraving in the reference. The revised unapproved source is 2116 × 743,
+  still not a 1600 × 440 production export. See [the revised candidate review packet](../assets/art/candidates/area-book-v1/README.md).
+  Six labelled Chromium screenshots of the actual game at 1280/375 px show the revised source
+  temporarily inserted above Area, Crafting, and Building; normal gameplay still has an empty
+  artwork catalog. The actual runtime CSS now frames the journal, centre, and sidebar and gives
+  prose and actions clearer hierarchy. Desktop and phone screenshots were inspected in both
+  themes; the page had no horizontal overflow. `npm run check` passed on the second complete
+  run (347 unit tests, production build, 28 Chromium tests); one tree-tooltip visibility check
+  failed in the first run and passed when rerun alone and in the full repeat. No companion image
+  or production integration exists yet.

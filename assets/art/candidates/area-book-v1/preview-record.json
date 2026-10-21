@@ -1,85 +1,20 @@
 {
-  "status": "unapproved CSS-only browser preview; no runtime integration",
-  "source": "beach-master-candidate.png",
-  "sourceSha256": "b7dd121582e5c4c86de57c8c6c49db00ac97a7380e3fda50c57eb3f51f404a2a",
-  "verifiedSourceDimensions": [
-    2041,
-    770
+  "status": "unapproved revised artwork and temporary in-game DOM previews",
+  "source": "beach-master-candidate-v2.png",
+  "sourceSha256": "64353ba51fdededeb848177d0080c60e8958a3e4f1e8fdacf91e403a24b28336",
+  "verifiedSourceDimensions": [2116, 743],
+  "proposedExportDimensions": [1600, 440],
+  "crop": { "method": "CSS object-fit:cover", "objectPosition": "50% 55%" },
+  "screenshots": [
+    { "file": "revised-area-light-1280.png", "tab": "area", "viewportWidth": 1280 },
+    { "file": "revised-craft-light-1280.png", "tab": "crafting", "viewportWidth": 1280 },
+    { "file": "revised-build-light-1280.png", "tab": "building", "viewportWidth": 1280 },
+    { "file": "revised-area-light-375.png", "tab": "area", "viewportWidth": 375 },
+    { "file": "revised-craft-light-375.png", "tab": "crafting", "viewportWidth": 375 },
+    { "file": "revised-build-light-375.png", "tab": "building", "viewportWidth": 375 }
   ],
-  "proposedExportDimensions": [
-    1600,
-    440
-  ],
-  "crop": {
-    "method": "CSS object-fit:cover",
-    "objectPosition": "50% 65%"
-  },
-  "captures": [
-    {
-      "file": "beach-preview-area-1280.png",
-      "width": 1280,
-      "tab": "area",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    },
-    {
-      "file": "beach-preview-craft-1280.png",
-      "width": 1280,
-      "tab": "craft",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    },
-    {
-      "file": "beach-preview-build-1280.png",
-      "width": 1280,
-      "tab": "build",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    },
-    {
-      "file": "beach-preview-area-375.png",
-      "width": 375,
-      "tab": "area",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    },
-    {
-      "file": "beach-preview-craft-375.png",
-      "width": 375,
-      "tab": "craft",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    },
-    {
-      "file": "beach-preview-build-375.png",
-      "width": 375,
-      "tab": "build",
-      "naturalWidth": 2041,
-      "naturalHeight": 770,
-      "objectFit": "cover",
-      "objectPosition": "50% 65%",
-      "panoramaOutsidePanels": true
-    }
-  ],
-  "comparison": {
-    "width": 1200,
-    "height": 452.71875,
-    "naturalWidth": 2041,
-    "naturalHeight": 770
-  }
+  "captureMethod": "Chromium against running Vite game after CSS update; temporary DOM insertion of the actual revised source into the shared panorama slot",
+  "productionIntegrated": false,
+  "approvedMaster": false,
+  "previousRejectedPreviewRecord": "preview-record-rejected.json"
 }
