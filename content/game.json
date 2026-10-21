@@ -10,9 +10,9 @@
     "stats": { "health": 80, "energy": 75, "hunger": 35, "thirst": 45 },
     "items": { "summer_clothes": 1 },
     "log": [
-      "You regain consciousness upon a deserted shore. The sea, which so recently threatened to swallow you, now lies strangely calm. Of the ship there is no trace; beyond the dunes rises a dark belt of forest.",
-      "Cold sand presses against your cheek, and the taste of salt remains upon your lips. A grey, empty sea extends to the horizon. Behind the dunes, a line of trees marks the beginning of an unknown country.",
-      "At the edge of the tide you awaken, your clothes heavy with seawater. Neither sail nor spar is visible offshore. Inland, beyond the sandy ridges, stands a forest whose depths you have yet to discover."
+      "You regain consciousness upon a deserted shore.",
+      "Cold sand under your cheek.",
+      "At the edge of the tide you awaken, your clothes heavy with seawater."
     ]
   },
   "cosmetic": { "msPerHour": 10000 },
@@ -25,36 +25,36 @@
     "newDay": "Day {day} dawns over the island.",
     "collapse": {
       "title": "You passed out",
-      "text": "Having failed to reach a bed before exhaustion overtook you, you were obliged to pass the night where you fell, at {place}."
+      "text": "Exhaustion leaves you sleeping on the ground at {place}."
     },
-    "midnight": "Midnight has passed. Exhaustion overcomes your efforts to remain awake, and you fall where you stand.",
-    "exhausted": "Your remaining strength is spent. You sink to the ground and do not stir until morning.",
+    "midnight": "Midnight. Exhaustion forces you to sleep where you stand.",
+    "exhausted": "Your energy is gone. You collapse where you are and sleep until morning.",
     "shelter": "shelter",
     "fire": "fire",
     "recovery": {
       "early_warm_bed": {
         "energy": 100,
-        "text": "You retired before midnight beneath shelter at {place}, with a fire to keep off the cold. At six in the morning your strength has returned to {energy}%."
+        "text": "At {place}, you sleep early, sheltered by a fire. Energy: {energy}%."
       },
       "early_unheated_bed": {
         "energy": 80,
-        "text": "You slept before midnight in a sheltered bed at {place}, though without the comfort of a fire. By six o'clock your energy has recovered to {energy}%."
+        "text": "At {place}, you sleep early, sheltered but cold. Energy: {energy}%."
       },
       "late_warm_bed": {
         "energy": 80,
-        "text": "Though you reached your sheltered bed at {place} after midnight, the fire lent some warmth to your short rest. At six o'clock your energy stands at {energy}%."
+        "text": "After midnight at {place}, a fire warms your rest. Energy: {energy}%."
       },
       "late_unheated_bed": {
         "energy": 80,
-        "text": "You retired after midnight beneath shelter at {place}, but had no fire against the chill. At six o'clock your strength has recovered to {energy}%."
+        "text": "After midnight at {place}, you sleep without fire. Energy: {energy}%."
       },
       "exposed_bed": {
         "energy": 50,
-        "text": "Your bed at {place} offered no protection from the open air. By six in the morning your energy has recovered to {energy}%."
+        "text": "Your bed at {place} offers no shelter. Energy at dawn: {energy}%."
       },
       "ground": {
         "energy": 50,
-        "text": "You passed the night upon the bare ground at {place}. Such rest as it afforded has restored your energy to {energy}% by six o'clock."
+        "text": "You sleep on bare ground at {place}. Energy at dawn: {energy}%."
       }
     }
   },
@@ -62,9 +62,9 @@
   "provisions": {
     "at": 60,
     "title": "Supplies running low",
-    "hunger": "Your ready provisions are exhausted. Unless food is obtained soon, your strength will fail.",
-    "thirst": "Your supply of drinking water is exhausted. Find fresh water or replenish your can before thirst overcomes you.",
-    "both": "Neither prepared food nor drinking water remains. Both must be secured without delay if you are to continue.",
+    "hunger": "Food exhausted. Find a meal before your strength fails.",
+    "thirst": "Water exhausted. Find fresh water or refill your can.",
+    "both": "Food and water exhausted. Both must be found without delay.",
     "preparation": {
       "when": { "any": [{ "item": "raw_fish" }, { "item": "raw_meat" }] },
       "text": "Raw fish and meat cannot safely serve as provisions. You may preserve them upon a drying rack, a process requiring twelve hours, or cook them over a fire if your need is urgent."
