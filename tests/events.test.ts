@@ -23,21 +23,21 @@ describe("the opening event: the shipwreck", () => {
     const e = Engine.newGame(reg, 1);
     const v = view(e);
     expect(v.event).toMatchObject({ id: "shipwreck", title: "The storm" });
-    expect(v.event!.text).toMatch(/^You were three days out when the storm came/);
+    expect(v.event!.text).toMatch(/^For three days your vessel had held her course/);
     expect(v.event!.choices.map((c) => c.label)).toEqual(["the knife", "the matches", "the water can", "the rations"]);
-    // the journal already tells the story, one paragraph per paragraph of the page; the beach comes later
+    // The long scene stays in its modal; the journal receives a concise account.
     expect(view(e).turns.map((t) => t.lines.join(" ")).reverse()).toEqual([
-      expect.stringMatching(/^You were three days out/), expect.stringMatching(/^Then, in the dark/), expect.stringMatching(/^There is a moment/),
+      "A storm wrecks your ship. You must decide what to save.",
     ]);
     expect(look(e)).toMatchObject({ ok: false, reason: "an event is open" });
   });
 
   it("each choice gives its item, then tells how you reached the shore, with 'wash ashore' to end it", () => {
     const kits: Array<[string, Record<string, number>, RegExp]> = [
-      ["knife", { knife: 1 }, /the knife clenched in your fist/],
-      ["matches", { matches: 10 }, /the tin of matches/],
+      ["knife", { knife: 1 }, /knife firmly grasped in your hand/],
+      ["matches", { matches: 10 }, /tin of matches/],
       ["water", { water_can: 1, can_water: 4 }, /the full water can/],
-      ["rations", { rations: 6 }, /the bag of rations/],
+      ["rations", { rations: 6 }, /bag of provisions/],
     ];
     for (const [choice, items, swim] of kits) {
       const e = Engine.newGame(reg, 1);
@@ -48,7 +48,7 @@ describe("the opening event: the shipwreck", () => {
       expect(e.state.items).toEqual({ summer_clothes: 1, ...items });
       expect(choose(e, "close").ok).toBe(true);
       expect(view(e).event).toBeNull();
-      expect(e.state.log[0].text).toMatch(/^Awake\. Salt in the mouth\./); // now the journal starts
+      expect(e.state.log[0].text).toMatch(/^You wake alone on a deserted shore/); // now the journal starts
     }
   });
 
@@ -235,12 +235,11 @@ describe("events in the journal", () => {
   it("the shipwreck reads as the start of the journal: the storm, the swim, then the beach", () => {
     const e = startGame(reg, 1, "knife");
     const paragraphs = view(e).turns.map((t) => t.lines.join(" ")).reverse();
-    expect(paragraphs).toHaveLength(6);
-    expect(paragraphs[0]).toMatch(/^You were three days out/);
-    expect(paragraphs[2]).toMatch(/^There is a moment/);
-    expect(paragraphs[3]).toMatch(/^You jump with the knife clenched in your fist/);
-    expect(paragraphs[4]).toMatch(/^You swim until your arms stop answering/);
-    expect(paragraphs[5]).toMatch(/^Awake\. Salt in the mouth\./);
+    expect(paragraphs).toEqual([
+      "A storm wrecks your ship. You must decide what to save.",
+      "You reach the shore with the knife still in hand.",
+      expect.stringMatching(/^You wake alone on a deserted shore/),
+    ]);
   });
 
   it("an event after an action: the action, then the event page, then what the choice did", () => {
@@ -250,8 +249,8 @@ describe("events in the journal", () => {
     look(e);
     choose(e, "take");
     const paragraphs = view(e).turns.slice(0, 4).map((t) => t.lines.join(" ")).reverse();
-    expect(paragraphs[0]).toMatch(/A forest, close and hard to miss/); // what exploring the dunes found
-    expect(paragraphs[1]).toBe("A way to the forest opens.");
+    expect(paragraphs[0]).toBe("You discover a forest beyond the dunes.");
+    expect(paragraphs[1]).toBe("A practicable route to the forest has been discovered.");
     expect(paragraphs[2]).toBe("A bottle in the wrack.");
     expect(paragraphs[3]).toBe("You keep the cork.");
   });
@@ -309,7 +308,7 @@ describe("event choices and effects", () => {
     choose(e, "map");
     expect(e.state.regions.forest.unlocked).toBe(true);
     expect(view(e).event).toBeNull();
-    expect(e.state.log[0].text).toBe("A way to the forest opens.");
+    expect(e.state.log[0].text).toBe("A practicable route to the forest has been discovered.");
     expect(e.state.log[1].text).toBe("A crate in the surf."); // the event page first, then what it caused
   });
 
