@@ -50,7 +50,7 @@ If the repository has no approved reference images yet, **ask for the approved r
 The current design uses **one island panorama for every location and every Area/Crafting/Building
 tab**. The user explicitly deferred distinct beach, forest, and meadows headers. The selected
 source is `public/illustrations/island-panorama.png`; its actual 2116 × 743 dimensions are
-declared in content and it is displayed without stretching in a 40:11 CSS crop. Do not generate
+declared in content and it is displayed without stretching in a 160:33 CSS crop. Do not generate
 or wire separate area headers unless the user changes this direction.
 
 ### A single visual master for any future collection
@@ -89,7 +89,7 @@ assets/art/
 
 ### A. Location illustrations
 - Wide, horizontal, observational illustrations with calm framing and one obvious landmark.
-- Use the same shared island panorama at every location. Its display slot is **40:11**; keep the actual source dimensions in metadata and crop with CSS rather than stretching. The current source is 2116 × 743; any future replacement should be inspected in this slot.
+- Use the same shared island panorama at every location. Its display slot is **160:33**; keep the actual source dimensions in metadata and crop with CSS rather than stretching. The current source is 2116 × 743; any future replacement should be inspected in this slot.
 - If distinct area images are explicitly requested later, lock the fine-line engraving technique, apparent line thickness, sparse hatching, neutral grayscale, restrained contrast, low detail density, and white space across that whole set.
 - Keep sky, sand, or water broad and minimally marked; suggest depth with **three simple planes** (foreground, middle, distance).
 - Use sparse outlines and a handful of hatch clusters; distant objects are lighter and simpler.
@@ -212,7 +212,7 @@ Before adding any asset, confirm:
 - [ ] No unrelated objects, people, or decorative flourishes.
 - [ ] Reviewed alongside existing assets, not in isolation.
 - [ ] If generating a collection, every member used the same actual approved master and shared style brief.
-- [ ] The shared top image is inspected at full size and in its 40:11 display crop, without stretching.
+- [ ] The shared top image is inspected at full size and in its 160:33 display crop, without stretching.
 - [ ] Every preview comes from the inspected final file, with a source path and verified dimensions.
 - [ ] Set record identifies the master, outputs, checksums, review result, and approval status.
 

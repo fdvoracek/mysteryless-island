@@ -27,7 +27,8 @@ compass decoration. Preserve the selected font, themes, gameplay, and existing c
    policy, missing-image fallback, and GitHub Pages base-path compatibility. No save migration.
 4. **One game-wide panorama — implemented.** The revised beach engraving is copied unchanged
    to `public/illustrations/island-panorama.png` and selected by `game.json` → `panorama`.
-   Its actual 2116 × 743 source is cropped without stretching in the 40:11 banner slot.
+   Its actual 2116 × 743 source is cropped without stretching in the 160:33 banner slot,
+   whose height is 25% less than the original 40:11 slot at the same width.
    Region artwork is a fallback only if the global setting is removed. Separate area headers
    are deferred by the user's direction.
 5. **Functional component styling — started early after visual feedback, incomplete.** The

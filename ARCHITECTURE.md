@@ -210,7 +210,7 @@ derived view models; and an injected scheduler for deterministic controller test
   simulation progress; they must not determine whether work completed.
 - Optional artwork belongs to validated content and derived views, never saved state.
   The game-wide panorama, regions, items, and buildings reference the shared catalog. The
-  global banner displays in a 40:11 slot with a non-stretched CSS crop; metadata records its
+  global banner displays in a 160:33 slot with a non-stretched CSS crop; metadata records its
   actual source dimensions. Region-specific fallback artwork requires 1600 × 440 metadata.
   The shared UI image updater owns Pages-relative URLs,
   dimensions, alt/decorative treatment, and missing-image fallback. Labels and controls remain

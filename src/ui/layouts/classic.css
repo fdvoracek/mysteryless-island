@@ -1,6 +1,6 @@
 /* A shared panorama and route map introduce the three reading columns. */
 .layout-classic .page { max-width: 1280px; margin: 0 auto; padding: var(--space-4) var(--space-5) 88px; }
-.layout-classic .area-panorama { width: 100%; aspect-ratio: 40 / 11; margin-bottom: var(--space-5); overflow: hidden; }
+.layout-classic .area-panorama { width: 100%; aspect-ratio: 160 / 33; margin-bottom: var(--space-5); overflow: hidden; }
 .layout-classic .wrap {
   margin: 0; padding: 0;
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
