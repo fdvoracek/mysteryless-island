@@ -19,8 +19,8 @@ First real use: building the Stone Age chapter. Adding a new engine mechanic mus
 the Studio with little or no Studio code.
 
 **UX reference.** [docs/mockups/studio/](mockups/studio/README.md): five static, clickable screens
-(area workspace, activity editor with condition builder, story view, event scene editor, new-area
-wizard), their PR mapping and the Studio's visual tokens. They show intended layout and flows only;
+(area workspace, activity editor with condition builder, story view, event scene editor, generic
+create dialog), their PR mapping and the Studio's visual tokens. They show intended layout and flows only;
 this plan wins where they differ. PR-04 adopts the tokens; each UI PR updates its screen when a UX
 decision changes.
 
@@ -111,10 +111,13 @@ reimplements rules. React and graph libraries are imported only from `src/studio
 - Widget registry keyed by schema node (Condition, Effect, Outcome, Text, Amounts, Yield) or by
   `ref` kind overrides the generic renderer. Optional per-field labels/help live in one Studio
   metadata file; missing metadata falls back to the field name.
+- **Create dialog:** one generic dialog per kind, built from the ID plus the schema's required
+  fields. It saves only a valid entity (no placeholder text) and accepts pre-filled values, so
+  shortcuts such as "new area unlocked by this discovery" reuse it instead of custom wizards.
 - **Adding a mechanic** = schema + engine + registry check + test (as today). The field appears in
   the Studio automatically; a custom widget or label is optional polish.
 
-### 4.5 Preview
+### 4.5 Preview (PR-10)
 
 - The Studio shows the real game in an iframe (`/?preview`). Saving a content file triggers Vite's
   reload of the game; nothing else is needed for fresh content.
@@ -144,10 +147,9 @@ transition or dual-layout support is needed. The game must still work after ever
    game never imports it and the production build excludes it.
 2. **Shared code is touched only where listed**, keeping current behavior: PR-02 loader/registry
    (file layout), `src/content/format.ts`, the `content:format` script and the optional `order`
-   field for observably ordered list kinds; PR-03 schema/registry/engine (activity links),
-   PR-04 structured `ContentError`
-   (string output unchanged), PR-05 `ref()` metadata (no validation change), PR-06 preview save
-   keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
+   field for observably ordered list kinds; PR-03 schema/registry/engine (activity links);
+   PR-04 structured `ContentError` (string output unchanged); PR-05 `ref()` metadata (no
+   validation change); PR-10 preview save keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
    `src/persistence` or `src/main.ts` is out of scope; stop and ask.
 3. **Golden traces (PR-01) must stay unchanged** in every Studio PR.
 4. **Saves.** Only PR-03 may bump `SAVE_VERSION` (and only if text keys or state actually change).
@@ -195,48 +197,61 @@ linked to entities. Lint boundary rule, the "no Studio in dist" test and the pub
 `src/content/index.ts` (re-exports only; no behavior change).
 *Owner test:* open the Studio, browse Forest and an item, break a reference by hand, see the error.
 
-**PR-05 — Generic editor and save.** `ref()` metadata in the schema; generic form + widget registry
-(§4.4) with reference pickers; edit, create (from a valid minimal object), duplicate, delete with
-"where used" blocking; undo/redo; save through the formatter; conflict dialog on `409`.
+**PR-05 — Generic editor, create dialog and save.** `ref()` metadata in the schema; generic form
++ widget registry (§4.4) with reference pickers; edit, duplicate, delete with "where used"
+blocking; undo/redo; save through the formatter; conflict dialog on `409`. **Create dialog**
+(§4.4) for every kind: asks for the ID and the schema's required fields, saves only a valid
+entity, then opens it in the form. Callers can pre-fill fields (used later by the story view).
 *Done when:* every current entity kind round-trips through the form unchanged (test over all fixture
-files), invalid edits show inline errors and cannot be saved. *Owner test:* create an item, link it
-as a yield of an activity, save, see a one-entity git diff.
+files); invalid edits show inline errors and cannot be saved; the create dialog is generated from
+the schema for every kind (test iterates the kinds) and rejects a duplicate or malformed ID.
+*Owner test:* create an item through the dialog, link it as a yield of an activity, save, see a
+one-entity git diff; create an area through the dialog and see it in the game after reload.
 
-**PR-06 — Live preview.** Game iframe with `?preview` save isolation, reload on save, preview panel
-(§4.5).
-*Done when:* a test shows preview mode never writes `textisland.save`/`textisland.saved`.
-*Owner test:* edit a landmark text, see it in the preview without touching your own save.
-
-**PR-07 — Condition/effect builder and text widget.** Recursive all/any/not tree, a form per leaf
+**PR-06 — Condition/effect builder and text widget.** Recursive all/any/not tree, a form per leaf
 and effect kind generated from the schema unions, human-readable summary using the engine's
 `explain`, JSON view; text widget with variants (alternatives, never paragraphs), modal vs journal
 labeling and the 80-character journal guidance from docs/NARRATIVE_STYLE.md.
 *Done when:* every condition/effect kind in `schema.ts` can be built without typing JSON (test
 iterates the union), and the summary matches `explain`. *Owner test:* "visible after the spring is
-discovered and while carrying the water can".
+discovered and while carrying the water can", checked in the game.
 
 ### Phase C — authoring views
 
-**PR-08 — Area workspace and rename.** One screen per area: properties, map position, unlock/hint
-conditions, view/arrive lines, landmarks, linked activities, and everything that references the
-area or its landmarks. "New area" wizard: ID, name, map cell, unlock link to an existing discovery.
-Rename any entity ID with a preview of all files that change.
-*Owner test:* create a temporary area unlocked by a landmark, add a landmark and a linked activity,
-reach it in the preview, then delete it (blocked while referenced).
+Until PR-10, playtest in the game served by the same dev server (`/`, a second window); it reloads
+when the Studio saves a content file.
 
-**PR-09 — Story view and event editor.** Adds React Flow (C11). Derived read-only graph of
+**PR-07 — Area workspace and rename.** One screen per area: properties, map cell picker,
+unlock/hint conditions, view/arrive lines, landmarks, linked activities, and everything that
+references the area or its landmarks. "New area" uses the PR-05 create dialog; there is no separate
+wizard. Rename any entity ID with a preview of all files that change.
+*Owner test:* create a temporary area, set its map cell and an unlock rule on a landmark, add a
+landmark and a linked activity, reach it in the game, then delete it (blocked while referenced).
+
+**PR-08 — Story view and event editor.** Adds React Flow (C11). Derived read-only graph of
 landmarks, quests, events, flags and area unlocks with edges from conditions/effects; click opens
-the entity. Event editor: scenes as nodes, choices as edges, side panel uses the generic form;
-flags dangling `next`, unreachable scenes and missing `start`.
-*Owner test:* landmark → task → event chain created in the Studio and played in the preview.
+the entity. "Continue the story" actions open the create dialog pre-filled with the linking
+condition (new task, event or area on a discovery). Event editor: scenes as nodes, choices as
+edges, side panel uses the generic form; flags dangling `next`, unreachable scenes and missing
+`start`.
+*Owner test:* landmark → task → event chain created in the Studio and played in the game.
 
-**PR-10 — Creation tree and map editors.** React Flow tree editor for crafting/building
+**PR-09 — Creation tree and map editors.** React Flow tree editor for crafting/building
 (parents, branch, order; new recipe/building gets its node in the same save; cycles rejected);
-area map editor that drags `region.map` cells and shows the existing camp-centered paths and travel hours.
-*Owner test:* add a recipe under the axe, craft it in the preview; move an area on the map.
+area map editor that drags `region.map` cells and shows the existing camp-centered paths and travel
+hours.
+*Owner test:* add a recipe under the axe, craft it in the game; move an area on the map.
+
+### Phase D — convenience
+
+**PR-10 — Live preview.** Game iframe inside the Studio with `?preview` save isolation, reload on
+save and the preview panel (§4.5). Moved last by the owner (2026-10-21): playing in a second window
+is enough until then.
+*Done when:* a test shows preview mode never writes `textisland.save`/`textisland.saved`.
+*Owner test:* edit a landmark text, see it in the preview without touching your own save.
 
 ## 7. Definition of done for the program
 
 The owner can build a new Stone Age area — with landmarks, linked activities, new items, recipes,
 buildings with production, tree nodes, tasks and a branching event connected through discoveries —
-without opening a JSON file, playtest it in the preview and commit a content-only diff.
+without opening a JSON file, playtest it in the game and commit a content-only diff.

@@ -1,0 +1,117 @@
+<!doctype html>
+<!-- Content Studio mockup: UX reference only, NOT implemented UI. See README.md in this folder. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio — create dialog, area (mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Source+Serif+4:ital,wght@0,400;0,600;1,400&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#1F5FAD}a:hover{color:#16477F}
+</style>
+</head>
+<body>
+<div style="min-height: 900px; background: #E4E6EA; color: #16191D; font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 14px; line-height: 20px; display: flex; flex-direction: column; align-items: center; padding: 40px 16px; box-sizing: border-box">
+
+<div role="dialog" aria-labelledby="createTitle" style="width: 100%; max-width: 1000px; background: #FFFFFF; border: 1px solid #C9CDD3; border-radius: 10px; box-shadow: 0 12px 32px rgba(22, 25, 29, 0.12); display: flex; flex-direction: column">
+  <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; border-bottom: 1px solid #E3E5E9">
+    <div style="display: flex; flex-direction: column; gap: 2px">
+      <h1 id="createTitle" style="margin: 0; font-size: 20px; line-height: 28px">Create area</h1>
+      <span style="font-size: 13px; color: #545C66">The same dialog serves every kind: it shows the ID and the fields the schema requires. Everything else is edited after creation.</span>
+    </div>
+    <a href="area-workspace.html" aria-label="Close" style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 6px; text-decoration: none; color: #545C66; font-size: 22px">×</a>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 24px">
+    <div style="flex: 999 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+      <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Kind
+        <select id="kind" style="height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 8px; font: inherit; font-size: 14px; background: #FFFFFF; color: #16191D; max-width: 240px"><option selected>area</option><option>activity</option><option>item</option><option>recipe</option><option>building</option><option>task</option><option>event</option><option>site</option></select>
+      </label>
+
+      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px 12px; border: 1px solid #D9DCE1; border-radius: 8px; background: #F8F9FA; font-size: 13px">
+        <span style="font-weight: 600">Pre-filled by the story view:</span>
+        <span>unlocks when <span style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">discovered bees</span></span>
+        <button type="button" id="clearPrefill" style="margin-left: auto; height: 28px; padding: 0 10px; border: 1px solid #C9CDD3; border-radius: 6px; background: #FFFFFF; font: inherit; font-size: 12px; cursor: pointer">Remove</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); gap: 14px">
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">ID · required
+          <input id="areaId" placeholder="lowercase_snake_case" style="height: 36px; border: 1px solid #C9433A; border-radius: 6px; padding: 0 10px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 13px; color: #16191D">
+          <span id="idMsg" style="font-size: 12px; color: #9A2A1F">Required.</span>
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Name · required, lowercase label
+          <input id="areaName" placeholder="the …" style="height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Journal title · required
+          <input id="areaTitle" placeholder="Heading shown on arrival" style="height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Base temperature °C · required
+          <input id="areaTemp" inputmode="decimal" style="height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545C66">Walk from camp (h) · required, steps of 0.25
+          <input id="areaHours" inputmode="decimal" style="height: 36px; border: 1px solid #C9CDD3; border-radius: 6px; padding: 0 10px; font: inherit; font-size: 14px; color: #16191D">
+        </label>
+      </div>
+
+      <label style="display: flex; flex-direction: column; gap: 4px"><span style="display: flex; justify-content: space-between; font-size: 12px; color: #545C66"><span>First-visit description · required journal text</span><span id="descCount">0 / 80</span></span>
+        <textarea id="areaDesc" rows="2" placeholder="Written by you; no placeholder text is saved" style="border: 1px solid #C9CDD3; border-radius: 6px; padding: 8px 10px; font-family: 'Source Serif 4', Georgia, serif; font-size: 15px; line-height: 22px; resize: vertical; color: #16191D"></textarea>
+      </label>
+
+      <span style="font-size: 12px; color: #545C66">After creation the area workspace opens for the map cell, hint rule, look-around view, landmarks and linked activities.</span>
+    </div>
+
+    <div style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 10px">
+      <span style="font-size: 12px; font-weight: 600; color: #545C66">Will create</span>
+      <span id="filePath" style="font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px">content/regions/&lt;id&gt;.json</span>
+      <pre id="preview" style="margin: 0; padding: 14px; background: #F8F9FA; border: 1px solid #E3E5E9; border-radius: 6px; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; line-height: 18px; white-space: pre-wrap; overflow-x: auto"></pre>
+      <span id="missing" style="font-size: 12px; color: #9A2A1F"></span>
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #E3E5E9">
+    <a href="area-workspace.html" style="display: inline-flex; align-items: center; height: 38px; padding: 0 16px; border: 1px solid #C9CDD3; border-radius: 6px; text-decoration: none; color: #16191D">Cancel</a>
+    <button type="button" id="create" disabled style="height: 38px; padding: 0 16px; border: 0; border-radius: 6px; background: #9AA1AB; color: #FFFFFF; font: inherit; font-weight: 600; cursor: not-allowed">Create and open workspace</button>
+  </div>
+</div>
+</div>
+<script>
+// Mockup only: required-field validation, pre-fill and the file preview of the generic create dialog.
+const $ = (id) => document.getElementById(id);
+const used = ["beach", "forest", "meadows", "spring", "rabbit_runs", "forest_edge", "cliff_top", "bees", "river"];
+let prefill = true;
+function render() {
+  const id = $("areaId").value, name = $("areaName").value, title = $("areaTitle").value;
+  const temp = $("areaTemp").value, hours = $("areaHours").value, desc = $("areaDesc").value;
+  let msg = "Becomes the file name and every reference.", badId = false;
+  if (!id) { msg = "Required."; badId = true; }
+  else if (!/^[a-z][a-z0-9_]*$/.test(id)) { msg = "Use lowercase letters, digits and _ ; start with a letter."; badId = true; }
+  else if (used.includes(id)) { msg = "Already used by another definition."; badId = true; }
+  $("idMsg").textContent = msg;
+  $("idMsg").style.color = badId ? "#9A2A1F" : "#545C66";
+  $("areaId").style.borderColor = badId ? "#C9433A" : "#C9CDD3";
+  $("descCount").textContent = desc.length + " / 80";
+  $("descCount").style.color = desc.length > 80 ? "#8A4608" : "#545C66";
+  const missing = [];
+  if (badId) missing.push("valid ID");
+  if (!name) missing.push("name");
+  if (!title) missing.push("journal title");
+  if (temp === "" || isNaN(Number(temp))) missing.push("base temperature");
+  if (hours === "" || isNaN(Number(hours)) || Number(hours) < 0 || Math.round(Number(hours) * 4) !== Number(hours) * 4) missing.push("walk time in 0.25 h steps");
+  if (!desc.trim()) missing.push("description");
+  $("missing").textContent = missing.length ? "Still needed: " + missing.join(", ") + "." : "";
+  const ok = missing.length === 0;
+  const b = $("create");
+  b.disabled = !ok; b.style.background = ok ? "#1F5FAD" : "#9AA1AB"; b.style.cursor = ok ? "pointer" : "not-allowed";
+  const shown = id || "<id>";
+  $("filePath").textContent = "content/regions/" + shown + ".json";
+  $("preview").textContent = '{\n  "id": "' + shown + '",\n  "name": "' + name + '",\n  "title": "' + title + '",\n  "description": ' + JSON.stringify(desc) + ',\n  "climate": { "baseC": ' + (temp || "…") + ' },\n  "travelHours": ' + (hours || "…") + ',\n'
+    + (prefill ? '  "unlockWhen": { "discovered": "bees" },\n' : '') + '  "activities": []\n}';
+}
+["areaId", "areaName", "areaTitle", "areaTemp", "areaHours", "areaDesc"].forEach((id) => $(id).addEventListener("input", render));
+$("clearPrefill").addEventListener("click", (e) => { prefill = false; e.target.parentElement.remove(); render(); });
+render();
+</script>
+</body>
+</html>

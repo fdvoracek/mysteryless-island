@@ -6,20 +6,20 @@ Studio. Scope, decisions and PR order live in
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
 
 Open any file in a browser. Links move between screens; the activity editor's Form/JSON switch and
-the new-area wizard (ID validation, map-cell picker, file preview) work. Fonts load from Google
+the create dialog (ID and required-field validation, pre-fill, file preview) work. Fonts load from Google
 Fonts; offline the system fallbacks are used.
 
 ## Screens and the PRs that build them
 
 | File | Screen | Built in |
 |---|---|---|
-| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · live preview PR-06 · workspace PR-08 |
-| [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 · condition builder and text widget PR-07 |
-| [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-09 |
-| [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-09 |
-| [new-area-wizard.html](new-area-wizard.html) | New area: ID validation, map cell picker, unlock condition, file preview | PR-08 |
+| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 · live preview panel PR-10 (until then, play in a second window) |
+| [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 · condition builder and text widget PR-06 |
+| [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 |
+| [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 |
+| [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 (pre-fill used by PR-08) |
 
-Not drawn yet: crafting/building tree editor and map editor (PR-10), the diagnostics panel in
+Not drawn yet: crafting/building tree editor and map editor (PR-09), the diagnostics panel in
 detail, and forms for items, recipes, buildings and tasks (these use the same generic form as the
 activity editor).
 
