@@ -83,3 +83,34 @@ export function whereUsed(documents: Document[], target: Document): Reference[] 
     return false;
   });
 }
+
+/** Picker and summary labels share one resolver; unresolved IDs remain editable. */
+const labelIndexes = new WeakMap<Document[], Map<string, string>>();
+export function referenceLabel(kind: string, id: string, documents: Document[]): string {
+  let index = labelIndexes.get(documents);
+  if (!index) {
+    index = new Map();
+    const direct: Record<string, string> = { items: "item", activities: "activity", regions: "region", quests: "quest", buildings: "building", recipes: "recipe", sites: "site", artwork: "artwork" };
+    const add = (kind: string, id: unknown, label: unknown) => {
+      if (typeof id === "string" && typeof label === "string" && id !== label) index!.set(`${kind}:${id}`, `${id} — ${label}`);
+    };
+    for (const document of documents) {
+      add(direct[document.kind], document.id, document.label);
+      const schema = schemaFor(document.path);
+      if (schema) for (const field of identityFields(schema, document.raw)) {
+        const parent = getAt(document.raw, field.path.split(".").slice(0, -1).join(".")) as Record<string, unknown> | undefined;
+        const label = parent?.label ?? parent?.name ?? parent?.title;
+        if (document.kind === "regions" && field.path.includes("landmarks.")) add("discovery", field.value, label);
+        for (const kind of ["did", "today", "action"]) add(kind, field.value, label);
+      }
+      const raw = document.raw as Record<string, unknown> | undefined;
+      for (const [kind, collection] of Object.entries({ timer: "timers", stat: "stats", phase: "phases", band: "bodyBands" })) {
+        const entries = raw?.[collection];
+        if (Array.isArray(entries)) for (const entry of entries) if (entry && typeof entry === "object") add(kind, entry.id, entry.name ?? entry.label);
+      }
+      if (document.path === "content/game.json" && raw?.tools && typeof raw.tools === "object") for (const [id, tool] of Object.entries(raw.tools)) add("tool", id, (tool as { label?: string })?.label);
+    }
+    labelIndexes.set(documents, index);
+  }
+  return index.get(`${kind}:${id}`) ?? id;
+}

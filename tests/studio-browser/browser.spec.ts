@@ -1,3 +1,7 @@
+import { z } from "zod";
+import { Condition, Effect } from "../../src/content";
+import { unionKinds } from "../../src/studio/describe";
+import { unwrap, type Schema } from "../../src/studio/schema";
 import { expect, test } from "@playwright/test";
 
 test("browses frozen fixture files by area/kind, searches, and edits generic forms at desktop and phone widths", async ({ page }) => {
@@ -221,4 +225,162 @@ test("retains invalid JSON across view switches and includes it in undo/redo", a
   await json.fill(original);
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
   await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
+});
+
+test("edits nested conditions with only keyboard controls, wraps not, rejects empty groups and saves", async ({ page, request }) => {
+  const path = "content/activities/gather_wood.json";
+  const inventory = (await (await request.get("/__studio/files")).json()).files;
+  const original = inventory.find((f: { path: string }) => f.path === path);
+  const activate = async (name: string) => { const button = page.getByRole("button", { name, exact: true }); await button.focus(); await page.keyboard.press("Enter"); };
+  const choose = async (name: string, text: string) => {
+    const select = page.getByRole("combobox", { name, exact: true });
+    await select.focus(); await page.keyboard.press("Home");
+    // Native type-ahead and Enter operate the select without pointer actions.
+    await page.keyboard.type(text); await page.keyboard.press("Enter"); await page.keyboard.press("Tab");
+  };
+  try {
+    await page.goto("/studio/");
+    const nav = page.getByRole("navigation");
+    await nav.getByRole("button", { name: /^Activities/ }).focus(); await page.keyboard.press("Enter");
+    const search = page.getByRole("searchbox"); await search.focus(); await page.keyboard.type("gather_wood");
+    const entry = page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^gather_wood$/ }) });
+    await entry.focus(); await page.keyboard.press("Enter");
+    await activate("Add visibleWhen");
+    await choose("visibleWhen kind", "all");
+    // Adding an optional condition starts with the schema's empty all group.
+    await expect(page.locator('[data-field="visibleWhen"]')).toContainText("at least 1");
+    await activate("Add condition to visibleWhen");
+    await choose("visibleWhen.all.0 kind", "discovered");
+    await choose("visibleWhen.all.0.discovered", "cliff_shells");
+    await activate("Add group to visibleWhen");
+    await choose("visibleWhen.all.1.all.0 kind", "item");
+    await choose("visibleWhen.all.1.all.0.item", "knife");
+    await activate("Add condition to visibleWhen.all.1");
+    await activate("Remove visibleWhen.all.1.all.1");
+    // not takes one child: preserve several children by wrapping them in all.
+    await choose("visibleWhen kind", "not");
+    await expect(page.getByRole("combobox", { name: "visibleWhen.not kind", exact: true })).toHaveValue("all");
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await activate("Save all");
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const saved = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    const before = JSON.parse(original.content), after = JSON.parse(saved.content);
+    expect(after.visibleWhen).toEqual({ not: { all: [{ discovered: "cliff_shells" }, { all: [{ item: "knife" }] }] } });
+    delete after.visibleWhen; expect(after).toEqual(before);
+    await activate("Remove visibleWhen.not.all.1");
+    await activate("Remove visibleWhen.not.all.0");
+    await expect(page.locator('[data-field="visibleWhen"]')).toContainText("at least 1");
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+  } finally {
+    const current = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: original.content, encoding: "utf8" } });
+  }
+});
+
+test("edits Text forms, alternatives and nested rolls without unrelated changes", async ({ page, request }) => {
+  test.setTimeout(60_000);
+  const path = "content/activities/gather_wood.json";
+  const original = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+  try {
+    await page.goto("/studio/");
+    await page.getByRole("navigation").getByRole("button", { name: /^Activities/ }).click();
+    await page.getByRole("searchbox").fill("gather_wood");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^gather_wood$/ }) }).click();
+    const text = page.getByRole("region", { name: "Text log", exact: true });
+    await expect(text).toContainText("?variants=first");
+    const count = await text.getByRole("textbox").count();
+    await text.getByRole("button", { name: "Add alternative to log", exact: true }).click();
+    await page.getByRole("textbox", { name: `log.${count}`, exact: true }).fill("{item} " + "x".repeat(81));
+    await expect(text).toContainText("above journal guidance");
+    await expect(text).toContainText("different {placeholder} sets");
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeEnabled();
+    await page.getByRole("button", { name: `Move up log.${count}`, exact: true }).click();
+    await page.getByRole("button", { name: `Remove log.${count - 1}`, exact: true }).click();
+    await text.getByRole("combobox", { name: "log text form" }).selectOption("single");
+    await expect(text).toContainText("Remove extra alternatives explicitly");
+    await expect(text.getByRole("textbox")).toHaveCount(count);
+    await text.getByRole("combobox", { name: "log text form" }).selectOption("explicit");
+    await page.getByRole("textbox", { name: "log.id", exact: true }).fill("browser_log");
+    await text.getByRole("combobox", { name: "log text form" }).selectOption("variants");
+    await page.getByRole("button", { name: "Add effects", exact: true }).click();
+    await page.getByRole("button", { name: "Add effects entry", exact: true }).click();
+    await page.getByRole("combobox", { name: "effects.0 kind", exact: true }).selectOption("roll");
+    await page.getByRole("button", { name: "Add roll entry", exact: true }).click();
+    await page.getByRole("spinbutton", { name: "effects.0.roll.0.weight", exact: true }).fill("2");
+    await page.getByRole("button", { name: "Add text", exact: true }).click();
+    const outcomeText = page.getByRole("region", { name: "Text effects.0.roll.0.text", exact: true });
+    await outcomeText.getByRole("textbox").fill("A line.\nAnother line.");
+    await outcomeText.getByRole("combobox").selectOption("variants");
+    await outcomeText.getByRole("combobox").selectOption("explicit");
+    await outcomeText.getByRole("textbox", { name: "effects.0.roll.0.text.id", exact: true }).fill("browser_outcome_text");
+    await outcomeText.getByRole("combobox").selectOption("single");
+    await expect(outcomeText.getByRole("textbox")).toHaveValue("A line.\nAnother line.");
+    await page.getByRole("button", { name: "Add effects", exact: true }).click();
+    await page.locator('[data-field="effects.0.roll.0.effects"]').getByRole("button", { name: "Add effects entry", exact: true }).click();
+    await page.getByRole("combobox", { name: "effects.0.roll.0.effects.0 kind", exact: true }).selectOption("flag");
+    await page.getByRole("textbox", { name: "effects.0.roll.0.effects.0.flag", exact: true }).fill("browser_roll");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const baseline = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    await page.getByRole("spinbutton", { name: "effects.0.roll.0.weight", exact: true }).fill("3");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+    const final = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    expect(final.content).toBe(baseline.content.replace('"weight": 2', '"weight": 3'));
+  } finally {
+    const current = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: original.content, encoding: "utf8" } });
+  }
+});
+
+
+test("builds every union leaf through schema-generated controls without entering JSON", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto("/studio/");
+  await page.getByRole("navigation").getByRole("button", { name: /^Activities/ }).click();
+  await page.getByRole("searchbox").fill("gather_wood");
+  await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^gather_wood$/ }) }).click();
+  await page.getByRole("button", { name: "Add requires", exact: true }).click();
+  await page.getByRole("button", { name: "Add effects", exact: true }).click();
+  await page.getByRole("button", { name: "Add effects entry", exact: true }).click();
+  async function populate(schema: Schema, path: string): Promise<void> {
+    if (schema.isOptional()) return;
+    const node = unwrap(schema);
+    if (node instanceof z.ZodObject) {
+      for (const [key, child] of Object.entries(node.shape)) await populate(child as Schema, `${path}.${key}`);
+    } else if (node instanceof z.ZodRecord) {
+      const container = page.locator(`[data-field="${path}"]`);
+      const picker = container.getByRole("combobox", { name: `${path} new key`, exact: true });
+      const id = await picker.locator("option").nth(1).getAttribute("value") ?? await picker.locator("option").nth(1).textContent();
+      await picker.selectOption(id!);
+      await container.getByRole("button", { name: "Add key", exact: true }).click();
+      await populate(node.valueSchema, `${path}.${id}`);
+    } else if (node instanceof z.ZodArray) {
+      const container = page.locator(`[data-field="${path}"]`);
+      const checkbox = container.getByRole("checkbox").first();
+      if (await checkbox.count()) await checkbox.check();
+      else { // roll -> an outcome, with a required weight
+        await container.getByRole("button", { name: `Add ${path.split(".").at(-1)} entry`, exact: true }).click();
+        await page.getByRole("spinbutton", { name: `${path}.0.weight`, exact: true }).fill("1");
+      }
+    } else if (node instanceof z.ZodNumber) await page.getByRole("spinbutton", { name: path, exact: true }).fill("1");
+    else if (node instanceof z.ZodString || node instanceof z.ZodEnum) {
+      const select = page.getByRole("combobox", { name: path, exact: true });
+      if (await select.count()) {
+        const option = select.locator("option").nth(1);
+        await select.selectOption(await option.getAttribute("value") ?? (await option.textContent())!);
+      } else await page.getByRole("textbox", { name: path, exact: true }).fill("browser_rule");
+    }
+  }
+  for (const [schema, path] of [[Condition, "requires"], [Effect, "effects.0"]] as const) {
+    for (const entry of unionKinds(schema)) {
+      if (["all", "any", "not"].includes(entry.kind)) continue; // keyboard scenario owns groups
+      await page.getByRole("combobox", { name: `${path} kind`, exact: true }).selectOption(entry.kind);
+      await populate(entry.schema, path);
+      const widget = page.getByRole("region", { name: `${schema === Condition ? "condition" : "effect"} ${path}`, exact: true });
+      await expect(widget.getByRole("alert")).toHaveCount(0);
+      await expect(widget).not.toContainText("incomplete");
+      await expect(widget.locator(".builder-fallback")).toHaveCount(0);
+    }
+  }
 });
