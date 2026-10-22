@@ -100,3 +100,20 @@ source file/field/message entries for schema, condition, yield, effect, duplicat
 filename mismatch, activity link, tree cycle and missing-file failures. A broken-pack test compares
 the full ten-message list and complete error text byte for byte. Separate cases reject duplicate
 activity links and verify code-unit ordering. Golden traces remain unchanged.
+
+## Studio editor — [implemented, PR-05]
+
+`tests/studio/editor.test.ts` uses a disposable copy of frozen content to render every fixture
+file without mutations and check canonical round trips. It iterates every independent creation
+kind, tests schema/ID rejection and duplicate nested IDs, pre-fill, reference-key discovery and
+blocked deletion, generic/discriminated unions, unsupported-node fallback and widget overrides.
+Store tests cover linked activity/area saves, strict diagnostic reduction with no new problems,
+undo/redo, sequential partial failures, refreshed disk conflicts, delayed refreshes and expected-hash overwrites. Malformed JSON buffers
+survive view changes and participate in undo/redo; invalid reference-source collections do not
+crash pickers.
+
+`tests/studio-browser/browser.spec.ts` exercises the generated forms, create dialogs, a linked
+item/activity/area save, invalid inline values, delete blocking, undo/redo and the `409` dialog.
+Writes use only the temporary `STUDIO_ROOT`; each writing scenario restores that copy. No shipped
+content, frozen fixture or golden trace is changed. The existing game browser suite continues to
+own fresh-game and save/reload safety checks. Run the full `npm run check` before delivery.

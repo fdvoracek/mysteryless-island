@@ -2,7 +2,8 @@
 
 Static, self-contained HTML screens showing the intended layout and flows of the Content
 Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exist in the read-only
-browser. Forms, workspaces, graphs and live preview shown here remain proposals.
+browser. **[implemented, PR-05]** Generic forms, draft create/duplicate, undo/redo and save/conflict
+handling now exist. Specialized builders, workspaces, graphs and live preview remain proposals.
 Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
@@ -16,10 +17,10 @@ Fonts; offline the system fallbacks are used.
 | File | Screen | Built in |
 |---|---|---|
 | [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 · live preview panel PR-10 (until then, play in a second window) |
-| [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 · condition builder and text widget PR-06 |
+| [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 **[implemented]** · condition builder and text widget PR-06 |
 | [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 |
 | [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 |
-| [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 (pre-fill used by PR-08) |
+| [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 **[implemented]** (pre-fill used by PR-08) |
 
 Not drawn yet: crafting/building tree editor and map editor (PR-09), the diagnostics panel in
 detail, and forms for items, recipes, buildings and tasks (these use the same generic form as the
@@ -53,3 +54,12 @@ lines, entity counts); later content edits may make those details stale without 
 wrong. When a UX decision changes, update the affected file here in the same PR. The Claude design
 artifact "Content Studio mockup" was the working copy these files were exported from; this folder
 is the reference agents use.
+
+## PR-05 implementation differences — [implemented]
+
+The owner decision of 2026-10-22 in plan §4.3 supersedes the mockup's immediate-create wording:
+Create opens an unsaved draft, then Save validates all drafts and writes all dirty files
+sequentially. The implementation opens the generic form; the area workspace remains PR-07.
+The activity screen's condition builder, text widget, pending diff and preview shortcut remain
+outside PR-05. Conditions and texts use generic forms or JSON. The conflict dialog retains a
+changed draft and requires explicit overwrite after a fresh disk-hash check.

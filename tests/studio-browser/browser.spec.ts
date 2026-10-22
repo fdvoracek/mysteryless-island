@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("browses frozen fixture files by area/kind, searches, and keeps JSON read-only at desktop and phone widths", async ({ page }) => {
+test("browses frozen fixture files by area/kind, searches, and edits generic forms at desktop and phone widths", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/studio/");
@@ -8,18 +8,17 @@ test("browses frozen fixture files by area/kind, searches, and keeps JSON read-o
   const navigation = page.getByRole("navigation", { name: "Content navigation" });
   await navigation.getByRole("button", { name: "forest", exact: true }).click();
   const contents = page.getByRole("region", { name: "File contents" });
-  await expect(contents).toContainText('"id": "forest"');
-  await expect(contents).toContainText('"_map"');
+  await expect(contents.getByRole("textbox", { name: "id", exact: true })).toHaveValue("forest");
+  await expect(contents).toContainText('_map');
   await expect(page.getByRole("region", { name: "Entity list" })).toContainText("gather_wood");
   await expect(page.getByRole("region", { name: "Entity list" })).not.toContainText("collect_stones");
   await navigation.getByRole("button", { name: /^Items/ }).click();
   await page.getByRole("searchbox").fill("knife");
   const list = page.getByRole("region", { name: "Entity list" });
   await list.getByRole("button").filter({ has: page.locator("code", { hasText: /^knife$/ }) }).click();
-  await expect(contents).toContainText('"id": "knife"');
-  await expect(page.getByRole("textbox")).toHaveCount(0);
-  await expect(page.locator("textarea, [contenteditable=true]")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /^Save/ })).toHaveCount(0);
+  await expect(contents.getByRole("textbox", { name: "id", exact: true })).toHaveValue("knife");
+  await expect(contents.getByRole("textbox", { name: "name", exact: true })).toHaveValue("knife");
+  await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
   await expect(page.locator("iframe")).toHaveCount(0);
   await page.screenshot({ path: "/tmp/textisland-studio-desktop.png", fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -54,7 +53,7 @@ test("refreshes external invalid content and links diagnostics to the entity and
   await expect(diagnostics).toContainText('unknown item "missing_browser_test_item"');
   await diagnostics.getByRole("button", { name: "content/activities/gather_wood.json › requires.item" }).click();
   await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: requires.item");
-  await expect(page.getByRole("region", { name: "File contents" })).toContainText('"id": "gather_wood"');
+  await expect(page.getByRole("region", { name: "File contents" }).getByRole("textbox", { name: "id", exact: true })).toHaveValue("gather_wood");
   await expect(page.getByRole("status")).toHaveText("1 problem");
   broken = false;
   await page.getByRole("button", { name: "Refresh from disk" }).click();
@@ -93,4 +92,133 @@ test("serves only the isolated frozen fixture pack and blocks the repository con
   const gather = JSON.parse(files.find((file) => file.path === "content/activities/gather_wood.json")!.content);
   expect(gather.log[0]).toBe("Dry branches snap underfoot.");
   expect((await request.get("/content/game.json")).status()).toBe(403);
+});
+
+test("creates linked drafts, saves the whole pack, blocks used deletion, and wires undo and validation", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  const response = await request.get("/__studio/files");
+  const original = await response.json() as { files: { path: string; content: string; hash: string }[] };
+  const areaPath = "content/regions/forest.json";
+  const areaOriginal = original.files.find((file) => file.path === areaPath)!;
+  const created = ["content/items/browser_material.json", "content/activities/browser_work.json"];
+  try {
+    await page.goto("/studio/");
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    let dialog = page.getByRole("dialog", { name: "Create entity" });
+    await dialog.getByLabel("Create kind").selectOption("items");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("Bad ID");
+    await expect(dialog.getByRole("button", { name: "Create draft" })).toBeDisabled();
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("knife");
+    await expect(dialog).toContainText("Use a new, unique");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_material");
+    await dialog.getByRole("textbox", { name: "name", exact: true }).fill("browser material");
+    await dialog.getByRole("combobox", { name: "category", exact: true }).selectOption("material");
+    await dialog.getByRole("button", { name: "Create draft" }).click();
+    // Draft creation must never hit the file API.
+    expect((await (await request.get("/__studio/files")).json()).files.some((f: { path: string }) => f.path === created[0])).toBe(false);
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    dialog = page.getByRole("dialog", { name: "Create entity" });
+    await dialog.getByLabel("Create kind").selectOption("activities");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_work");
+    await dialog.getByRole("textbox", { name: "name", exact: true }).fill("browser work");
+    await dialog.getByRole("spinbutton", { name: "hours", exact: true }).fill("1");
+    await dialog.getByRole("combobox", { name: "effort", exact: true }).selectOption("light");
+    await dialog.getByRole("button", { name: "Create draft" }).click();
+    const contents = page.getByRole("region", { name: "File contents" });
+    await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
+    await expect(page.getByRole("region", { name: "Diagnostics" })).toContainText("neither linked nor global");
+    await contents.getByRole("button", { name: "Add yields", exact: true }).click();
+    await contents.getByRole("button", { name: "Add yields entry", exact: true }).click();
+    await contents.getByRole("combobox", { name: "yields.0.item", exact: true }).selectOption("browser_material");
+    await contents.getByRole("spinbutton", { name: "yields.0.min", exact: true }).fill("1");
+    await contents.getByRole("spinbutton", { name: "yields.0.max", exact: true }).fill("2");
+    await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
+    await contents.getByRole("button", { name: "Add activities entry", exact: true }).click();
+    const area = JSON.parse(areaOriginal.content) as { activities: string[] };
+    await contents.getByRole("combobox", { name: `activities.${area.activities.length}`, exact: true }).selectOption("browser_work");
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all" }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const saved = (await (await request.get("/__studio/files")).json()).files as { path: string; content: string }[];
+    expect(saved.find((f) => f.path === areaPath)!.content).toContain('"browser_work"');
+    expect(saved.find((f) => f.path === created[1])!.content).toContain('"item": "browser_material"');
+    await page.getByRole("searchbox").fill("browser_material");
+    await page.getByRole("navigation").getByRole("button", { name: /^Items/ }).click();
+    await page.getByRole("searchbox").fill("browser_material");
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    const deletion = page.getByRole("dialog", { name: "Delete entity" });
+    await expect(deletion).toContainText("Delete blocked");
+    await expect(deletion).toContainText("content/activities/browser_work.json › yields.0.item");
+    await expect(deletion.getByRole("button", { name: "Delete draft" })).toBeDisabled();
+    await deletion.getByRole("button", { name: "Close dialog" }).click();
+    await contents.getByRole("textbox", { name: "name", exact: true }).fill("edited material");
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(contents.getByRole("textbox", { name: "name", exact: true })).toHaveValue("browser material");
+    await page.getByRole("button", { name: "Redo", exact: true }).click();
+    await expect(contents.getByRole("textbox", { name: "name", exact: true })).toHaveValue("edited material");
+    await contents.getByRole("button", { name: "Add max", exact: true }).click();
+    await contents.getByRole("spinbutton", { name: "max", exact: true }).fill("-1");
+    await expect(contents.locator('[data-field="max"]')).toContainText("greater than 0");
+    await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
+  } finally {
+    // Only the temporary STUDIO_ROOT is mutated; restore it for the remaining scenarios.
+    const latest = (await (await request.get("/__studio/files")).json()).files as { path: string; hash: string }[];
+    await request.put(`/__studio/files/${areaPath}`, { data: { expectedHash: latest.find((f) => f.path === areaPath)!.hash, content: areaOriginal.content, encoding: "utf8" } });
+    for (const path of created) { const file = latest.find((f) => f.path === path); if (file) await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } }); }
+  }
+});
+
+test("shows a 409 conflict and requires explicit overwrite after keeping the draft", async ({ page, request }) => {
+  test.setTimeout(60_000);
+  const path = "content/items/knife.json";
+  const original = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path) as { content: string };
+  try {
+    await page.goto("/studio/");
+    await page.getByRole("navigation").getByRole("button", { name: /^Items/ }).click();
+    await page.getByRole("searchbox").fill("knife");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^knife$/ }) }).click();
+    await page.getByRole("textbox", { name: "name", exact: true }).fill("draft knife");
+    await page.route(`**/__studio/files/${path}`, (route) => route.fulfill({ status: 409, json: { error: "File changed on disk" } }));
+    await page.getByRole("button", { name: "Save all" }).click();
+    const conflict = page.getByRole("dialog", { name: "File changed on disk" });
+    await expect(conflict).toBeVisible();
+    await expect(page.getByRole("log")).toContainText(`Not written: ${path}`);
+    await conflict.getByRole("button", { name: "Keep mine", exact: true }).click();
+    await expect(conflict).not.toBeVisible();
+    await expect(page.getByRole("textbox", { name: "name", exact: true })).toHaveValue("draft knife");
+    await page.unroute(`**/__studio/files/${path}`);
+    await page.getByRole("button", { name: "Save all" }).click();
+    await expect(conflict).toBeVisible();
+    await conflict.getByRole("button", { name: "Overwrite with freshly checked hash" }).click();
+    await expect(conflict).not.toBeVisible();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+  } finally {
+    const latest = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path) as { hash: string };
+    await request.put(`/__studio/files/${path}`, { data: { expectedHash: latest.hash, content: original.content, encoding: "utf8" } });
+  }
+});
+
+
+test("retains invalid JSON across view switches and includes it in undo/redo", async ({ page }) => {
+  await page.goto("/studio/");
+  await page.getByRole("navigation").getByRole("button", { name: /^Items/ }).click();
+  await page.getByRole("searchbox").fill("knife");
+  await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^knife$/ }) }).click();
+  await page.getByRole("button", { name: "JSON", exact: true }).click();
+  const json = page.getByRole("textbox", { name: "JSON document", exact: true });
+  const original = await json.inputValue();
+  await json.fill("{broken JSON");
+  await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
+  await expect(page.getByRole("status")).toHaveText("1 problem");
+  await page.getByRole("button", { name: "Form", exact: true }).click();
+  await page.getByRole("button", { name: "JSON", exact: true }).click();
+  await expect(json).toHaveValue("{broken JSON");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(json).toHaveValue(original);
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect(json).toHaveValue("{broken JSON");
+  await json.fill(original);
+  await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+  await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
 });

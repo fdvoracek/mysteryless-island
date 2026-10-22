@@ -7,6 +7,10 @@ import { z } from "zod";
  */
 
 export const Id = z.string().regex(/^[a-z][a-z0-9_]*$/, "ids are lowercase snake_case");
+/** Authoring metadata only; the ID validator and inferred type stay unchanged.
+ * Contextual kinds (scene, production, treeTarget/treeBranch) resolve in the owning document.
+ */
+export const ref = (kind: string) => Id.describe(`ref:${kind}`);
 /**
  * Every text shown in the journal: one passage, or a list of variants of it. One variant is
  * shown each time, never the same one twice in a row (see chooseText in src/core/text.ts).
@@ -16,7 +20,7 @@ export const Text = z.union([
   z.object({ id: Id, variants: z.array(z.string()).min(1) }).strict(),
 ]);
 export type Text = z.infer<typeof Text>;
-export const Amounts = z.record(Id, z.number().int().positive());
+export const Amounts = z.record(ref("item"), z.number().int().positive());
 export const Effort = z.enum(["heavy", "work", "light", "rest", "sleep"]);
 export type Effort = z.infer<typeof Effort>;
 
@@ -64,28 +68,28 @@ export const Condition: z.ZodType<Condition> = z.lazy(() =>
     z.object({ all: z.array(Condition).min(1) }).strict(),
     z.object({ any: z.array(Condition).min(1) }).strict(),
     z.object({ not: Condition }).strict(),
-    z.object({ item: Id, ...range }).strict(),
-    z.object({ seen: Id }).strict(),
+    z.object({ item: ref("item"), ...range }).strict(),
+    z.object({ seen: ref("item") }).strict(),
     z.object({ flag: Id }).strict(),
-    z.object({ timer: Id, ...range }).strict(),
-    z.object({ at: Id }).strict(),
-    z.object({ region: Id }).strict(),
-    z.object({ stat: Id, ...range }).strict(),
-    z.object({ warmth: z.array(Id).min(1) }).strict(),
-    z.object({ phase: z.array(Id).min(1) }).strict(),
+    z.object({ timer: ref("timer"), ...range }).strict(),
+    z.object({ at: ref("region") }).strict(),
+    z.object({ region: ref("region") }).strict(),
+    z.object({ stat: ref("stat"), ...range }).strict(),
+    z.object({ warmth: z.array(ref("band")).min(1) }).strict(),
+    z.object({ phase: z.array(ref("phase")).min(1) }).strict(),
     z.object({ effort: z.array(Effort).min(1) }).strict(),
     z.object({ day: z.object(range).strict() }).strict(),
-    z.object({ did: Id, ...range }).strict(),
-    z.object({ today: Id, ...range }).strict(),
+    z.object({ did: ref("did"), ...range }).strict(),
+    z.object({ today: ref("today"), ...range }).strict(),
     z.object({ reached: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.75).optional() }).strict() }).strict(),
-    z.object({ quest: Id, is: z.enum(["active", "done"]) }).strict(),
-    z.object({ discovered: Id }).strict(),
-    z.object({ explored: Id, ...range }).strict(),
-    z.object({ tool: Id }).strict(),
-    z.object({ site: Id }).strict(),
-    z.object({ built: Id, here: z.boolean().optional() }).strict(),
+    z.object({ quest: ref("quest"), is: z.enum(["active", "done"]) }).strict(),
+    z.object({ discovered: ref("discovery") }).strict(),
+    z.object({ explored: ref("region"), ...range }).strict(),
+    z.object({ tool: ref("tool") }).strict(),
+    z.object({ site: ref("site") }).strict(),
+    z.object({ built: ref("building"), here: z.boolean().optional() }).strict(),
     z.object({ sheltered: z.boolean() }).strict(),
-    z.object({ building: Id, is: z.enum(["idle", "working", "ready"]) }).strict(),
+    z.object({ building: ref("building"), is: z.enum(["idle", "working", "ready"]) }).strict(),
   ]),
 );
 
@@ -114,16 +118,16 @@ export const Effect: z.ZodType<Effect> = z.lazy(() =>
   z.union([
     z.object({ give: Amounts }).strict(),
     z.object({ take: Amounts }).strict(),
-    z.object({ stat: z.record(Id, z.number()) }).strict(),
-    z.object({ timer: Id, addHours: z.number() }).strict(),
+    z.object({ stat: z.record(ref("stat"), z.number()) }).strict(),
+    z.object({ timer: ref("timer"), addHours: z.number() }).strict(),
     z.object({ flag: Id }).strict(),
     z.object({ unflag: Id }).strict(),
     z.object({ log: Text }).strict(),
     z.object({ roll: z.array(Outcome).min(1) }).strict(),
-    z.object({ startQuest: Id }).strict(),
-    z.object({ unlock: Id }).strict(),
-    z.object({ build: Id }).strict(),
-    z.object({ startCycle: Id, production: Id.optional(), units: z.number().int().positive().optional() }).strict(),
+    z.object({ startQuest: ref("quest") }).strict(),
+    z.object({ unlock: ref("region") }).strict(),
+    z.object({ build: ref("building") }).strict(),
+    z.object({ startCycle: ref("building"), production: ref("production").optional(), units: z.number().int().positive().optional() }).strict(),
   ]),
 );
 
@@ -140,7 +144,7 @@ export const Outcome: z.ZodType<Outcome> = z.lazy(() =>
 
 export const Yield = z
   .object({
-    item: Id,
+    item: ref("item"),
     min: z.number().int().nonnegative(),
     max: z.number().int().nonnegative(),
     chance: z.number().min(0).max(1).optional(),
@@ -188,7 +192,7 @@ export const Activity = z
     /** Shared actions are available everywhere; optional area links retain their local position. */
     global: z.boolean().optional(),
     /** Group this activity with a local building in the UI. */
-    building: Id.optional(),
+    building: ref("building").optional(),
     name: z.string(),
     /** shown on the map when you hover the place, once the activity is visible (found) */
     icon: Icon.optional(),
@@ -208,7 +212,7 @@ export const Activity = z
 export const Landmark = z
   .object({
     id: Id,
-    siteCapabilities: z.array(Id).optional(),
+    siteCapabilities: z.array(ref("site")).optional(),
     /** the button in the pop-up, e.g. "the dunes"; its time is shown next to it */
     label: z.string(),
     hours: z.number().positive(),
@@ -229,8 +233,8 @@ export type Landmark = z.infer<typeof Landmark>;
 export const Region = z
   .object({
     id: Id,
-    artwork: Id.optional(),
-    siteCapabilities: z.array(Id).optional(),
+    artwork: ref("artwork").optional(),
+    siteCapabilities: z.array(ref("site")).optional(),
     name: z.string(),
     title: z.string(),
     order: z.number().optional(),
@@ -271,7 +275,7 @@ export const Region = z
       .strict()
       .optional(),
     /** Ordered links to independent activity definitions. */
-    activities: z.array(Id),
+    activities: z.array(ref("activity")),
   })
   .strict();
 
@@ -294,7 +298,7 @@ export const Building = z
   .object({
     id: Id,
     order: z.number().optional(),
-    artwork: Id.optional(),
+    artwork: ref("artwork").optional(),
     name: z.string(),
     /** shown on hover in the buildings panel */
     hint: z.string().optional(),
@@ -312,7 +316,7 @@ export const Building = z
     /** degrees added to the felt temperature in its place (e.g. a shelter out of the wind) */
     warmthC: z.number().optional(),
     /** A timer describes this building's current state, e.g. a local campfire. */
-    timer: Id.optional(),
+    timer: ref("timer").optional(),
     /** the panel's word for a building without a cycle (default "built") */
     word: z.string().optional(),
     cycle: z
@@ -348,7 +352,7 @@ export const Consume = z
     verb: z.string(),
     hours: z.number().positive(),
     effort: Effort.optional(),
-    stats: z.record(Id, z.number()).optional(),
+    stats: z.record(ref("stat"), z.number()).optional(),
     log: Text.optional(),
     outcomes: z.array(Outcome).optional(),
     /** counted for { "did": tag } conditions, e.g. "eat" */
@@ -365,7 +369,7 @@ export const ItemAction = z
     ...WorkFields,
     id: Id,
     /** Show this action under the local building instead of carried items. */
-    building: Id.optional(),
+    building: ref("building").optional(),
     label: z.string(),
     /** the button is shown only while this is true (e.g. a fire is burning here) */
     visibleWhen: Condition.optional(),
@@ -380,7 +384,7 @@ export const Item = z
   .object({
     id: Id,
     order: z.number().optional(),
-    artwork: Id.optional(),
+    artwork: ref("artwork").optional(),
     name: z.string(),
     plural: z.string().optional(),
     category: z.enum(["material", "food", "water", "tool", "clothing", "container", "component", "special"]),
@@ -392,7 +396,7 @@ export const Item = z
      * the action takes that many times as long (the rock knife is sharp, but slow).
      */
     tool: z
-      .object({ tags: z.array(Id).min(1), amount: z.number().int().positive().optional(), hoursFactor: z.number().min(1).optional() })
+      .object({ tags: z.array(ref("tool")).min(1), amount: z.number().int().positive().optional(), hoursFactor: z.number().min(1).optional() })
       .strict()
       .optional(),
     consume: Consume.optional(),
@@ -404,9 +408,9 @@ export const Timer = z
   .object({
     id: Id,
     name: z.string(),
-    region: Id.optional(),
+    region: ref("region").optional(),
     local: z.boolean().optional(),
-    building: Id.optional(),
+    building: ref("building").optional(),
     maxHours: z.number().positive(),
     modifiers: z.object({ localHeatC: z.number().optional() }).strict().optional(),
     states: z.array(z.object({ upToHours: z.number(), word: z.string() }).strict()).min(1),
@@ -422,15 +426,15 @@ export const Game = z
   .object({
     title: z.string(),
     /** One illustration above the route map and every action tab, independent of location. */
-    panorama: Id.optional(),
+    panorama: ref("artwork").optional(),
     stepMinutes: z.number().int().positive(),
     start: z
       .object({
-        region: Id,
+        region: ref("region"),
         day: z.number().int().positive(),
         hour: z.number().min(0).max(23.75),
-        stats: z.record(Id, z.number().min(0).max(100)),
-        items: z.record(Id, z.number().int().nonnegative()),
+        stats: z.record(ref("stat"), z.number().min(0).max(100)),
+        items: z.record(ref("item"), z.number().int().nonnegative()),
         /** the opening of the story */
         log: Text,
       })
@@ -446,9 +450,9 @@ export const Game = z
       .strict(),
     deathLog: Text,
     sleep: z.object({
-      bed: Id,
-      shelter: Id,
-      fire: Id,
+      bed: ref("building"),
+      shelter: ref("building"),
+      fire: ref("timer"),
       wakeHour: z.number().int().min(1).max(23),
       passOutHour: z.number().int().min(0).max(23),
       recovery: z.object({
@@ -536,8 +540,8 @@ export const StatsFile = z
     ),
     /** an ink bar at or below this fill (0..100, more is better) is drawn in the danger colour */
     dangerAtOrBelow: z.number().min(0).max(100).optional(),
-    ratesPerHour: z.record(Effort, z.record(Id, z.number())),
-    multipliers: z.array(z.object({ when: Condition, stat: Id, factor: z.number() }).strict()),
+    ratesPerHour: z.record(Effort, z.record(ref("stat"), z.number())),
+    multipliers: z.array(z.object({ when: Condition, stat: ref("stat"), factor: z.number() }).strict()),
     /** `cause`: named on the end screen when this rule is what kills you, e.g. "thirst" */
     damage: z.array(z.object({ when: Condition, healthPerHour: z.number(), log: Text.optional(), cause: z.string().optional() }).strict()),
     regen: z.array(z.object({ when: Condition, healthPerHour: z.number() }).strict()),
@@ -550,7 +554,7 @@ export const Climate = z
     /** fill = how full the comfort bar is in this band (0..100) */
     bodyBands: z.array(z.object({ id: Id, belowC: z.number().optional(), fill: z.number().min(0).max(100) }).strict()).min(2),
     warmthLabel: z.string().optional(),
-    startBand: Id,
+    startBand: ref("band"),
   })
   .strict();
 
@@ -579,7 +583,7 @@ export const RecipeWay = z
 export const Recipe = z
   .object({
     id: Id,
-    item: Id,
+    item: ref("item"),
     count: z.number().int().positive().optional(),
     /** the button (default: the item's name) */
     label: z.string().optional(),
@@ -621,7 +625,7 @@ export const EventChoice = z
     requiresText: z.string().optional(),
     effects: z.array(Effect).optional(),
     /** the scene to show next; omitted = the event ends */
-    next: Id.optional(),
+    next: ref("scene").optional(),
   })
   .strict();
 
@@ -654,7 +658,7 @@ export const EventTrigger = z.union([
   z.literal("start"),
   z.object({ at: z.object({ day: z.number().int().positive(), hour: z.number().min(0).max(23.75).optional() }).strict() }).strict(),
   z.object({ when: Condition }).strict(),
-  z.object({ after: z.array(Id).min(1).optional(), chance: z.number().gt(0).max(1) }).strict(),
+  z.object({ after: z.array(ref("action")).min(1).optional(), chance: z.number().gt(0).max(1) }).strict(),
 ]);
 
 export const GameEvent = z
@@ -689,7 +693,7 @@ export type Site = z.infer<typeof Site>;
 export const CreationTree = z.object({
   id: Id, kind: z.enum(["craft", "build"]), name: z.string(),
   branches: z.array(z.object({ id: Id, name: z.string(), order: z.number().int() }).strict()).min(1),
-  nodes: z.array(z.object({ target: Id, branch: Id, after: z.array(Id), order: z.number().int() }).strict()).min(1),
+  nodes: z.array(z.object({ target: ref("treeTarget"), branch: ref("treeBranch"), after: z.array(ref("treeParent")), order: z.number().int() }).strict()).min(1),
 }).strict();
 export type CreationTree = z.infer<typeof CreationTree>;
 export type TreeKind = CreationTree["kind"];

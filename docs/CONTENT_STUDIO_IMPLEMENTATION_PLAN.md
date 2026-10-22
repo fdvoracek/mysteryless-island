@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-04 implemented; PR-05 to PR-10 proposal]**
+Status: **[PR-01 to PR-05 implemented; PR-06 to PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -108,6 +108,15 @@ reimplements rules. React and graph libraries are imported only from `src/studio
   the Studio can link each problem to its entity and field.
 - Undo/redo per Studio session; dirty markers per file; explicit save (button and Ctrl/Cmd+S).
 
+
+Owner decision (2026-10-22), PR-05: Create and Duplicate open unsaved drafts after entity-schema
+and ID format/uniqueness validation. They never write registry-invalid content to disk. Save
+writes all dirty files sequentially through the shared formatter and expected-hash API, only
+when the complete draft pack has no diagnostics. If the disk pack is already invalid, Save may
+strictly reduce its diagnostics without introducing any new diagnostic. Linking activities and
+adding creation-tree nodes use generic forms in the same save; neither is automatic. Partial
+failure reports exactly which files were written and not written and retains unsaved drafts.
+
 ### 4.4 Schema metadata, generic forms, widgets
 
 - Reference metadata: ID fields that point at another entity use a helper in `schema.ts`, e.g.
@@ -119,7 +128,7 @@ reimplements rules. React and graph libraries are imported only from `src/studio
   `ref` kind overrides the generic renderer. Optional per-field labels/help live in one Studio
   metadata file; missing metadata falls back to the field name.
 - **Create dialog:** one generic dialog per kind, built from the ID plus the schema's required
-  fields. It saves only a valid entity (no placeholder text) and accepts pre-filled values, so
+  fields. It opens a schema-valid unsaved draft (no placeholder text) and accepts pre-filled values, so
   shortcuts such as "new area unlocked by this discovery" reuse it instead of custom wizards.
 - **Adding a mechanic** = schema + engine + registry check + test (as today). The field appears in
   the Studio automatically; a custom widget or label is optional polish.
@@ -224,16 +233,23 @@ Correct source diagnostics while preserving problem strings, isolate Studio brow
 a temporary frozen pack, reject duplicate activity links, use code-unit registry ordering,
 and give older saves neutral recovery wording. No save-version or gameplay change.
 
-**PR-05 — Generic editor, create dialog and save.** `ref()` metadata in the schema; generic form
+**PR-05 — Generic editor, create dialog and save.** **[implemented]** `ref()` metadata in the schema; generic form
 + widget registry (§4.4) with reference pickers; edit, duplicate, delete with "where used"
 blocking; undo/redo; save through the formatter; conflict dialog on `409`. **Create dialog**
-(§4.4) for every kind: asks for the ID and the schema's required fields, saves only a valid
-entity, then opens it in the form. Callers can pre-fill fields (used later by the story view).
+(§4.4) for every independent entity kind: asks for the ID and the schema's required fields, accepts only a valid
+entity as an unsaved draft, then opens it in the form. Callers can pre-fill fields (used later by
+the story view). Save follows the owner decision in §4.3 rather than writing from the dialog.
+Owner decision (2026-10-22): creation/duplication and saving follow the draft, whole-pack validation,
+sequential-write and partial-failure rules in §4.3.
 *Done when:* every current entity kind round-trips through the form unchanged (test over all fixture
 files); invalid edits show inline errors and cannot be saved; the create dialog is generated from
 the schema for every kind (test iterates the kinds) and rejects a duplicate or malformed ID.
 *Owner test:* create an item through the dialog, link it as a yield of an activity, save, see a
 one-entity git diff; create an area through the dialog and see it in the game after reload.
+Implementation: [editor usage](STUDIO.md#editing-and-saving--implemented-pr-05), `src/studio/`,
+metadata-only `src/content/schema.ts`; `tests/studio/editor.test.ts` covers all fixture files and
+independent create kinds, draft validation, references, undo/redo, sequential save and conflicts.
+`tests/studio-browser/browser.spec.ts` covers actual temporary-root writes and editor wiring.
 
 **PR-06 — Condition/effect builder and text widget.** Recursive all/any/not tree, a form per leaf
 and effect kind generated from the schema unions, human-readable summary using the engine's
