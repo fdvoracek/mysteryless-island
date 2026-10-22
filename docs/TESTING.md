@@ -59,7 +59,8 @@ previews. Without these settings, the ordinary build uses its normal content-def
 Vitest uses at most four workers and Playwright uses two isolated browser contexts at a time.
 Use `npm test -- tests/work.test.ts` for an affected engine file and
 `npm run test:e2e -- --grep 'clock ticks'` for an affected browser flow. Run `npm run check`
-before delivery. It also validates the shipped content and builds the production bundle;
+before delivery. CI (`.github/workflows/pages.yml`) runs the same full check on every pull request against
+`main` and on every push to `main`; only a push to `main` deploys. It also validates the shipped content and builds the production bundle;
 test source files are not bundled into the playable game.
 
 **[implemented, Studio PR-02]** `content:check` also checks canonical JSON formatting in both
