@@ -210,3 +210,18 @@ checks that the game reloads with it while the Studio page does not (marker, dra
 history survive an external edit), uses Save and reload preview, shows the content error screen
 and verifies that the page's `textisland.save`/`textisland.saved` are unchanged. Golden traces,
 frozen fixtures and the game smoke test are unchanged.
+
+
+## Story graph layout — [implemented]
+
+`tests/studio/story-layout.test.ts` covers edge classification from reference positions (fixture, flags, effects),
+focus neighbourhoods, search, deterministic dagre layout (direction, spacing, pins respected with no overlap,
+area boxes), the layout file (parse/serialize/prune/rename, garbage tolerated) and remembered view options.
+`tests/studio/layout-store.test.ts` drives the store against an in-memory file API: null-then-expected hashes,
+coalescing, 409 reapply, failure and retry, content errors never blocking pins, rename (every node kind, undo,
+drag after rename, unpin) and delete pruning. `tests/studio/file-api.test.ts` adds the `studio-layout/*.json`
+allowlist, rejected look-alikes, symlinks, Host/Origin and no game reload. `tests/studio/story-render.test.ts` is
+a no-DOM render smoke test and `build.test.ts` asserts the game bundle never references the layout file.
+`tests/studio-browser/story-graph.spec.ts` (temporary `STUDIO_ROOT` only, restored afterwards) covers focus, depth,
+Escape, list parity, the edge filter, grouping, persisted options, search, dragging three nodes, reload, unpin,
+reset, a pinned rename and a failed save. The Studio fixture copy includes an empty `studio-layout/`.

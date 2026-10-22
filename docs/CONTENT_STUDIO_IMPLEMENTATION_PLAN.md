@@ -127,6 +127,9 @@ reimplements rules. React and graph libraries are imported only from `src/studio
   `public/illustrations/` (images). Rejects `..`, absolute paths, symlinks leaving the allowlist,
   and everything else (`.git`, `.githooks`, `package.json`, configs, `.env*`).
 - Hash mismatch → `409` so the Studio can show "changed on disk" and reload or overwrite.
+- Owner decision (2026-10-22): the allowlist also contains `studio-layout/<name>.json` (one directory, JSON
+  only, same traversal, symlink and Host/Origin rules) for the story graph's pinned positions. The game never
+  reads it. See [STUDIO.md](STUDIO.md).
 - Multi-file operations (rename with reference updates) write files one by one and report exactly
   which files changed. Git is the recovery mechanism; no extra backup journal.
 

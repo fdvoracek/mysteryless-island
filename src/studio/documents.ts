@@ -10,7 +10,9 @@ export const kindLabels: Record<string, string> = {
 // be reused by rename preview/staging and history without walking a pack again.
 const documentCache = new Map<string, Document>();
 const revisionCache = new Map<string, { documents: Document[]; syntax: ContentProblem[]; diagnostics?: ContentProblem[] }>();
-export function readDocuments(files: FileDocument[], validate = true): { documents: Document[]; diagnostics: ContentProblem[] } {
+export function readDocuments(all: FileDocument[], validate = true): { documents: Document[]; diagnostics: ContentProblem[] } {
+  // Studio view state (studio-layout/) is not content: never a document, a diagnostic or part of the registry.
+  const files = all.filter(file => !file.path.startsWith("studio-layout/"));
   const revision = JSON.stringify(files.map(file => [file.path, file.hash, file.encoding, file.content]));
   const cached = revisionCache.get(revision);
   if (cached && (!validate || cached.diagnostics)) return { documents: cached.documents, diagnostics: validate ? cached.diagnostics! : cached.syntax };

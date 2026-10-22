@@ -117,9 +117,12 @@ mutations require the hash returned by the latest read. A mismatch or existing r
 returns `409`. Invalid input returns `400`, forbidden paths/origins `403`, unsupported media types
 `415`, and unknown routes/missing deletion targets `404`.
 
-Paths are normalized relative paths under `content/` ending in `.json`, or images under
+Paths are normalized relative paths under `content/` ending in `.json`, `studio-layout/<name>.json`
+(one level, JSON only; Studio view state, see below), or images under
 `public/illustrations/` (`png`, `jpg`, `jpeg`, `webp`, `gif`, `avif`, `svg`). Traversal, absolute paths,
-backslashes, hidden components, remaining encoded escapes, and symlinks are rejected. Other file
+backslashes, hidden components, remaining encoded escapes, and symlinks are rejected. The layout directory follows the same
+rules, including a rejected symlinked directory, and a rename cannot cross roots. Layout changes
+never emit `studio:files-changed`, so they do not reload the game. Other file
 types are omitted from listings. Symlinks are conservatively unsupported even within these roots.
 
 PUT writes a temporary sibling and renames it atomically. Requests are serialized around hash
@@ -252,10 +255,10 @@ filesystem operations. No save-version or game behavior change is included.
 ## Story and event editors — [implemented, PR-08]
 
 Choose **Story** in Browse for a read-only graph of landmarks, tasks, events, areas and flags.
-Dagre lays it out automatically; no positions are written to content. Pan, zoom, or switch to
+Dagre lays it out automatically; no positions are written to content (pinned positions live in `studio-layout/`, see below). Pan, zoom, or switch to
 **Accessible list view** for the same nodes, edges and source positions. Area and kind filters
 apply to both views. Area membership follows connected tasks/events/flags from area and landmark
-anchors; hiding a kind also hides its incident edges. Clicking a node opens its entity; landmarks
+anchors; hiding a kind also hides its incident edges. Clicking a node selects it (see focus mode below); **Open** or a double-click opens its entity; landmarks
 open their area workspace scrolled to that landmark. Flags open their Used by inspector.
 
 Each reference position remains a separate edge. Conditions point from the referenced node to
@@ -289,6 +292,45 @@ warnings for unreachable scenes. Only registry/input errors block Save. JSON mod
 available for inspection and repairs; missing targets stay visible as graph markers. A close
 marker makes choices without next visible in both views. Playtest in the **Preview** panel or through **Open game**.
 
+
+## Story graph focus, filters and saved layout — [implemented]
+
+**Click selects.** Clicking a node (or a list entry) selects it and enters **focus mode**: the node and its
+neighbours within **1 or 2 hops** (depth selector; incoming and outgoing edges) stay active, everything else is
+dimmed and inert, in the graph and in the list. **Show all** or Escape leaves focus mode. **Open** (on the node,
+in the list and in the side panel) or a double-click opens the entity, as clicking used to.
+
+**Edge filter.** By default only story-driving edges show: trigger, completes, unlocks, effects that start
+a task, unlock something or set a flag, and flag setters and readers. **Show all references** adds the rest
+(for example conditions on text lines, and clearing a flag). The class comes from the reference position label,
+never from field names. Layout, counts and the list follow the filter; area membership does not.
+
+**Layout options.** Direction (left to right, top to bottom), spacing (compact, normal, wide) and **Group by area**:
+areas become labelled boxes around their landmarks and connected tasks and events (the existing area-membership
+rule; a node in several areas goes in the first by ID; flags and unconnected nodes stay outside). Each area is laid
+out by dagre, then the boxes are. **Re-arrange** reruns dagre for unpinned nodes and refits the view. Options and
+the viewport are remembered per viewer in `localStorage` (`studio.storyView`, read defensively). **Find a node**
+searches names and IDs, centres and selects the hit (revealing it if a filter hid it).
+
+**Pins.** Dragging a node pins it. Pins are saved in `studio-layout/story.json` at the repository root (outside
+`content/`; the game never reads it), keyed by node identity (`quest:<id>`, `discovery:<id>`, `region:<id>`,
+`event:<id>`, `flag:<id>`):
+
+```json
+{ "version": 1, "pins": { "quest:climb_cliff": { "x": 120, "y": -40 } } }
+```
+
+Pins are not content drafts. They autosave about a second after a change through the file API with expected hashes
+(`null` on first create); they are outside whole-pack validation, not counted as unsaved changes, and a content
+error never blocks them. On a 409 the layout is reloaded and the pending changes are reapplied. The toolbar shows
+*Layout saved* or *Layout save failed – retry* (the retry button writes again). Unpinned and new nodes are placed
+by dagre around the pinned ones (an unpinned node is moved along the cross axis until it no longer overlaps one).
+**Unpin** (node, list, side panel) clears one pin; **Reset layout** clears all after confirmation. A layout file
+that does not parse is ignored and shown as a warning; the next drag replaces it.
+
+**Rename and delete.** A rename stages the layout key change with its content change (one undo step, pin shown
+at once) and writes it when the rename's content is saved. Saving content prunes pins of nodes that no longer
+exist (skipped while any content file fails to parse).
 
 ## Creation tree and map editors — [implemented, PR-09]
 

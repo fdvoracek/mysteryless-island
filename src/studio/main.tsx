@@ -73,9 +73,11 @@ function Studio() {
       // The JSON editor owns undo while focused; the Studio history stays on the toolbar.
       if (event.key.toLowerCase() === "z" && !(event.target instanceof Element && event.target.closest(".cm-editor"))) { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
     };
-    const leave = (event: BeforeUnloadEvent) => { if (store.drafts.size) event.preventDefault(); };
-    window.addEventListener("keydown", keydown); window.addEventListener("beforeunload", leave);
-    return () => { window.removeEventListener("keydown", keydown); window.removeEventListener("beforeunload", leave); };
+    const leave = (event: BeforeUnloadEvent) => { if (store.drafts.size) event.preventDefault(); void store.flushLayout(); };
+    // Pins autosave after about a second; leaving or hiding the page writes them straight away.
+    const hide = () => { if (document.visibilityState === "hidden") void store.flushLayout(); };
+    window.addEventListener("keydown", keydown); window.addEventListener("beforeunload", leave); document.addEventListener("visibilitychange", hide);
+    return () => { window.removeEventListener("keydown", keydown); window.removeEventListener("beforeunload", leave); document.removeEventListener("visibilitychange", hide); };
   });
   const area = documents.find((document) => `area:${document.id}` === scope);
   const candidates = area ? areaDocuments(documents, area) : documents.filter((document) => scope === "all" || document.kind === scope);
@@ -131,7 +133,7 @@ function Studio() {
         {!visible.length && <p className="empty">{files.length ? "No files match this search." : status}</p>}
       </section>}
       <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}`}>
-        {scope === "story" ? <StoryView documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)} open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} /> : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)} open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} /> : selected ? <>
+        {scope === "story" ? <StoryView store={store} documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)} open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} /> : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)} open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} /> : selected ? <>
           <div className="document-heading"><div><p>{kindLabels[selected.kind] ?? selected.kind} / {selected.id}</p><h2>{selected.label}</h2><code>{selected.path}</code></div><div className="row-actions">{selectedSchema && <><button aria-pressed={mode === "form"} onClick={() => setMode("form")}>Form</button><button aria-pressed={mode === "json"} onClick={() => setMode("json")}>JSON</button></>}{entitySchemas[selected.kind] && <><button disabled={store.busy} onClick={() => setCreate({ kind: selected.kind, duplicate: selected.path })}>Duplicate</button><button disabled={store.busy} onClick={() => { setDeleteOrphans(false); setDeleting(selected.path); }}>Delete</button></>}</div></div>
           <section className="json-panel" aria-label="File contents"><div className="json-heading"><h3>{selected.encoding === "utf8" ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3><span>{status}</span></div>
             {field && <p className="field-location">Field: <code>{field}</code></p>}

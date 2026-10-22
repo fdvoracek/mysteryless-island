@@ -69,6 +69,9 @@ Architectural consequences that bind all work:
   suppresses Vite's own full reload for content paths so the Studio page never reloads, and under
   `STUDIO_ROOT` points the game's content glob at that root. The preview calls the same-origin
   `window.ti`; it shows saved content only.
+- **Implemented:** the story graph saves pinned node positions in `studio-layout/story.json` (repository
+  root, outside `content/`), the only addition to the file API allowlist. The game never reads or bundles it;
+  pins are Studio view state, not content drafts (see [docs/STUDIO.md](docs/STUDIO.md)).
 - Content stays English-only; translations are out of scope for now.
 - **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
   explicit recovery screen. This overrides the old-save testing rule in "Save and presentation

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ReactFlow, Background, Controls, MarkerType, Position, type Node, type Edge } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
 import type { Graph, GraphEdge, GraphNode } from "./story";
@@ -19,8 +19,10 @@ export function layoutGraph(graph: Graph): { nodes: Node[]; edges: Edge[] } {
       return { ...e, type: "default", pathOptions: { curvature: 0.2 + index * 0.25 }, markerEnd: { type: MarkerType.ArrowClosed }, style: e.label === "completes" ? { strokeDasharray: "5 5" } : undefined, ariaLabel: `${e.source} → ${e.target}: ${e.label}` }; }),
   };
 }
-export function GraphList({ graph, node, edge, inspect }: { graph: Graph; node: (n: GraphNode) => void; edge?: (e: GraphEdge) => void; inspect?: (n: GraphNode) => void }) {
-  return <section aria-label="Graph list"><h3>Nodes ({graph.nodes.length})</h3><ul>{graph.nodes.map(n => <li key={n.id} data-node={n.id}><button type="button" onClick={() => node(n)}>{n.kind}: {n.label}</button>{n.note && <span> · {n.note}</span>}{inspect && ["discovery", "quest"].includes(n.kind) && <button type="button" aria-label={`Continue the story from ${n.id}`} onClick={() => inspect(n)}>Continue the story</button>}</li>)}</ul><h3>Edges ({graph.edges.length})</h3><ul>{graph.edges.map(e => <li key={e.id} data-edge={e.id}>{edge ? <button type="button" onClick={() => edge(e)}>{e.source} → {e.target}: {e.label}</button> : <span>{e.source} → {e.target}: {e.label}</span>}<small> {e.file} › {e.path}</small></li>)}</ul></section>;
+/** `focus`, `selected` and `extra` are used by the story list only: dimmed entries are disabled, as in the graph. */
+export function GraphList({ graph, node, edge, inspect, focus, selected, extra }: { graph: Graph; node: (n: GraphNode) => void; edge?: (e: GraphEdge) => void; inspect?: (n: GraphNode) => void; focus?: ReadonlySet<string>; selected?: string; extra?: (n: GraphNode) => ReactNode }) {
+  const out = (id: string) => !!focus && !focus.has(id);
+  return <section aria-label="Graph list"><h3>Nodes ({graph.nodes.length})</h3><ul>{graph.nodes.map(n => <li key={n.id} data-node={n.id} className={out(n.id) ? "is-dimmed" : n.id === selected ? "is-selected" : undefined} aria-current={n.id === selected ? "true" : undefined}><button type="button" disabled={out(n.id)} onClick={() => node(n)}>{n.kind}: {n.label}</button>{n.note && <span> · {n.note}</span>}{inspect && ["discovery", "quest"].includes(n.kind) && <button type="button" disabled={out(n.id)} aria-label={`Continue the story from ${n.id}`} onClick={() => inspect(n)}>Continue the story</button>}{extra?.(n)}</li>)}</ul><h3>Edges ({graph.edges.length})</h3><ul>{graph.edges.map(e => <li key={e.id} data-edge={e.id} className={out(e.source) || out(e.target) ? "is-dimmed" : undefined}>{edge ? <button type="button" onClick={() => edge(e)}>{e.source} → {e.target}: {e.label}</button> : <span>{e.source} → {e.target}: {e.label}</span>}<small> {e.file} › {e.path}</small></li>)}</ul></section>;
 }
 /** `connect` makes handles draggable (creation trees only); story and event graphs stay read-only. */
 export function GraphView({ graph, node, edge, title, inspect, connect }: { graph: Graph; node: (n: GraphNode) => void; edge?: (e: GraphEdge) => void; title: string; inspect?: (n: GraphNode) => void; connect?: (source: string, target: string) => void }) {

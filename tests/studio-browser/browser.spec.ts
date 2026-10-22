@@ -531,7 +531,10 @@ test("story filters, graph/list parity, node navigation and all continuation sho
       await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     }
   }
+  // Clicking a list entry selects and focuses it; "Open" opens the entity.
   await story.getByRole("region", { name: "Graph list" }).getByRole("button", { name: /discovery: rabbit_runs/ }).click();
+  await expect(page.getByLabel("Area workspace", { exact: true })).toHaveCount(0);
+  await story.getByRole("button", { name: "Open discovery:rabbit_runs", exact: true }).click();
   await expect(page.getByLabel("Area workspace", { exact: true })).toBeVisible();
   await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: explore.landmarks.");
   expect(errors).toEqual([]);
