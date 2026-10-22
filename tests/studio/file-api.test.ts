@@ -187,3 +187,56 @@ describe("localhost content file transport", () => {
     expect((await call("GET")).status).toBe(403);
   });
 });
+
+describe("studio-layout allowlist (one directory, JSON only)", () => {
+  const layout = `${prefix}/studio-layout/story.json`;
+  it("creates, lists, updates and deletes studio-layout/*.json with expected hashes", async () => {
+    expect((await call("PUT", layout, { expectedHash: "stale", content: "{}", encoding: "utf8" })).status).toBe(409);
+    expect((await call("PUT", layout, { expectedHash: null, content: "{}", encoding: "base64" })).status).toBe(400);
+    const created = await call("PUT", layout, { expectedHash: null, content: '{"version":1}\n', encoding: "utf8" });
+    expect(created).toMatchObject({ status: 200, data: { changed: ["studio-layout/story.json"] } });
+    expect(await readFile(join(root, "studio-layout/story.json"), "utf8")).toBe('{"version":1}\n');
+    expect((await call("PUT", layout, { expectedHash: null, content: "{}", encoding: "utf8" })).status).toBe(409);
+    const file = (await inventory()).find((f) => f.path === "studio-layout/story.json")!;
+    expect(file).toMatchObject({ content: '{"version":1}\n', encoding: "utf8", hash: created.data.hash });
+    expect((await call("PUT", layout, { expectedHash: file.hash, content: '{"version":2}\n', encoding: "utf8" })).status).toBe(200);
+    expect((await call("DELETE", layout, { expectedHash: file.hash })).status).toBe(409);
+    const now = (await inventory()).find((f) => f.path === "studio-layout/story.json")!;
+    expect((await call("DELETE", layout, { expectedHash: now.hash })).status).toBe(200);
+  });
+  it.each([
+    "studio-layout/story.png", "studio-layout/story.txt", "studio-layout/nested/story.json", "studio-layout/.hidden.json",
+    "studio-layout/../package.json", "studio-layout/%2e%2e/package.json", "studio-layout/%5cstory.json", "studio-layout//story.json",
+    "studio-layoutx/story.json", "studio-layout.json", "studio/story.json", "Studio-Layout/story.json",
+  ])("rejects %s", async (path) => {
+    expect((await call("PUT", `${prefix}/${path}`, { expectedHash: null, content: "{}", encoding: "utf8" })).status).toBe(403);
+    // Nothing was created for a rejected path, whatever its spelling.
+    expect((await readdir(root)).filter((name) => /studio/i.test(name))).toEqual([]);
+    expect(await readFile(join(root, "package.json"), "utf8")).toBe('{ "private": true }');
+  });
+  it("applies Host/Origin rules and keeps cross-root renames out", async () => {
+    expect((await call("PUT", layout, { expectedHash: null, content: "{}", encoding: "utf8" }, { Origin: "https://evil.example" })).status).toBe(403);
+    expect((await call("PUT", layout, { expectedHash: null, content: "{}", encoding: "utf8" }, { Host: `localhost:${port}`, Origin: `http://127.0.0.1:${port}` })).status).toBe(403);
+    await call("PUT", layout, { expectedHash: null, content: "{}", encoding: "utf8" });
+    const file = (await inventory()).find((f) => f.path === "studio-layout/story.json")!;
+    expect((await call("POST", `${layout}/rename`, { expectedHash: file.hash, path: "content/items/story.json" })).status).toBe(400);
+    expect((await call("POST", `${layout}/rename`, { expectedHash: file.hash, path: "package.json" })).status).toBe(403);
+  });
+  it("rejects a symlinked directory or file", async () => {
+    await mkdir(join(root, "studio-layout"));
+    await symlink(join(root, "package.json"), join(root, "studio-layout/linked.json"));
+    expect((await call("GET")).status).toBe(403);
+    expect((await call("PUT", `${prefix}/studio-layout/linked.json`, { expectedHash: null, content: "bad", encoding: "utf8" })).status).toBe(403);
+    await rm(join(root, "studio-layout"), { recursive: true });
+    await symlink(root, join(root, "studio-layout"));
+    expect((await call("GET")).status).toBe(403);
+    expect((await call("PUT", layout, { expectedHash: null, content: "bad", encoding: "utf8" })).status).toBe(403);
+    expect(await readFile(join(root, "package.json"), "utf8")).toBe('{ "private": true }');
+  });
+  it("does not tell the game to reload for layout files", () => {
+    const send = vi.spyOn(server.ws, "send");
+    server.watcher.emit("all", "change", join(realpathSync(root), "studio-layout/story.json"));
+    expect(send).not.toHaveBeenCalled();
+    send.mockRestore();
+  });
+});

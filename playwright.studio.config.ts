@@ -10,6 +10,7 @@ if (!fixtureRoot) {
   fixtureRoot = mkdtempSync(join(tmpdir(), "textisland-studio-fixtures-"));
   cpSync(fileURLToPath(new URL("./tests/fixtures/content", import.meta.url)), join(fixtureRoot, "content"), { recursive: true });
   mkdirSync(join(fixtureRoot, "public/illustrations"), { recursive: true });
+  mkdirSync(join(fixtureRoot, "studio-layout"), { recursive: true });
   const game = JSON.parse(readFileSync(join(fixtureRoot, "content/game.json"), "utf8"));
   game._studio_fixture_root = fixtureRoot;
   writeFileSync(join(fixtureRoot, "content/game.json"), JSON.stringify(game) + "\n");

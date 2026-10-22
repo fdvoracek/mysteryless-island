@@ -18,8 +18,12 @@ const missing = (error: unknown) => (error as NodeJS.ErrnoException).code === "E
 export function allowedStudioPath(path: string): boolean {
   return !path.includes("\\") && !path.includes("%") && !path.includes("\0")
     && path.split("/").every((part) => part.length > 0 && !part.startsWith("."))
-    && (/^content\/.+\.json$/.test(path) || (path.startsWith("public/illustrations/") && image.test(path)));
+    && (/^content\/.+\.json$/.test(path) || isStudioLayoutPath(path) || (path.startsWith("public/illustrations/") && image.test(path)));
 }
+/** The one non-content directory: Studio view state (JSON only, one level). The game never reads it. */
+export function isStudioLayoutPath(path: string): boolean { return /^studio-layout\/[^/]+\.json$/.test(path); }
+/** Text roots (content and layout) are UTF-8 JSON; images are base64. */
+const isTextPath = (path: string) => path.startsWith("content/") || path.startsWith("studio-layout/");
 
 /** Vite 5 names the changed file in `triggeredBy` on its full-reload payload; the Studio reloads the game itself. */
 export function isContentFullReload(payload: unknown, root: string): boolean {
@@ -77,7 +81,8 @@ export function contentApi(): Plugin {
       server.watcher.add([join(root, "content"), join(root, "public/illustrations")]);
       const notify = (_event: string, path: string) => {
         const local = relative(root, path).split(sep).join("/");
-        if (allowedStudioPath(local)) server.ws.send({ type: "custom", event: "studio:files-changed", data: { path: local } });
+        // Layout files never affect the game, so they never reload it.
+        if (allowedStudioPath(local) && !isStudioLayoutPath(local)) server.ws.send({ type: "custom", event: "studio:files-changed", data: { path: local } });
       };
       // No supported hook sees the reload Vite sends for added/removed files (handleHotUpdate covers changes only).
       const { ws } = server;
@@ -114,13 +119,13 @@ export function contentApi(): Plugin {
             if (entry.isDirectory()) await walk(child);
             else if (allowedStudioPath(child)) {
               const bytes = await readFile(await safePath(child));
-              const encoding = child.startsWith("content/") ? "utf8" : "base64";
+              const encoding = isTextPath(child) ? "utf8" : "base64";
               files.push({ path: child, content: bytes.toString(encoding), encoding, hash: hash(bytes) });
             }
           }
         }
         // Check the roots too: a symlinked allowlist directory must never be followed.
-        for (const base of ["content", "public/illustrations"]) {
+        for (const base of ["content", "public/illustrations", "studio-layout"]) {
           let current = root;
           for (const part of base.split("/")) {
             current = join(current, part);
@@ -162,7 +167,7 @@ export function contentApi(): Plugin {
         if ((bytes ? hash(bytes) : null) !== input.expectedHash) throw new FileError(409, "File changed on disk");
         if (req.method === "PUT") {
           if (typeof input.content !== "string") throw new FileError(400, "content must be a string");
-          const encoding = path.startsWith("content/") ? "utf8" : "base64";
+          const encoding = isTextPath(path) ? "utf8" : "base64";
           if (input.encoding !== encoding) throw new FileError(400, `encoding must be ${encoding}`);
           const next = Buffer.from(input.content, encoding);
           if (encoding === "base64" && next.toString("base64") !== input.content) throw new FileError(400, "Invalid base64 image");
@@ -181,7 +186,7 @@ export function contentApi(): Plugin {
           // Renames never overwrite an existing file, even if its hash happens to match.
           try { await lstat(destination); throw new FileError(409, "Destination already exists"); }
           catch (error) { if (!missing(error)) throw error; }
-          if (path.startsWith("content/") !== input.path.startsWith("content/")) throw new FileError(400, "Cannot rename across content and image roots");
+          if (path.split("/")[0] !== input.path.split("/")[0]) throw new FileError(400, "Cannot rename across content, layout and image roots");
           await mkdir(dirname(destination), { recursive: true });
           await rename(target, destination);
           return { changed: [path, input.path], hash: hash(bytes) };

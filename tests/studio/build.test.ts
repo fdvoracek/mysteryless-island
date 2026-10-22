@@ -14,6 +14,9 @@ it("builds the real production game without Studio/React and rejects a contamina
       const modules = result.output.flatMap((chunk) => chunk.type === "chunk" ? Object.keys(chunk.modules) : []);
       expect(modules.length).toBeGreaterThan(0);
       expect(modules.filter((id) => /src\/studio|node_modules\/(react|react-dom|@xyflow|@dagrejs|@codemirror|@lezer)\//.test(id))).toEqual([]);
+      // The game never reads the Studio's layout file: it is neither bundled nor referenced.
+      expect(modules.filter((id) => id.includes("studio-layout"))).toEqual([]);
+      expect(result.output.filter((o) => (o.type === "chunk" ? o.code : String(o.source)).includes("studio-layout"))).toEqual([]);
     } else throw new Error("Expected a production bundle");
     await exec(process.execPath, ["tools/check-game-dist.mjs", outDir]);
     await mkdir(join(outDir, "studio"));

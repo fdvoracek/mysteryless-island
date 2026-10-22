@@ -3,7 +3,8 @@ import { GAME_FLAGS } from "./game-flags";
 import { getAt, identities, references, resolvesTo, type Identity, type Reference } from "./references";
 
 export interface GraphNode { id: string; label: string; kind: string; file?: string; path?: string; areas?: string[]; note?: string }
-export interface GraphEdge { id: string; source: string; target: string; label: string; file: string; path: string }
+/** `driving` is set only by the story view; other graphs leave it unset and always show their edges. */
+export interface GraphEdge { id: string; source: string; target: string; label: string; file: string; path: string; driving?: boolean }
 export interface Graph { nodes: GraphNode[]; edges: GraphEdge[] }
 export interface Story extends Graph { warnings: { file: string; path: string; message: string }[] }
 const nodeId = (identity: Identity) => `${identity.kind}:${identity.id}`;
@@ -15,6 +16,14 @@ export function referenceRole(ref: Reference): { label: string; effect: boolean 
   if (parts.includes("effects") && parts.lastIndexOf("when") < parts.lastIndexOf("effects") && parts.lastIndexOf("visibleWhen") < parts.lastIndexOf("effects") && parts.lastIndexOf("requires") < parts.lastIndexOf("effects")) return { label: `effect: ${{ startQuest: "starts", unlock: "unlocks", flag: "sets flag", unflag: "clears flag" }[leaf ?? ""] ?? leaf}`, effect: true };
   return { label: parts.includes("completeWhen") ? "completes" : parts.includes("unlockWhen") ? "unlocks" : parts.includes("trigger") ? "trigger" : "when", effect: false };
 }
+/**
+ * Story-driving positions, classified from the reference position label (never from field names):
+ * a trigger, completion or unlock condition, an effect that starts a task, unlocks something or
+ * sets a flag, and flag setters and readers. Other conditions (such as `when` on text lines) and
+ * clearing a flag are plain references.
+ */
+const DRIVING = new Set(["trigger", "completes", "unlocks", "effect: starts", "effect: unlocks", "effect: sets flag"]);
+export const isDriving = (label: string, flag: boolean) => DRIVING.has(label) || (flag && label !== "effect: clears flag");
 export function deriveStory(documents: Document[]): Story {
   const cached = cache.get(documents); if (cached) return cached;
   const refs = references(documents), definitions = identities(documents);
@@ -42,7 +51,7 @@ export function deriveStory(documents: Document[]): Story {
       // the reference contract: referenced identity -> referencing entity.
       const source = ref.kind === "flag" && role.effect ? owner.id : referenced.id;
       const destination = ref.kind === "flag" && role.effect ? referenced.id : owner.id;
-      edges.push({ id: `${ref.file}:${ref.path}:${source}`, source, target: destination, label: role.label, file: ref.file, path: ref.path });
+      edges.push({ id: `${ref.file}:${ref.path}:${source}`, source, target: destination, label: role.label, file: ref.file, path: ref.path, driving: isDriving(role.label, ref.kind === "flag") });
     }
   }
   // Area membership follows story connections in either direction. This includes
@@ -65,6 +74,10 @@ export function filterStory(graph: Graph, area: string, kinds: string[]): Graph 
   const nodes = graph.nodes.filter(n => (!area || n.areas?.includes(area)) && kinds.includes(n.kind));
   const visible = new Set(nodes.map(n => n.id));
   return { nodes, edges: graph.edges.filter(e => visible.has(e.source) && visible.has(e.target)) };
+}
+/** Default view: story-driving references only. Edges without a classification always stay. */
+export function filterEdges(graph: Graph, all: boolean): Graph {
+  return all ? graph : { nodes: graph.nodes, edges: graph.edges.filter(e => e.driving !== false) };
 }
 export function continuation(node: GraphNode, kind: string): Record<string, unknown> {
   if (!["discovery", "quest"].includes(node.kind)) throw new Error("Choose a landmark or task.");

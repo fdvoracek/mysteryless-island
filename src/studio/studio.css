@@ -172,3 +172,21 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .json-editor { height: max(420px, calc(100vh - 300px)); border-top: 1px solid var(--studio-border); }
 .json-editor .cm-editor { height: 100%; background: var(--studio-panel); }
 .cm-json-hover { padding: 4px 8px; max-width: 360px; white-space: pre-wrap; font-size: 12px; }
+
+/* Story graph: focus, layout controls, group boxes and pinned nodes. */
+.story-controls { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-block: 8px; border: 1px solid var(--studio-border); border-radius: 8px; padding: 8px 12px; }
+.story-controls legend { font-weight: 600; padding-inline: 4px; }
+.story-hits { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.story-node.is-selected { outline: 3px solid var(--studio-accent); }
+.story-node.is-pinned { border-style: double; border-width: 4px; }
+.story-node.is-dimmed, .react-flow__edge.is-dimmed { opacity: 0.18; pointer-events: none; }
+li.is-dimmed { opacity: 0.45; }
+li.is-selected { font-weight: 600; }
+.story-group { background: rgba(120, 130, 145, 0.08); border: 1px dashed #8a93a0; border-radius: 10px; }
+.story-group-label { padding: 6px 10px; font-weight: 600; font-size: 13px; color: #3b4450; }
+.node-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 6px; }
+.node-actions button { padding: 3px 6px; font-size: 11px; }
+.node-actions .node-continue { margin: 0; }
+.pin-mark { font-size: 11px; opacity: 0.75; }
+.layout-status { color: #2e6b3f; }
+button.layout-failed { color: var(--studio-error); }

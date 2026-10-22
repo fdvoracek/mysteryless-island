@@ -4,12 +4,25 @@ import { entitySchemas, identityFields, schemaFor, stripComments } from "./schem
 import { getAt } from "./references";
 import { deletionBlockers, isTreeShape, placeNode, treeDocument, withoutNode } from "./tree";
 import { renamePlan } from "./rename";
+import { LAYOUT_PATH, nodeKey, parseLayout, prunePins, renamePin, serializeLayout, type Pin, type Pins } from "./layout-file";
+import { deriveStory } from "./story";
 
 type Drafts = Map<string, string | null>;
 export interface JsonBuffer { text: string; source: string }
 interface Snapshot {
   moves: Map<string, string>; drafts: Drafts; errors: Map<string, string>; buffers: Map<string, JsonBuffer>;
-  conflicts: Map<string, Conflict>; hashes: Map<string, string>;
+  conflicts: Map<string, Conflict>; hashes: Map<string, string>; layoutRenames: [string, string][];
+}
+/** A pin change not yet on disk. Replayed over the disk version after a 409. */
+type LayoutOp = { t: "pin"; id: string; pos: Pin } | { t: "unpin"; ids: string[] } | { t: "reset" } | { t: "rename"; pairs: [string, string][] } | { t: "prune"; ids: ReadonlySet<string> };
+function applyOp(pins: Pins, op: LayoutOp): Pins {
+  switch (op.t) {
+    case "pin": { const old = pins[op.id]; return old && old.x === op.pos.x && old.y === op.pos.y ? pins : { ...pins, [op.id]: op.pos }; }
+    case "unpin": return op.ids.some(id => id in pins) ? Object.fromEntries(Object.entries(pins).filter(([key]) => !op.ids.includes(key))) : pins;
+    case "reset": return Object.keys(pins).length ? {} : pins;
+    case "rename": return op.pairs.reduce((all, [from, to]) => renamePin(all, from, to), pins);
+    case "prune": return prunePins(pins, op.ids);
+  }
 }
 export type Transport = (input: string, init?: RequestInit) => Promise<Response>;
 const signature = (problem: ContentProblem) => JSON.stringify([problem.file, problem.path, problem.message]);
@@ -39,6 +52,19 @@ export class StudioStore {
   busy = false;
   private listeners = new Set<() => void>();
   version = 0;
+  // Story-graph pins are view state, not content: they never become drafts, never count as unsaved
+  // changes, and a content error cannot block them. They autosave through the same expected-hash API.
+  pins: Pins = {};
+  layoutDisk?: FileDocument;
+  layoutProblem = "";
+  layoutStatus: "idle" | "pending" | "saving" | "saved" | "failed" = "idle";
+  layoutDelay = 1000;
+  /** Renames staged with the content drafts; pins follow them when the rename is saved. */
+  layoutRenames: [string, string][] = [];
+  private ops: LayoutOp[] = [];
+  private layoutTimer?: ReturnType<typeof setTimeout>;
+  private layoutRun: Promise<void> = Promise.resolve();
+  private layoutWriting = false;
   constructor(readonly transport: Transport = (input, init) => fetch(input, init)) {}
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   notify = () => { this.version++; for (const listener of this.listeners) listener(); };
@@ -74,7 +100,7 @@ export class StudioStore {
   private snapshot(): Snapshot {
     return { moves: new Map(this.moves), drafts: new Map(this.drafts), errors: new Map(this.inputErrors), buffers: new Map(this.buffers),
       conflicts: new Map([...this.conflicts].map(([path, conflict]) => [path, { ...conflict }])),
-      hashes: new Map(this.disk.map((file) => [file.path, file.hash])) };
+      hashes: new Map(this.disk.map((file) => [file.path, file.hash])), layoutRenames: [...this.layoutRenames] };
   }
   /** Path whose live-typing burst already has its undo checkpoint. */
   private typing?: string;
@@ -84,6 +110,7 @@ export class StudioStore {
   endTyping() { this.typing = undefined; }
   private restore(snapshot: Snapshot) {
     this.typing = undefined;
+    this.layoutRenames = snapshot.layoutRenames;
     this.moves = snapshot.moves; this.drafts = snapshot.drafts; this.inputErrors = snapshot.errors; this.buffers = snapshot.buffers;
     this.conflicts = new Map([...snapshot.conflicts].filter(([path]) => this.drafts.has(path)));
     for (const path of this.drafts.keys()) {
@@ -181,7 +208,75 @@ export class StudioStore {
     let data;
     try { data = await response.json(); } catch { throw new Error(hint); }
     if (!response.ok) throw new Error(data.error ?? `Request failed (${response.status})`);
-    return data.files;
+    const files = data.files as FileDocument[];
+    this.adoptLayout(files.find(file => file.path === LAYOUT_PATH));
+    return files.filter(file => !file.path.startsWith("studio-layout/"));
+  }
+  /** Layout pins as shown now: saved and pending pins, with staged renames applied. */
+  get pinned(): Pins { return this.layoutRenames.reduce((all, [from, to]) => renamePin(all, from, to), this.pins); }
+  private adoptLayout(file: FileDocument | undefined) {
+    this.layoutDisk = file;
+    if (this.ops.length || this.layoutWriting) return;
+    const parsed = parseLayout(file?.content);
+    this.pins = parsed.pins; this.layoutProblem = parsed.problem ?? "";
+  }
+  private record(op: LayoutOp) {
+    const next = applyOp(this.pins, op);
+    if (next === this.pins) return false;
+    this.pins = next; this.ops.push(op); this.layoutStatus = "pending";
+    clearTimeout(this.layoutTimer);
+    this.layoutTimer = setTimeout(() => { void this.flushLayout(); }, this.layoutDelay);
+    this.notify(); return true;
+  }
+  pin(id: string, pos: Pin) { this.record({ t: "pin", id, pos: { x: Math.round(pos.x), y: Math.round(pos.y) } }); }
+  /** Also drops pins under the node's earlier names while a rename is staged. */
+  unpin(id: string) {
+    const ids = new Set([id]);
+    for (const [from, to] of [...this.layoutRenames].reverse()) if (ids.has(to)) ids.add(from);
+    this.record({ t: "unpin", ids: [...ids] });
+  }
+  resetPins() { this.record({ t: "reset" }); }
+  /** Writes pending pin changes now. Never throws: failures set `layoutStatus` and keep the changes for a retry. */
+  flushLayout(): Promise<void> {
+    clearTimeout(this.layoutTimer);
+    this.layoutRun = this.layoutRun.then(() => this.writeLayout());
+    return this.layoutRun;
+  }
+  private async writeLayout() {
+    if (!this.ops.length) return;
+    this.layoutWriting = true; this.layoutStatus = "saving"; this.notify();
+    try {
+      let conflicts = 0;
+      while (this.ops.length) {
+        const count = this.ops.length, content = serializeLayout(this.pins);
+        if (!this.layoutDisk && !Object.keys(this.pins).length) { this.ops.splice(0, count); continue; }
+        const response = await this.transport(`/__studio/files/${LAYOUT_PATH}`, {
+          method: "PUT", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedHash: this.layoutDisk?.hash ?? null, content, encoding: "utf8" }),
+        });
+        const result = await response.json();
+        if (response.status === 409 && conflicts++ < 3) {
+          // Someone else wrote the file: take their pins and reapply ours on top.
+          await this.readDisk();
+          const parsed = parseLayout(this.layoutDisk?.content);
+          this.pins = this.ops.reduce(applyOp, parsed.pins);
+          continue;
+        }
+        if (!response.ok) throw new Error(result.error ?? `Request failed (${response.status})`);
+        this.layoutDisk = { path: LAYOUT_PATH, content, encoding: "utf8", hash: result.hash };
+        this.ops.splice(0, count); this.layoutProblem = "";
+      }
+      this.layoutStatus = "saved";
+    } catch { this.layoutStatus = "failed"; }
+    finally { this.layoutWriting = false; this.notify(); }
+  }
+  /** After content is saved: renamed nodes keep their pins and pins of deleted nodes go. */
+  private settleLayout() {
+    const pairs = this.layoutRenames; this.layoutRenames = [];
+    if (pairs.length) this.record({ t: "rename", pairs });
+    const documents = this.view.documents;
+    // A file that does not parse hides its nodes; never prune from a partial story.
+    if (documents.every(d => d.encoding !== "utf8" || d.raw !== undefined)) this.record({ t: "prune", ids: new Set(deriveStory(documents).nodes.map(n => n.id)) });
   }
   reconcile(files: FileDocument[]) {
     for (const [path] of this.drafts) {
@@ -256,6 +351,9 @@ export class StudioStore {
       else this.drafts.delete(file);
     }
     for (const p of plan.drafts.keys()) this.clean(p);
+    // Pins follow the rename when it is saved; until then the view applies it (see `pinned`).
+    const from = nodeKey(plan.target), to = nodeKey(plan.target, newId);
+    if (from && to) this.layoutRenames = [...this.layoutRenames, [from, to]];
     this.notify(); return plan.move?.to ?? file;
   }
   createInArea(areaPath: string, kind: string, raw: unknown): string {
@@ -364,6 +462,9 @@ export class StudioStore {
       }
       this.past = []; this.future = [];
       this.status = `Written: ${written.join(", ")}. Not written: none.`;
+      // Layout follows the saved content; its own failure is reported by `layoutStatus`, never as a content failure.
+      this.settleLayout();
+      await this.flushLayout();
     } catch (error) {
       this.status = `${(error as Error).message} Written: ${written.join(", ") || "none"}. Not written: ${paths.filter((path) => !written.includes(path)).join(", ") || "none"}.`;
     } finally {
