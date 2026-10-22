@@ -132,3 +132,27 @@ edit adds a group, changes kinds, removes a node and saves. It checks not wrappi
 rejection and unrelated-field preservation. Another scenario edits alternatives and explicit IDs,
 observes guidance, builds a roll/outcome/effect and verifies a later weight edit changes only
 that value in the saved bytes. Existing game smoke and golden traces retain game-safety ownership.
+
+
+## Area workspace and rename — [implemented, PR-07]
+
+`tests/studio/rename.test.ts` renames every nonreserved entity and nested identity, including
+every landmark, in a temporary fixture copy. Each resulting pack has zero registry diagnostics;
+old references are absent and exact raw-tree/formatter comparisons preserve all unrelated values,
+comments and key order. Tests cover one-step undo/redo, nested/local ID and tag collisions,
+contextual production/scene ownership, the sleep-memory today reference, expected-hash ordering,
+and failure before a move or between move and content write with retry.
+
+`tests/studio/area-workspace.test.ts` renders and round-trips every fixture area unchanged and
+checks explicit grouped activity creation, blocked area/landmark deletion, orphan Keep/relink,
+Delete them too and shared-activity preservation. Browser scenarios use only STUDIO_ROOT and
+exercise new area, cell selection/occupancy, unlock rules, new landmarks, linked activity save,
+rename preview/history/file move, separate landmark Used by, deletion blocking/removal and
+reserved controls at desktop/phone widths. Writes are restored in the temporary pack.
+
+`tests/studio/reserved-ids.test.ts` reads temporary copies of shipped and fixture content to
+collect every identity and schema record key, then uses TypeScript's parser to scan string
+literals in src/core/**/*.ts and src/content/registry.ts. A match must be in the single Studio
+reserved list or a small, commented allowlist of exact harmless source expressions; new matches
+fail with file/line/context for owner review. This read-only shipped audit never edits either pack.
+Golden traces, game rules, save version and frozen files are unchanged.

@@ -102,3 +102,13 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .multi-select { display: flex; flex-wrap: wrap; gap: 12px; }
 .multi-select label { display: flex; align-items: center; gap: 5px; }
 select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 3px; }
+.area-workspace { display: grid; gap: 16px; }
+.workspace-card { min-width: 0; border: 1px solid var(--studio-border); border-radius: 8px; padding: 16px; }
+.workspace-card h2 { font-size: 16px; margin-bottom: 12px; }
+.landmark-entry { padding: 12px; margin: 12px 0; border: 1px solid var(--studio-border); border-radius: 6px; }
+.map-cells { display: grid; gap: 4px; overflow: auto; max-width: 100%; margin: 12px 0; }
+.map-cells button { min-height: 56px; padding: 6px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; font-size: 11px; }
+.linked-activity { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--studio-border); }
+.identity-controls { padding: 18px; border-top: 1px solid var(--studio-border); }
+.identity-controls > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; overflow-wrap: anywhere; }
+.studio-dialog label { display: block; margin: 8px 0; }

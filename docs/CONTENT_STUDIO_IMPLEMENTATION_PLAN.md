@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-06 implemented; PR-07 to PR-10 proposal]**
+Status: **[PR-01 to PR-07 implemented; PR-08 to PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -59,6 +59,22 @@ Owner decision (2026-10-22), PR-06: Human-readable summaries use a Studio-only `
 with one phrase template per Condition and Effect kind, checked against the schema unions.
 Do not use or change the engine’s state-dependent, partial `explain()`. Every condition and
 effect kind must have a summary phrase (test iterates the unions).
+
+Owner decision (2026-10-22), PR-07: Engine protocol identities cannot be renamed in the
+Studio. The reserved event scene key `start`, activity ID `sleep` (owner approval: the engine counts
+every night under this ID), and stat IDs `health`, `energy`, `hunger`, and
+`thirst` live in one Studio constant with a reason per identity; rename validation rejects them
+and the UI shows disabled rename controls with those reasons. A guard scans string literals in
+`src/core/**/*.ts` and `src/content/registry.ts` against IDs and record keys from temporary copies
+of shipped and fixture content. Every match must be reserved or explicitly documented as a
+harmless vocabulary collision in a small test allowlist. Report additional hardcoded identities
+to the owner before adding reservations; do not change game code to make them renameable.
+
+Owner decision (2026-10-22), PR-07: “New activity in this area” reuses the PR-05 create
+dialog and stages the activity definition plus its ordered area link as one undo step. The
+shortcut is an explicit, user-chosen link; ordinary Create never links automatically. Save all
+validates and saves both files under §4.3. Area deletion offers Keep or Delete them too for
+activities that would otherwise be neither linked nor global; Keep requires relinking before Save.
 
 ## 3. Open gates — ask before the affected PR
 
@@ -270,11 +286,6 @@ six-level recursion fallback.
 in the game; add/remove log alternatives and see an over-80 warning; edit a roll outcome and
 confirm that only the requested value changes.
 
-Owner decision (2026-10-22), PR-06: Human-readable summaries use a Studio-only `describe()`
-with one phrase template per Condition and Effect kind, checked against the schema unions.
-Do not use or change the engine’s state-dependent, partial `explain()`. Every condition and
-effect kind must have a summary phrase (test iterates the unions).
-
 Implementation: schema-object widgets in `src/studio/`, Studio-only union-checked phrase tables,
 six-level recursion with validated JSON fallback, labelled references, and narrative-channel
 classification. `tests/studio/widgets.test.ts` covers all union kinds and both packs’ depth/round
@@ -287,10 +298,32 @@ roll edits. See [usage](STUDIO.md#conditions-effects-and-text--implemented-pr-06
 Until PR-10, playtest in the game served by the same dev server (`/`, a second window); it reloads
 when the Studio saves a content file.
 
-**PR-07 — Area workspace and rename.** One screen per area: properties, map cell picker,
+**PR-07 — Area workspace and rename.** **[implemented]** One screen per area: properties, map cell picker,
 unlock/hint conditions, view/arrive lines, landmarks, linked activities, and everything that
 references the area or its landmarks. "New area" uses the PR-05 create dialog; there is no separate
-wizard. Rename any entity ID with a preview of all files that change.
+wizard. Rename entity and nested IDs with a preview of every changed file/field and required
+file move, except the owner-approved engine protocol identities in §2. Area and landmark
+incoming references resolve separately, including same-file references. Existing schema metadata
+drives direct/record-key references, counters, event after, tree edges, and contextual scene and
+production references; no shared schema or engine changes.
+
+Implementation: `src/studio/area-workspace.tsx`, `references.ts`, `rename.ts`, `reserved.ts` and
+the draft store. Rename is one undo step. Save validates the complete pack, refreshes expected
+hashes, moves files in ascending source-path order, then writes/deletes drafts in ascending path
+order. A move uses the existing atomic rename API; it never creates a second copy or removes
+both names. A write after a move uses the hash returned by that move. Partial failures report
+completed operations, remaining drafts, and which filename remains; disk writes clear history
+so Undo cannot pretend to reverse filesystem mutations. See [usage](STUDIO.md#area-workspace-and-rename--implemented-pr-07).
+
+*Done when:* every nonreserved entity, landmark and nested identity in the temporary fixture
+pack can be renamed to a fresh ID with zero registry diagnostics, no old reference positions,
+and all unrelated values/comments unchanged. Reserved identities reject without drafts/history.
+Every fixture area round-trips unchanged through the workspace. Browser tests cover new-area
+and linked-activity creation, map occupancy, discovery unlocks, landmarks, rename preview,
+undo/redo, Used by, blocked deletion and deleting an area with its activity. Unit tests cover
+Keep/relink, shared activity safety, contextual references, tags, deterministic expected-hash
+save order and failures before/after the move. The reserved-ID guard covers both content packs;
+golden traces and frozen fixtures stay unchanged.
 *Owner test:* create a temporary area, set its map cell and an unlock rule on a landmark, add a
 landmark and a linked activity, reach it in the game, then delete it (blocked while referenced).
 

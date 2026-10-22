@@ -1,4 +1,4 @@
-# Content Studio — [implemented, PR-06 widgets]
+# Content Studio — [implemented, PR-07 area workspace and rename]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
@@ -21,8 +21,8 @@ checked hash. A further disk change requires another confirmation. File API fail
 tab through **Open game** and uses its ordinary save slots.
 
 Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
-undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Rename, area
-workspace, graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
+undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Area workspace and rename are **[implemented, PR-07]**.
+Graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 
@@ -35,7 +35,7 @@ fields and reference record keys offer IDs from the current pack, including unsa
 Unions offer a value-type selector; discriminated unions use their discriminator. Unsupported
 schema nodes, unknown fields and deeply nested structures use validated JSON input. Conditions, effects, outcomes and Text use specialized schema-bound widgets (below).
 The JSON view also shows the canonical save preview. Existing entity IDs are read-only in the
-form; file renaming is deferred, and changing the root ID in JSON fails filename validation.
+form; use Rename IDs for reference-aware file moves. Changing the root ID in JSON fails filename validation.
 
 **Create** supports the nine independent entity kinds, including artwork. The dialog is generated
 from ID plus required fields and accepts pre-filled optional values. Settings and the two creation
@@ -47,7 +47,8 @@ inserted. A non-global activity needs an area link; a recipe/building needs its 
 Add these through the generic area/tree forms before saving; no links or nodes are automatic.
 
 **Delete** lists “used by” file and field locations and blocks referenced entities. For an area or
-building this includes references to its owned discoveries or cycle steps. Unreferenced deletion
+building this includes references to its owned discoveries or cycle steps, including incoming
+references from other parts of the same file for individual landmark removal. Unreferenced deletion
 is staged until Save; singleton deletion is unavailable. Dirty files are marked in the list.
 **Undo/Redo** and Cmd/Ctrl+Z / Cmd/Ctrl+Shift+Z operate on session drafts. Drafts and history are
 memory-only; malformed JSON buffers also survive view changes and participate in undo/redo.
@@ -159,3 +160,59 @@ budget. Every journal alternative shows a source-character count and warns above
 Different placeholder sets between alternatives also produce a warning. Both are guidance and
 never block saving; schema/reference errors still do. Comments, object key order and untouched
 values are preserved, and Save all retains the PR-05 whole-pack validation and sequential writes.
+
+
+## Area workspace and rename — [implemented, PR-07]
+
+Choose an area under **By area** to open Properties, Map and unlock, Text and exploration,
+Landmarks, Linked activities and Used by in one screen. Properties use the generic schema form;
+text and conditions reuse the PR-06 builders, including conditions on arrival and view lines.
+Landmarks support add/edit/remove/reorder. Unknown author fields and comments are preserved.
+The map picker shows explicitly authored cells, area names, travel hours and camp (travelHours 0).
+Choose any cell or pan the grid; occupied cells warn without blocking Save. Numeric map fields
+remain available. An area without a map keeps the game's default placement until a cell is chosen.
+
+Reorder or unlink activities, or choose one with the **Existing activity** reference picker and
+**Link existing**. The read-only global list distinguishes linked positions from globals appended
+at the end. **New activity in this area** opens the PR-05 activity dialog, then stages its
+independent file and the area's ID link together as one undo step. This is an explicit linking
+choice. Ordinary Create still needs links authored separately. **+ new area** uses the same
+schema-generated create dialog and opens the new area's workspace; there is no extra wizard.
+
+**Used by** lists the area and every landmark separately, with buttons opening the source file
+and field. Discovery references point to the landmark rather than the whole area. Removing a
+referenced landmark is blocked and lists its references. Deleting an area is blocked by incoming
+references to it or its landmarks. The delete dialog lists linked non-global activities that
+would become orphaned: **Delete them too** includes their deletions in the same draft operation,
+subject to external-reference checks; **Keep** leaves them as drafts that must be linked elsewhere
+before Save. Shared and global activities are retained.
+
+Every schema-backed file has **Rename IDs** controls for root/nested identities and local scene,
+production and tool keys. The preview lists every changed file and field, record-key changes,
+and any filename change. The new ID must be valid and unused by declared IDs, local definition
+keys or action/consume tags; it cannot capture the engine action names explore/travel. Reference
+updates follow schema metadata and owner context, never text replacement. Local scene, production
+and tree-branch references cannot capture equal names belonging to another owner. Text, comments,
+key order and unrelated values remain untouched. Explicit text IDs can be renamed; existing game
+saves lose progress tied to old IDs when unknown references are dropped on load.
+
+Engine protocol identities have disabled rename controls with reasons from the single
+[reserved list](../src/studio/reserved.ts): event scene start; activity sleep; stats health,
+energy, hunger and thirst. The same list drives rejection and a guard scanning engine/registry
+string literals against shipped and fixture identities/record keys. Only narrowly documented
+harmless vocabulary matches are exempt. Newly detected hardcoded identities require owner review.
+
+A rename stages all reference changes and its file move as **one undo step**. Save first validates
+the final complete pack and refreshes disk hashes. It then performs file moves in ascending source
+path order, followed by content writes/deletes in ascending path order. Moves use the atomic,
+expected-hash rename endpoint; the content write to the destination uses the returned hash.
+Singleton files retain their fixed filenames. If a pending move conflicts with disk changes,
+Keep mine requires explicit overwrite; to reload either filename, close the conflict dialog and
+Undo the rename first so its references and file move are undone together. A newly created unsaved entity only changes draft
+paths; there is no disk file to move. Partial failure retains unsaved drafts and reports both
+written/pending paths and whether the old or new filename remains. A failure between move and
+write leaves only the new filename, temporarily containing the old content; Retry Save completes
+its content and reference writes. A failure before the move leaves only the old filename.
+These are sequential operations, not a whole-pack filesystem transaction; use Git to recover if
+needed. Any acknowledged disk mutation clears undo history because session Undo does not revert
+filesystem operations. No save-version or game behavior change is included.

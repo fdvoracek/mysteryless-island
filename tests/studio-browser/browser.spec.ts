@@ -138,9 +138,8 @@ test("creates linked drafts, saves the whole pack, blocks used deletion, and wir
     await contents.getByRole("spinbutton", { name: "yields.0.min", exact: true }).fill("1");
     await contents.getByRole("spinbutton", { name: "yields.0.max", exact: true }).fill("2");
     await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
-    await contents.getByRole("button", { name: "Add activities entry", exact: true }).click();
-    const area = JSON.parse(areaOriginal.content) as { activities: string[] };
-    await contents.getByRole("combobox", { name: `activities.${area.activities.length}`, exact: true }).selectOption("browser_work");
+    await contents.getByRole("combobox", { name: "Existing activity", exact: true }).selectOption("browser_work");
+    await contents.getByRole("button", { name: "Link existing", exact: true }).click();
     await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
     await page.getByRole("button", { name: "Save all" }).click();
     await expect(page.getByRole("log")).toContainText("Not written: none");
@@ -382,5 +381,122 @@ test("builds every union leaf through schema-generated controls without entering
       await expect(widget).not.toContainText("incomplete");
       await expect(widget.locator(".builder-fallback")).toHaveCount(0);
     }
+  }
+});
+
+test("area workspace creates and saves a linked activity, renames it, and deletes both after a landmark reference is removed", async ({ page, request }) => {
+  test.setTimeout(120_000);
+  const inventory = async () => (await (await request.get("/__studio/files")).json()).files as { path: string; content: string; hash: string }[];
+  const areaPath = "content/regions/browser_area_seven.json", oldActivity = "content/activities/browser_seven_work.json", newActivity = "content/activities/browser_seven_renamed.json";
+  const forestPath = "content/regions/forest.json", originalForest = (await inventory()).find(f => f.path === forestPath)!;
+  const nav = page.getByRole("navigation", { name: "Content navigation" });
+  const contents = page.getByRole("region", { name: "File contents" });
+  try {
+    await page.goto("/studio/");
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await nav.getByRole("button", { name: "+ new area", exact: true }).click();
+    const create = page.getByRole("dialog", { name: "Create entity" });
+    await create.getByRole("textbox", { name: "id", exact: true }).fill("browser_area_seven");
+    await create.getByRole("textbox", { name: "name", exact: true }).fill("temporary area");
+    await create.getByRole("textbox", { name: "title", exact: true }).fill("Temporary area");
+    await create.getByRole("textbox", { name: "description", exact: true }).fill("You reach a clearing.");
+    await create.getByRole("spinbutton", { name: "climate.baseC", exact: true }).fill("15");
+    await create.getByRole("spinbutton", { name: "travelHours", exact: true }).fill("1");
+    await create.getByRole("button", { name: "Create draft", exact: true }).click();
+    await expect(page.locator(".area-workspace")).toBeVisible();
+    await contents.getByRole("button", { name: "Map cell 1, 0", exact: true }).click();
+    await expect(contents.getByRole("alert")).toContainText("Occupied cell: forest");
+    await contents.getByRole("button", { name: "Map cell 2, 1", exact: true }).click();
+    await contents.getByRole("button", { name: "Add unlockWhen", exact: true }).click();
+    await contents.getByRole("combobox", { name: "unlockWhen kind", exact: true }).selectOption("discovered");
+    await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("spring");
+    await contents.getByRole("button", { name: "Add explore", exact: true }).click();
+    await contents.getByRole("textbox", { name: "explore.name", exact: true }).fill("look around");
+    await contents.getByRole("button", { name: "Add view entry", exact: true }).click();
+    await contents.getByRole("textbox", { name: "explore.view.0.text", exact: true }).fill("Trees surround a clearing.");
+    await contents.getByRole("button", { name: "Add landmark", exact: true }).click();
+    await contents.getByRole("textbox", { name: "explore.landmarks.0.id", exact: true }).fill("browser_seven_landmark");
+    await contents.getByRole("textbox", { name: "explore.landmarks.0.label", exact: true }).fill("examine the clearing");
+    await contents.getByRole("spinbutton", { name: "explore.landmarks.0.hours", exact: true }).fill("1");
+    await contents.getByRole("combobox", { name: "explore.landmarks.0.effort", exact: true }).selectOption("light");
+    await contents.getByRole("textbox", { name: "explore.landmarks.0.text", exact: true }).fill("You examine the ground.");
+    await contents.getByRole("button", { name: "New activity in this area", exact: true }).click();
+    await expect(create.getByLabel("Create kind")).toBeDisabled();
+    await create.getByRole("textbox", { name: "id", exact: true }).fill("browser_seven_work");
+    await create.getByRole("textbox", { name: "name", exact: true }).fill("examine timber");
+    await create.getByRole("spinbutton", { name: "hours", exact: true }).fill("1");
+    await create.getByRole("combobox", { name: "effort", exact: true }).selectOption("light");
+    await create.getByRole("button", { name: "Create draft", exact: true }).click();
+    expect((await inventory()).some(f => f.path === oldActivity || f.path === areaPath)).toBe(false);
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const saved = await inventory();
+    expect(JSON.parse(saved.find(f => f.path === areaPath)!.content).activities).toEqual(["browser_seven_work"]);
+    expect(saved.some(f => f.path === oldActivity)).toBe(true);
+    await contents.getByRole("button", { name: "Rename id", exact: true }).click();
+    const rename = page.getByRole("dialog", { name: "Rename ID" });
+    await rename.getByRole("textbox", { name: "New ID", exact: true }).fill("browser_seven_renamed");
+    await expect(rename).toContainText("activities.0"); await expect(rename).toContainText("File rename");
+    await rename.getByRole("button", { name: "Stage rename", exact: true }).click();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^browser_seven_work$/ }) }).click();
+    await expect(contents.getByRole("textbox", { name: "id", exact: true })).toHaveValue("browser_seven_work");
+    await page.getByRole("button", { name: "Redo", exact: true }).click();
+    // Open the renamed draft explicitly after history changes selection.
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^browser_seven_renamed$/ }) }).click();
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("new filename exists; old filename absent");
+    const renamed = await inventory();
+    expect(renamed.some(f => f.path === oldActivity)).toBe(false); expect(renamed.some(f => f.path === newActivity)).toBe(true);
+    const beforeArea = JSON.parse(saved.find(f => f.path === areaPath)!.content);
+    expect(JSON.parse(renamed.find(f => f.path === areaPath)!.content)).toEqual({ ...beforeArea, activities: ["browser_seven_renamed"] });
+    // Reference the temporary landmark from another area's condition builder.
+    await nav.getByRole("button", { name: "forest", exact: true }).click();
+    await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("browser_seven_landmark");
+    await nav.getByRole("button", { name: "browser_area_seven", exact: true }).click();
+    await expect(contents.getByRole("region", { name: "Used by Landmark browser_seven_landmark", exact: true })).toContainText("unlockWhen.discovered");
+    await contents.getByRole("button", { name: "Remove landmark browser_seven_landmark", exact: true }).click();
+    await expect(contents.getByRole("alert")).toContainText("Removal blocked");
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    const deletion = page.getByRole("dialog", { name: "Delete entity" });
+    await expect(deletion).toContainText("Delete blocked"); await expect(deletion.getByRole("button", { name: "Delete draft" })).toBeDisabled();
+    await deletion.getByRole("button", { name: "Close dialog" }).click();
+    await nav.getByRole("button", { name: "forest", exact: true }).click();
+    await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("forest_edge");
+    await nav.getByRole("button", { name: "browser_area_seven", exact: true }).click();
+    await page.screenshot({ path: "/tmp/textisland-studio-pr07-desktop.png", fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: "/tmp/textisland-studio-pr07-phone.png", fullPage: true });
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await expect(deletion.getByRole("region", { name: "Activities left without an area" })).toContainText("browser_seven_renamed");
+    await deletion.getByRole("radio", { name: "Delete them too", exact: true }).check();
+    await deletion.getByRole("button", { name: "Delete draft", exact: true }).click();
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    await expect.poll(async () => (await inventory()).some(f => [areaPath, newActivity, oldActivity].includes(f.path))).toBe(false);
+    await nav.getByRole("button", { name: /^Events/ }).click();
+    await expect(contents.getByRole("button", { name: "Rename scenes.start", exact: true })).toBeDisabled();
+    await expect(contents).toContainText("the engine opens every event at the start scene");
+    await nav.getByRole("button", { name: /^Activities/ }).click();
+    await page.getByRole("searchbox").fill("sleep");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^sleep$/ }) }).click();
+    await expect(contents.getByRole("button", { name: "Rename id", exact: true })).toBeDisabled();
+    await expect(contents).toContainText('the engine counts every night\'s sleep under this ID');
+    await nav.getByRole("button", { name: /^Game settings/ }).click();
+    await page.getByRole("searchbox").fill("stats.json");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").click();
+    for (let index = 0; index < 4; index++) await expect(contents.getByRole("button", { name: `Rename stats.${index}.id`, exact: true })).toBeDisabled();
+
+  } finally {
+    const files = await inventory();
+    for (const path of [areaPath, oldActivity, newActivity]) {
+      const file = files.find(f => f.path === path);
+      if (file) expect((await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } })).ok()).toBe(true);
+    }
+    const forest = (await inventory()).find(f => f.path === forestPath)!;
+    if (forest.content !== originalForest.content) expect((await request.put(`/__studio/files/${forestPath}`, { data: { expectedHash: forest.hash, content: originalForest.content, encoding: "utf8" } })).ok()).toBe(true);
   }
 });

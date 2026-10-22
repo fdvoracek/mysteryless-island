@@ -1,12 +1,13 @@
 import { buildRegistry, ContentError, formatContent, Id, type ContentProblem, type Registry } from "../content";
 import { readDocuments, type FileDocument } from "./documents";
 import { entitySchemas, identityFields, schemaFor, stripComments } from "./schema";
-import { getAt, whereUsed } from "./references";
+import { getAt, deletionReferences } from "./references";
+import { renamePlan } from "./rename";
 
 type Drafts = Map<string, string | null>;
 export interface JsonBuffer { text: string; source: string }
 interface Snapshot {
-  drafts: Drafts; errors: Map<string, string>; buffers: Map<string, JsonBuffer>;
+  moves: Map<string, string>; drafts: Drafts; errors: Map<string, string>; buffers: Map<string, JsonBuffer>;
   conflicts: Map<string, Conflict>; hashes: Map<string, string>;
 }
 export type Transport = (input: string, init?: RequestInit) => Promise<Response>;
@@ -27,6 +28,7 @@ export interface Conflict { path: string; disk?: FileDocument; choice?: "mine" }
 export class StudioStore {
   disk: FileDocument[] = [];
   drafts: Drafts = new Map();
+  moves = new Map<string, string>();
   past: Snapshot[] = [];
   future: Snapshot[] = [];
   buffers = new Map<string, JsonBuffer>();
@@ -69,13 +71,13 @@ export class StudioStore {
   }
   get canSave() { return !this.busy && this.drafts.size > 0 && !this.inputErrors.size && permitsSave(this.baseline, this.view.diagnostics); }
   private snapshot(): Snapshot {
-    return { drafts: new Map(this.drafts), errors: new Map(this.inputErrors), buffers: new Map(this.buffers),
+    return { moves: new Map(this.moves), drafts: new Map(this.drafts), errors: new Map(this.inputErrors), buffers: new Map(this.buffers),
       conflicts: new Map([...this.conflicts].map(([path, conflict]) => [path, { ...conflict }])),
       hashes: new Map(this.disk.map((file) => [file.path, file.hash])) };
   }
   private checkpoint() { this.past.push(this.snapshot()); this.future = []; }
   private restore(snapshot: Snapshot) {
-    this.drafts = snapshot.drafts; this.inputErrors = snapshot.errors; this.buffers = snapshot.buffers;
+    this.moves = snapshot.moves; this.drafts = snapshot.drafts; this.inputErrors = snapshot.errors; this.buffers = snapshot.buffers;
     this.conflicts = new Map([...snapshot.conflicts].filter(([path]) => this.drafts.has(path)));
     for (const path of this.drafts.keys()) {
       const disk = this.disk.find((file) => file.path === path);
@@ -151,6 +153,10 @@ export class StudioStore {
   }
   resolve(path: string, choice: "reload" | "mine") {
     if (this.busy) return;
+    if (choice === "reload" && (this.moves.has(path) || [...this.moves.values()].includes(path))) {
+      this.status = "Undo the pending rename before reloading either filename, or keep the rename and explicitly overwrite.";
+      this.notify(); return;
+    }
     if (choice === "reload") {
       this.checkpoint(); this.drafts.delete(path); this.conflicts.delete(path);
       this.clearInputs(path);
@@ -186,26 +192,96 @@ export class StudioStore {
     const path = `content/${kind}/${(raw as { id: string }).id}.json`;
     this.edit(path, raw); return path;
   }
-  delete(path: string) {
+  /** One grouped operation, including references and any pending file move. */
+  rename(file: string, path: string, newId: string): string {
+    if (this.busy || this.inputErrors.size) throw new Error("Finish the current save or invalid input first.");
+    const plan = renamePlan(this.view.documents, file, path, newId);
+    this.checkpoint();
+    for (const [p, content] of plan.drafts) { this.drafts.set(p, content); this.clearInputs(p); }
+    if (plan.move) {
+      const previous = [...this.moves].find(([, to]) => to === file);
+      if (previous) {
+        if (previous[0] === plan.move.to) this.moves.delete(previous[0]);
+        else this.moves.set(previous[0], plan.move.to);
+        this.drafts.delete(file);
+      }
+      else if (this.disk.some(f => f.path === file)) this.moves.set(file, plan.move.to);
+      else this.drafts.delete(file);
+    }
+    for (const p of plan.drafts.keys()) this.clean(p);
+    this.notify(); return plan.move?.to ?? file;
+  }
+  createInArea(areaPath: string, kind: string, raw: unknown): string {
+    if (kind !== "activities") throw new Error("Choose an activity for this area.");
+    if (this.busy || this.createProblems(kind, raw).length) throw new Error("Complete the activity fields and use new IDs.");
+    const area = this.view.documents.find(d => d.path === areaPath && d.kind === "regions");
+    const links = (area?.raw as { activities?: unknown })?.activities;
+    if (!area || !Array.isArray(links)) throw new Error("Area no longer exists or its links are invalid.");
+    const id = (raw as { id: string }).id, path = `content/activities/${id}.json`;
+    this.checkpoint(); this.drafts.set(path, formatContent(raw));
+    this.drafts.set(areaPath, formatContent({ ...area.raw as object, activities: [...links, id] }));
+    this.notify(); return path;
+  }
+  orphanActivities(areaPath: string) {
+    const docs = this.view.documents, area = docs.find(d => d.path === areaPath);
+    const links = (area?.raw as { activities?: string[] })?.activities;
+    return docs.filter(d => d.kind === "activities" && Array.isArray(links) && links.includes(d.id)
+      && !(d.raw as { global?: boolean })?.global && !docs.some(other => other.kind === "regions" && other.path !== areaPath && Array.isArray((other.raw as { activities?: unknown })?.activities) && ((other.raw as { activities: string[] }).activities).includes(d.id)));
+  }
+  delete(path: string, deleteOrphans = false) {
     if (this.busy) throw new Error("Wait for the current save.");
     const documents = this.view.documents, target = documents.find((d) => d.path === path);
     if (!target || !entitySchemas[target.kind]) throw new Error("Singleton files cannot be deleted.");
-    if (whereUsed(documents, target).length) throw new Error("This entity is still referenced.");
-    this.checkpoint(); this.clearInputs(path);
-    if (this.disk.some((file) => file.path === path)) this.drafts.set(path, null); else this.drafts.delete(path);
+    if (deletionReferences(documents, target).length) throw new Error("This entity is still referenced.");
+    const removing = [target, ...(deleteOrphans && target.kind === "regions" ? this.orphanActivities(path) : [])];
+    const remaining = documents.filter(d => !removing.some(r => r.path === d.path));
+    for (const document of removing) if (deletionReferences([...remaining, document], document).length) throw new Error("A linked activity is still referenced.");
+    this.checkpoint();
+    for (const document of removing) {
+      const p = document.path;
+      this.clearInputs(p);
+      // Deleting a renamed draft cancels its move and deletes the original file instead.
+      const move = [...this.moves].find(([, to]) => to === p);
+      if (move) { this.moves.delete(move[0]); this.drafts.delete(p); this.drafts.set(move[0], null); }
+      else if (this.disk.some(file => file.path === p)) this.drafts.set(p, null); else this.drafts.delete(p);
+    }
     this.notify();
   }
   async save(overwrite = false): Promise<{ written: string[]; notWritten: string[] }> {
     const written: string[] = [];
+    const moved: string[] = [];
     if (!this.canSave) throw new Error("Saving is blocked by validation errors or incomplete input.");
     ++this.refreshId; // A refresh begun before this save must never replace its acknowledged hashes.
     this.busy = true; this.notify();
-    const paths = [...this.drafts.keys()];
+    const paths = [...this.drafts.keys()].sort();
+    const moveNames = [...this.moves].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0);
     try {
       this.reconcile(await this.readDisk());
       if (!permitsSave(this.baseline, this.view.diagnostics)) throw new Error("Disk changes make this save invalid.");
       if ([...this.conflicts.values()].some((c) => paths.includes(c.path) && (!overwrite || c.choice !== "mine"))) throw new Error("File changed on disk. Resolve the conflict before saving.");
+      // Fixed order: moves by source path, then canonical writes/deletes by path.
+      // A move is one atomic filesystem rename: never create/delete a pair of copies.
+      for (const [from, to] of moveNames) {
+        const original = this.disk.find(f => f.path === from);
+        if (!original) throw new Error(`Rename source missing: ${from}`);
+        const response = await this.transport(`/__studio/files/${from}/rename`, {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ expectedHash: original.hash, path: to }),
+        });
+        const result = await response.json();
+        if (response.status === 409) {
+          this.reconcile(await this.readDisk());
+          this.conflicts.set(from, { path: from, disk: this.disk.find(f => f.path === from) });
+        }
+        if (!response.ok) throw new Error(result.error ?? `Rename failed (${response.status})`);
+        this.disk = this.disk.filter(f => f.path !== from);
+        this.disk.push({ ...original, path: to, hash: result.hash });
+        this.drafts.delete(from); this.moves.delete(from); this.conflicts.delete(from);
+        written.push(from); moved.push(`${from} → ${to} (new filename exists; old filename absent)`);
+        this.past = []; this.future = [];
+      }
       for (const path of paths) {
+        if (!this.drafts.has(path)) continue;
         const draft = this.drafts.get(path)!;
         const original = this.disk.find((file) => file.path === path);
         const content = draft === null ? null : formatContent(JSON.parse(draft));
@@ -222,13 +298,15 @@ export class StudioStore {
         if (!response.ok) throw new Error(result.error ?? `Request failed (${response.status})`);
         this.disk = this.disk.filter((file) => file.path !== path);
         if (content !== null) this.disk.push({ path, content, hash: result.hash, encoding: "utf8" });
-        this.drafts.delete(path); this.conflicts.delete(path); written.push(path);
+        this.drafts.delete(path); this.conflicts.delete(path); written.push(path); this.past = []; this.future = [];
       }
       this.past = []; this.future = [];
       this.status = `Written: ${written.join(", ")}. Not written: none.`;
     } catch (error) {
       this.status = `${(error as Error).message} Written: ${written.join(", ") || "none"}. Not written: ${paths.filter((path) => !written.includes(path)).join(", ") || "none"}.`;
-    } finally { this.busy = false; this.notify(); }
+    } finally {
+      if (moveNames.length) this.status += ` Renames: ${moveNames.map(([from, to]) => moved.find(m => m.startsWith(from + " →")) ?? `${from} → ${to} (not moved; old filename retained)`).join("; ")}.`;
+      this.busy = false; this.notify(); }
     return { written, notWritten: paths.filter((path) => !written.includes(path)) };
   }
 }

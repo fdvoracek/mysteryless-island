@@ -1,6 +1,7 @@
+import { reservedReason } from "./reserved";
 import type { Document } from "./documents";
 import { identityFields, refKind, schemaFor, visitValue } from "./schema";
-export interface Reference { file: string; path: string; kind: string; id: string }
+export interface Reference { file: string; path: string; kind: string; id: string; key?: boolean }
 export function getAt(raw: unknown, path: string): unknown {
   return path ? path.split(".").reduce<unknown>((value, key) => value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined, raw) : raw;
 }
@@ -53,35 +54,83 @@ export function referenceOptions(kind: string, documents: Document[], owner: Doc
   }
   return [...new Set(values)].sort();
 }
+const referenceIndexes = new WeakMap<Document[], Reference[]>();
 export function references(documents: Document[]): Reference[] {
+  const cached = referenceIndexes.get(documents);
+  if (cached) return cached;
   const result: Reference[] = [];
   for (const document of documents) {
     const schema = schemaFor(document.path);
     if (!schema) continue;
-    visitValue(schema, document.raw, ({ schema, value, path }) => {
+    visitValue(schema, document.raw, ({ schema, value, path, key }) => {
       const kind = refKind(schema);
-      if (kind && typeof value === "string") result.push({ file: document.path, path, kind, id: value });
+      if (kind && typeof value === "string") result.push({ file: document.path, path, kind, id: value, ...(key ? { key: true } : {}) });
     });
   }
+  referenceIndexes.set(documents, result);
   return result;
 }
-export function whereUsed(documents: Document[], target: Document): Reference[] {
-  const schema = schemaFor(target.path);
-  const owned = new Set(schema ? identityFields(schema, target.raw).map((field) => field.value) : [target.id]);
-  return references(documents).filter((reference) => {
-    if (reference.file === target.path || !owned.has(reference.id)) return false;
-    const direct: Record<string, string> = { item: "items", activity: "activities", region: "regions", quest: "quests", building: "buildings", recipe: "recipes", site: "sites", artwork: "artwork" };
-    if (direct[reference.kind]) return target.kind === direct[reference.kind] && reference.id === target.id;
-    if (reference.kind === "discovery") return target.kind === "regions";
-    if (["treeTarget", "treeParent"].includes(reference.kind)) {
-      const owner = documents.find((document) => document.path === reference.file);
-      return target.kind === ((owner?.raw as { kind?: string })?.kind === "craft" ? "recipes" : "buildings");
-    }
-    if (["did", "today", "action"].includes(reference.kind)) return ["activities", "items", "buildings", "recipes", ...(reference.kind === "did" ? [] : ["regions", "quests"])].includes(target.kind);
-    // Scenes, product names and branches are local to their document; other definitions are
-    // singleton settings. A coincidentally equal entity ID must not count as their owner.
-    return false;
+export interface Identity { file: string; path: string; id: string; kind: string; key?: boolean; reserved?: string }
+const direct: Record<string, string> = { items: "item", activities: "activity", regions: "region", quests: "quest", buildings: "building", recipes: "recipe", sites: "site", artwork: "artwork" };
+/** Definitions, distinct from reference positions. Record-key identities retain their owner. */
+const identityIndexes = new WeakMap<Document[], Identity[]>();
+export function identities(documents: Document[]): Identity[] {
+  const cached = identityIndexes.get(documents);
+  if (cached) return cached;
+  const result = documents.flatMap(document => {
+    const schema = schemaFor(document.path);
+    if (!schema) return [];
+    const result: Identity[] = [];
+    visitValue(schema, document.raw, ({ value, path, key }) => {
+      if (typeof value !== "string") return;
+      let kind: string | undefined;
+      if (!key && path.split(".").at(-1) === "id") {
+        kind = path === "id" ? direct[document.kind] ?? "tree" :
+          /^explore\.landmarks\.\d+\.id$/.test(path) ? "discovery" :
+          /^cycle\.(start|collect)\.id$/.test(path) ? "step" :
+          /^actions\.\d+\.id$/.test(path) ? "itemAction" :
+          /^timers\.\d+\.id$/.test(path) ? "timer" :
+          /^stats\.\d+\.id$/.test(path) ? "stat" :
+          /^bodyBands\.\d+\.id$/.test(path) ? "band" :
+          /^phases\.\d+\.id$/.test(path) ? "phase" :
+          document.kind === "trees" && /^branches\.\d+\.id$/.test(path) ? "treeBranch" :
+          /\.choices\.\d+\.id$/.test(path) ? "choice" : "text";
+      } else if (key) {
+        if (document.kind === "events" && /^scenes\.[^.]+$/.test(path)) kind = "scene";
+        if (document.kind === "buildings" && /^cycle\.products\.[^.]+$/.test(path)) kind = "production";
+        if (document.path === "content/game.json" && /^tools\.[^.]+$/.test(path)) kind = "tool";
+      }
+      if (kind) result.push({ file: document.path, path, id: value, kind, ...(key ? { key: true } : {}), ...(reservedReason(kind, value) ? { reserved: reservedReason(kind, value) } : {}) });
+    });
+    return result;
   });
+  identityIndexes.set(documents, result);
+  return result;
+}
+export function resolvesTo(reference: Reference, target: Identity, documents: Document[]): boolean {
+  if (reference.id !== target.id) return false;
+  const owner = documents.find(d => d.path === reference.file);
+  if (!owner) return false;
+  if (reference.kind === "scene") return target.kind === "scene" && target.file === reference.file;
+  if (reference.kind === "production") {
+    const effect = getAt(owner.raw, reference.path.split(".").slice(0, -1).join(".")) as { startCycle?: string } | undefined;
+    return target.kind === "production" && documents.some(d => d.path === target.file && d.kind === "buildings" && d.id === effect?.startCycle);
+  }
+  if (reference.kind === "treeBranch") return target.kind === "treeBranch" && target.file === reference.file;
+  if (["treeTarget", "treeParent"].includes(reference.kind)) return target.kind === ((owner.raw as { kind?: string })?.kind === "craft" ? "recipe" : "building");
+  if (["did", "today", "action"].includes(reference.kind)) return ["activity", "item", "step", "building", "recipe", ...(reference.kind === "did" ? [] : ["discovery", "quest"]), ...(reference.kind === "today" ? ["region"] : [])].includes(target.kind);
+  return reference.kind === target.kind;
+}
+/** A precise definition, including references inside its own file. No area-wide discovery alias. */
+export function whereUsed(documents: Document[], target: Document, path = "id"): Reference[] {
+  const definition = identities(documents).find(id => id.file === target.path && id.path === path);
+  return definition ? references(documents).filter(ref => resolvesTo(ref, definition, documents)) : [];
+}
+/** References outside a subtree being removed; internal references disappear with that subtree. */
+export function deletionReferences(documents: Document[], target: Document, subtree = ""): Reference[] {
+  const inside = (path: string) => !subtree || path === subtree || path.startsWith(subtree + ".");
+  const owned = identities(documents).filter(id => id.file === target.path && inside(id.path));
+  return references(documents).filter(ref => !(ref.file === target.path && inside(ref.path)) && owned.some(id => resolvesTo(ref, id, documents)));
 }
 
 /** Picker and summary labels share one resolver; unresolved IDs remain editable. */
