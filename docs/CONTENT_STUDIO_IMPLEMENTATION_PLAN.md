@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-07 implemented; PR-08 to PR-10 proposal]**
+Status: **[PR-01 to PR-08 implemented; PR-09 to PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -327,12 +327,40 @@ golden traces and frozen fixtures stay unchanged.
 *Owner test:* create a temporary area, set its map cell and an unlock rule on a landmark, add a
 landmark and a linked activity, reach it in the game, then delete it (blocked while referenced).
 
-**PR-08 — Story view and event editor.** Adds React Flow (C11). Derived read-only graph of
+**PR-08 — Story view and event editor.** **[implemented]** Adds React Flow (C11). Derived read-only graph of
 landmarks, quests, events, flags and area unlocks with edges from conditions/effects; click opens
 the entity. "Continue the story" actions open the create dialog pre-filled with the linking
 condition (new task, event or area on a discovery). Event editor: scenes as nodes, choices as
 edges, side panel uses the generic form; flags dangling `next`, unreachable scenes and missing
 `start`.
+Owner decisions (2026-10-22), PR-08:
+- Add `ref("flag")` descriptions to Condition.flag and Effect.flag/unflag in
+  `src/content/schema.ts`. This is metadata only; both content packs retain identical
+  validation results. Flags use the shared reference walker/pickers/Used by and are not
+  renamable identities in this PR. This metadata-only change is approved under §5.1.
+- Engine-supplied flags live in one Studio constant, `src/studio/game-flags.ts`, each with
+  a reason. The hardcoded-ID guard checks core literals matching content flag reads,
+  including finite for-of substitutions in template strings. The graph marks these flags
+  “set by the game”; reads with neither an authored setter nor game setter warn about typos.
+
+Implementation: React Flow and dagre are imported only by Studio code. Story edges come from
+`references()`/`resolvesTo()`, retaining each source position and nested landmark ownership.
+Conditions point from the referenced identity to their owner; effect references do too, labelled
+`effect: starts`/`effect: unlocks`. Flags bridge setter → flag → reader. Area filtering follows
+connections to area/landmark anchors; kind filtering retains edges with both endpoints visible.
+All six discovery/task continuation shortcuts pre-fill the shared create dialog and stage drafts
+under §4.3. No layout is saved into content.
+
+The event editor reuses generic forms/widgets, PR-07 rename and whole-pack saving. Choices can
+end the event or target existing/new scenes. Deletion with incoming choices requires explicit
+retargeting in the same draft edit; internal references disappear with the deleted scene.
+Start stays reserved. Registry diagnostics supply missing-start/dangling-next errors; unreachable
+scenes are Studio-only warnings. Graph/list views share the same model, including explicit end
+and missing-target markers. See [usage](STUDIO.md) and [mockup differences](mockups/studio/README.md).
+
+Bounded document/revision caches and rename-plan reuse retain exhaustive PR-07 assertions while
+avoiding repeated parse/registry/reference work. Tests remain in `npm test`; no CI-only split.
+
 *Owner test:* landmark → task → event chain created in the Studio and played in the game.
 
 **PR-09 — Creation tree and map editors.** React Flow tree editor for crafting/building

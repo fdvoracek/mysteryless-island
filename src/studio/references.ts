@@ -1,3 +1,4 @@
+import { GAME_FLAGS } from "./game-flags";
 import { reservedReason } from "./reserved";
 import type { Document } from "./documents";
 import { identityFields, refKind, schemaFor, visitValue } from "./schema";
@@ -20,6 +21,7 @@ export function referenceOptions(kind: string, documents: Document[], owner: Doc
   const actionIds = () => [...ids("activities"), ...ids("items"), ...ids("quests"), ...ids("buildings"), ...ids("recipes"), ...ids("regions"), ...nested("regions", "landmarks."), ...nested("buildings", "cycle.")];
   let values: string[];
   switch (kind) {
+    case "flag": values = [...references(documents).filter(ref => ref.kind === "flag").map(ref => ref.id), ...GAME_FLAGS.map(flag => flag.id)]; break;
     case "scene": values = Object.keys((raw?.scenes ?? {}) as object); break;
     case "production": {
       const effect = getAt(raw, path.split(".").slice(0, -1).join(".")) as { startCycle?: string } | undefined;
@@ -162,4 +164,9 @@ export function referenceLabel(kind: string, id: string, documents: Document[]):
     labelIndexes.set(documents, index);
   }
   return index.get(`${kind}:${id}`) ?? id;
+}
+
+/** Same resolver as identity Used by, including virtual (non-renamable) flags. */
+export function flagUsedBy(documents: Document[], id: string): Reference[] {
+  return references(documents).filter(ref => resolvesTo(ref, { kind: "flag", id, file: "", path: "" }, documents));
 }

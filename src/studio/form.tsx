@@ -53,6 +53,7 @@ export function RawField({ value, onChange, path, onError, buffers }: FieldProps
 function ReferenceField(props: FieldProps) {
   const options = referenceOptions(refKind(props.schema)!, props.documents, props.owner, props.path);
   const value = typeof props.value === "string" ? props.value : "";
+  if (refKind(props.schema) === "flag") return <><input aria-label={props.path} value={value} onChange={event => props.onChange(event.target.value)} /><select aria-label={`${props.path} existing flag`} value={options.includes(value) ? value : ""} onChange={event => props.onChange(event.target.value)}><option value="">Choose an existing flag…</option>{options.map(id => <option key={id} value={id}>{id}</option>)}</select></>;
   return <select aria-label={props.path} value={value} onChange={(event) => props.onChange(event.target.value)}>
     <option value="">Choose a reference…</option>{value && !options.includes(value) && <option value={value}>{value} (unresolved)</option>}
     {options.map((id) => <option key={id} value={id}>{referenceLabel(refKind(props.schema)!, id, props.documents)}</option>)}

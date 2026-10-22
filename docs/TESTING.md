@@ -156,3 +156,34 @@ literals in src/core/**/*.ts and src/content/registry.ts. A match must be in the
 reserved list or a small, commented allowlist of exact harmless source expressions; new matches
 fail with file/line/context for owner review. This read-only shipped audit never edits either pack.
 Golden traces, game rules, save version and frozen files are unchanged.
+
+
+## Story and event graphs — [implemented, PR-08]
+
+`tests/studio/story.test.ts` checks the exact fixture edge multiset (kinds, direction, position
+labels), single-reference additions, nested roll conditions, flag setter/read bridges and typo
+warnings, metadata-only validation parity for both temporary packs, and all six continuation
+drafts through whole-pack Save. `tests/studio/event-editor.test.ts` round-trips every fixture
+event unchanged, checks add/remove choice, add scene, PR-07 scene rename, retarget-then-delete,
+missing start/dangling next/unreachable checks, and exact graph/list node/edge parity.
+
+The hardcoded-ID guard also checks content flag reads against engine string literals and finite
+for-of template substitutions; every engine match requires a reason in the Studio GAME_FLAGS
+constant. Flags remain references, not rename identities.
+
+Browser scenarios exercise area filtering, graph/list parity, all six pre-filled create dialogs,
+landmark editor navigation, scene/choice creation, retargeted deletion, choice edge selection,
+whole-pack saves, JSON damage and narrow-screen layout, using only temporary STUDIO_ROOT.
+
+Rename coverage remains exhaustive in `npm test`. Bounded document/revision/plan caches reuse
+validation and immutable raw trees; unchanged-document comparisons reuse canonical text without
+removing assertions. The exhaustive case's local before/after was 140.38s → 13.67s (whole file
+150.80s → 15.61s wall time). The measured pre-PR-07 unit-suite baseline at c453891 was 31.12s.
+
+
+Final PR-08 delivery check (2026-10-22): `npm run check` passed in 73.87s wall time:
+402 unit tests / 45 files (18.22s), 2 content checks (0.442s), production typecheck/boundary/dist
+checks, 21 game browser tests (21.5s), and 17 Studio browser tests (25.8s). The exhaustive rename
+case took 15.600s in the final four-worker run (17.214s execution for the whole file).
+The existing Text/roll browser test now waits for the acknowledged PUT before checking disk;
+a disabled Save button alone also covers an in-flight write and was a race.

@@ -21,6 +21,8 @@
     "test:studio": "playwright test --config playwright.studio.config.ts"
   },
   "dependencies": {
+    "@dagrejs/dagre": "^3.1.1",
+    "@xyflow/react": "^12.12.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "zod": "^3.23.8"

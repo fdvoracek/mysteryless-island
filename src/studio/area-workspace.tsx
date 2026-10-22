@@ -42,7 +42,7 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
         const refs = deletionReferences(props.documents, props.owner, path);
         setBlocked(refs); if (!refs.length) props.onChange(replaceAt(raw, "explore.landmarks", landmarks.filter((_, i) => i !== index)));
       };
-      return <section className="landmark-entry" key={index} aria-label={`Landmark ${id}`}><h3>{id || "New landmark"}</h3>{field(landmarkSchema, path)}
+      return <section data-field={path} tabIndex={-1} className="landmark-entry" key={index} aria-label={`Landmark ${id}`}><h3>{id || "New landmark"}</h3>{field(landmarkSchema, path)}
         <div className="row-actions"><button type="button" onClick={remove}>Remove landmark {id}</button>{[-1, 1].map(delta => <button type="button" key={delta} disabled={index + delta < 0 || index + delta >= landmarks.length} aria-label={`Move ${delta < 0 ? "up" : "down"} landmark ${id}`} onClick={() => { const next = [...landmarks]; [next[index], next[index + delta]] = [next[index + delta], next[index]]; props.onChange(replaceAt(raw, "explore.landmarks", next)); }}>{delta < 0 ? "↑" : "↓"}</button>)}</div>
       </section>;
     })}

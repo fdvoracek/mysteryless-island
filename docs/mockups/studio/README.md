@@ -5,7 +5,7 @@ Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exis
 browser. **[implemented, PR-05]** Generic forms, draft create/duplicate, undo/redo and save/conflict
 handling now exist. **[implemented, PR-06]** Condition/effect/outcome builders and the text widget now exist.
 **[implemented, PR-07]** The area workspace and reference-aware rename now exist.
-Graphs and live preview remain proposals.
+**[implemented, PR-08]** Story and event graphs now exist. Creation-tree/map graphs and live preview remain proposals.
 Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
@@ -20,8 +20,8 @@ Fonts; offline the system fallbacks are used.
 |---|---|---|
 | [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 **[implemented]** · live preview panel PR-10 (until then, play in a second window) |
 | [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 **[implemented]** · condition builder and text widget PR-06 **[implemented]** |
-| [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 |
-| [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 |
+| [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 **[implemented]** |
+| [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 **[implemented]** |
 | [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 **[implemented]** (pre-fill used by PR-08) |
 
 Not drawn yet: crafting/building tree editor and map editor (PR-09), the diagnostics panel in
@@ -108,3 +108,27 @@ failure reporting. Delete remains clickable for inspection even when referenced,
 can show the blocking references and orphan-activity Keep/Delete them too choices. Referenced
 landmark removal similarly shows its blocking references. These controls replace the mockup's
 inert rename and disabled-delete examples.
+
+
+## PR-08 implementation differences — [implemented]
+
+Story and events reuse the navigation shell. React Flow supplies pan/zoom and dagre supplies
+layout; the fixed mockup columns are not authored positions. Every reference position gets an
+edge, including conditional text and nested conditions, so the real fixture graph is denser than
+the hand-picked mockup. Edge labels describe positions; effect references follow referenced-node
+to owner direction, while flags bridge setter → flag → reader. Engine flags show “set by the
+game”; reads without setters warn. Area membership follows connected story nodes from area and
+landmark anchors. All five node kinds have filters. Both graphs offer equivalent accessible lists.
+
+Node clicks open editors immediately. Each landmark/task has a Continue the story action; the
+Story node selector also supplies the continuation inspector without requiring a mouse; it offers both discovery and completed-task shortcuts. All creation
+stays in memory until Save all, superseding the mockup's immediate-write wording. Flags offer
+source links rather than an independent entity file or rename operation.
+
+The event screen retains schema-generated event properties and PR-06 widgets. The selected scene
+or choice panel sits alongside the graph on wide screens and below it on narrower screens.
+Start has a visible border/label; terminal choices share a close marker, and missing targets
+have explicit dashed markers. Scene deletion requires explicit retargeting of external incoming
+choices. Start is reserved. Missing-start and dangling-next messages come from the registry;
+unreachable scenes warn without blocking Save. The static preview shortcut remains PR-10;
+play through Open game in a second window.
