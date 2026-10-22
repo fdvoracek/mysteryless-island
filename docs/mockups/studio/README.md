@@ -4,7 +4,8 @@ Static, self-contained HTML screens showing the intended layout and flows of the
 Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exist in the read-only
 browser. **[implemented, PR-05]** Generic forms, draft create/duplicate, undo/redo and save/conflict
 handling now exist. **[implemented, PR-06]** Condition/effect/outcome builders and the text widget now exist.
-Workspaces, graphs and live preview remain proposals.
+**[implemented, PR-07]** The area workspace and reference-aware rename now exist.
+Graphs and live preview remain proposals.
 Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
@@ -17,7 +18,7 @@ Fonts; offline the system fallbacks are used.
 
 | File | Screen | Built in |
 |---|---|---|
-| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 · live preview panel PR-10 (until then, play in a second window) |
+| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 **[implemented]** · live preview panel PR-10 (until then, play in a second window) |
 | [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 **[implemented]** · condition builder and text widget PR-06 **[implemented]** |
 | [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 |
 | [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 |
@@ -83,3 +84,27 @@ guide through a small classification table; unlisted fields remain Text.
 The implementation retains the PR-05 generic form layout rather than the mockup's activity-only
 Basics/Requires/Yields cards. Pending diff, area-link shortcuts and embedded preview remain
 outside PR-06; play in the ordinary game in a second window. No mockup control expands PR-06 scope.
+
+
+## PR-07 implementation differences — [implemented]
+
+By area opens the workspace within the existing navigation/entity-list shell. Cards are stacked
+and retain schema-generated fields plus PR-06 widgets rather than copying the static summary
+rows. The map is an editable, pannable grid with travel-hour/camp labels and occupied-cell
+warnings. The full map/creation-tree graph editors remain PR-09; embedded live preview remains
+PR-10 and Open game still opens a second window.
+
+New area uses the existing PR-05 dialog and opens an unsaved workspace. New activity in this area
+explicitly stages both its independent definition and ordered area link; it does not save from
+the dialog. Linked activities expose reorder/unlink/link-existing controls; global offerings are
+read-only. Used by is split between the area and each individual landmark, linking to exact
+source file/field locations.
+
+Rename controls enumerate root and nested IDs, scene/product/tool keys and singleton identities.
+The preview lists field changes and file moves, warns about existing-save progress, and stages
+one undo step. Owner-approved protocol IDs have disabled controls with visible reasons from one
+Studio constant. Save uses ordered atomic file moves followed by content writes, with partial
+failure reporting. Delete remains clickable for inspection even when referenced, so its dialog
+can show the blocking references and orphan-activity Keep/Delete them too choices. Referenced
+landmark removal similarly shows its blocking references. These controls replace the mockup's
+inert rename and disabled-delete examples.
