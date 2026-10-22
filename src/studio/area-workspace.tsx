@@ -6,6 +6,7 @@ import { Field, type FieldProps } from "./form";
 import { getAt, whereUsed, deletionReferences, referenceLabel } from "./references";
 import { initialValue, unwrap, type Schema } from "./schema";
 import { replaceAt } from "./rename";
+import { MapGrid } from "./map-cells";
 
 export function AreaWorkspace(props: FieldProps & { open: (file: string, path: string) => void; newActivity: () => void }) {
   const raw = props.value as Record<string, unknown>;
@@ -57,20 +58,13 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
   </div>;
 }
 function MapCells({ documents, owner, choose }: { documents: Document[]; owner: Document; choose: (map: { x: number; y: number }) => void }) {
-  const areas = documents.filter(d => d.kind === "regions").map(d => ({ ...d, area: (d.raw ?? {}) as { map?: { x: number; y: number }; travelHours?: number } }));
+  const areas = documents.filter(d => d.kind === "regions").map(d => {
+    const area = (d.raw ?? {}) as { map?: { x: number; y: number }; travelHours?: number };
+    return { id: d.id, path: d.path, at: area.map && Number.isInteger(area.map.x) && Number.isInteger(area.map.y) ? area.map : undefined, travelHours: area.travelHours };
+  });
   const current = (owner.raw as { map?: { x: number; y: number } }).map;
-  const points = areas.flatMap(d => d.area.map && Number.isInteger(d.area.map.x) && Number.isInteger(d.area.map.y) ? [d.area.map] : []);
-  const minX = Math.min(-1, ...points.map(p => p.x)) - 1, maxX = Math.max(1, ...points.map(p => p.x)) + 1;
-  const minY = Math.min(-1, ...points.map(p => p.y)) - 1, maxY = Math.max(1, ...points.map(p => p.y)) + 1;
-  const [origin, setOrigin] = useState<{ x: number; y: number }>();
-  const x0 = origin?.x ?? minX, y0 = origin?.y ?? minY;
-  const width = Math.min(9, maxX - minX + 1), height = Math.min(9, maxY - minY + 1);
-  const occupied = areas.filter(d => d.path !== owner.path && current && d.area.map?.x === current.x && d.area.map?.y === current.y);
+  const occupied = areas.filter(d => d.path !== owner.path && current && d.at?.x === current.x && d.at?.y === current.y);
   return <><p className="hint">Travel from camp: {String((owner.raw as { travelHours?: number }).travelHours ?? "unset")} h. Camp = travelHours 0. Areas without map cells use the game’s default placement.</p>
-    <div className="row-actions">{[["←", -1, 0], ["→", 1, 0], ["↑", 0, -1], ["↓", 0, 1]].map(([label, dx, dy]) => <button type="button" aria-label={`Pan map ${label}`} key={label} onClick={() => setOrigin({ x: x0 + Number(dx), y: y0 + Number(dy) })}>{label}</button>)}</div>
-    <div className="map-cells" style={{ gridTemplateColumns: `repeat(${width}, minmax(75px, 1fr))` }} aria-label="Map cell picker">{Array.from({ length: height * width }, (_, index) => {
-      const x = x0 + index % width, y = y0 + Math.floor(index / width);
-      const at = areas.filter(d => d.area.map?.x === x && d.area.map?.y === y);
-      return <button type="button" key={`${x}:${y}`} aria-label={`Map cell ${x}, ${y}`} aria-pressed={current?.x === x && current?.y === y} onClick={() => choose({ x, y })}><code>{x}, {y}</code>{at.map(d => <span key={d.path}>{d.id} · {d.area.travelHours === 0 ? "camp" : `${d.area.travelHours} h`}</span>)}</button>;
-    })}</div>{occupied.length > 0 && <p role="alert" className="warning">Occupied cell: {occupied.map(d => d.id).join(", ")}</p>}</>;
+    <MapGrid areas={areas} current={current} pick={choose} />
+    {occupied.length > 0 && <p role="alert" className="warning">Occupied cell: {occupied.map(d => d.id).join(", ")}</p>}</>;
 }

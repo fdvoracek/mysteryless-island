@@ -5,7 +5,7 @@ Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exis
 browser. **[implemented, PR-05]** Generic forms, draft create/duplicate, undo/redo and save/conflict
 handling now exist. **[implemented, PR-06]** Condition/effect/outcome builders and the text widget now exist.
 **[implemented, PR-07]** The area workspace and reference-aware rename now exist.
-**[implemented, PR-08]** Story and event graphs now exist. Creation-tree/map graphs and live preview remain proposals.
+**[implemented, PR-08]** Story and event graphs now exist. **[implemented, PR-09]** Creation-tree and map editors now exist (no mockup was drawn). Live preview remains a proposal.
 Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
@@ -24,7 +24,7 @@ Fonts; offline the system fallbacks are used.
 | [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 **[implemented]** |
 | [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 **[implemented]** (pre-fill used by PR-08) |
 
-Not drawn yet: crafting/building tree editor and map editor (PR-09), the diagnostics panel in
+Not drawn: the PR-09 tree and map editors (described below), the diagnostics panel in
 detail, and forms for items, recipes, buildings and tasks (these use the same generic form as the
 activity editor).
 
@@ -132,3 +132,20 @@ have explicit dashed markers. Scene deletion requires explicit retargeting of ex
 choices. Start is reserved. Missing-start and dangling-next messages come from the registry;
 unreachable scenes warn without blocking Save. The static preview shortcut remains PR-10;
 play through Open game in a second window.
+
+
+## PR-09 screens (no mockup existed) — [implemented]
+
+**Trees** (Browse): a crafting/building switch, the layout note and progression warning, then the
+React Flow graph (or its accessible list) with nodes `recipe|building: id · branch · order` and
+prerequisite edges. Below it three cards: *Selection* (branch, order, prerequisites with Remove,
+add-prerequisite picker, unlocks, Open, **New recipe/building here**), *Branches* (name, order,
+Rename, Delete — disabled with a reason while used — and Add branch) and *Not placed yet*
+(**Place in tree** dialog with branch and prerequisite checkboxes). Cycle and cross-tree refusals
+appear as an alert above the graph.
+
+**Map** (Browse): a pannable grid with an area button per cell (camp outlined, "default cell"
+when `map` is unset), dashed camp-centred paths labelled with travel hours, a dashed ghost marker
+for keyboard moves, and an *Areas* card with a `travelHours` input and workspace link per area,
+the registry's inline diagnostic and a text list of paths from the camp. Occupied-cell refusals and
+overlap warnings appear above the grid.
