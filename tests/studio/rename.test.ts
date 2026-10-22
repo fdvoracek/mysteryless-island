@@ -129,6 +129,18 @@ describe("precise rename and reference ownership", () => {
       expect(store.drafts).toEqual(before); expect(store.past).toHaveLength(history);
     }
   });
+  it("allows an unrelated rename while a diagnostic exists, but refuses one that adds a diagnostic", () => {
+    const { store } = setup();
+    const recipe = { id: "craft_loose", item: "axe", ways: [{ hours: 1, effort: "work", cost: { firewood: 1 }, log: "You work." }] };
+    store.create("recipes", recipe);
+    const unplaced = store.view.diagnostics;
+    expect(unplaced.map(d => d.message)).toEqual([expect.stringContaining('"craft_loose" needs exactly one node')]);
+    store.rename(areaPath, "id", "renamed_unrelated_area");
+    expect(store.view.diagnostics.map(d => [d.file, d.path, d.message])).toEqual(unplaced.map(d => [d.file, d.path, d.message]));
+    const drafts = new Map(store.drafts), history = store.past.length;
+    expect(() => store.rename("content/recipes/craft_loose.json", "id", "craft_renamed")).toThrow("Rename would add registry errors");
+    expect(store.drafts).toEqual(drafts); expect(store.past).toHaveLength(history);
+  });
   it("scopes scene, production and tree-branch references to their owners and keeps start reserved", () => {
     const { store } = setup();
     for (const [id, product] of [["one", "same_output"], ["two", "same_output"]]) store.create("buildings", { id: `local_${id}`, name: id, build: { hours: 1, effort: "light" }, cycle: { start: { id: `start_${id}`, label: "start", hours: 1, effort: "light", effects: [{ startCycle: `local_${id}`, production: product }] }, collect: { id: `collect_${id}`, label: "collect", hours: 1, effort: "light" }, hours: 1, products: { [product]: [] }, words: { idle: "idle", working: "working", ready: "ready" } } });

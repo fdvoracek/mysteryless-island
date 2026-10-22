@@ -191,7 +191,7 @@ before Save. Shared and global activities are retained.
 Every schema-backed file has **Rename IDs** controls for root/nested identities and local scene,
 production and tool keys. The preview lists every changed file and field, record-key changes,
 and any filename change. The new ID must be valid and unused by declared IDs, local definition
-keys or action/consume tags; it cannot capture the engine action names explore/travel. Reference
+keys or action/consume tags; it cannot capture the engine action names explore/travel. A rename is refused only if it adds a registry diagnostic beyond those already in the pack (so an unplaced recipe does not block an unrelated rename). Reference
 updates follow schema metadata and owner context, never text replacement. Local scene, production
 and tree-branch references cannot capture equal names belonging to another owner. Text, comments,
 key order and unrelated values remain untouched. Explicit text IDs can be renamed; existing game
@@ -274,7 +274,7 @@ would create a cycle (including a node as its own parent) is refused before it i
 cycle path. A warning reminds you that changed prerequisites change progression for new games,
 while existing saves keep their earned unlocks.
 
-**Branches** can be added, renamed (PR-07 preview) and have their name/order edited. Deleting a
+**Branches** can be added, renamed (PR-07 preview; you stay in the tree view) and have their name/order edited. Deleting a
 branch is disabled while nodes use it. **Not placed yet** lists recipes/buildings without a node,
 each with **Place in tree** (branch and prerequisites; order = max + 1). Saving stays blocked by
 the registry until all are placed. There is no stand-alone node deletion: deleting a recipe or

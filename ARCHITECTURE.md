@@ -41,10 +41,14 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
-## Content Studio program — PR-04 foundation implemented; later editor work planned
+## Content Studio program — PR-01 to PR-09 implemented; live preview (PR-10) planned
 
-A localhost-only React Content Studio inside this single npm package provides a read-only browser
-and dev-server file API **[implemented, PR-04]**. Forms and embedded game preview remain planned.
+A localhost-only React Content Studio inside this single npm package edits content through the
+dev-server file API. **Implemented:** browser and diagnostics (PR-04); generic forms, draft
+create/duplicate/delete, undo/redo and whole-pack Save all (PR-05); condition, effect and text
+widgets (PR-06); area workspace and reference-aware rename (PR-07); story and event graphs
+(PR-08); creation-tree and map editors (PR-09). The embedded game preview (PR-10) remains planned.
+Usage: [docs/STUDIO.md](docs/STUDIO.md).
 Scope, the owner’s confirmed decisions (2026-10-21), open gates and PR order are recorded **only** in
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 Architectural consequences that bind all work:

@@ -653,8 +653,8 @@ test("creation tree: New recipe here, cycle refusal, graph connect and removal w
     const editor = page.getByRole("region", { name: "Creation tree editor" });
     await expect(editor).toContainText("only the prerequisites are authoritative");
     await expect(editor).toContainText("existing saves keep their earned unlocks");
-    const nodes = await editor.locator(".react-flow__node").count(), edges = await editor.locator(".react-flow__edge").count();
-    expect(nodes).toBe(5); expect(edges).toBe(4);
+    const nodes = 5, edges = 4;
+    await expect(editor.locator(".react-flow__node")).toHaveCount(nodes); await expect(editor.locator(".react-flow__edge")).toHaveCount(edges);
     await expect(editor.locator(".react-flow__handle.connectable").first()).toBeVisible();
     await editor.getByRole("button", { name: "Accessible list view" }).click();
     await expect(editor.locator("[data-node]")).toHaveCount(nodes); await expect(editor.locator("[data-edge]")).toHaveCount(edges);
@@ -718,16 +718,6 @@ test("creation tree: branches, rename, blocked branch delete and placing an unpl
   const initial = (await studioFiles(request)).find(f => f.path === treePath)!;
   try {
     await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
-    await page.getByRole("navigation").getByRole("button", { name: "Trees", exact: true }).click();
-    const editor = page.getByRole("region", { name: "Creation tree editor" });
-    await editor.getByLabel("New branch ID", { exact: true }).fill("browser_branch");
-    await editor.getByLabel("New branch name", { exact: true }).fill("spare");
-    await editor.getByRole("button", { name: "Add branch", exact: true }).click();
-    await editor.getByRole("button", { name: "Rename browser_branch…", exact: true }).click();
-    const rename = page.getByRole("dialog", { name: "Rename ID" });
-    await rename.getByLabel("New ID", { exact: true }).fill("browser_renamed");
-    await rename.getByRole("button", { name: "Stage rename", exact: true }).click();
-    await page.getByRole("navigation").getByRole("button", { name: "Trees", exact: true }).click();
     await page.getByRole("button", { name: "Create", exact: true }).click();
     const dialog = page.getByRole("dialog", { name: "Create entity" });
     await dialog.getByRole("combobox", { name: "Create kind", exact: true }).selectOption("recipes");
@@ -738,9 +728,23 @@ test("creation tree: branches, rename, blocked branch delete and placing an unpl
     await dialog.getByRole("combobox", { name: "ways.0.effort", exact: true }).selectOption({ index: 1 });
     await dialog.getByRole("button", { name: "Create draft", exact: true }).click();
     await page.getByRole("navigation").getByRole("button", { name: "Trees", exact: true }).click();
+    const editor = page.getByRole("region", { name: "Creation tree editor" });
     await expect(editor.getByRole("region", { name: "Not placed yet" })).toContainText("browser_loose");
     await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
     await expect(editor.getByRole("button", { name: "Delete branch craft_tools", exact: true })).toBeDisabled();
+
+    await editor.getByLabel("New branch ID", { exact: true }).fill("browser_branch");
+    await editor.getByLabel("New branch name", { exact: true }).fill("spare");
+    await editor.getByRole("button", { name: "Add branch", exact: true }).click();
+    await editor.getByRole("button", { name: "Rename browser_branch…", exact: true }).click();
+    const rename = page.getByRole("dialog", { name: "Rename ID" });
+    await rename.getByLabel("New ID", { exact: true }).fill("browser_renamed");
+    await rename.getByRole("button", { name: "Stage rename", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Rename ID" })).toHaveCount(0);
+    await expect(editor.getByRole("heading", { name: "Creation trees" })).toBeVisible();
+    await expect(editor.getByRole("region", { name: "Branches" })).toContainText("browser_renamed");
+    await expect(editor.getByRole("region", { name: "Branches" })).not.toContainText("browser_branch");
+    await expect(editor.getByRole("button", { name: "Crafting tree", exact: true })).toHaveAttribute("aria-pressed", "true");
 
     await editor.getByRole("button", { name: "Place browser_loose in tree", exact: true }).click();
     const place = page.getByRole("dialog", { name: "Place in tree" });

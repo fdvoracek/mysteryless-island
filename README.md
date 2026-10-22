@@ -87,8 +87,8 @@ and local production. Player work and production are serializable state. The app
 controller schedules live steps and saves progress; selectors supply a view to the shared
 renderer and classic layout. Loading validates and migrates saves before play resumes.
 Gameplay and narrative randomness use separate saved streams. Stable text IDs keep text identity
-across edits; JSON remains the authoring format. A local Content Studio is planned
-([plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md)).
+across edits; JSON remains the authoring format. A local Content Studio edits
+it ([usage](docs/STUDIO.md), [plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md)).
 
 See [the technical design](docs/TDD.md) for module boundaries and future extensions, and [the creation-tree design](docs/CRAFTING_BUILDING_DESIGN.md) for progression and authoring rules.
 
@@ -140,10 +140,11 @@ ti.state()                ti.felt()                            ti.reset()
 ti.quests()               ti.quest("survive_first_night")      // list / force-start quests
 ```
 
-## Local Content Studio — [implemented, PR-04 foundation]
+## Local Content Studio — [implemented, PR-01 to PR-09]
 
-Run `npm run studio` and open `http://127.0.0.1:5173/studio/` to browse content by area or kind,
-search and inspect read-only JSON, and follow shared validation diagnostics to a file and field.
-The game is available at `/` on the same server. The Studio is excluded from production builds.
-Editing forms and game preview remain planned. See [Studio usage](docs/STUDIO.md) and the
-[implementation plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+Run `npm run studio` and open `http://127.0.0.1:5173/studio/` to browse and edit content with forms
+(create, duplicate, delete, undo/redo, whole-pack Save all), condition and text widgets, an area
+workspace with reference-aware rename, story and event graphs, and creation-tree and map editors.
+Validation uses the same registry as the game. The game is available at `/` on the same server; the
+Studio is excluded from production builds. An embedded game preview (PR-10) remains planned. See
+[Studio usage](docs/STUDIO.md) and the [implementation plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
