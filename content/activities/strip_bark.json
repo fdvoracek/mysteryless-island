@@ -1,0 +1,19 @@
+{
+  "id": "strip_bark",
+  "name": "strip bark",
+  "hours": 1,
+  "effort": "work",
+  "visibleWhen": {
+    "any": [
+      { "discovered": "cliff_shells" },
+      { "any": [{ "quest": "build_snares", "is": "active" }, { "quest": "build_snares", "is": "done" }] }
+    ]
+  },
+  "requires": { "tool": "sharp" },
+  "yields": [{ "item": "bark_strips", "min": 4, "max": 4 }],
+  "log": [
+    "You score the surface of a young tree and strip away long ribbons of inner bark.",
+    "The bark comes away in strips, wet and stringy, as long as your arm.",
+    "You cut and peel, cut and peel, until you have a bundle of bark strips."
+  ]
+}

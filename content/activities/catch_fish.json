@@ -1,0 +1,42 @@
+{
+  "id": "catch_fish",
+  "name": "catch fish",
+  "hours": 1,
+  "effort": "work",
+  "icon": "fish",
+  "visibleWhen": { "discovered": "school_of_fish" },
+  "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
+  "outcomes": [
+    {
+      "weight": 4,
+      "text": [
+        "Two fish lie upon the sand, taken by successive strokes of the spear.",
+        "Your patience has secured two fish from the shallow water.",
+        "Two small fish struggle briefly upon the shore: a useful return for the effort."
+      ],
+      "effects": [{ "give": { "raw_fish": 2 } }]
+    },
+    {
+      "weight": 4,
+      "text": [
+        "A single fish is taken. It will provide at least one meal.",
+        "The spear rises with one fish upon its point.",
+        "Your effort produces one fish, a modest but welcome catch."
+      ],
+      "effects": [{ "give": { "raw_fish": 1 } }]
+    },
+    {
+      "weight": 2,
+      "text": [
+        "The fish turn aside before the spear can reach them.",
+        "At each movement the school disperses into deeper water.",
+        "The water clouds around the spear, which returns without a catch."
+      ]
+    }
+  ],
+  "log": [
+    "You wade cautiously into the shallows with the spear held ready.",
+    "Standing knee-deep in cold water, you wait for the fish to approach.",
+    "With the spear prepared, you advance slowly through the water."
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "gather_corn",
+  "name": "gather corn",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "corn",
+  "visibleWhen": { "discovered": "wild_corn" },
+  "yields": [{ "item": "corn", "min": 1, "max": 2 }],
+  "log": [
+    "You search the taller grasses for the seed heads of wild corn.",
+    "Several slender ears of corn reward your search.",
+    "The wild corn bears small ears filled with hard, usable grain."
+  ]
+}

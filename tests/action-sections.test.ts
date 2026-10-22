@@ -75,7 +75,7 @@ describe("action sections", () => {
   it("validates building ownership references for activities and item actions", () => {
     for (const kind of ["activity", "item"]) {
       const files = readContentFiles();
-      if (kind === "activity") (files["content/regions/beach.json"] as { activities: { building?: string }[] }).activities[0].building = "missing_camp";
+      if (kind === "activity") (files["content/activities/light_fire.json"] as { building?: string }).building = "missing_camp";
       else (files["content/items/raw_fish.json"] as { actions: { building?: string }[] }).actions[0].building = "missing_camp";
       expect(() => buildRegistry(files)).toThrow(/missing_camp/);
     }

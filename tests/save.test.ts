@@ -108,7 +108,7 @@ describe("save migration boundary", () => {
     expect(localStorage.getItem("textisland.save")).toBe(bad);
   });
 
-  it.each([1, 3, 5, 6])("rejects version %s without changing either save slot", (version) => {
+  it.each([1, 3, 5, 6, 7])("rejects version %s without changing either save slot", (version) => {
     const e = startGame(reg, 7);
     const { technology: _technology, ...legacy } = e.state;
     const current = { ...legacy, saveVersion: version };

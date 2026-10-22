@@ -1,0 +1,16 @@
+{
+  "id": "collect_berries",
+  "name": "pick berries",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "berries",
+  "visibleWhen": { "discovered": "berry_bushes" },
+  "yields": [{ "item": "berries", "min": 3, "max": 6 }],
+  "log": [
+    "The fruit stains your fingers a deep purple.",
+    "You gather the berries steadily, examining one branch after another.",
+    "The thorns catch upon your sleeves as you collect the small fruit.",
+    "You fill your hands and pockets with the berries growing here.",
+    "You select the dark, ripe berries carefully to avoid bruising them."
+  ]
+}

@@ -25,8 +25,9 @@ Do not copy its decisions into other files. Working rules for a Studio PR:
 1. Implement exactly one numbered PR. Read the plan, ARCHITECTURE.md, docs/TESTING.md and the
    current code first. If the PR touches an open gate, ask the owner before coding.
 2. Studio and API paths (`src/studio/`, `tools/vite-content-api.ts`) remain planned.
-   **[implemented, PR-02]** Content entities use `content/<kind>/<id>.json`; activities remain
-   embedded until PR-03. The sections below describe the current code.
+   **[implemented, PR-02]** Content entities use `content/<kind>/<id>.json`.
+   **[implemented, PR-03]** Activities are standalone files linked by region ID lists.
+   The sections below describe the current code.
 3. No Studio PR may break the game: follow the plan's game safety rules (§5.1). The game must
    play from a fresh start and save/reload after every PR. Old saves may be dropped (bump
    `SAVE_VERSION`, keep the recovery screen); no legacy-save migrations.
@@ -51,7 +52,7 @@ URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=firs
 - `content/**/*.json` is the game. `src/content/schema.ts` (Zod) defines every field; `registry.ts` checks references (unknown ids, conditions) and reports file + path.
 - `src/core/engine.ts` interprets content: commands (activity, travel, consume, explore, craft, build, itemAction, building, choose, pause, resume) → state changes and journal lines. Separate gameplay and narrative RNG streams live in state, so changing wording cannot change outcomes.
 - `src/app/action-controller.ts` owns browser scheduling; `Engine.start` reserves inputs, `stepActions` advances persisted work, and `dispatch` drains the same pipeline synchronously for tests. Player work pauses on travel/sleep; local production continues with game time. No offline advancement.
-- `src/persistence/migrate.ts` validates and migrates saves at the loading boundary; `state-schema.ts` defines the runtime model (currently save version 7; older saves require a fresh game).
+- `src/persistence/migrate.ts` validates and migrates saves at the loading boundary; `state-schema.ts` defines the runtime model (currently save version 8; older saves require a fresh game).
 - `src/core/selectors.ts` turns state into a view model. `src/ui/render.ts` draws it and sends commands; the UI holds no game state.
 - Classic is the only layout: `src/ui/layouts/classic.ts` + `classic.css` (scoped to `.layout-classic`), with fixed panels in `panels.ts` and a phone block (≤600px). There is no layout registry or picker; old layout preferences/URL parameters are ignored.
 - Fonts: `src/ui/fonts.ts`; all text uses `--font`. The layout does not pick fonts.

@@ -1,0 +1,44 @@
+{
+  "id": "make_fire",
+  "building": "campfire",
+  "name": "light fire",
+  "_note": "without matches or 2 stones: friction with 2 dry sticks (firewood), 1 h, catches 2 times in 3; the wood (3 to burn, 2 sticks) is only used when it catches",
+  "hours": 1,
+  "effort": "work",
+  "icon": "fire",
+  "visibleWhen": {
+    "all": [
+      { "built": "campfire", "here": true },
+      { "not": { "timer": "fire" } },
+      { "not": { "item": "matches" } },
+      { "not": { "item": "stone", "gte": 2 } }
+    ]
+  },
+  "requires": { "all": [{ "tool": "fire_starter" }, { "item": "firewood", "gte": 5 }] },
+  "log": [
+    "You twist a dry stick against a branch, again and again, until your palms burn.",
+    "No matches. You spin a stick between your hands until your arms ache.",
+    "You rub wood on wood, slow and stubborn, blowing on every wisp of smoke."
+  ],
+  "outcomes": [
+    {
+      "weight": 2,
+      "text": [
+        "A glow, a breath, and at last a flame. The fire takes.",
+        "The wisp of smoke becomes an ember, then a flame.",
+        "Finally, a flame. You feed it, careful as with a newborn."
+      ],
+      "effects": [{ "take": { "firewood": 5 } }, { "timer": "fire", "addHours": 6 }]
+    },
+    {
+      "weight": 1,
+      "text": [
+        "Smoke, but no flame. The wood will do for another try.",
+        "The ember dies before it catches. You keep the wood.",
+        "Your hands give out first. No fire, not yet."
+      ]
+    }
+  ],
+  "tags": ["kindle"],
+  "global": true
+}

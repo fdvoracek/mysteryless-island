@@ -1,0 +1,15 @@
+{
+  "id": "collect_stones",
+  "name": "pick up stones",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "stone",
+  "visibleWhen": { "discovered": "cliff_shells" },
+  "yields": [{ "item": "stone", "min": 2, "max": 3 }],
+  "log": [
+    "Under the cliff, stones of every size. You pick the hardest.",
+    "You choose stones from the foot of the cliff, flat and heavy.",
+    "You gather stones where the cliff has crumbled."
+  ],
+  "_note": "stones lie under the cliff: 2 strike sparks for a fire; also for the rock knife, the axe, the hoe and the weir"
+}

@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { indexTextKeys } from "./text-keys";
 import {
-  Artwork, CreationTree, Site, type TreeKind, Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
-  type Activity, type BuildingStep, type Timer,
+  Activity, Artwork, CreationTree, Site, type TreeKind, Building, Climate, Condition, Effect, Game, GameEvent, Item, Outcome, Quest, Recipe, Region, StatsFile,
+  type BuildingStep, type Timer,
 } from "./schema";
 
 /** Frozen, indexed content. Systems read content only through this object. */
@@ -18,7 +18,7 @@ export interface Registry {
   regions: Map<string, Region>;
   regionOrder: string[];
   timers: Map<string, Timer>;
-  activities: Map<string, { activity: Activity; region: string }>;
+  activities: Map<string, { activity: Activity; regions: string[] }>;
   /** in (order, id) order; the tasks panel lists active quests in this order */
   quests: Map<string, Quest>;
   /** in (order, id) order (content/events/*.json) */
@@ -99,7 +99,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   const trees = new Map<TreeKind, TreeIndex>();
   const items = new Map<string, Item>();
   const regions = new Map<string, Region>();
-  const activities = new Map<string, { activity: Activity; region: string }>();
+  const activities = new Map<string, { activity: Activity; regions: string[] }>();
   const quests = new Map<string, Quest>();
   const events = new Map<string, GameEvent>();
   const buildings = new Map<string, Building>();
@@ -136,11 +136,13 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     } else if (/content\/items\/[^/]+\.json$/.test(path)) {
       const item = entity(Item, data, path);
       if (item) items.set(item.id, item);
+    } else if (/content\/activities\/[^/]+\.json$/.test(path)) {
+      const activity = entity(Activity, data, path);
+      if (activity) activities.set(activity.id, { activity, regions: [] });
     } else if (/content\/regions\/[^/]+\.json$/.test(path)) {
       const region = entity(Region, data, path);
       if (!region) continue;
       regions.set(region.id, region);
-      for (const a of region.activities) { claim(a.id, path); activities.set(a.id, { activity: a, region: region.id }); }
       for (const d of region.explore?.landmarks ?? []) { claim(d.id, path); discoveries.set(d.id, region.id); }
     } else if (/content\/quests\/[^/]+\.json$/.test(path)) {
       const q = entity(Quest, data, path);
@@ -165,6 +167,25 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       problems.push(`${path}: unsupported content file; use <kind>/<id>.json with one entity per file`);
     }
   }
+
+  // Preserve authored link order, including linked globals. Unlinked globals follow by ID.
+  const orderedActivities = new Map<string, { activity: Activity; regions: string[] }>();
+  for (const region of regions.values()) {
+    for (const [index, id] of region.activities.entries()) {
+      const entry = activities.get(id);
+      if (!entry) problems.push(`${allIds.get(region.id)}: activities.${index}: unknown activity "${id}"`);
+      else {
+        if (!entry.regions.includes(region.id)) entry.regions.push(region.id);
+        orderedActivities.set(id, entry);
+      }
+    }
+  }
+  for (const [id, entry] of activities) {
+    if (!entry.activity.global && !entry.regions.length) problems.push(`${allIds.get(id)}: activity "${id}" is neither linked nor global`);
+    orderedActivities.set(id, entry);
+  }
+  activities.clear();
+  for (const [id, entry] of orderedActivities) activities.set(id, entry);
 
   // Runtime consumers keep reading registry order, independent of file enumeration.
   const sort = <T extends { id: string; order?: number }>(map: Map<string, T>) => {
@@ -346,15 +367,15 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
       if (d.requires) checkCond(d.requires, `${w}.requires`);
       checkEffects(d.effects, w);
     }
-    for (const a of r.activities) {
-      const w = `activity ${a.id}`;
-      if (a.building) ref("building", a.building, `${w}.building`);
-      checkWork(a, w);
-      a.yields?.forEach((y, i) => { ref("item", y.item, `${w}.yields[${i}]`); if (y.when) checkCond(y.when, `${w}.yields[${i}].when`); });
-      checkOutcomes(a.outcomes, w);
-      for (const field of ["thoughts", "afterwards"] as const) {
-        a[field]?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.${field}[${gi}].lines[${li}].when`); }));
-      }
+  }
+  for (const { activity: a } of activities.values()) {
+    const w = `activity ${a.id}`;
+    if (a.building) ref("building", a.building, `${w}.building`);
+    checkWork(a, w);
+    a.yields?.forEach((y, i) => { ref("item", y.item, `${w}.yields[${i}]`); if (y.when) checkCond(y.when, `${w}.yields[${i}].when`); });
+    checkOutcomes(a.outcomes, w);
+    for (const field of ["thoughts", "afterwards"] as const) {
+      a[field]?.forEach((g, gi) => g.lines.forEach((l, li) => { if (l.when) checkCond(l.when, `${w}.${field}[${gi}].lines[${li}].when`); }));
     }
   }
   for (const b of buildings.values()) {
@@ -508,6 +529,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   let textKeys: Map<object, string>;
   try {
     textKeys = indexTextKeys({ game, stats, climate, items: [...items.values()], regions: [...regions.values()],
+      activities: [...activities.values()].map(({ activity }) => activity),
       recipes: [...recipes.values()], buildings: [...buildings.values()], quests: [...quests.values()], events: [...events.values()] });
   } catch (error) { throw new ContentError([String(error)]); }
 

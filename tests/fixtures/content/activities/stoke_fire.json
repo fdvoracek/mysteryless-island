@@ -1,0 +1,20 @@
+{
+  "id": "stoke_fire",
+  "building": "campfire",
+  "name": "stoke fire",
+  "hours": 0.25,
+  "effort": "light",
+  "icon": "fire",
+  "visibleWhen": { "all": [{ "built": "campfire", "here": true }, { "timer": "fire" }] },
+  "cost": { "firewood": 2 },
+  "effects": [{ "timer": "fire", "addHours": 4 }],
+  "log": [
+    "The fire crackles.",
+    "The flames climb higher.",
+    "You feed the fire. It answers.",
+    "Sparks climb into the dark.",
+    "Sparks drift up on the wind.",
+    "The new wood catches with a hiss."
+  ],
+  "global": true
+}

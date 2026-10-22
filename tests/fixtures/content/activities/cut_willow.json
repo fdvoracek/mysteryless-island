@@ -1,0 +1,13 @@
+{
+  "id": "cut_willow",
+  "name": "cut willow twigs",
+  "hours": 0.5,
+  "effort": "work",
+  "visibleWhen": { "discovered": "river" },
+  "yields": [{ "item": "willow_twigs", "min": 10, "max": 10 }],
+  "log": [
+    "You cut long, supple twigs from the willows.",
+    "Willow twigs, green and bending, an armful.",
+    "You strip the willows of their long whips."
+  ]
+}

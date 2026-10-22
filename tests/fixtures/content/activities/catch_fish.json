@@ -1,0 +1,38 @@
+{
+  "id": "catch_fish",
+  "name": "catch fish",
+  "hours": 1,
+  "effort": "work",
+  "icon": "fish",
+  "visibleWhen": { "discovered": "school_of_fish" },
+  "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
+  "outcomes": [
+    {
+      "weight": 4,
+      "text": [
+        "Two fish, flapping on the sand.",
+        "Two fish, one on each strike.",
+        "Two fish thrash on the sand."
+      ],
+      "effects": [{ "give": { "raw_fish": 2 } }]
+    },
+    {
+      "weight": 4,
+      "text": ["One fish. It will do.", "One fish, wriggling on the point.", "A single fish. Enough for now."],
+      "effects": [{ "give": { "raw_fish": 1 } }]
+    },
+    {
+      "weight": 2,
+      "text": [
+        "Nothing. The fish are quicker than you.",
+        "Nothing. They scatter every time.",
+        "The water swirls. The spear comes up empty."
+      ]
+    }
+  ],
+  "log": [
+    "You wade into the shallows, spear raised.",
+    "You stand knee-deep in the cold water and wait.",
+    "Spear ready, you wade out slowly."
+  ]
+}

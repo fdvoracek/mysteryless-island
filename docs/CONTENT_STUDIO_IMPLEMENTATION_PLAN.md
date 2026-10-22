@@ -1,7 +1,7 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 and PR-02 implemented; PR-03 to PR-10 proposal]**
-Revised: 2026-10-21 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
+Status: **[PR-01 to PR-03 implemented; PR-04 to PR-10 proposal]**
+Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
 
@@ -49,6 +49,11 @@ editor; arbitrary travel graphs.
 | C10 | **Branch handling is the owner's job.** The Studio edits whatever checkout it runs from; no branch or version checks. |
 | C11 | **Graph views use React Flow** (`@xyflow/react`) with `@dagrejs/dagre` auto-layout, imported only from `src/studio` (owner, 2026-10-21). |
 | C12 | Order of list kinds is an optional per-entity `order` field (sorted by order, then id); no central manifest. |
+
+PR-03 owner clarification (2026-10-22): global activities may also be linked; they appear once
+at their linked position in a linked area and at the end elsewhere. Re-record golden snapshots
+once after proving that only activity memo-key paths and `saveVersion` differ; do not normalize
+those differences in the permanent comparison.
 
 ## 3. Open gates — ask before the affected PR
 
@@ -151,7 +156,8 @@ transition or dual-layout support is needed. The game must still work after ever
    PR-04 structured `ContentError` (string output unchanged); PR-05 `ref()` metadata (no
    validation change); PR-10 preview save keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
    `src/persistence` or `src/main.ts` is out of scope; stop and ask.
-3. **Golden traces (PR-01) must stay unchanged** in every Studio PR.
+3. **Golden traces (PR-01) must stay unchanged** in every Studio PR except the approved
+   PR-03 re-recording with narrow parity proof below.
 4. **Saves.** Only PR-03 may bump `SAVE_VERSION` (and only if text keys or state actually change).
    Preview mode never reads or writes the player's save keys.
 5. **Future engine work stays cheap.** The generic form renders unsupported Zod node kinds as a
@@ -179,14 +185,22 @@ index × 10 to preserve behavior. Kinds without observable order have no new fie
 *Done when:* golden traces unchanged; `content:check` passes and rejects an unformatted file, a
 legacy multi-entity file and a file/id mismatch. *Owner test:* play a fresh game to the first craft.
 
-**PR-03 — Independent activities.** Move activities to `content/activities/<id>.json`;
-`region.activities` becomes a list of IDs; `global` keeps its meaning (offered everywhere, not
-linked). The registry records each activity's linked areas; engine/selector checks use "linked to
-the current area or global". Validator: unknown activity ID, an activity neither linked nor global.
+**PR-03 — Independent activities.** **[implemented]** Move activities to `content/activities/<id>.json`;
+`region.activities` becomes a list of IDs; `global` keeps its meaning (offered everywhere).
+A global activity may also be linked: offer it once at its linked position there, and at the end
+elsewhere. Preserve existing action order, including beach’s global links. The registry records
+each activity’s linked areas; engine/selector checks use "linked to the current area or global". Validator: unknown activity ID, an activity neither linked nor global.
 `did`/`today` counters stay per activity ID across areas. Bump `SAVE_VERSION` if text keys or state
 change.
-*Done when:* golden traces equal (except intentionally re-keyed text memo), a test links one activity
-into two areas. *Owner test:* fresh game, actions appear in the same places as before.
+*Done when:* golden snapshots are re-recorded once after a temporary old/new comparison proves
+that only activity text-memo keys change from region paths to activity paths (identical values)
+and `saveVersion` changes. Journal text, RNG states, counters, items and every other field remain
+identical. Keep the permanent comparison unchanged; do not commit the temporary proof script.
+A test links one activity into two areas.
+Implementation evidence: all three snapshots compared exactly after the 19 memo-key substitutions
+and version 7 → 8; no other differences. Temporary extraction checks also confirmed unchanged raw
+activity definitions and full/visible action order in every area of both packs.
+*Owner test:* fresh game, actions appear in the same places as before.
 
 ### Phase B — Studio core
 

@@ -1,0 +1,17 @@
+{
+  "id": "collect_shells",
+  "name": "collect shells",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "shells",
+  "visibleWhen": { "discovered": "cliff_shells" },
+  "yields": [{ "item": "shells", "min": 2, "max": 4 }],
+  "log": [
+    "You prise shells off the wet stone. The surf soaks your legs.",
+    "You work the shells loose with your fingers. The surf breaks over your knees.",
+    "Shell by shell, off the wet stone. Your hands go numb.",
+    "A handful of shells, cold and heavy.",
+    "A pocketful of shells, cold and wet.",
+    "Shells, heavy and dripping."
+  ]
+}
