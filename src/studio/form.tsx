@@ -4,13 +4,14 @@ import type { ContentProblem } from "../content";
 import type { JsonBuffer } from "./store";
 import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
-import { referenceOptions } from "./references";
+import { registerWidgets } from "./widgets";
+import { referenceLabel, referenceOptions } from "./references";
 
 export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
   problems: ContentProblem[]; documents: Document[]; owner: Document;
   buffers?: Record<string, JsonBuffer>;
-  onError: (path: string, message: string, buffer?: JsonBuffer) => void; depth?: number; requiredOnly?: boolean; lockId?: boolean;
+  onError: (path: string, message: string, buffer?: JsonBuffer) => void; depth?: number; requiredOnly?: boolean; lockId?: boolean; skipWidget?: boolean; ruleDepth?: number;
 }
 export type Widget = (props: FieldProps) => ReactNode;
 /** Extensions bind to schema objects or reference kinds, never incidental field names. */
@@ -18,6 +19,19 @@ export const widgetRegistry = {
   nodes: new Map<Schema, Widget>(),
   references: new Map<string, Widget>(),
 };
+function schemaWidget(schema: Schema): Widget | undefined {
+  const seen = new Set<Schema>();
+  while (!seen.has(schema)) {
+    seen.add(schema);
+    const widget = widgetRegistry.nodes.get(schema);
+    if (widget) return widget;
+    if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable || schema instanceof z.ZodDefault) schema = schema._def.innerType;
+    else if (schema instanceof z.ZodEffects) schema = schema._def.schema;
+    else if (schema instanceof z.ZodLazy) schema = unwrap(schema);
+    else break;
+  }
+  return undefined;
+}
 const recordValue = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 export function RawField({ value, onChange, path, onError, buffers }: FieldProps) {
   const serial = JSON.stringify(value, null, 2) ?? "";
@@ -41,19 +55,19 @@ function ReferenceField(props: FieldProps) {
   const value = typeof props.value === "string" ? props.value : "";
   return <select aria-label={props.path} value={value} onChange={(event) => props.onChange(event.target.value)}>
     <option value="">Choose a reference…</option>{value && !options.includes(value) && <option value={value}>{value} (unresolved)</option>}
-    {options.map((id) => <option key={id} value={id}>{id}</option>)}
+    {options.map((id) => <option key={id} value={id}>{referenceLabel(refKind(props.schema)!, id, props.documents)}</option>)}
   </select>;
 }
 export function Field(props: FieldProps) {
   const { schema, value, onChange, path, problems, depth = 0 } = props;
   const id = useId();
   const node = unwrap(schema), kind = refKind(schema);
-  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} />;
+  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} skipWidget={false} />;
   const issue = problems.filter((problem) => problem.path === path);
   let control: ReactNode;
-  const widget = widgetRegistry.nodes.get(schema) ?? widgetRegistry.nodes.get(node) ?? (kind ? widgetRegistry.references.get(kind) : undefined);
-  if (widget) control = widget(props);
-  else if (value === undefined && schema.isOptional()) control = <button type="button" onClick={() => onChange(initialValue(schema))}>Add {path.split(".").at(-1)}</button>;
+  const widget = props.skipWidget ? undefined : schemaWidget(schema) ?? (kind ? widgetRegistry.references.get(kind) : undefined);
+  if (value === undefined && schema.isOptional()) control = <button type="button" onClick={() => onChange(initialValue(schema))}>Add {path.split(".").at(-1)}</button>;
+  else if (widget) { const Component = widget; control = <Component {...props} />; }
   else if (kind) control = <ReferenceField {...props} />;
   else if (depth > 16) control = <RawField {...props} />;
   else if (branches(node).length) {
@@ -102,6 +116,8 @@ function RecordField(props: FieldProps) {
   return <div className="record-fields">{Object.entries(raw).map(([name, value]) => <div className="array-entry" key={name}>
     <Field {...props} schema={node.valueSchema} path={[props.path, name].filter(Boolean).join(".")} value={value} depth={(props.depth ?? 0) + 1} onChange={(next) => props.onChange({ ...raw, [name]: next })} />
     <button type="button" aria-label={`Remove ${props.path}.${name}`} onClick={() => { const updated = { ...raw }; delete updated[name]; props.onChange(updated); }}>Remove {name}</button>
-  </div>)}<div className="record-add">{kind ? <select aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)}><option value="">Choose a reference…</option>{options.filter((option) => !(option in raw)).map((option) => <option key={option}>{option}</option>)}</select> : <input aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)} placeholder="new key" />}
+  </div>)}<div className="record-add">{kind ? <select aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)}><option value="">Choose a reference…</option>{options.filter((option) => !(option in raw)).map((option) => <option key={option} value={option}>{referenceLabel(kind!, option, props.documents)}</option>)}</select> : <input aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)} placeholder="new key" />}
     <button type="button" disabled={!valid} onClick={() => { props.onChange({ ...raw, [key]: initialValue(node.valueSchema) }); setKey(""); }}>Add key</button></div></div>;
 }
+
+registerWidgets(widgetRegistry);

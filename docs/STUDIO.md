@@ -1,4 +1,4 @@
-# Content Studio — [implemented, PR-05 editor]
+# Content Studio — [implemented, PR-06 widgets]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
@@ -21,8 +21,8 @@ checked hash. A further disk change requires another confirmation. File API fail
 tab through **Open game** and uses its ordinary save slots.
 
 Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
-undo/redo and explicit saving are **[implemented, PR-05]**. The condition/effect builder and text
-widget, rename, area workspace, graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
+undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Rename, area
+workspace, graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 
@@ -33,8 +33,7 @@ debounce; Save rechecks synchronously before writing. Forms walk the shared Zod 
 unset optional fields, add/remove/reorder array entries, and add/remove record keys. Reference
 fields and reference record keys offer IDs from the current pack, including unsaved drafts.
 Unions offer a value-type selector; discriminated unions use their discriminator. Unsupported
-schema nodes, unknown fields and deeply nested structures use validated JSON input. Conditions
-and texts currently use these generic controls; specialized authoring widgets arrive in PR-06.
+schema nodes, unknown fields and deeply nested structures use validated JSON input. Conditions, effects, outcomes and Text use specialized schema-bound widgets (below).
 The JSON view also shows the canonical save preview. Existing entity IDs are read-only in the
 form; file renaming is deferred, and changing the root ID in JSON fails filename validation.
 
@@ -126,3 +125,37 @@ each run, adds an isolated-root comment to that copy, and supplies it through `S
 Workers share that run's copy; teardown removes it. A guard checks the marker and frozen prose,
 and rejects the checkout's direct content route. Browser tests never read or edit shipped content.
 Run `npm run test:studio`, then `git status --short -- content/` to confirm the shipped pack is clean.
+
+## Conditions, effects and text — [implemented, PR-06]
+
+Every Condition field offers a kind selector, nested all/any/not groups and schema-generated
+leaf forms. Reference pickers and “Reads as” summaries share ID/name labels; unknown references
+show their raw ID. Summaries use Studio-only `describe()`, without evaluating game state.
+All/any groups support adding conditions or groups, removing and reordering. They require at
+least one child: an empty group shows an inline error and blocks Save. Switching multiple
+children to not wraps them in all, preserving the children under not's single child.
+Phase, warmth and effort use checkbox multi-selects; ranges and day/reached objects use fields.
+
+Effect lists support every schema kind, item amounts, stat deltas, timer changes, flags, journal
+logs, quest starts, unlocks, buildings and cycles. Roll effects contain weighted outcomes with
+optional conditions, text and further effects. Conditions/effects offer editable JSON toggles;
+malformed JSON remains a repairable buffer and blocks Save. Unsupported rules use raw JSON.
+Recursive builders stop at depth six and expose validated JSON there; neither current content
+pack reaches this limit. Ordinary object nesting does not consume this recursive rule budget.
+Controls work with keyboard focus, native selects/checkboxes and labelled reorder/remove buttons.
+
+Text supports a single string, alternative list, or explicit ID with alternatives. Each alternative
+has a multiline plain-text input, with add/remove/reorder controls. The first is what
+`?variants=first` and tests display. Switching to single requires exactly one alternative: remove
+extra alternatives explicitly first. Text objects with author comments retain their explicit
+form so comments cannot be discarded by conversion. Changing representation may change the
+text memo key. No text is rewritten automatically.
+
+A small channel table labels known modal and journal fields; unlisted fields are simply Text.
+Scene and discovery passages, exploration views/nothingLeft, and new-place text are modal.
+Arrival/description, work and item logs, outcome text, thoughts, quest start/done logs and timer
+warnings are journal. Quest doneLog also appears in the completion note and retains the journal
+budget. Every journal alternative shows a source-character count and warns above 80 characters.
+Different placeholder sets between alternatives also produce a warning. Both are guidance and
+never block saving; schema/reference errors still do. Comments, object key order and untouched
+values are preserved, and Save all retains the PR-05 whole-pack validation and sequential writes.

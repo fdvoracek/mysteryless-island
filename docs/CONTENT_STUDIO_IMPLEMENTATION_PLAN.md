@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-05 implemented; PR-06 to PR-10 proposal]**
+Status: **[PR-01 to PR-06 implemented; PR-07 to PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -54,6 +54,11 @@ PR-03 owner clarification (2026-10-22): global activities may also be linked; th
 at their linked position in a linked area and at the end elsewhere. Re-record golden snapshots
 once after proving that only activity memo-key paths and `saveVersion` differ; do not normalize
 those differences in the permanent comparison.
+
+Owner decision (2026-10-22), PR-06: Human-readable summaries use a Studio-only `describe()`
+with one phrase template per Condition and Effect kind, checked against the schema unions.
+Do not use or change the engine’s state-dependent, partial `explain()`. Every condition and
+effect kind must have a summary phrase (test iterates the unions).
 
 ## 3. Open gates — ask before the affected PR
 
@@ -251,13 +256,31 @@ metadata-only `src/content/schema.ts`; `tests/studio/editor.test.ts` covers all 
 independent create kinds, draft validation, references, undo/redo, sequential save and conflicts.
 `tests/studio-browser/browser.spec.ts` covers actual temporary-root writes and editor wiring.
 
-**PR-06 — Condition/effect builder and text widget.** Recursive all/any/not tree, a form per leaf
-and effect kind generated from the schema unions, human-readable summary using the engine's
-`explain`, JSON view; text widget with variants (alternatives, never paragraphs), modal vs journal
+**PR-06 — Condition/effect builder and text widget.** **[implemented]** Recursive all/any/not tree, a form per leaf
+and effect kind generated from the schema unions, human-readable summary using Studio-only
+`describe()`, JSON view; text widget with variants (alternatives, never paragraphs), modal vs journal
 labeling and the 80-character journal guidance from docs/NARRATIVE_STYLE.md.
 *Done when:* every condition/effect kind in `schema.ts` can be built without typing JSON (test
-iterates the union), and the summary matches `explain`. *Owner test:* "visible after the spring is
-discovered and while carrying the water can", checked in the game.
+iterates the union); every condition and effect kind has a summary phrase (test iterates the unions);
+nested groups and roll outcomes round-trip unchanged across the fixture pack; invalid values
+show inline errors and block saving; all three Text forms preserve untouched text, with journal
+length and placeholder mismatch warnings. Neither shipped nor fixture content reaches the
+six-level recursion fallback.
+*Owner test:* "visible after the spring is discovered and while carrying the water can", checked
+in the game; add/remove log alternatives and see an over-80 warning; edit a roll outcome and
+confirm that only the requested value changes.
+
+Owner decision (2026-10-22), PR-06: Human-readable summaries use a Studio-only `describe()`
+with one phrase template per Condition and Effect kind, checked against the schema unions.
+Do not use or change the engine’s state-dependent, partial `explain()`. Every condition and
+effect kind must have a summary phrase (test iterates the unions).
+
+Implementation: schema-object widgets in `src/studio/`, Studio-only union-checked phrase tables,
+six-level recursion with validated JSON fallback, labelled references, and narrative-channel
+classification. `tests/studio/widgets.test.ts` covers all union kinds and both packs’ depth/round
+trips; temporary-root browser tests cover keyboard editing, groups, text warnings and nested
+roll edits. See [usage](STUDIO.md#conditions-effects-and-text--implemented-pr-06) and
+[mockup differences](mockups/studio/README.md#pr-06-implementation-differences--implemented).
 
 ### Phase C — authoring views
 

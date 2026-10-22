@@ -117,3 +117,18 @@ item/activity/area save, invalid inline values, delete blocking, undo/redo and t
 Writes use only the temporary `STUDIO_ROOT`; each writing scenario restores that copy. No shipped
 content, frozen fixture or golden trace is changed. The existing game browser suite continues to
 own fresh-game and save/reload safety checks. Run the full `npm run check` before delivery.
+
+## Studio widgets — [implemented, PR-06]
+
+`tests/studio/widgets.test.ts` iterates the actual Condition/Effect unions, requiring a generated
+form and a Studio-only summary phrase for every kind. Disposable copies of both packs are
+rendered without mutations and checked for the six-level builder fallback; the shipped copy is
+used only for this read-only depth/round-trip audit. Tests cover invalid/unknown rules, bounded
+recursion, three Text representations, multiline strings, channel classification, placeholder
+sets, journal warnings, shared reference labels and unresolved IDs.
+
+Studio browser scenarios use only temporary `STUDIO_ROOT`: a keyboard-only nested-condition
+edit adds a group, changes kinds, removes a node and saves. It checks not wrapping, empty-group
+rejection and unrelated-field preservation. Another scenario edits alternatives and explicit IDs,
+observes guidance, builds a roll/outcome/effect and verifies a later weight edit changes only
+that value in the saved bytes. Existing game smoke and golden traces retain game-safety ownership.

@@ -92,3 +92,13 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .dialog-actions { justify-content: flex-end; margin-top: 20px; }
 .used-by { padding: 18px; border-top: 1px solid var(--studio-border); }
 .used-by button { display: block; margin-top: 6px; overflow-wrap: anywhere; }
+.rule-widget, .outcome-widget, .text-widget { min-width: 0; padding: 12px; border: 1px solid var(--studio-border); border-radius: 6px; margin: 8px 0; }
+.rule-widget .rule-widget { background: var(--studio-ground); }
+.reads-as, .hint { font-size: 12px; margin-top: 8px; overflow-wrap: anywhere; }
+.hint { color: var(--studio-muted); }
+.warning { color: var(--studio-warning); font-size: 12px; }
+.variant { margin: 12px 0; }
+.text-widget textarea { font-family: var(--studio-game-text); white-space: pre-wrap; }
+.multi-select { display: flex; flex-wrap: wrap; gap: 12px; }
+.multi-select label { display: flex; align-items: center; gap: 5px; }
+select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 3px; }
