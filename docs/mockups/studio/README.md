@@ -1,7 +1,9 @@
-# Content Studio mockup — UX reference, not implemented
+# Content Studio mockup — UX reference
 
-Static, self-contained HTML screens showing the intended layout and flows of the planned Content
-Studio. Scope, decisions and PR order live in
+Static, self-contained HTML screens showing the intended layout and flows of the Content
+Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exist in the read-only
+browser. Forms, workspaces, graphs and live preview shown here remain proposals.
+Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
 

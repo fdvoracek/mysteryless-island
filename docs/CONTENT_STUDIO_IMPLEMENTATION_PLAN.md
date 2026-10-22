@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-03 implemented; PR-04 to PR-10 proposal]**
+Status: **[PR-01 to PR-04 implemented; PR-05 to PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -204,12 +204,14 @@ activity definitions and full/visible action order in every area of both packs.
 
 ### Phase B — Studio core
 
-**PR-04 — Studio shell, file API, browser.** `npm run studio`; the dev plugin (§4.2) with
+**PR-04 — Studio shell, file API, browser.** **[implemented]** `npm run studio`; the dev plugin (§4.2) with
 path-traversal, foreign-origin, non-allowlisted and stale-hash tests; React shell with navigation
 by kind and by area, entity list with search, read-only formatted JSON, structured diagnostics
 linked to entities. Lint boundary rule, the "no Studio in dist" test and the public shared surface
 `src/content/index.ts` (re-exports only; no behavior change).
 *Owner test:* open the Studio, browse Forest and an item, break a reference by hand, see the error.
+Implementation: [usage and transport contract](STUDIO.md), `src/studio/`,
+`tools/vite-content-api.ts`; `npm run test:studio` covers the read-only browser.
 
 **PR-05 — Generic editor, create dialog and save.** `ref()` metadata in the schema; generic form
 + widget registry (§4.4) with reference pickers; edit, duplicate, delete with "where used"

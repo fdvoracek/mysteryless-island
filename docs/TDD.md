@@ -937,3 +937,15 @@ content limits. Bait selection and crop-specific planting controls remain future
 
 Architecture, decisions, gates and PR order live only in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+
+## Content Studio foundation — [implemented, PR-04]
+
+`studio/index.html` and `src/studio/` provide a React read-only content browser. The serve-only
+file plugin is `tools/vite-content-api.ts`; its request/response contract and current limitations
+are documented in [STUDIO.md](STUDIO.md). `ContentError` retains its string problems and adds
+structured diagnostics; `src/content/index.ts` is a re-export-only public surface.
+
+ESLint boundaries run during typecheck, and production build tests inspect the emitted module
+graph and files for Studio dependencies. The game entry, engine, persistence, content and frozen
+fixtures remain unchanged by this foundation. Later editor features remain scoped by the
+[implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).

@@ -1,0 +1,159 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createServer, type ViteDevServer } from "vite";
+import { request } from "node:http";
+import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { contentApi } from "../../tools/vite-content-api";
+
+let root: string;
+let server: ViteDevServer;
+let port: number;
+const prefix = "/__studio/files";
+function call(method: string, path = prefix, body?: unknown, headers: Record<string, string | undefined> = {}) {
+  return new Promise<{ status: number; data: any }>((resolve, reject) => {
+    const payload = body === undefined ? undefined : JSON.stringify(body);
+    const req = request({ hostname: "127.0.0.1", port, method, path, headers: { "Content-Type": "application/json", ...(payload === undefined ? {} : { "Content-Length": Buffer.byteLength(payload) }), ...headers } }, (res) => {
+      const chunks: Buffer[] = [];
+      res.on("data", (chunk) => chunks.push(chunk));
+      res.on("end", () => {
+        try { resolve({ status: res.statusCode!, data: JSON.parse(Buffer.concat(chunks).toString()) }); }
+        catch (error) { reject(error); }
+      });
+    });
+    req.on("error", reject);
+    req.end(payload);
+  });
+}
+async function inventory() { return (await call("GET")).data.files as { path: string; content: string; encoding: string; hash: string }[]; }
+async function item() { return (await inventory()).find((file) => file.path === "content/items/test_item.json")!; }
+beforeEach(async () => {
+  root = await mkdtemp(join(tmpdir(), "textisland-api-"));
+  await mkdir(join(root, "content/items"), { recursive: true });
+  await mkdir(join(root, "public/illustrations"), { recursive: true });
+  await writeFile(join(root, "content/items/test_item.json"), '{ "id": "test_item", "_note": "preserve me" }\n');
+  await writeFile(join(root, "public/illustrations/test.png"), Buffer.from([0, 255, 1, 2]));
+  await writeFile(join(root, "package.json"), '{ "private": true }');
+  server = await createServer({ root, configFile: false, appType: "custom", logLevel: "silent", plugins: [contentApi()], server: { port: 0, hmr: false, watch: { ignored: ["**"] } } });
+  await server.listen();
+  port = (server.httpServer!.address() as { port: number }).port;
+});
+afterEach(async () => { await server?.close(); await rm(root, { recursive: true, force: true }); });
+
+describe("localhost content file transport", () => {
+  it("notifies the Studio of allowed external file changes only", () => {
+    const send = vi.spyOn(server.ws, "send");
+    server.watcher.emit("all", "change", join(root, "content/items/test_item.json"));
+    expect(send).toHaveBeenCalledWith({ type: "custom", event: "studio:files-changed", data: { path: "content/items/test_item.json" } });
+    send.mockClear();
+    server.watcher.emit("all", "change", join(root, "package.json"));
+    expect(send).not.toHaveBeenCalled();
+    send.mockRestore();
+  });
+  it("prints the exact Studio URL with the actual listening port", () => {
+    const log = vi.spyOn(server.config.logger, "info");
+    server.printUrls();
+    expect(log).toHaveBeenCalledWith(`  Studio: http://127.0.0.1:${port}/studio/`);
+    log.mockRestore();
+  });
+
+  it.each(["localhost", "127.0.0.1"])("accepts %s Host with its matching Origin or no Origin", async (hostname) => {
+    const host = `${hostname}:${port}`;
+    for (const headers of [{ Host: host }, { Host: host, Origin: `http://${host}` }]) {
+      expect((await call("GET", prefix, undefined, headers)).status).toBe(200);
+      // A guarded mutation reaches input validation, rather than being rejected by the Host check.
+      expect((await call("PUT", `${prefix}/content/items/test_item.json`, {}, headers)).status).toBe(400);
+    }
+  });
+
+  it("rejects both local Host/Origin mismatches and ignores forwarded headers", async () => {
+    for (const [host, origin] of [
+      [`localhost:${port}`, `http://127.0.0.1:${port}`],
+      [`127.0.0.1:${port}`, `http://localhost:${port}`],
+      [`evil.example:${port}`, `http://localhost:${port}`],
+      [`localhost:${port}`, "https://evil.example"],
+    ]) {
+      const headers = { Host: host, Origin: origin, "X-Forwarded-Host": `localhost:${port}`, "X-Forwarded-Proto": "http" };
+      expect((await call("GET", prefix, undefined, headers)).status).toBe(403);
+      expect((await call("PUT", `${prefix}/content/items/test_item.json`, {}, headers)).status).toBe(403);
+    }
+  });
+
+  it("lists raw JSON/comments and lossless binary images with stable hashes", async () => {
+    const response = await call("GET", prefix, undefined, { Origin: `http://127.0.0.1:${port}` });
+    expect(response.status).toBe(200);
+    const files = response.data.files;
+    expect(files).toHaveLength(2);
+    expect(files[0]).toMatchObject({ path: "content/items/test_item.json", content: '{ "id": "test_item", "_note": "preserve me" }\n', encoding: "utf8", hash: expect.stringMatching(/^[a-f0-9]{64}$/) });
+    expect(Buffer.from(files[1].content, "base64")).toEqual(Buffer.from([0, 255, 1, 2]));
+    expect(await inventory()).toEqual(files);
+  });
+
+  it.each([
+    { Origin: "https://evil.example" }, { Origin: "null" }, { Host: "evil.example:5173" },
+    { Host: "localhost:1" }, { Origin: "http://127.0.0.1:1" }, { Host: "evil.example", "X-Forwarded-Host": "127.0.0.1" },
+  ])("rejects foreign Host/Origin %j for reads and writes", async (headers) => {
+    expect((await call("GET", prefix, undefined, headers)).status).toBe(403);
+    expect((await call("PUT", `${prefix}/content/items/test_item.json`, {}, headers)).status).toBe(403);
+  });
+
+  it.each([
+    "../package.json", "content/../package.json", "content/%2e%2e/package.json", "content/%252e%252e/package.json",
+    "/tmp/file.json", "content//file.json", "content/%5c..%5cfile.json", ".git/config", ".githooks/hook.json",
+    "package.json", ".env.local", "content/file.ts", "public/illustrations/code.js", "public/illustrations/../file.png", "content/%00.json",
+  ])("rejects traversal/non-allowlisted path %s", async (path) => {
+    expect((await call("PUT", `${prefix}/${path}`, { expectedHash: null, content: "bad", encoding: "utf8" })).status).toBe(403);
+    expect(await readFile(join(root, "package.json"), "utf8")).toBe('{ "private": true }');
+  });
+
+  it("writes atomically, detects stale hashes, and serializes concurrent updates", async () => {
+    const original = await item();
+    const update = { expectedHash: original.hash, content: '{ "id": "test_item", "name": "updated" }\n', encoding: "utf8" };
+    const results = await Promise.all([call("PUT", `${prefix}/${original.path}`, update), call("PUT", `${prefix}/${original.path}`, update)]);
+    expect(results.map((result) => result.status).sort()).toEqual([200, 409]);
+    expect((await item()).content).toBe(update.content);
+    expect((await call("DELETE", `${prefix}/${original.path}`, { expectedHash: original.hash })).status).toBe(409);
+    expect(await readdir(join(root, "content/items"))).toEqual(["test_item.json"]);
+    const now = await item();
+    expect((await call("DELETE", `${prefix}/${original.path}`, { expectedHash: now.hash })).data.changed).toEqual([original.path]);
+    expect((await inventory()).some((file) => file.path === original.path)).toBe(false);
+  });
+
+  it("requires null hash for creation and rejects malformed input and image encodings", async () => {
+    const path = `${prefix}/content/items/new_item.json`;
+    expect((await call("PUT", path, { content: "{}", encoding: "utf8" })).status).toBe(400);
+    expect((await call("PUT", path, { expectedHash: "stale", content: "{}", encoding: "utf8" })).status).toBe(409);
+    expect((await call("PUT", path, { expectedHash: null, content: "{}", encoding: "base64" })).status).toBe(400);
+    expect((await call("PUT", path, { expectedHash: null, content: "{}", encoding: "utf8" })).status).toBe(200);
+    expect((await call("PUT", path, { expectedHash: null, content: "{}", encoding: "utf8" })).status).toBe(409);
+    expect((await call("PUT", `${prefix}/public/illustrations/new.png`, { expectedHash: null, content: "!!!", encoding: "base64" })).status).toBe(400);
+    const binary = { expectedHash: null, content: "AP8=", encoding: "base64" };
+    expect((await call("PUT", `${prefix}/public/illustrations/new.png`, binary)).status).toBe(200);
+    expect(await readFile(join(root, "public/illustrations/new.png"))).toEqual(Buffer.from([0, 255]));
+    expect((await call("PUT", path, [], { "Content-Type": "text/plain" })).status).toBe(415);
+    expect((await call("PUT", path, [])).status).toBe(400);
+  });
+
+  it("renames without overwriting, reports changed paths, and rejects stale/unsafe destinations", async () => {
+    const original = await item();
+    const route = `${prefix}/${original.path}/rename`;
+    expect((await call("POST", route, { expectedHash: "stale", path: "content/items/new.json" })).status).toBe(409);
+    expect((await call("POST", route, { expectedHash: original.hash, path: "../package.json" })).status).toBe(403);
+    expect((await call("POST", route, { expectedHash: original.hash, path: original.path })).status).toBe(409);
+    const result = await call("POST", route, { expectedHash: original.hash, path: "content/items/new.json" });
+    expect(result).toMatchObject({ status: 200, data: { changed: [original.path, "content/items/new.json"], hash: original.hash } });
+    expect((await inventory()).some((file) => file.path === original.path)).toBe(false);
+  });
+
+  it("rejects symlinked files, parents and roots without reading/writing outside the allowlist", async () => {
+    await symlink(join(root, "package.json"), join(root, "content/items/linked.json"));
+    expect((await call("GET")).status).toBe(403);
+    expect((await call("PUT", `${prefix}/content/items/linked.json`, { expectedHash: null, content: "bad", encoding: "utf8" })).status).toBe(403);
+    await rm(join(root, "content/items/linked.json"));
+    await symlink(root, join(root, "content/escape"));
+    expect((await call("DELETE", `${prefix}/content/escape/package.json`, { expectedHash: null })).status).toBe(403);
+    await rm(join(root, "public/illustrations"), { recursive: true });
+    await symlink(root, join(root, "public/illustrations"));
+    expect((await call("GET")).status).toBe(403);
+  });
+});

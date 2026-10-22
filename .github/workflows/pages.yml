@@ -31,6 +31,8 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npm run test:e2e
+      - name: Studio browser test
+        run: npm run test:studio
       - name: Upload Playwright report
         if: failure()
         uses: actions/upload-artifact@v6

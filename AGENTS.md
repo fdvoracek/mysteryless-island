@@ -16,7 +16,7 @@ Include these requirements when delegating visual work. Gameplay, persistence, c
 and tooling changes without visual impact do not require these guides; read them when a task
 also changes presentation. Keep detailed visual rules in the guides rather than copying them here.
 
-## Planned Content Studio — [proposal, not implemented]
+## Content Studio — [PR-04 foundation implemented; later editor work planned]
 
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md) is the
 single source for Studio scope, confirmed decisions, open gates and PR order (PR-01 to PR-10).
@@ -24,7 +24,8 @@ Do not copy its decisions into other files. Working rules for a Studio PR:
 
 1. Implement exactly one numbered PR. Read the plan, ARCHITECTURE.md, docs/TESTING.md and the
    current code first. If the PR touches an open gate, ask the owner before coding.
-2. Studio and API paths (`src/studio/`, `tools/vite-content-api.ts`) remain planned.
+2. **[implemented, PR-04]** `src/studio/` and `tools/vite-content-api.ts` provide the local
+   read-only browser and file API. Usage: [docs/STUDIO.md](docs/STUDIO.md).
    **[implemented, PR-02]** Content entities use `content/<kind>/<id>.json`.
    **[implemented, PR-03]** Activities are standalone files linked by region ID lists.
    The sections below describe the current code.
@@ -42,7 +43,9 @@ npm run content:check  # shipped schema/references and canonical content/fixture
 npm run typecheck
 npm run build          # tsc + vite build into dist/
 npm run test:e2e       # builds dist-test/ and runs Playwright smoke tests (Chromium)
-npm run check          # all of it, as CI: tests, content validation, builds, browser test
+npm run studio         # http://127.0.0.1:5173/studio/ (prints the exact URL for custom ports)
+npm run test:studio    # Studio browser wiring tests (Chromium)
+npm run check          # tests, content validation, builds, game and Studio browser tests
 ```
 
 URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.

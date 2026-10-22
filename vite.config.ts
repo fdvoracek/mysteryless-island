@@ -1,7 +1,11 @@
 import { defineConfig } from "vitest/config";
+import { contentApi } from "./tools/vite-content-api";
 
 export default defineConfig(({ mode }) => ({
   base: "./",
+  plugins: mode === "studio" ? [contentApi()] : [],
+  esbuild: { jsx: "automatic" },
+  server: mode === "studio" ? { host: "127.0.0.1", port: 5173, strictPort: true } : undefined,
   build: {
     outDir: mode === "engine-test" ? "dist-test" : "dist",
   },
