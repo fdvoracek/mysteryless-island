@@ -1,4 +1,4 @@
-# Content Studio — [implemented, PR-10 live preview]
+# Content Studio — [implemented, PR-10 live preview; JSON editor mode]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
@@ -35,7 +35,7 @@ unset optional fields, add/remove/reorder array entries, and add/remove record k
 fields and reference record keys offer IDs from the current pack, including unsaved drafts.
 Unions offer a value-type selector; discriminated unions use their discriminator. Unsupported
 schema nodes, unknown fields and deeply nested structures use validated JSON input. Conditions, effects, outcomes and Text use specialized schema-bound widgets (below).
-The JSON view also shows the canonical save preview. Existing entity IDs are read-only in the
+Existing entity IDs are read-only in the
 form; use Rename IDs for reference-aware file moves. Changing the root ID in JSON fails filename validation.
 
 **Create** supports the nine independent entity kinds, including artwork. The dialog is generated
@@ -68,6 +68,32 @@ for correction/retry. An interrupted group can leave an incomplete pack on disk;
 remaining save or use Git to recover. The existing file API guards each write, not the entire
 pack against another editor changing an unrelated file after validation. A `409` retains the
 draft and opens the conflict dialog. A keep-mine choice always needs explicit overwrite.
+
+## JSON editor — [implemented]
+
+JSON mode is a CodeMirror 6 editor (Studio-only dependency) over the whole file, including areas
+and events: line numbers, folding, bracket matching, search/replace and syntax highlighting. Tab is
+left to the browser so keyboard users can leave the editor. It opens on the house format
+(`formatContent`); what is typed is the draft and is never reformatted while typing. Save writes
+the house format, after which the editor shows the saved text with the cursor on the same JSON path.
+`_` comments and key order are plain text, so they survive.
+
+- **Errors.** JSON syntax errors and duplicate keys (which `JSON.parse` would silently collapse) are
+  underlined at their line immediately. Registry diagnostics for the file are mapped from their field
+  path to the line and shown inline once the draft is validated. All of them block Save as before. Malformed
+  text is a buffer: the last valid draft stays in the pack, so one typo does not cascade into
+  unknown-reference problems elsewhere.
+- **Schema help.** `json-schema.ts` derives a JSON Schema from the Zod schemas (no change to
+  `src/content`). Ctrl+Space completes keys, enum values, booleans and, for `ref()` fields, existing IDs
+  including unsaved drafts; hovering a key shows its description where the schema carries one.
+  Unsupported schema parts get no completion.
+- **Undo.** While the editor has focus, Cmd/Ctrl+Z and redo belong to CodeMirror's history; the
+  toolbar Undo/Redo use the Studio history. Edits reach the store after 300 ms of silence and become
+  one Studio undo step on blur or after 500 ms without typing. Validation runs on the store edit,
+  not per keystroke. A change from elsewhere (form edit, Studio undo, disk reload) replaces the text
+  in place without taking focus.
+- **Mode per file.** Game settings, stats and climate open in JSON; every other kind opens in Form.
+  The last choice is remembered per file in `localStorage` (`studio.editorMode:<path>`).
 
 ## Local file transport
 

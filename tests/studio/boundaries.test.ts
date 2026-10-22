@@ -15,12 +15,15 @@ it("enforces import boundaries for game, core, content and Studio", async () => 
     ["src/core/invalid.ts", 'type X = import("../ui/render").X;'],
     ["src/studio/invalid.ts", 'type X = import("../content/schema").X;'],
     ["src/ui/invalid.tsx", 'const element = <div />;'],
+    ["src/ui/invalid.ts", 'import "@codemirror/view";'],
+    ["src/core/invalid.ts", 'import "@lezer/common";'],
+    ["src/ui/invalid.ts", 'type X = import("@codemirror/state").EditorState;'],
   ];
   for (const [filePath, source] of bad) {
     const [result] = await lint.lintText(source, { filePath });
     expect(result.errorCount, `${filePath}: ${source}`).toBeGreaterThan(0);
   }
-  for (const source of ['import "../content";', 'import "../content/index";', 'import "../core/engine";', 'import "react";']) {
+  for (const source of ['import "../content";', 'import "../content/index";', 'import "../core/engine";', 'import "react";', 'import "@codemirror/view";', 'import "@lezer/common";']) {
     const [result] = await lint.lintText(source, { filePath: "src/studio/valid.ts" });
     expect(result.errorCount, source).toBe(0);
   }

@@ -3,6 +3,7 @@ import { Condition, Effect } from "../../src/content";
 import { unionKinds } from "../../src/studio/describe";
 import { unwrap, type Schema } from "../../src/studio/schema";
 import { expect, test } from "@playwright/test";
+import { editorText, setEditorText } from "./editor";
 
 test("browses frozen fixture files by area/kind, searches, and edits generic forms at desktop and phone widths", async ({ page }) => {
   const errors: string[] = [];
@@ -210,18 +211,18 @@ test("retains invalid JSON across view switches and includes it in undo/redo", a
   await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^knife$/ }) }).click();
   await page.getByRole("button", { name: "JSON", exact: true }).click();
   const json = page.getByRole("textbox", { name: "JSON document", exact: true });
-  const original = await json.inputValue();
+  const original = await editorText(page);
   await json.fill("{broken JSON");
   await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
   await expect(page.getByRole("status")).toHaveText("1 problem");
   await page.getByRole("button", { name: "Form", exact: true }).click();
   await page.getByRole("button", { name: "JSON", exact: true }).click();
-  await expect(json).toHaveValue("{broken JSON");
+  await expect.poll(() => editorText(page)).toBe("{broken JSON");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(json).toHaveValue(original);
+  await expect.poll(() => editorText(page)).toBe(original);
   await page.getByRole("button", { name: "Redo", exact: true }).click();
-  await expect(json).toHaveValue("{broken JSON");
-  await json.fill(original);
+  await expect.poll(() => editorText(page)).toBe("{broken JSON");
+  await setEditorText(page, original);
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
   await expect(page.getByRole("button", { name: "Save all" })).toBeDisabled();
 });

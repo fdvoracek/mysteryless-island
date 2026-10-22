@@ -76,8 +76,14 @@ export class StudioStore {
       conflicts: new Map([...this.conflicts].map(([path, conflict]) => [path, { ...conflict }])),
       hashes: new Map(this.disk.map((file) => [file.path, file.hash])) };
   }
-  private checkpoint() { this.past.push(this.snapshot()); this.future = []; }
+  /** Path whose live-typing burst already has its undo checkpoint. */
+  private typing?: string;
+  private checkpoint() { this.typing = undefined; this.past.push(this.snapshot()); this.future = []; }
+  private joinTyping(path: string) { if (this.typing !== path) this.checkpoint(); this.typing = path; }
+  /** Ends a live-typing burst so the next live edit starts a new undo step. */
+  endTyping() { this.typing = undefined; }
   private restore(snapshot: Snapshot) {
+    this.typing = undefined;
     this.moves = snapshot.moves; this.drafts = snapshot.drafts; this.inputErrors = snapshot.errors; this.buffers = snapshot.buffers;
     this.conflicts = new Map([...snapshot.conflicts].filter(([path]) => this.drafts.has(path)));
     for (const path of this.drafts.keys()) {
@@ -93,10 +99,40 @@ export class StudioStore {
     for (const key of this.buffers.keys()) if (key.startsWith(path + ":")) this.buffers.delete(key);
   }
   edit(path: string, raw: unknown) { this.editText(path, formatContent(raw)); }
-  editText(path: string, content: string) {
+  /**
+   * Text from the JSON editor. Malformed text is kept as a buffer (like a raw field) and leaves the
+   * last valid draft in place, so one typo does not cascade into unknown-reference problems.
+   */
+  editJson(path: string, text: string) {
+    if (this.busy) return;
+    const key = `${path}:`;
+    let failure = "";
+    try { JSON.parse(text); } catch (error) { failure = (error as Error).message; }
+    if (failure) {
+      if (this.buffers.get(key)?.text === text) return;
+      this.joinTyping(path);
+      let source = "";
+      try { source = JSON.stringify(JSON.parse(this.drafts.get(path) ?? this.disk.find((file) => file.path === path)?.content ?? ""), null, 2); } catch { /* unreadable source */ }
+      this.inputErrors.set(key, failure); this.buffers.set(key, { text, source });
+      if (!this.drafts.has(path)) { const document = this.disk.find((file) => file.path === path); if (document) this.drafts.set(path, document.content); }
+      this.notify();
+      return;
+    }
+    if (this.inputErrors.has(key)) {
+      this.joinTyping(path);
+      this.inputErrors.delete(key); this.buffers.delete(key);
+      if (this.drafts.get(path) === text) { this.clean(path); this.notify(); return; }
+    }
+    this.editText(path, text, true);
+  }
+  /** `live` edits (the JSON editor) share one undo checkpoint until `endTyping`. */
+  editText(path: string, content: string, live = false) {
     if (this.drafts.get(path) === content) return;
     if (this.busy) return;
-    this.checkpoint(); this.drafts.set(path, content);
+    if (!live || this.typing !== path) this.checkpoint();
+    this.typing = live ? path : undefined;
+    if (!live) this.inputErrors.delete(`${path}:json`);
+    this.drafts.set(path, content);
     try {
       const raw = JSON.parse(content);
       for (const [key, buffer] of this.buffers) if (key.startsWith(path + ":") && JSON.stringify(getAt(raw, key.slice(path.length + 1)), null, 2) !== buffer.source) {
@@ -110,6 +146,16 @@ export class StudioStore {
     let same = original?.content === this.drafts.get(path);
     try { same ||= !!original && formatContent(JSON.parse(original.content)) === this.drafts.get(path); } catch { /* malformed source stays editable */ }
     if (same && ![...this.inputErrors.keys()].some((key) => key.startsWith(path + ":"))) this.drafts.delete(path);
+  }
+  /** Editor-detected problem JSON.parse would hide (a duplicate key); blocks Save without an undo step. */
+  setJsonProblem(path: string, message: string) {
+    const key = `${path}:json`;
+    if ((this.inputErrors.get(key) ?? "") === message) return;
+    if (message) {
+      this.inputErrors.set(key, message);
+      if (!this.drafts.has(path)) { const document = this.disk.find((file) => file.path === path); if (document) this.drafts.set(path, document.content); }
+    } else { this.inputErrors.delete(key); this.clean(path); }
+    this.notify();
   }
   error(path: string, field: string, message: string, buffer?: JsonBuffer) {
     if (this.busy) return;
