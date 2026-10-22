@@ -1,7 +1,8 @@
 import { buildRegistry, ContentError, formatContent, Id, type ContentProblem, type Registry } from "../content";
 import { readDocuments, type FileDocument } from "./documents";
 import { entitySchemas, identityFields, schemaFor, stripComments } from "./schema";
-import { getAt, deletionReferences } from "./references";
+import { getAt } from "./references";
+import { deletionBlockers, isTreeShape, placeNode, treeDocument, withoutNode } from "./tree";
 import { renamePlan } from "./rename";
 
 type Drafts = Map<string, string | null>;
@@ -222,6 +223,19 @@ export class StudioStore {
     this.drafts.set(areaPath, formatContent({ ...area.raw as object, activities: [...links, id] }));
     this.notify(); return path;
   }
+  /** One grouped operation: the recipe/building draft and its new node in its creation tree. */
+  createWithTreeNode(kind: string, raw: unknown, node: { branch: string; after: string[] }): string {
+    const treeKind = kind === "recipes" ? "craft" : kind === "buildings" ? "build" : undefined;
+    if (!treeKind) throw new Error("Choose a recipe or building for this tree.");
+    if (this.busy || this.createProblems(kind, raw).length) throw new Error("Complete the required fields and use new IDs.");
+    const tree = treeDocument(this.view.documents, treeKind);
+    if (!tree || !isTreeShape(tree.raw)) throw new Error("The creation tree is missing or damaged; repair it first.");
+    const id = (raw as { id: string }).id, path = `content/${kind}/${id}.json`;
+    const placed = placeNode(tree.raw, id, node.branch, node.after);
+    this.checkpoint(); this.drafts.set(path, formatContent(raw));
+    this.drafts.set(tree.path, formatContent(placed)); this.clean(tree.path);
+    this.notify(); return path;
+  }
   orphanActivities(areaPath: string) {
     const docs = this.view.documents, area = docs.find(d => d.path === areaPath);
     const links = (area?.raw as { activities?: string[] })?.activities;
@@ -232,11 +246,13 @@ export class StudioStore {
     if (this.busy) throw new Error("Wait for the current save.");
     const documents = this.view.documents, target = documents.find((d) => d.path === path);
     if (!target || !entitySchemas[target.kind]) throw new Error("Singleton files cannot be deleted.");
-    if (deletionReferences(documents, target).length) throw new Error("This entity is still referenced.");
+    if (deletionBlockers(documents, target).length) throw new Error("This entity is still referenced.");
     const removing = [target, ...(deleteOrphans && target.kind === "regions" ? this.orphanActivities(path) : [])];
     const remaining = documents.filter(d => !removing.some(r => r.path === d.path));
-    for (const document of removing) if (deletionReferences([...remaining, document], document).length) throw new Error("A linked activity is still referenced.");
+    for (const document of removing) if (deletionBlockers([...remaining, document], document).length) throw new Error("A linked activity is still referenced.");
     this.checkpoint();
+    const node = withoutNode(documents, target);
+    if (node) { this.drafts.set(node.path, formatContent(node.raw)); this.clean(node.path); }
     for (const document of removing) {
       const p = document.path;
       this.clearInputs(p);

@@ -16,7 +16,7 @@ Include these requirements when delegating visual work. Gameplay, persistence, c
 and tooling changes without visual impact do not require these guides; read them when a task
 also changes presentation. Keep detailed visual rules in the guides rather than copying them here.
 
-## Content Studio — [PR-04 foundation implemented; later editor work planned]
+## Content Studio — [PR-01 to PR-09 implemented; preview (PR-10) planned]
 
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md) is the
 single source for Studio scope, confirmed decisions, open gates and PR order (PR-01 to PR-10).

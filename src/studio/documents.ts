@@ -59,3 +59,10 @@ export function areaDocuments(documents: Document[], area: Document): Document[]
   return [area, ...documents.filter((document) => document.kind === "activities"
     && ((Array.isArray(links) && links.includes(document.id)) || (document.raw as { global?: boolean })?.global))];
 }
+/** Diagnostics in `current` beyond those already in `baseline` (multiset match on file, path and message). */
+export function introducedProblems(baseline: ContentProblem[], current: ContentProblem[]): ContentProblem[] {
+  const counts = new Map<string, number>();
+  const key = (p: ContentProblem) => JSON.stringify([p.file, p.path, p.message]);
+  for (const p of baseline) counts.set(key(p), (counts.get(key(p)) ?? 0) + 1);
+  return current.filter(p => { const left = counts.get(key(p)) ?? 0; if (left) counts.set(key(p), left - 1); return !left; });
+}

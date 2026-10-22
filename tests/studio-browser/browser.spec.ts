@@ -630,3 +630,186 @@ test("creates and saves a task from a landmark continuation without losing the p
     if (file) expect((await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } })).ok()).toBe(true);
   }
 });
+
+const studioFiles = async (request: import("@playwright/test").APIRequestContext) => (await (await request.get("/__studio/files")).json()).files as { path: string; content: string; hash: string }[];
+async function restoreFile(request: import("@playwright/test").APIRequestContext, initial: { path: string; content: string }) {
+  const current = (await studioFiles(request)).find(f => f.path === initial.path)!;
+  expect((await request.put(`/__studio/files/${initial.path}`, { data: { expectedHash: current.hash, content: initial.content, encoding: "utf8" } })).ok()).toBe(true);
+}
+test("creation tree: New recipe here, cycle refusal, graph connect and removal with the recipe; story and event graphs cannot connect", async ({ page, request }) => {
+  const treePath = "content/trees/crafting.json", recipePath = "content/recipes/browser_pick.json";
+  const initial = (await studioFiles(request)).find(f => f.path === treePath)!;
+  const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
+  try {
+    await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    const nav = page.getByRole("navigation", { name: "Content navigation" });
+    await nav.getByRole("button", { name: "Story", exact: true }).click();
+    await expect(page.locator(".react-flow__node").first()).toBeVisible();
+    await expect(page.locator(".react-flow__handle.connectable")).toHaveCount(0);
+    await nav.getByRole("button", { name: /^Events/ }).click();
+    await expect(page.locator(".react-flow__handle.connectable")).toHaveCount(0);
+
+    await nav.getByRole("button", { name: "Trees", exact: true }).click();
+    const editor = page.getByRole("region", { name: "Creation tree editor" });
+    await expect(editor).toContainText("only the prerequisites are authoritative");
+    await expect(editor).toContainText("existing saves keep their earned unlocks");
+    const nodes = 5, edges = 4;
+    await expect(editor.locator(".react-flow__node")).toHaveCount(nodes); await expect(editor.locator(".react-flow__edge")).toHaveCount(edges);
+    await expect(editor.locator(".react-flow__handle.connectable").first()).toBeVisible();
+    await editor.getByRole("button", { name: "Accessible list view" }).click();
+    await expect(editor.locator("[data-node]")).toHaveCount(nodes); await expect(editor.locator("[data-edge]")).toHaveCount(edges);
+    await editor.getByRole("button", { name: "Graph view" }).click();
+
+    await editor.locator('.react-flow__node[data-id="craft_axe"]').click();
+    await editor.getByRole("button", { name: "New recipe here", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create entity" });
+    await expect(dialog).toContainText("after craft_axe");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_pick");
+    await dialog.getByRole("combobox", { name: "item", exact: true }).selectOption("hoe");
+    await dialog.getByRole("button", { name: "Add ways entry", exact: true }).click();
+    await dialog.getByRole("spinbutton", { name: "ways.0.hours", exact: true }).fill("1");
+    await dialog.getByRole("combobox", { name: "ways.0.effort", exact: true }).selectOption({ index: 1 });
+    await dialog.getByRole("button", { name: "Create draft", exact: true }).click();
+    await expect(page.getByText("2 unsaved files")).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+    await page.getByRole("button", { name: "Redo", exact: true }).click();
+    await expect(page.getByText("2 unsaved files")).toBeVisible();
+    await expect(page.getByRole("status").first()).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const saved = JSON.parse((await studioFiles(request)).find(f => f.path === treePath)!.content);
+    const expected = JSON.parse(initial.content); expected.nodes.push({ target: "browser_pick", branch: "craft_tools", after: ["craft_axe"], order: 5 });
+    expect(saved).toEqual(expected);
+
+    await nav.getByRole("button", { name: "Trees", exact: true }).click();
+    await editor.locator('.react-flow__node[data-id="craft_axe"]').click();
+    await editor.getByRole("combobox", { name: "Prerequisite to add", exact: true }).selectOption("browser_pick");
+    await editor.getByRole("button", { name: "Add prerequisite", exact: true }).click();
+    await expect(editor.getByRole("alert")).toContainText("cycle craft_axe → browser_pick → craft_axe");
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+
+    await editor.locator('.react-flow__node[data-id="craft_spear"] .react-flow__handle.source').dragTo(editor.locator('.react-flow__node[data-id="craft_rope"] .react-flow__handle.target'));
+    await expect(page.getByText("1 unsaved files")).toBeVisible();
+    await editor.getByRole("button", { name: "Accessible list view" }).click();
+    await expect(editor.locator('[data-edge="craft_spear/craft_rope"]')).toBeVisible();
+    await page.getByRole("button", { name: "Undo", exact: true }).click();
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+
+    await nav.getByRole("button", { name: /^Recipes/ }).click();
+    await page.getByRole("button", { name: /browser_pick/ }).first().click();
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await page.getByRole("dialog", { name: "Delete entity" }).getByRole("button", { name: "Delete draft", exact: true }).click();
+    await expect(page.getByText("2 unsaved files")).toBeVisible();
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+    expect((await studioFiles(request)).find(f => f.path === treePath)!.content).toBe(initial.content);
+    expect((await studioFiles(request)).some(f => f.path === recipePath)).toBe(false);
+    expect(errors).toEqual([]);
+  } finally {
+    const leftover = (await studioFiles(request)).find(f => f.path === recipePath);
+    if (leftover) await request.delete(`/__studio/files/${recipePath}`, { data: { expectedHash: leftover.hash } });
+    await restoreFile(request, initial);
+  }
+});
+
+test("creation tree: branches, rename, blocked branch delete and placing an unplaced recipe", async ({ page, request }) => {
+  const treePath = "content/trees/crafting.json", recipePath = "content/recipes/browser_loose.json";
+  const initial = (await studioFiles(request)).find(f => f.path === treePath)!;
+  try {
+    await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create entity" });
+    await dialog.getByRole("combobox", { name: "Create kind", exact: true }).selectOption("recipes");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_loose");
+    await dialog.getByRole("combobox", { name: "item", exact: true }).selectOption("hoe");
+    await dialog.getByRole("button", { name: "Add ways entry", exact: true }).click();
+    await dialog.getByRole("spinbutton", { name: "ways.0.hours", exact: true }).fill("1");
+    await dialog.getByRole("combobox", { name: "ways.0.effort", exact: true }).selectOption({ index: 1 });
+    await dialog.getByRole("button", { name: "Create draft", exact: true }).click();
+    await page.getByRole("navigation").getByRole("button", { name: "Trees", exact: true }).click();
+    const editor = page.getByRole("region", { name: "Creation tree editor" });
+    await expect(editor.getByRole("region", { name: "Not placed yet" })).toContainText("browser_loose");
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+    await expect(editor.getByRole("button", { name: "Delete branch craft_tools", exact: true })).toBeDisabled();
+
+    await editor.getByLabel("New branch ID", { exact: true }).fill("browser_branch");
+    await editor.getByLabel("New branch name", { exact: true }).fill("spare");
+    await editor.getByRole("button", { name: "Add branch", exact: true }).click();
+    await editor.getByRole("button", { name: "Rename browser_branch…", exact: true }).click();
+    const rename = page.getByRole("dialog", { name: "Rename ID" });
+    await rename.getByLabel("New ID", { exact: true }).fill("browser_renamed");
+    await rename.getByRole("button", { name: "Stage rename", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Rename ID" })).toHaveCount(0);
+    await expect(editor.getByRole("heading", { name: "Creation trees" })).toBeVisible();
+    await expect(editor.getByRole("region", { name: "Branches" })).toContainText("browser_renamed");
+    await expect(editor.getByRole("region", { name: "Branches" })).not.toContainText("browser_branch");
+    await expect(editor.getByRole("button", { name: "Crafting tree", exact: true })).toHaveAttribute("aria-pressed", "true");
+
+    await editor.getByRole("button", { name: "Place browser_loose in tree", exact: true }).click();
+    const place = page.getByRole("dialog", { name: "Place in tree" });
+    await place.getByRole("combobox", { name: "Branch", exact: true }).selectOption("browser_renamed");
+    await place.getByRole("checkbox", { name: "craft_rope" }).check();
+    await place.getByRole("button", { name: "Place in tree", exact: true }).click();
+    await expect(editor.getByRole("region", { name: "Not placed yet" })).toContainText("Every recipe has a node");
+    await expect(editor.getByRole("region", { name: "Branches" })).toContainText("Used by 1 node");
+    await expect(page.getByRole("status").first()).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+    const expected = JSON.parse(initial.content);
+    expected.branches.push({ id: "browser_renamed", name: "spare", order: 3 });
+    expected.nodes.push({ target: "browser_loose", branch: "browser_renamed", after: ["craft_rope"], order: 5 });
+    expect(JSON.parse((await studioFiles(request)).find(f => f.path === treePath)!.content)).toEqual(expected);
+  } finally {
+    await restoreFile(request, initial);
+    const leftover = (await studioFiles(request)).find(f => f.path === recipePath);
+    if (leftover) await request.delete(`/__studio/files/${recipePath}`, { data: { expectedHash: leftover.hash } });
+  }
+});
+
+test("map editor moves areas by drag and keyboard, refuses occupied cells, cancels with Escape and shows travelHours diagnostics", async ({ page, request }) => {
+  const paths = ["content/regions/forest.json", "content/regions/meadows.json"];
+  const initial = (await studioFiles(request)).filter(f => paths.includes(f.path));
+  const read = async (path: string) => JSON.parse((await studioFiles(request)).find(f => f.path === path)!.content);
+  try {
+    await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("navigation").getByRole("button", { name: "Map", exact: true }).click();
+    const map = page.getByRole("region", { name: "Map editor" });
+    await expect(map.getByRole("button", { name: /^Area (beach|forest|meadows)$/ })).toHaveCount(3);
+    await expect(map.locator('[data-cell="0,0"]')).toContainText("camp");
+    await expect(map.getByLabel("Paths from camp")).toContainText("beach → forest: 0.5 h");
+    await map.getByRole("button", { name: "Area forest", exact: true }).dragTo(map.locator('[data-cell="0,0"]'));
+    await expect(map.getByRole("alert")).toContainText("occupied by beach");
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+    await map.getByRole("button", { name: "Area forest", exact: true }).dragTo(map.locator('[data-cell="1,1"]'));
+    await expect(page.getByText("1 unsaved files")).toBeVisible();
+
+    const meadows = map.getByRole("button", { name: "Area meadows", exact: true });
+    await meadows.focus(); await page.keyboard.press("ArrowDown"); await page.keyboard.press("ArrowDown");
+    await expect(map.locator('[data-cell="-1,2"]')).toContainText("Move meadows here");
+    await page.keyboard.press("Escape");
+    await expect(map.getByText("Move meadows here")).toHaveCount(0);
+    await expect(page.getByText("1 unsaved files")).toBeVisible();
+    await meadows.focus(); await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("Enter");
+    await expect(map.getByRole("alert")).toContainText("occupied by beach");
+    await meadows.focus(); await page.keyboard.press("ArrowDown"); await page.keyboard.press("Enter");
+    await expect(page.getByText("2 unsaved files")).toBeVisible();
+    await expect(map.locator('[data-cell="-1,1"]')).toContainText("meadows");
+
+    await map.getByLabel("travelHours forest", { exact: true }).fill("0.3");
+    await expect(map.getByRole("alert").filter({ hasText: "travelHours" }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+    await map.getByLabel("travelHours forest", { exact: true }).fill("0.5");
+    await expect(page.getByRole("status").first()).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByText("0 unsaved files")).toBeVisible();
+    const forest = JSON.parse(initial[0].content), meadowsRaw = JSON.parse(initial[1].content);
+    forest.map = { x: 1, y: 1 }; meadowsRaw.map = { x: -1, y: 1 };
+    expect(await read(paths[0])).toEqual(forest); expect(await read(paths[1])).toEqual(meadowsRaw);
+    await map.getByRole("button", { name: "Area forest", exact: true }).click();
+    await expect(page.getByLabel("Area workspace", { exact: true })).toBeVisible();
+  } finally {
+    for (const file of initial) await restoreFile(request, file);
+  }
+});

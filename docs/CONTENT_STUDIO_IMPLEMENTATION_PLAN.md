@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-08 implemented; PR-09 to PR-10 proposal]**
+Status: **[PR-01 to PR-09 implemented; PR-10 proposal]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -363,10 +363,39 @@ avoiding repeated parse/registry/reference work. Tests remain in `npm test`; no 
 
 *Owner test:* landmark → task → event chain created in the Studio and played in the game.
 
-**PR-09 — Creation tree and map editors.** React Flow tree editor for crafting/building
-(parents, branch, order; new recipe/building gets its node in the same save; cycles rejected);
-area map editor that drags `region.map` cells and shows the existing camp-centered paths and travel
-hours.
+**PR-09 — Creation tree and map editors.** **[implemented]** React Flow tree editor for
+crafting/building (parents, branch, order; new recipe/building gets its node in the same save;
+cycles rejected); area map editor that drags `region.map` cells and shows the existing
+camp-centered paths and travel hours.
+
+Owner decisions (2026-10-22), PR-09:
+- “New recipe here” / “New building here” reuses the PR-05 create dialog and stages the entity
+  plus its tree node (branch and parent from the selected node, order = max + 1) as one undo
+  step. Like “New activity in this area”, this is an explicit, user-chosen link; ordinary Create
+  never places a node. Save all validates both files under §4.3.
+- Deleting a recipe/building removes its own node in the same staged change; a node that is a
+  prerequisite of another node blocks deletion and the dependent child nodes are listed. Nodes
+  are never deleted on their own, and prerequisites are never detached automatically.
+- Cycles, self-parents and parents outside the tree are refused before staging, with the cycle
+  path. Deleting a branch is blocked while nodes use it; branch rename uses the PR-07 rename.
+- The map editor reuses the PR-07 cell grid. An area without `map` shows at its order index on
+  row 0; moving it writes `map` explicitly. An occupied target cell is refused, and cells
+  holding several areas (for example a default position equal to a set cell) show the existing
+  overlap warning. `travelHours` is validated by the registry (whole `game.stepMinutes`
+  steps), which is the authority; the input only derives its step from `game.stepMinutes`.
+
+Implementation: `src/studio/tree.ts` (pure tree operations, cycle path, delete blockers),
+`tree-editor.tsx`, `map.ts` (cell model, `moveArea`), `map-cells.tsx` (shared grid, picker and
+editor modes), `map-editor.tsx`, and `StudioStore.createWithTreeNode` plus tree-aware delete.
+`GraphView` gained an opt-in `connect` prop; story and event graphs still cannot connect nodes.
+No layout is stored in content. See [usage](STUDIO.md#creation-tree-and-map-editors--implemented-pr-09).
+
+*Done when:* both fixture trees and the map round-trip unchanged through the editors; adding or
+removing a prerequisite, changing branch/order, adding a branch, placing an unplaced recipe and
+“New recipe here” each produce exactly the expected content change and the pack saves without
+diagnostics; a cycle and a cross-tree parent are refused before staging with a message; moving
+an area by drag and by keyboard changes only `region.map` and occupied cells are refused; the
+list views expose the same nodes and edges as the graphs.
 *Owner test:* add a recipe under the axe, craft it in the game; move an area on the map.
 
 ### Phase D — convenience

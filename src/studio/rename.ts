@@ -1,5 +1,5 @@
 import { Id, formatContent } from "../content";
-import { readDocuments, type Document } from "./documents";
+import { introducedProblems, readDocuments, type Document } from "./documents";
 import { identities, references, resolvesTo, type Identity } from "./references";
 import { visitValue, schemaFor } from "./schema";
 
@@ -65,8 +65,9 @@ export function renamePlan(documents: Document[], file: string, path: string, ne
     if (content === null) files.delete(p);
     else files.set(p, { ...(files.get(p) ?? { ...owner, hash: "" }), path: p, content });
   }
-  const problems = readDocuments([...files.values()]).diagnostics;
-  if (problems.length) throw new Error(`Rename would leave registry errors: ${problems.map(p => `${p.file} › ${p.path}: ${p.message}`).join("; ")}`);
+  // Diagnostics already in the pack (for example an unplaced recipe) do not block an unrelated rename.
+  const problems = introducedProblems(readDocuments(documents).diagnostics, readDocuments([...files.values()]).diagnostics);
+  if (problems.length) throw new Error(`Rename would add registry errors: ${problems.map(p => `${p.file} › ${p.path}: ${p.message}`).join("; ")}`);
   const plan = { target, newId, changes, drafts, move };
   let index = planIndexes.get(documents);
   if (!index) { index = new Map(); planIndexes.set(documents, index); }

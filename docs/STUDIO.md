@@ -22,7 +22,7 @@ tab through **Open game** and uses its ordinary save slots.
 
 Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
 undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Area workspace and rename are **[implemented, PR-07]**.
-Story and event graphs are **[implemented, PR-08]**. Creation-tree/map graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
+Story and event graphs are **[implemented, PR-08]**. Creation-tree and map editors are **[implemented, PR-09]**. Embedded game preview remains planned. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 
@@ -44,7 +44,8 @@ all nested IDs to replace, including landmarks, cycle steps, item actions, choic
 text IDs. New IDs must be valid and unique; duplication never silently changes references.
 Creation opens an **unsaved draft**, with registry diagnostics. No placeholder author text is
 inserted. A non-global activity needs an area link; a recipe/building needs its creation-tree node.
-Add these through the generic area/tree forms before saving; no links or nodes are automatic.
+Add these through the area workspace and tree editor before saving; ordinary Create adds no links or nodes
+(the explicit “New activity in this area” and “New recipe/building here” shortcuts do).
 
 **Delete** lists “used by” file and field locations and blocks referenced entities. For an area or
 building this includes references to its owned discoveries or cycle steps, including incoming
@@ -190,7 +191,7 @@ before Save. Shared and global activities are retained.
 Every schema-backed file has **Rename IDs** controls for root/nested identities and local scene,
 production and tool keys. The preview lists every changed file and field, record-key changes,
 and any filename change. The new ID must be valid and unused by declared IDs, local definition
-keys or action/consume tags; it cannot capture the engine action names explore/travel. Reference
+keys or action/consume tags; it cannot capture the engine action names explore/travel. A rename is refused only if it adds a registry diagnostic beyond those already in the pack (so an unplaced recipe does not block an unrelated rename). Reference
 updates follow schema metadata and owner context, never text replacement. Local scene, production
 and tree-branch references cannot capture equal names belonging to another owner. Text, comments,
 key order and unrelated values remain untouched. Explicit text IDs can be renamed; existing game
@@ -258,3 +259,37 @@ warnings for unreachable scenes. Only registry/input errors block Save. JSON mod
 available for inspection and repairs; missing targets stay visible as graph markers. A close
 marker makes choices without next visible in both views. Playtest through **Open game** until
 PR-10; no embedded preview is included.
+
+
+## Creation tree and map editors — [implemented, PR-09]
+
+**Trees** in Browse opens the crafting or building tree. Dagre arranges the React Flow graph
+automatically and nothing about it is saved; the game draws the tree with its own layout and only
+the prerequisites are authoritative. **Accessible list view** shows the same nodes and prerequisite
+edges. Nodes show the target, branch and order. Select a node (graph or list) to change its branch
+and order, add or remove prerequisites with the picker, open the recipe/building, or start **New
+recipe/building here**. Select an edge to remove that prerequisite. You can also drag from a node's
+right handle to another node's left handle. Parents must be nodes of the same tree. A change that
+would create a cycle (including a node as its own parent) is refused before it is staged, with the
+cycle path. A warning reminds you that changed prerequisites change progression for new games,
+while existing saves keep their earned unlocks.
+
+**Branches** can be added, renamed (PR-07 preview; you stay in the tree view) and have their name/order edited. Deleting a
+branch is disabled while nodes use it. **Not placed yet** lists recipes/buildings without a node,
+each with **Place in tree** (branch and prerequisites; order = max + 1). Saving stays blocked by
+the registry until all are placed. There is no stand-alone node deletion: deleting a recipe or
+building (Delete, with Used by) also removes its node in the same staged change, unless another
+node lists it as a prerequisite; those nodes are shown and nothing is detached automatically.
+
+**New recipe here / New building here** opens the create dialog for the selected node (branch from
+it, prerequisite = it; without a selection a starting node in the first branch) and stages the
+entity and its node as one undo step. Save all writes both files after whole-pack validation.
+
+**Map** in Browse shows every area at its `map` cell (areas without one at their order index on row
+0, labelled default), the camp (`travelHours` 0) and a path from the camp to each area labelled
+with its travel time. Locked and hinted states are not shown. Drag an area onto a cell, or focus
+it, use the arrow keys to move a dashed ghost marker, press Enter to move it and Escape to cancel.
+Click an area to open its workspace. Moving writes only `map` (explicitly, also for default-placed
+areas). A cell that already holds an area is refused; cells with several areas show an overlap
+warning. The side panel edits each `travelHours`; its step comes from `game.stepMinutes` and the
+registry diagnostic (whole clock steps) is the authority. There are no arbitrary routes.

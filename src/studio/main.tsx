@@ -10,6 +10,9 @@ import { StoryView } from "./story-view";
 import { EventEditor } from "./event-editor";
 import { AreaWorkspace } from "./area-workspace";
 import { identities, deletionReferences, whereUsed, type Identity } from "./references";
+import { TreeEditor } from "./tree-editor";
+import { MapEditor } from "./map-editor";
+import { blockerLabel, deletionBlockers } from "./tree";
 import "./studio.css";
 
 function Studio() {
@@ -22,7 +25,7 @@ function Studio() {
   const [query, setQuery] = useState("");
   const [field, setField] = useState("");
   const [mode, setMode] = useState("form");
-  const [create, setCreate] = useState<{ kind: string; duplicate?: string; areaPath?: string; prefill?: Record<string, unknown> }>();
+  const [create, setCreate] = useState<{ kind: string; duplicate?: string; areaPath?: string; prefill?: Record<string, unknown>; tree?: { branch: string; after: string[] } }>();
   const [renaming, setRenaming] = useState<Identity>();
   const [deleteOrphans, setDeleteOrphans] = useState(false);
   const [deleting, setDeleting] = useState<string>();
@@ -90,7 +93,7 @@ function Studio() {
   const target = documents.find((d) => d.path === deleting);
   const orphans = target?.kind === "regions" ? store.orphanActivities(target.path) : [];
   const removedPaths = new Set([target?.path, ...(deleteOrphans ? orphans.map(d => d.path) : [])]);
-  const usedBy = target ? [...deletionReferences(documents, target), ...(deleteOrphans ? orphans.flatMap(d => deletionReferences(documents.filter(other => !removedPaths.has(other.path) || other.path === d.path), d)) : [])] : [];
+  const usedBy = target ? [...deletionBlockers(documents, target), ...(deleteOrphans ? orphans.flatMap(d => deletionReferences(documents.filter(other => !removedPaths.has(other.path) || other.path === d.path), d)) : [])] : [];
   const conflict = [...store.conflicts.values()].find((entry) => !hiddenConflicts.includes(`${entry.path}:${entry.disk?.hash ?? "missing"}`));
   const hideConflict = () => { if (conflict) setHiddenConflicts((previous) => [...previous, `${conflict.path}:${conflict.disk?.hash ?? "missing"}`]); };
   const openCreated = (path: string) => { setCreate(undefined); setScope("all"); setQuery(""); setSelection(path); setMode("form"); if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`); };
@@ -109,17 +112,17 @@ function Studio() {
     {failure && <div role="alert" className="request-error">{failure}. Refresh to try again.</div>}
     <div className="studio-columns">
       <nav className="studio-nav" aria-label="Content navigation">
-        <h2>Browse</h2><button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button><button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
+        <h2>Browse</h2><button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button><button aria-current={scope === "trees" ? "page" : undefined} onClick={() => browse("trees")}>Trees</button><button aria-current={scope === "map" ? "page" : undefined} onClick={() => browse("map")}>Map</button><button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
         <h2>By area</h2>{areas.map((document) => <button key={document.path} aria-current={scope === `area:${document.id}` ? "page" : undefined} onClick={() => browse(`area:${document.id}`)}>{document.id}</button>)}
         <button onClick={() => setCreate({ kind: "regions" })}>+ new area</button><h2>By kind</h2>{kinds.map((kind) => <button key={kind} aria-current={scope === kind ? "page" : undefined} onClick={() => browse(kind)}>{kindLabels[kind]}<span>{documents.filter((document) => document.kind === kind).length}</span></button>)}
       </nav>
-      {scope !== "story" && <section className="entity-list" aria-label="Entity list">
+      {!["story", "trees", "map"].includes(scope) && <section className="entity-list" aria-label="Entity list">
         <div className="list-heading"><h1>{area ? area.label : kindLabels[scope] ?? "All files"}</h1><p>{visible.length} files{area && " · area and available activities"}</p></div>
         {visible.map((document) => <button key={document.path} aria-pressed={selected?.path === document.path} onClick={() => { setSelection(document.path); setField(""); }}><strong>{document.label}</strong><code>{document.id}</code>{store.drafts.has(document.path) && <span className="dirty">Unsaved</span>}<small>{kindLabels[document.kind] ?? document.kind}{diagnostics.some((problem) => problem.file === document.path) ? " · has problems" : ""}</small></button>)}
         {!visible.length && <p className="empty">{files.length ? "No files match this search." : status}</p>}
       </section>}
-      <main className={`document-panel${scope === "story" ? " story-panel" : ""}`}>
-        {scope === "story" ? <StoryView documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : selected ? <>
+      <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}`}>
+        {scope === "story" ? <StoryView documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)} open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} /> : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)} open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} /> : selected ? <>
           <div className="document-heading"><div><p>{kindLabels[selected.kind] ?? selected.kind} / {selected.id}</p><h2>{selected.label}</h2><code>{selected.path}</code></div><div className="row-actions">{selectedSchema && <><button aria-pressed={mode === "form"} onClick={() => setMode("form")}>Form</button><button aria-pressed={mode === "json"} onClick={() => setMode("json")}>JSON</button></>}{entitySchemas[selected.kind] && <><button disabled={store.busy} onClick={() => setCreate({ kind: selected.kind, duplicate: selected.path })}>Duplicate</button><button disabled={store.busy} onClick={() => { setDeleteOrphans(false); setDeleting(selected.path); }}>Delete</button></>}</div></div>
           <section className="json-panel" aria-label="File contents"><div className="json-heading"><h3>{selected.encoding === "utf8" ? mode === "form" ? "Content form" : "Formatted JSON" : "Image file"}</h3><span>{status}</span></div>
             {field && <p className="field-location">Field: <code>{field}</code></p>}
@@ -141,9 +144,9 @@ function Studio() {
         </section>
       </main>
     </div>
-    {create && <CreateDialog store={store} kind={create.kind} areaPath={create.areaPath} duplicate={documents.find((d) => d.path === create.duplicate)} prefill={create.prefill ?? documents.find((d) => d.path === create.duplicate)?.raw as Record<string, unknown> | undefined} close={() => setCreate(undefined)} created={openCreated} />}
-    {target && <Dialog title="Delete entity" close={() => setDeleting(undefined)}><p>{usedBy.length ? "Delete blocked: this entity is used by:" : "Stage deletion of this entity? Save all applies the deletion after pack validation."}</p><ul>{usedBy.map((ref) => <li key={`${ref.file}:${ref.path}`}><code>{ref.file} › {ref.path}</code></li>)}</ul>{!!orphans.length && <section aria-label="Activities left without an area"><h3>Activities left without an area</h3><ul>{orphans.map(d => <li key={d.path}>{d.id}</li>)}</ul><label><input type="radio" name="orphans" checked={!deleteOrphans} onChange={() => setDeleteOrphans(false)} />Keep — link them elsewhere before saving</label><label><input type="radio" name="orphans" checked={deleteOrphans} onChange={() => setDeleteOrphans(true)} />Delete them too</label></section>}<button disabled={usedBy.length > 0} onClick={() => { store.delete(target.path, deleteOrphans); setDeleting(undefined); setSelection(""); }}>Delete draft</button></Dialog>}
-    {renaming && <RenameDialog store={store} target={renaming} close={() => setRenaming(undefined)} renamed={path => { setRenaming(undefined); setScope("all"); setSelection(path); setQuery(""); setHistoryKey(key => key + 1); }} />}
+    {create && <CreateDialog store={store} kind={create.kind} areaPath={create.areaPath} tree={create.tree} duplicate={documents.find((d) => d.path === create.duplicate)} prefill={create.prefill ?? documents.find((d) => d.path === create.duplicate)?.raw as Record<string, unknown> | undefined} close={() => setCreate(undefined)} created={openCreated} />}
+    {target && <Dialog title="Delete entity" close={() => setDeleting(undefined)}><p>{usedBy.length ? "Delete blocked: this entity is used by:" : "Stage deletion of this entity? Save all applies the deletion after pack validation."}</p><ul>{usedBy.map((ref) => <li key={`${ref.file}:${ref.path}`}><code>{blockerLabel(documents, ref)}</code></li>)}</ul>{!!orphans.length && <section aria-label="Activities left without an area"><h3>Activities left without an area</h3><ul>{orphans.map(d => <li key={d.path}>{d.id}</li>)}</ul><label><input type="radio" name="orphans" checked={!deleteOrphans} onChange={() => setDeleteOrphans(false)} />Keep — link them elsewhere before saving</label><label><input type="radio" name="orphans" checked={deleteOrphans} onChange={() => setDeleteOrphans(true)} />Delete them too</label></section>}<button disabled={usedBy.length > 0} onClick={() => { store.delete(target.path, deleteOrphans); setDeleting(undefined); setSelection(""); }}>Delete draft</button></Dialog>}
+    {renaming && <RenameDialog store={store} target={renaming} close={() => setRenaming(undefined)} renamed={path => { const inTree = renaming.kind === "treeBranch"; setRenaming(undefined); if (!inTree) { setScope("all"); setSelection(path); setQuery(""); } setHistoryKey(key => key + 1); }} />}
     {conflict && <Dialog title="File changed on disk" close={hideConflict}><p><code>{conflict.path}</code> has changed on disk. Your draft is retained.</p><div className="dialog-actions"><button disabled={store.moves.has(conflict.path) || [...store.moves.values()].includes(conflict.path)} title="For a pending file move, close this dialog and Undo the rename before reloading either filename." onClick={() => { store.resolve(conflict.path, "reload"); setHistoryKey((key) => key + 1); }}>Reload disk version</button><button onClick={() => { store.resolve(conflict.path, "mine"); hideConflict(); }}>Keep mine</button>{conflict.choice === "mine" && <button disabled={!canSave} onClick={() => { void save(true); }}>Overwrite with freshly checked hash</button>}</div></Dialog>}
   </div>;
 }
