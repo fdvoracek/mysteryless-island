@@ -194,8 +194,9 @@ describe("buildings: put up through a task, listed in the place's panel", () => 
 describe("tool capability duration", () => {
   it("anything sharp does for 'something sharp'; the rock knife doubles the time (activities too)", () => {
     const files = readContentFiles();
-    const forest = structuredClone(files["content/regions/forest.json"]) as { activities: unknown[] };
-    forest.activities.push({ id: "whittle", name: "whittle", hours: 1, effort: "light", requires: { tool: "sharp" } });
+    const forest = structuredClone(files["content/regions/forest.json"]) as { activities: string[] };
+    forest.activities.push("whittle");
+    files["content/activities/whittle.json"] = { id: "whittle", name: "whittle", hours: 1, effort: "light", requires: { tool: "sharp" } };
     files["content/regions/forest.json"] = forest;
     const r2 = buildRegistry(files);
     const e = startGame(r2, 12, "water");

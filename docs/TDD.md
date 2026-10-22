@@ -95,7 +95,16 @@ Runtime dependency: Zod. Build/test tools: TypeScript, Vite, Vitest and Playwrig
 Items, recipes, buildings, quests, events, sites and artwork each live in
 `content/<kind>/<id>.json` as one object; regions already follow this layout. The registry rejects
 arrays and filename/ID mismatches. Singletons remain `game.json`, `stats.json`, `climate.json`
-and `trees/{crafting,building}.json`. Activities remain embedded in regions until PR-03.
+and `trees/{crafting,building}.json`.
+
+**[implemented, Studio PR-03]** Activities live in `content/activities/<id>.json` and areas hold
+ordered `activities: ["id"]` links. Registry entries record `{ activity, regions }`; unknown
+links and non-global activities without links are rejected. A shared definition retains one
+`did`/`today` counter across areas. Globals may also be linked: they appear once at the linked
+position there and are appended elsewhere. Registry enumeration follows first area-link encounter
+(in region file order), then remaining unlinked activities by ID, preserving existing global order.
+Text indexing includes the independent `activities` root; activity memo keys are now
+`activities.<id>.<field>`. Explicit text IDs remain unique across every indexed root.
 
 Items, quests, events and buildings accept optional numeric `order`. The registry sorts these
 kinds by `(order ?? +Infinity, id)`; the migrated values preserve their prior array order in
@@ -164,7 +173,7 @@ The test-speed URL multiplier changes wall-clock scheduling only.
 ## 5. Game state
 
 The current `GameState` type is inferred from `src/core/state-schema.ts`; do not maintain a
-second handwritten interface. State version 7 contains permanent craft/build progression, gameplay and narrative RNG streams,
+second handwritten interface. State version 8 contains permanent craft/build progression, gameplay and narrative RNG streams,
 time/location, stats/warmth, items, counters, flags, regions, typed pop-ups and task state,
 local timers, local building batches, player work records, journal and permanent death state.
 
@@ -197,11 +206,13 @@ stockpile; only content-defined item caps apply. Clothing uses the best owned it
 | `item` | `items/*.json` | materials, food, tools, clothing, containers, components |
 | `knowledge` | `knowledge.json` | learned ideas used in conditions |
 | `recipe` | `recipes/*.json` | crafting at a station (camp, workbench, forge, loom) |
-| `region` | `regions/*.json` | region metadata **plus** its activities, exploration, discoveries, buildings, processes and events |
+| `region` | `regions/*.json` | region metadata, activity ID links, exploration and landmarks |
+| `activity` | `activities/*.json` | independent actions linked by regions, or global |
 | `event` | `events/*.json` or inside regions | scenes and choices |
 | `ending` | `endings.json` | final scenes |
 
-A region file is self-contained, as you asked: description, unlock rule, activities, buildings with upgrades, processes and events in one place. Items and recipes shared by many regions live in their own files.
+**[implemented, Studio PR-03]** Regions own descriptions, unlock rules, view/arrival lines and
+landmarks. Activities, items, recipes, buildings and events have independent definitions.
 
 ### 6.3 Conditions **[decided: structured]**
 
@@ -262,7 +273,10 @@ type Outcome = { weight: number; when?: Condition; text?: Text; effects?: Effect
 
 Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by weight among those whose `when` is true.
 
-### 6.6 Region file [illustrative future extensions]
+### 6.6 Region file [illustrative future extensions; legacy embedded activities]
+
+The example below predates PR-03 activity extraction. Current region files use activity ID links;
+activity objects live in `activities/<id>.json`. Other future fields remain illustrative.
 
 ```json
 {
@@ -410,7 +424,7 @@ Yields roll independently (like *A Dark Room* loot). Outcomes pick one entry by 
 - **Building it:** the `build` step (`requires`, `cost`, `hours`, `effort`, `log`, `effects`) runs from its tree node where you are. `max` (default 1) is how many can stand in one place (fish trap, corn field: 3); state `{ count, builtAt, batches, nextBatch }`. Input-free units (unbaited traps) join an existing input-free production batch immediately. Required-input units stay empty until supplied; each new planting keeps its own full clock. Starting scales cost/time by empty units; collecting scales by ready units. A quest identifies its building goal through `completeWhen`; costs appear on the tree node, not the task list. The `{ "build": id }` effect adds one where you are without the step (events); `{ "startCycle": id, "units": 1 }` starts production on up to one empty unit here (the newly dug corn field is sown immediately). Omit `units` to start all empty units. An optional `production` selects a named output in `cycle.products`. The `building` command (`step: "start" | "collect"`) is the button in the buildings panel.
 - **Cycles:** `start` locks materials in a player action; completion creates a local production batch with `{ id, units, startedAt, inputs, production? }`. Every `hours` one output is ready per unit, up to `cycle.batches` (default 1); readiness derives from game time without browser scheduling. Production advances while away or asleep, never while the game is closed. `collect` locks ready batch IDs, unit counts and output counts when work starts; completion applies `collect.yields` (or the batch’s named `cycle.products` yields) and `outcomes` per claimed output/unit, plus `effects`. Unready batches and units added after collection began remain; collected units become empty, or with `repeat` start again from collection completion. Drying meat selects `production: "meat"` on the local rack rather than setting a global flag. `readyLog` is written when the first batch is ready while you are there (not while asleep). Step ids count like activity ids (`did`, `today`, event `after`); building ids too (when built).
 - **Effects on the rules:** `warmthC` adds to the felt temperature in its place (the shelter, +3). Conditions include `{ "built": id }` (any place), `{ "built": id, "here": true }` (current place), `{ "sheltered": true }` (local built or natural shelter), and `{ "building": id, "is": "idle" | "working" | "ready" }`. Bed health regeneration is local; morning energy comes from `game.sleep.recovery`, not hourly multipliers.
-- **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` ensures the configured timer slots exist; pre-version-7 saves are rejected at the loading boundary. Timer `building` and building `timer` references are validated.
+- **Local timers:** `local: true` on a timer stores one value per region (`fire@beach`, `fire@forest`, etc.). Effects, conditions, warmth, cooking, and status resolve the current region; all regions’ timers advance, with warnings only for the current area. A building’s optional `timer` supplies its displayed state (campfire: out/burning/roaring). `initializeTimers` ensures the configured timer slots exist; pre-version-8 saves are rejected at the loading boundary. Timer `building` and building `timer` references are validated.
 - **View:** `view.buildings` lists, for the current place, the buildings standing here (`label` with ×count; `word`: `word` or the cycle's words, working with the time to the next batch, e.g. "growing · 2d 23h"; the step's button with the scaled time and cost). Panel `#buildingsBox` / `#buildings` in the classic layout (hidden when empty). Built buildings with an `icon` show in the map's hover icons. The task note says "{building} built." (`game.tasks.built`).
 - **Validator:** site capabilities, tree membership, conditions, costs, yields, effects and step hours (whole clock steps) are checked; `{ "building": id, "is": … }` and `startCycle` need a building with a cycle.
 
@@ -689,7 +703,7 @@ interface SaveFile {
 
 - Storage: `localStorage["textisland.save"]` (autosave) and `localStorage["textisland.saved"]` (the saved game). Export/import UI remains future work.
 - **[implemented, replaces checkpoints]** Death is permanent: the engine sets `state.death = { time, cause, lines }` (the end screen's lines, chosen once: `game.ending.survived` with `{time}`/`{day}`, and `ending.cause` with `{cause}`). The cause is the damage rule hurting most when health hits 0 (`cause` on `stats.damage`; ties are joined with "and"), else what the command was (an event's title, "bad <food>"), else `ending.defaultCause`. Storage (src/persistence/save.ts): the autosave `textisland.save` after every action and committed work step (a reload continues; a death stays), and the saved game `textisland.saved`, written by *save.* in the menu and just before every sleep (`engine.willSleep(cmd)`); the end screen offers *load the saved game* and *start again*.
-- **Save boundary:** version 7 is required in both the envelope and state. `restoreState` validates against `GameStateSchema` and reconciles installed-content references. Earlier saves require a fresh game; unsupported or malformed data is preserved and reported until the player chooses recovery.
+- **Save boundary:** version 8 is required in both the envelope and state. `restoreState` validates against `GameStateSchema` and reconciles installed-content references. Earlier saves require a fresh game; unsupported or malformed data is preserved and reported until the player chooses recovery.
 - **Content drift:** loading reconciles current registry IDs, clamps content-defined limits and supplies missing stats. Removed work targets return surviving reserved inputs; compatible work keeps progress. There is no content hash dependency.
 
 ---
@@ -788,7 +802,7 @@ What you can add **without touching engine code**:
 
 | Change | Files |
 |---|---|
-| New region with activities, buildings, upgrades, processes, events | new `content/regions/<id>.json` (+ images) |
+| New region with activity links and landmarks | new `content/regions/<id>.json` (+ images); independent activity files |
 | New item, food, tool, clothing, container | `content/items/*.json` |
 | New recipe or crafting station (station = any building) | `content/recipes/*.json` |
 | New knowledge | `content/knowledge.json` |
@@ -809,7 +823,7 @@ What **needs code**:
 
 **Workflow to add a region (example: a marsh):**
 
-1. Create `content/regions/marsh.json` with `unlockWhen`, `explore`, `activities`, `buildings`, `events`.
+1. Create `content/regions/marsh.json` with `unlockWhen`, `explore` and activity ID links; define activities in `content/activities/<id>.json`.
 2. Hook it into the chain: add a discovery to an existing region (e.g. lake: `{ "id": "reeds_to_the_east", "at": 8 }`) and reference it in `unlockWhen`.
 3. Add any new items to `content/items/`.
 4. Drop illustrations into `public/illustrations/`.

@@ -1,0 +1,14 @@
+{
+  "id": "chop_wood",
+  "name": "chop wood",
+  "hours": 1,
+  "effort": "heavy",
+  "icon": "wood",
+  "visibleWhen": { "item": "axe" },
+  "yields": [{ "item": "timber", "min": 2, "max": 3 }],
+  "log": [
+    "The axe bites. Chips fly. A young tree comes down.",
+    "You fell a slender tree and divide its trunk into lengths fit for building.",
+    "Repeated strokes open a deep cut in the wood until the trunk gives way."
+  ]
+}

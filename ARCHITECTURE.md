@@ -55,8 +55,9 @@ Architectural consequences that bind all work:
   part of the production build. `src/content` and `src/core` stay free of UI, storage and Studio imports.
 - **Implemented, PR-02:** one entity per file for items, recipes, buildings, quests, events, sites
   and artwork, with canonical formatting shared by tooling and validation. Regions already use
-  one object per file. Activities remain embedded until PR-03; independent activities and area
-  links are still planned. Areas retain their landmarks, view and arrival lines.
+  one object per file. **Implemented, PR-03:** activities are independent definitions with ordered
+  area ID links; globals may also be linked to retain their local position. Areas retain their
+  landmarks, view and arrival lines.
 - Content stays English-only; translations are out of scope for now.
 - **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
   explicit recovery screen. This overrides the old-save testing rule in "Save and presentation

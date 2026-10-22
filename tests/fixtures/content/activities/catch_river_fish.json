@@ -1,0 +1,42 @@
+{
+  "id": "catch_river_fish",
+  "name": "catch fish",
+  "hours": 1,
+  "effort": "work",
+  "icon": "fish",
+  "visibleWhen": { "discovered": "river" },
+  "requires": { "all": [{ "item": "fishing_spear" }, { "phase": ["dawn", "day", "dusk"] }] },
+  "outcomes": [
+    {
+      "weight": 4,
+      "text": [
+        "Two fish, flapping in the grass.",
+        "Two fish from the same pool.",
+        "Two fish, silver and cold."
+      ],
+      "effects": [{ "give": { "raw_fish": 2 } }]
+    },
+    {
+      "weight": 4,
+      "text": [
+        "One fish. It will do.",
+        "One fish, flapping on the bank.",
+        "A single fish, heavy for its size."
+      ],
+      "effects": [{ "give": { "raw_fish": 1 } }]
+    },
+    {
+      "weight": 2,
+      "text": [
+        "Nothing. The current carries them off.",
+        "Nothing. They slip back into the deep water.",
+        "The spear comes up with weed, nothing else."
+      ]
+    }
+  ],
+  "log": [
+    "You stand on a stone above a slow pool, spear raised.",
+    "You wade into the river to your knees and wait.",
+    "Under the willows you wait for a fish to hold still."
+  ]
+}

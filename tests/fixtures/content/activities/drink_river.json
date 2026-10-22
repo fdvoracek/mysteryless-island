@@ -1,0 +1,16 @@
+{
+  "id": "drink_river",
+  "name": "drink water",
+  "hours": 0.25,
+  "effort": "light",
+  "icon": "water",
+  "visibleWhen": { "discovered": "river" },
+  "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
+  "tags": ["drink"],
+  "log": [
+    "You kneel at the river and drink. Cold and sweet.",
+    "River water, cold enough to ache.",
+    "You drink from your hands, the current pulling at your fingers.",
+    "The river tastes of stone and grass."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "collect_berries",
+  "name": "pick berries",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "berries",
+  "visibleWhen": { "discovered": "berry_bushes" },
+  "yields": [{ "item": "berries", "min": 3, "max": 6 }],
+  "log": [
+    "Your fingers come away purple.",
+    "You strip the bushes branch by branch.",
+    "Berries, a handful at a time. Thorns catch your sleeves.",
+    "You fill your hands, then your pockets.",
+    "Small dark berries, soft enough to bruise."
+  ]
+}

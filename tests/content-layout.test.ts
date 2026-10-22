@@ -27,7 +27,7 @@ describe("canonical content formatter", () => {
 describe("one entity per file", () => {
   it("rejects legacy arrays and mismatched filenames for every entity kind", () => {
     const files = readContentFiles();
-    for (const kind of ["items", "recipes", "buildings", "quests", "events", "sites", "artwork", "regions"]) {
+    for (const kind of ["items", "recipes", "buildings", "quests", "events", "sites", "artwork", "regions", "activities"]) {
       const path = Object.keys(files).find((p) => p.startsWith(`content/${kind}/`))!;
       expect(() => buildRegistry({ ...files, [path]: [files[path], files[path]] }), kind).toThrow(/Expected object, received array/);
       const renamed = { ...files };

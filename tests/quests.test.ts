@@ -107,9 +107,7 @@ describe("quests", () => {
         { id: "q_after_water", title: "after water", trigger: { when: { quest: "find_water", is: "done" } }, completeWhen: { did: "gather_wood" } },
       ],
       (files) => {
-        const forest = structuredClone(files["content/regions/forest.json"]) as { activities: Array<{ effects?: unknown[] }> };
-        forest.activities[0].effects = [{ startQuest: "q_manual" }];
-        files["content/regions/forest.json"] = forest;
+        (files["content/activities/gather_wood.json"] as { effects?: unknown[] }).effects = [{ startQuest: "q_manual" }];
       },
     );
     const e = revealAll(startGame(r, 1));

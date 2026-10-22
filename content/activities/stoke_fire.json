@@ -1,0 +1,20 @@
+{
+  "id": "stoke_fire",
+  "building": "campfire",
+  "name": "stoke fire",
+  "hours": 0.25,
+  "effort": "light",
+  "icon": "fire",
+  "visibleWhen": { "all": [{ "built": "campfire", "here": true }, { "timer": "fire" }] },
+  "cost": { "firewood": 2 },
+  "effects": [{ "timer": "fire", "addHours": 4 }],
+  "log": [
+    "The new fuel catches, and the hearth crackles steadily.",
+    "The flames rise higher above the stones.",
+    "You add dry wood, and the fire responds with renewed vigour.",
+    "Sparks ascend into the darkening air.",
+    "A shower of sparks is carried upwards by the wind.",
+    "Fresh wood catches with a sudden hiss of escaping moisture."
+  ],
+  "global": true
+}

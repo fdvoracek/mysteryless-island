@@ -29,6 +29,10 @@ array order and numeric value. The scripts use real commands and the real save/r
 
 Run `npm test -- tests/golden-traces.test.ts` without snapshot updates. Later Studio PRs must
 keep these traces unchanged: investigate a mismatch rather than refreshing the snapshots.
+
+**[implemented, Studio PR-03]** The owner approved one re-recording after a temporary comparison
+proved only 19 activity memo-key paths and save version 7 → 8 changed across the three snapshots.
+The permanent comparison has no exception or additional normalization.
 The frozen content pack stays independent of shipped story and balance edits.
 
 ## Timing
@@ -61,3 +65,8 @@ test source files are not bundled into the playable game.
 **[implemented, Studio PR-02]** `content:check` also checks canonical JSON formatting in both
 content packs. Use `npm run content:format` to fix layout. Registry tests reject legacy entity
 arrays, filename/ID mismatches and invalid order fields, and verify deterministic entity order.
+
+**[implemented, Studio PR-03]** Activity tests cover multi-area links, shared counters, linked
+and unlinked globals, action order, unknown/orphan references and text identity uniqueness.
+The frozen pack was migrated by extraction only; activity definitions and area link order
+were verified against their pre-migration forms.

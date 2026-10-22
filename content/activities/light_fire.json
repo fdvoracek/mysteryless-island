@@ -1,0 +1,21 @@
+{
+  "id": "light_fire",
+  "building": "campfire",
+  "name": "light fire",
+  "hours": 0.25,
+  "effort": "light",
+  "icon": "fire",
+  "visibleWhen": {
+    "all": [{ "built": "campfire", "here": true }, { "not": { "timer": "fire" } }, { "item": "matches" }]
+  },
+  "cost": { "firewood": 3, "matches": 1 },
+  "effects": [{ "timer": "fire", "addHours": 6 }],
+  "log": [
+    "A match flares. A curl of smoke, then the kindling catches. The fire takes.",
+    "You shelter the tiny flame from the wind until it passes to the kindling.",
+    "With a carefully struck match, you kindle the prepared wood."
+  ],
+  "tags": ["kindle"],
+  "_note": "with matches: 15 min, always works, one match each time",
+  "global": true
+}

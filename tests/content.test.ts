@@ -9,9 +9,7 @@ describe("registry validation with frozen test content", () => {
 
   it("rejects action times that are not whole clock steps (15 minutes)", () => {
     const files = readContentFiles();
-    const beach = structuredClone(files["content/regions/beach.json"]) as { activities: Array<{ id: string; hours: number }> };
-    beach.activities.find((x) => x.id === "collect_shells")!.hours = 0.1;
-    files["content/regions/beach.json"] = beach;
+    (files["content/activities/collect_shells.json"] as { hours: number }).hours = 0.1;
     try { buildRegistry(files); throw new Error("expected a ContentError"); } catch (err) {
       expect(err).toBeInstanceOf(ContentError);
       expect((err as ContentError).problems.join("\n")).toMatch(/activity collect_shells\.hours: 0\.1 h is not a whole number of 15-minute steps/);
@@ -20,9 +18,7 @@ describe("registry validation with frozen test content", () => {
 
   it("reports unknown references with the file and path", () => {
     const files = readContentFiles();
-    const beach = structuredClone(files["content/regions/beach.json"]) as { activities: Array<{ cost?: Record<string, number> }> };
-    beach.activities[0].cost = { unobtainium: 1 };
-    files["content/regions/beach.json"] = beach;
+    (files["content/activities/light_fire.json"] as { cost?: Record<string, number> }).cost = { unobtainium: 1 };
     try {
       buildRegistry(files);
       throw new Error("expected a ContentError");

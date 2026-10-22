@@ -185,7 +185,7 @@ export const Activity = z
   .object({
     ...WorkFields,
     id: Id,
-    /** Shared actions such as sleep are available in every region. */
+    /** Shared actions are available everywhere; optional area links retain their local position. */
     global: z.boolean().optional(),
     /** Group this activity with a local building in the UI. */
     building: Id.optional(),
@@ -270,7 +270,8 @@ export const Region = z
       })
       .strict()
       .optional(),
-    activities: z.array(Activity),
+    /** Ordered links to independent activity definitions. */
+    activities: z.array(Id),
   })
   .strict();
 

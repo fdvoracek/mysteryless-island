@@ -1,0 +1,20 @@
+{
+  "id": "gather_wood",
+  "name": "collect wood",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "wood",
+  "yields": [{ "item": "firewood", "min": 3, "max": 5 }],
+  "log": [
+    "Dry branches snap underfoot.",
+    "Twigs crack under your feet.",
+    "You snap dead branches off a fallen tree.",
+    "An armful of deadwood.",
+    "You gather an armful of dry wood.",
+    "Deadwood, as much as you can carry.",
+    "Bark and twigs, dry enough to burn.",
+    "Dry bark peels off in strips.",
+    "Twigs and branches, light and dry."
+  ],
+  "_note": "no exploring needed: the forest floor is full of deadwood"
+}

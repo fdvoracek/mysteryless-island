@@ -1,0 +1,17 @@
+{
+  "id": "collect_shells",
+  "name": "collect shells",
+  "hours": 0.5,
+  "effort": "work",
+  "icon": "shells",
+  "visibleWhen": { "discovered": "cliff_shells" },
+  "yields": [{ "item": "shells", "min": 2, "max": 4 }],
+  "log": [
+    "You prise the shellfish from the rocks as the surf washes around your legs.",
+    "You work the shells loose with your fingers. The surf breaks over your knees.",
+    "One shell after another comes free, though the cold soon numbs your fingers.",
+    "You gather a handful of shells, heavy with seawater.",
+    "The day's collection begins with a pocketful of fresh shellfish.",
+    "You carry away shells still dripping from the tide."
+  ]
+}

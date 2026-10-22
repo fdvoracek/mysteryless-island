@@ -173,7 +173,7 @@ export class Engine {
       items: { ...this.state.items },
       unlocked: this.reg.regionOrder.filter((id) => this.state.regions[id]?.unlocked),
       location: this.state.location,
-      possible: region.activities.filter((a) => { const c = this.check(a); return c.visible && c.enabled; }).map((a) => a.id),
+      possible: region.activities.filter((id) => { const c = this.check(this.reg.activities.get(id)!.activity); return c.visible && c.enabled; }),
       built: Object.keys(this.state.buildings),
     };
   }
@@ -205,8 +205,7 @@ export class Engine {
     for (const key of now.built) if (!b.built.includes(key)) out.push(sentence(this.say(t.built, { building: this.reg.buildings.get(key.split("@")[0])!.name })!));
     for (const id of now.unlocked) if (!b.unlocked.includes(id)) out.push(this.say(t.opened, { place: this.reg.regions.get(id)!.name })!);
     if (this.made && now.location === b.location) {
-      const region = this.reg.regions.get(now.location)!;
-      for (const id of now.possible) if (!b.possible.includes(id)) out.push(this.say(t.possible, { action: region.activities.find((a) => a.id === id)!.name })!);
+      for (const id of now.possible) if (!b.possible.includes(id)) out.push(this.say(t.possible, { action: this.reg.activities.get(id)!.activity.name })!);
     }
     return out;
   }
@@ -375,7 +374,7 @@ export class Engine {
   willSleep(cmd: Command): boolean {
     if (cmd.type !== "activity" || this.state.dead || this.state.events.active) return false;
     const entry = this.reg.activities.get(cmd.id);
-    if (!entry || entry.activity.effort !== "sleep" || (!entry.activity.global && entry.region !== this.state.location)) return false;
+    if (!entry || entry.activity.effort !== "sleep" || (!entry.activity.global && !entry.regions.includes(this.state.location))) return false;
     const c = this.check(entry.activity);
     return c.visible && c.enabled;
   }
@@ -453,9 +452,9 @@ export class Engine {
   }
 
   activities(region = this.state.location): Activity[] {
-    const local = this.reg.regions.get(region)!.activities;
+    const local = this.reg.regions.get(region)!.activities.map((id) => this.reg.activities.get(id)!.activity);
     return [...local, ...[...this.reg.activities.values()]
-      .filter((entry) => entry.activity.global && entry.region !== region).map((entry) => entry.activity)];
+      .filter((entry) => entry.activity.global && !entry.regions.includes(region)).map((entry) => entry.activity)];
   }
 
   activityHours(a: Activity): number {
@@ -540,7 +539,7 @@ export class Engine {
   private doActivity(id: string): Result {
     const entry = this.reg.activities.get(id);
     if (!entry) return refuse(`unknown activity ${id}`);
-    if (!entry.activity.global && entry.region !== this.state.location) return refuse("not here");
+    if (!entry.activity.global && !entry.regions.includes(this.state.location)) return refuse("not here");
     const a = entry.activity;
     const c = this.check(a);
     if (!c.visible) return refuse("not available");

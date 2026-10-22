@@ -1,0 +1,18 @@
+{
+  "id": "drink_stream",
+  "name": "drink water",
+  "hours": 0.25,
+  "effort": "light",
+  "icon": "water",
+  "visibleWhen": { "discovered": "spring" },
+  "effects": [{ "stat": { "thirst": -40, "energy": 10 } }],
+  "tags": ["drink"],
+  "log": [
+    "Cold water from the spring, tasting of stone.",
+    "You cup your hands and drink. Cold, clean.",
+    "The water tastes of stone and moss.",
+    "You drink until your teeth ache.",
+    "You drink long and slow.",
+    "Cold water, as much as you want."
+  ]
+}

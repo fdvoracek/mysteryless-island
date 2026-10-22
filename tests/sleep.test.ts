@@ -158,11 +158,10 @@ describe("going to sleep", () => {
 
   it("the validator checks thought conditions", () => {
     const files = readContentFiles();
-    const beach = structuredClone(files["content/regions/beach.json"]) as {
-      activities: Array<{ id: string; thoughts?: Array<{ lines: Array<{ when?: unknown }> }> }>;
+    const sleep = files["content/activities/sleep.json"] as {
+      thoughts: Array<{ lines: Array<{ when?: unknown }> }>;
     };
-    beach.activities.find((a) => a.id === "sleep")!.thoughts![1].lines[1].when = { today: "atlantis" };
-    files["content/regions/beach.json"] = beach;
+    sleep.thoughts[1].lines[1].when = { today: "atlantis" };
     expect(() => buildRegistry(files)).toThrow(ContentError);
   });
 });
