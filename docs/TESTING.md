@@ -187,3 +187,21 @@ checks, 21 game browser tests (21.5s), and 17 Studio browser tests (25.8s). The 
 case took 15.600s in the final four-worker run (17.214s execution for the whole file).
 The existing Text/roll browser test now waits for the acknowledged PUT before checking disk;
 a disabled Save button alone also covers an in-flight write and was a race.
+
+
+## Live preview — [implemented, PR-10]
+
+`tests/preview.test.ts` records every `localStorage` key a preview-mode session and a normal session
+touch (preview: only `textisland.preview.*`; normal: only `textisland.save`/`textisland.saved`),
+checks that the two sets of slots stay apart, that `seed` is read only in preview mode as whole
+digits, that one seed gives one new game, and `ti.unlock`. `tests/studio/preview.test.ts` covers the
+preview URL and seed parsing. `tests/studio/game-content-root.test.ts` starts the dev server with
+and without `STUDIO_ROOT` and checks which `content/` the game's loader reads and that the
+checkout's stays denied.
+
+One Studio browser scenario (temporary `STUDIO_ROOT` only) opens the panel, seeds a new game twice,
+uses give item, advance time, unlock area and start task, saves a new item through the Studio,
+checks that the game reloads with it while the Studio page does not (marker, drafts and undo
+history survive an external edit), uses Save and reload preview, shows the content error screen
+and verifies that the page's `textisland.save`/`textisland.saved` are unchanged. Golden traces,
+frozen fixtures and the game smoke test are unchanged.

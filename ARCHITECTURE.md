@@ -22,7 +22,7 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Build a minimalist, content-driven survival game with understandable, consistent mechanics.
 - Prefer new content expressed through existing systems over one-off engine branches.
 - Favor small, cohesive modules and shared rules; fewer lines alone is not the goal.
-- Keep JSON as the canonical authoring format. The planned Studio edits the same files and validates
+- Keep JSON as the canonical authoring format. The local Studio edits the same files and validates
   them with the same registry; CSV import is not planned.
 - Preserve stable content/text identities for saves, translations, and future authoring tools.
 - Classic is the only supported layout. Do not restore retired layouts or a layout picker
@@ -41,13 +41,13 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
-## Content Studio program — PR-01 to PR-09 implemented; live preview (PR-10) planned
+## Content Studio program — implemented (PR-01 to PR-10)
 
 A localhost-only React Content Studio inside this single npm package edits content through the
 dev-server file API. **Implemented:** browser and diagnostics (PR-04); generic forms, draft
 create/duplicate/delete, undo/redo and whole-pack Save all (PR-05); condition, effect and text
 widgets (PR-06); area workspace and reference-aware rename (PR-07); story and event graphs
-(PR-08); creation-tree and map editors (PR-09). The embedded game preview (PR-10) remains planned.
+(PR-08); creation-tree and map editors (PR-09); embedded live game preview (PR-10).
 Usage: [docs/STUDIO.md](docs/STUDIO.md).
 Scope, the owner’s confirmed decisions (2026-10-21), open gates and PR order are recorded **only** in
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
@@ -62,6 +62,13 @@ Architectural consequences that bind all work:
   one object per file. **Implemented, PR-03:** activities are independent definitions with ordered
   area ID links; globals may also be linked to retain their local position. Areas retain their
   landmarks, view and arrival lines.
+- **Implemented, PR-10:** `/?preview` is the only preview switch in shared code. It selects the
+  `textisland.preview.*` save slots (the player's keys are never read or written), accepts an
+  optional `&seed=<digits>` for a new game, and `main.ts` reloads the page on the dev server's
+  `studio:files-changed` event (`import.meta.hot`, absent from production). The Studio plugin
+  suppresses Vite's own full reload for content paths so the Studio page never reloads, and under
+  `STUDIO_ROOT` points the game's content glob at that root. The preview calls the same-origin
+  `window.ti`; it shows saved content only.
 - Content stays English-only; translations are out of scope for now.
 - **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
   explicit recovery screen. This overrides the old-save testing rule in "Save and presentation

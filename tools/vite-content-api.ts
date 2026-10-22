@@ -1,8 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
+import { realpathSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import type { Plugin } from "vite";
+import { searchForWorkspaceRoot, type HMRPayload, type Plugin } from "vite";
 
 export interface StudioFile { path: string; content: string; encoding: "utf8" | "base64"; hash: string }
 const prefix = "/__studio/files";
@@ -20,21 +21,48 @@ export function allowedStudioPath(path: string): boolean {
     && (/^content\/.+\.json$/.test(path) || (path.startsWith("public/illustrations/") && image.test(path)));
 }
 
+/** Vite 5 names the changed file in `triggeredBy` on its full-reload payload; the Studio reloads the game itself. */
+export function isContentFullReload(payload: unknown, root: string): boolean {
+  const { type, triggeredBy } = (payload ?? {}) as Partial<Extract<HMRPayload, { type: "full-reload" }>>;
+  return type === "full-reload" && typeof triggeredBy === "string" && allowedStudioPath(relative(root, triggeredBy).split(sep).join("/"));
+}
+
 /** A dev-only file transport. Entity/reference editing belongs to the later Studio editor. */
 export function contentApi(): Plugin {
   return {
-    name: "textisland-studio-files", apply: "serve",
-    config: (config) => ({
-      optimizeDeps: { entries: ["studio/index.html"] },
-      server: {
-        host: "127.0.0.1", cors: false,
-        // An isolated Studio must not expose the checkout's shipped pack through Vite either.
-        fs: process.env.STUDIO_ROOT ? { deny: [
-          ...(config.server?.fs?.deny ?? [".env", ".env.*", "*.{crt,pem}"]),
-          `${resolve(config.root ?? process.cwd(), "content").split(sep).join("/")}/**`,
-        ] } : undefined,
-      },
-    }),
+    name: "textisland-studio-files", apply: "serve", enforce: "pre",
+    config: (config) => {
+      const checkout = resolve(config.root ?? process.cwd());
+      const isolated = process.env.STUDIO_ROOT ? realpathSync(resolve(process.env.STUDIO_ROOT)) : undefined;
+      return {
+        optimizeDeps: { entries: ["studio/index.html"] },
+        // The game's content glob (see transform below) reads the isolated pack as a whole.
+        resolve: isolated ? { alias: { "@studio-root": isolated } } : undefined,
+        server: {
+          host: "127.0.0.1", cors: false,
+          // An isolated Studio must not expose the checkout's shipped pack through Vite either.
+          fs: isolated ? {
+            allow: [searchForWorkspaceRoot(checkout), join(isolated, "content")],
+            deny: [
+              ...(config.server?.fs?.deny ?? [".env", ".env.*", "*.{crt,pem}"]),
+              `${join(checkout, "content").split(sep).join("/")}/**`,
+            ],
+          } : undefined,
+        },
+      };
+    },
+    // Isolated roots only: the game loads STUDIO_ROOT/content instead of the checkout's content/.
+    transform(code, id) {
+      if (!process.env.STUDIO_ROOT || !/\/src\/content\/loader\.ts$/.test(id.split("?")[0])) return;
+      const pattern = '"../../content/**/*.json"';
+      if (!code.includes(pattern)) this.error(`The Studio cannot point the game at STUDIO_ROOT: ${pattern} not found in src/content/loader.ts`);
+      return code.replace(pattern, '"@studio-root/content/**/*.json"');
+    },
+    // The Studio reports content changes itself; Vite's full reload would also reload the Studio page.
+    handleHotUpdate({ file, server }) {
+      const root = realpathSync(resolve(process.env.STUDIO_ROOT ?? server.config.root));
+      if (allowedStudioPath(relative(root, file).split(sep).join("/"))) return [];
+    },
     async configureServer(server) {
       const printUrls = server.printUrls.bind(server);
       server.printUrls = () => {
@@ -42,13 +70,19 @@ export function contentApi(): Plugin {
         const address = server.httpServer?.address();
         if (address && typeof address === "object") server.config.logger.info(`  Studio: http://127.0.0.1:${address.port}/studio/`);
       };
-      const root = resolve(process.env.STUDIO_ROOT ?? server.config.root);
-      if ((await lstat(root)).isSymbolicLink()) throw new Error("STUDIO_ROOT must not be a symlink");
+      const configured = resolve(process.env.STUDIO_ROOT ?? server.config.root);
+      if ((await lstat(configured)).isSymbolicLink()) throw new Error("STUDIO_ROOT must not be a symlink");
+      // Watch real paths: Vite matches the game's content glob (resolved from the real STUDIO_ROOT) against them.
+      const root = realpathSync(configured);
       server.watcher.add([join(root, "content"), join(root, "public/illustrations")]);
       const notify = (_event: string, path: string) => {
         const local = relative(root, path).split(sep).join("/");
         if (allowedStudioPath(local)) server.ws.send({ type: "custom", event: "studio:files-changed", data: { path: local } });
       };
+      // No supported hook sees the reload Vite sends for added/removed files (handleHotUpdate covers changes only).
+      const { ws } = server;
+      const send = ws.send.bind(ws) as (...args: unknown[]) => void;
+      ws.send = ((...args: unknown[]) => { if (!isContentFullReload(args[0], root)) send(...args); }) as typeof ws.send;
       server.watcher.on("all", notify);
       server.httpServer?.once("close", () => server.watcher.off("all", notify));
       // Serialize our hash checks and mutations, including competing requests from two tabs.

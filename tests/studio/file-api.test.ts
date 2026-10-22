@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createServer, type ViteDevServer } from "vite";
+import { realpathSync } from "node:fs";
 import { request } from "node:http";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { contentApi } from "../../tools/vite-content-api";
+import { contentApi, isContentFullReload } from "../../tools/vite-content-api";
 
 let root: string;
 let server: ViteDevServer;
@@ -61,12 +62,23 @@ describe("localhost content file transport", () => {
 
   it("notifies the Studio of allowed external file changes only", () => {
     const send = vi.spyOn(server.ws, "send");
-    server.watcher.emit("all", "change", join(root, "content/items/test_item.json"));
+    const real = realpathSync(root); // the plugin watches real paths (macOS temp directories are symlinked)
+    server.watcher.emit("all", "change", join(real, "content/items/test_item.json"));
     expect(send).toHaveBeenCalledWith({ type: "custom", event: "studio:files-changed", data: { path: "content/items/test_item.json" } });
     send.mockClear();
-    server.watcher.emit("all", "change", join(root, "package.json"));
+    server.watcher.emit("all", "change", join(real, "package.json"));
     expect(send).not.toHaveBeenCalled();
     send.mockRestore();
+  });
+  it("drops only the full reload Vite sends for content and image files", () => {
+    const real = realpathSync(root);
+    const reload = (path: string) => ({ type: "full-reload", triggeredBy: join(real, path) });
+    expect(isContentFullReload(reload("content/items/new.json"), real)).toBe(true);
+    expect(isContentFullReload(reload("public/illustrations/a.png"), real)).toBe(true);
+    expect(isContentFullReload(reload("src/main.ts"), real)).toBe(false);
+    expect(isContentFullReload(reload("package.json"), real)).toBe(false);
+    expect(isContentFullReload({ type: "full-reload" }, real)).toBe(false);
+    expect(isContentFullReload({ type: "custom", event: "studio:files-changed", triggeredBy: join(real, "content/a.json") }, real)).toBe(false);
   });
   it("prints the exact Studio URL with the actual listening port", () => {
     const log = vi.spyOn(server.config.logger, "info");

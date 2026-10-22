@@ -13,6 +13,18 @@ import { restoreState } from "./migrate";
  */
 const AUTO = "textisland.save";
 const SLOT = "textisland.saved";
+const PREVIEW_AUTO = "textisland.preview.save";
+const PREVIEW_SLOT = "textisland.preview.saved";
+
+/** The Studio preview (?preview) plays in its own slots and never touches the player's. */
+export const isPreview = (search = typeof location === "undefined" ? "" : location.search) => new URLSearchParams(search).has("preview");
+/** &seed=<digits> in preview mode starts a new game with that seed; anything else is ignored. */
+export function previewSeed(search = typeof location === "undefined" ? "" : location.search): number | undefined {
+  const seed = new URLSearchParams(search).get("seed");
+  return isPreview(search) && seed !== null && /^\d+$/.test(seed) && Number.isSafeInteger(Number(seed)) ? Number(seed) : undefined;
+}
+const autoKey = () => (isPreview() ? PREVIEW_AUTO : AUTO);
+const slotKey = () => (isPreview() ? PREVIEW_SLOT : SLOT);
 
 interface SaveFile {
   saveVersion: number;
@@ -56,19 +68,19 @@ function read(key: string, reg: Registry): SaveRead {
 }
 
 /** The autosave: the game as it is now. */
-export const writeSave = (state: GameState) => write(AUTO, state);
-export const readSaveStatus = (reg: Registry) => read(AUTO, reg);
+export const writeSave = (state: GameState) => write(autoKey(), state);
+export const readSaveStatus = (reg: Registry) => read(autoKey(), reg);
 export const readSave = (reg: Registry) => readSaveStatus(reg).state;
 export function clearSave() {
-  try { localStorage.removeItem(AUTO); } catch { /* ignore */ }
+  try { localStorage.removeItem(autoKey()); } catch { /* ignore */ }
 }
 
 /** The saved game: only when the player saves. Returns false if the browser refused. */
-export const saveGame = (state: GameState) => write(SLOT, state, { savedAt: new Date().toISOString() });
-export const loadGame = (reg: Registry) => read(SLOT, reg).state;
+export const saveGame = (state: GameState) => write(slotKey(), state, { savedAt: new Date().toISOString() });
+export const loadGame = (reg: Registry) => read(slotKey(), reg).state;
 export function hasSavedGame(): boolean {
   try {
-    const raw = localStorage.getItem(SLOT);
+    const raw = localStorage.getItem(slotKey());
     if (!raw) return false;
     const file = JSON.parse(raw) as SaveFile;
     return file.saveVersion === SAVE_VERSION && file.current?.saveVersion === SAVE_VERSION

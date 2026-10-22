@@ -5,7 +5,7 @@ Studio. **[implemented, PR-04]** The navigation shell and visual tokens now exis
 browser. **[implemented, PR-05]** Generic forms, draft create/duplicate, undo/redo and save/conflict
 handling now exist. **[implemented, PR-06]** Condition/effect/outcome builders and the text widget now exist.
 **[implemented, PR-07]** The area workspace and reference-aware rename now exist.
-**[implemented, PR-08]** Story and event graphs now exist. **[implemented, PR-09]** Creation-tree and map editors now exist (no mockup was drawn). Live preview remains a proposal.
+**[implemented, PR-08]** Story and event graphs now exist. **[implemented, PR-09]** Creation-tree and map editors now exist (no mockup was drawn). **[implemented, PR-10]** The live preview panel now exists.
 Scope, decisions and PR order live in
 [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](../../CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); where this
 mockup and the plan differ, the plan wins. Nothing here is Studio code.
@@ -18,7 +18,7 @@ Fonts; offline the system fallbacks are used.
 
 | File | Screen | Built in |
 |---|---|---|
-| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 **[implemented]** · live preview panel PR-10 (until then, play in a second window) |
+| [area-workspace.html](area-workspace.html) | Area workspace for `forest`: properties, map and unlock, landmarks, linked activities, "used by", live preview panel | Shell PR-04 · workspace PR-07 **[implemented]** · live preview panel PR-10 **[implemented]** |
 | [activity-editor.html](activity-editor.html) | Activity `strip_bark`: generic form, nested condition builder, yields, journal variants with the 80-character counter, pending diff, Form/JSON switch | Form PR-05 **[implemented]** · condition builder and text widget PR-06 **[implemented]** |
 | [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 **[implemented]** |
 | [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 **[implemented]** |
@@ -149,3 +149,16 @@ when `map` is unset), dashed camp-centred paths labelled with travel hours, a da
 for keyboard moves, and an *Areas* card with a `travelHours` input and workspace link per area,
 the registry's inline diagnostic and a text list of paths from the camp. Occupied-cell refusals and
 overlap warnings appear above the grid.
+
+
+## PR-10 implementation differences — [implemented]
+
+The preview is a collapsible column to the right of the content on every screen (below it on
+narrow screens), opened by **Preview** in the header, not a card inside the area workspace. It is
+closed by default and the iframe exists only while it is open. Controls: seed and **New game**,
+**First variants**, item picker + amount + **Give item**, hours + **Advance time**, area picker +
+**Unlock area**, task picker + **Start task**, **Open in a new tab**. A fixed label states that the
+preview uses saved content and its own save slots. With unsaved drafts the panel shows *Preview
+shows saved content – N unsaved changes* with **Save and reload preview**; with registry errors it
+shows **Show diagnostics** next to the game's content error screen. Reload follows the saved files
+automatically; there is no reload button.

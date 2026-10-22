@@ -1,10 +1,11 @@
-# Content Studio — [implemented, PR-08 story view and event editor]
+# Content Studio — [implemented, PR-10 live preview]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
 production build and Pages deployment. `npm run dev` remains the ordinary game workflow.
 Startup prints the exact Studio URL, including custom ports.
 A forbidden or non-JSON file API response prompts you to open that URL without a raw parse error.
+The game plays inside the Studio through the **Preview** panel (below).
 
 Navigate by kind or area, search IDs/names/text, and edit content through generic schema-generated
 forms or JSON. Both views preserve author comments (`_` keys), key order and untouched values. Area navigation includes the area definition, its
@@ -18,11 +19,11 @@ reloads the inventory. Dirty drafts survive refresh. If their disk file changes 
 a conflict dialog offers **Reload disk version** or **Keep mine**. Keeping a draft does not grant
 overwrite permission: the next Save opens the dialog again for explicit overwrite with a freshly
 checked hash. A further disk change requires another confirmation. File API failures appear with a retry action. The game opens in a second
-tab through **Open game** and uses its ordinary save slots.
+tab through **Open game** and uses its ordinary save slots (unlike the preview).
 
 Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
 undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Area workspace and rename are **[implemented, PR-07]**.
-Story and event graphs are **[implemented, PR-08]**. Creation-tree and map editors are **[implemented, PR-09]**. Embedded game preview remains planned. The authoritative scope and delivery order live in the
+Story and event graphs are **[implemented, PR-08]**. Creation-tree and map editors are **[implemented, PR-09]**. The embedded game preview is **[implemented, PR-10]**. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 
@@ -257,8 +258,7 @@ with that scene. Undo/redo and Save all retain the existing whole-pack rules.
 Graph checks display shared registry errors for missing start/dangling next and Studio-only
 warnings for unreachable scenes. Only registry/input errors block Save. JSON mode remains
 available for inspection and repairs; missing targets stay visible as graph markers. A close
-marker makes choices without next visible in both views. Playtest through **Open game** until
-PR-10; no embedded preview is included.
+marker makes choices without next visible in both views. Playtest in the **Preview** panel or through **Open game**.
 
 
 ## Creation tree and map editors — [implemented, PR-09]
@@ -293,3 +293,37 @@ Click an area to open its workspace. Moving writes only `map` (explicitly, also 
 areas). A cell that already holds an area is refused; cells with several areas show an overlap
 warning. The side panel edits each `travelHours`; its step comes from `game.stepMinutes` and the
 registry diagnostic (whole clock steps) is the authority. There are no arbitrary routes.
+
+
+## Live preview — [implemented, PR-10]
+
+**Preview** in the header opens a collapsible side panel on every screen with the real game in an
+iframe (`/?preview`). It is dev-server only. The label reads: *Preview uses saved content and its
+own save slots; your game save is untouched.*
+
+- **Own saves.** `?preview` switches the autosave and saved game to `textisland.preview.save` and
+  `textisland.preview.saved`; the player's `textisland.save`/`textisland.saved` are never read or
+  written in preview mode, and the preview keys are never used without `?preview`.
+- **New game.** The optional **Seed** (whole digits) reloads the iframe with `&seed=<n>`; the game
+  clears the preview autosave, starts that seed and removes `seed` from its URL, so later reloads
+  continue the game (a bookmarked URL that still has `seed` restarts it). Without a seed, New game calls `ti.reset()`. The same seed gives the same game.
+  The seed is ignored outside preview mode.
+- **First variants** reloads with `&variants=first` and continues from the preview autosave.
+- **Controls** call the iframe's same-origin `window.ti` directly (no messaging): **Give item**
+  (picker + amount), **Advance time** (hours), **Unlock area** (`ti.unlock`), **Start task**
+  (`ti.quest`). Pickers list saved content. **Open in a new tab** opens `/?preview` (with the
+  variants toggle) in a separate window using the same preview slots.
+- **Reload.** The plugin reports content/illustration changes (Studio saves and external edits)
+  as `studio:files-changed`. The game page reloads once after the changes settle (about 400 ms) and
+  continues from its autosave, in the preview and in an **Open game** tab alike. Vite's own full
+  reload is suppressed for content paths, so the Studio page never reloads and keeps its drafts and
+  undo history. The save keeps progress that refers to items and places that still exist; ones
+  removed from content are dropped on load as for any save.
+- **Unsaved drafts.** The preview never shows drafts. With N unsaved files the panel says *Preview
+  shows saved content – N unsaved changes* and offers **Save and reload preview**, the normal
+  whole-pack Save (disabled when saving is blocked); the reload follows from the file change.
+- **Content errors.** If the saved content has registry errors, the iframe shows the game's
+  content error screen, the controls are disabled and **Show diagnostics** scrolls to the list.
+
+Under `STUDIO_ROOT` (the Studio browser tests) the game loads that root's `content/` as a whole
+instead of the checkout's; the checkout's `content/` stays blocked. Without it nothing changes.

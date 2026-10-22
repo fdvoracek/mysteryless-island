@@ -5,11 +5,20 @@ import { Engine } from "./core/engine";
 import { ActionController } from "./app/action-controller";
 import { setVariantMode } from "./core/text";
 import { installDebug } from "./debug/console";
-import { clearSave, hasSavedGame, loadGame, readSaveStatus, saveGame, writeSave } from "./persistence/save";
+import { clearSave, hasSavedGame, loadGame, previewSeed, readSaveStatus, saveGame, writeSave } from "./persistence/save";
 import { initTheme, UI } from "./ui/render";
 
 initTheme();
 const app = document.getElementById("app")!;
+
+// Dev server only: the Studio plugin reports content changes; a multi-file save reloads once.
+if (import.meta.hot) {
+  let reloadTimer: number | undefined;
+  import.meta.hot.on("studio:files-changed", () => {
+    window.clearTimeout(reloadTimer);
+    reloadTimer = window.setTimeout(() => location.reload(), 400);
+  });
+}
 
 let reg: Registry;
 try {
@@ -26,6 +35,14 @@ try {
 if (new URLSearchParams(location.search).get("variants") === "first") setVariantMode("first");
 
 const newSeed = () => Math.floor(Math.random() * 2 ** 31); // the only Math.random: picks a seed
+// preview only: &seed=<n> starts a new game, then leaves the URL so a reload continues it
+const seed = previewSeed();
+if (seed !== undefined) {
+  clearSave();
+  const url = new URL(location.href);
+  url.searchParams.delete("seed");
+  history.replaceState(null, "", url);
+}
 const loaded = readSaveStatus(reg);
 if (loaded.error) {
   const message = document.createElement("p");
@@ -37,7 +54,7 @@ if (loaded.error) {
   throw new Error(loaded.error);
 }
 const resumed = loaded.state;
-let engine = resumed ? new Engine(reg, resumed) : Engine.newGame(reg, newSeed());
+let engine = resumed ? new Engine(reg, resumed) : Engine.newGame(reg, seed ?? newSeed());
 document.title = reg.game.title;
 
 /** the autosave after every completed action (a reload continues; a death stays a death) */

@@ -1,6 +1,6 @@
 # Mysteryless Island — Content Studio implementation plan
 
-Status: **[PR-01 to PR-09 implemented; PR-10 proposal]**
+Status: **[PR-01 to PR-10 implemented]**
 Revised: 2026-10-22 (replaces the earlier 30-PR monorepo/Pages-hosted plan)
 Authority: this file is the single source for Studio scope, decisions and PR order. AGENTS.md,
 ARCHITECTURE.md and docs/TDD.md only point here. Code and tests define current behavior.
@@ -75,6 +75,19 @@ dialog and stages the activity definition plus its ordered area link as one undo
 shortcut is an explicit, user-chosen link; ordinary Create never links automatically. Save all
 validates and saves both files under §4.3. Area deletion offers Keep or Delete them too for
 activities that would otherwise be neither linked nor global; Keep requires relinking before Save.
+
+Owner decisions (2026-10-22), PR-10:
+- Vite's automatic full reload also reloads the Studio page when a game page is open (the game's
+  module graph contains the content JSON), which would discard drafts and undo history. In Studio
+  mode the plugin therefore suppresses that reload for allowed content paths (`handleHotUpdate`, plus
+  the add/remove path through `ws.send`). It keeps the existing `studio:files-changed` event, and
+  `src/main.ts` reloads the game page on it (`import.meta.hot`, debounced about 400 ms), so the
+  preview and an **Open game** tab still reload. Production bundles contain no trace of it.
+- Under `STUDIO_ROOT` the game's content glob resolves against `STUDIO_ROOT/content` as a whole
+  (studio plugin only, with `server.fs.allow` for that directory; `src/content/loader.ts` is
+  unchanged; the checkout's `content/` stays denied). Without `STUDIO_ROOT` nothing changes.
+- `?preview&seed=<digits>` starts a new game with that seed and removes `seed` from the URL;
+  `ti.unlock(regionId)` is the only new debug command.
 
 ## 3. Open gates — ask before the affected PR
 
@@ -156,8 +169,8 @@ failure reports exactly which files were written and not written and retains uns
 
 ### 4.5 Preview (PR-10)
 
-- The Studio shows the real game in an iframe (`/?preview`). Saving a content file triggers Vite's
-  reload of the game; nothing else is needed for fresh content.
+- The Studio shows the real game in an iframe (`/?preview`). The plugin reports saved content files
+  and the game page reloads itself (see the PR-10 owner decisions in §2).
 - `?preview` switches the save keys to `textisland.preview.*` so the owner's own saves are untouched,
   and enables the existing `ti` debug console. The Studio preview panel offers new game (optional
   seed), `?variants=first`, and buttons wrapping existing `ti` commands (give item, advance time,
@@ -186,7 +199,7 @@ transition or dual-layout support is needed. The game must still work after ever
    (file layout), `src/content/format.ts`, the `content:format` script and the optional `order`
    field for observably ordered list kinds; PR-03 schema/registry/engine (activity links);
    PR-04 structured `ContentError` (string output unchanged); PR-05 `ref()` metadata (no
-   validation change); PR-10 preview save keys (active only with `?preview`). Any other change
+   validation change); PR-10 preview save keys, seed handling, `ti.unlock` and the dev-only reload listener in `src/main.ts` (active only with `?preview` or the Studio dev server). Any other change
    to `src/content`, `src/core`, `src/ui`, `src/persistence` or `src/main.ts` is out of scope;
    stop and ask.
 3. **Golden traces (PR-01) must stay unchanged** in every Studio PR except the approved
@@ -400,14 +413,36 @@ list views expose the same nodes and edges as the graphs.
 
 ### Phase D — convenience
 
-**PR-10 — Live preview.** Game iframe inside the Studio with `?preview` save isolation, reload on
-save and the preview panel (§4.5). Moved last by the owner (2026-10-21): playing in a second window
-is enough until then.
+**PR-10 — Live preview.** **[implemented]** Game iframe inside the Studio with `?preview` save
+isolation, reload on save and the preview panel (§4.5). Moved last by the owner (2026-10-21).
 *Done when:* a test shows preview mode never writes `textisland.save`/`textisland.saved`.
 *Owner test:* edit a landmark text, see it in the preview without touching your own save.
+Implementation: `src/studio/preview.ts`, `preview-panel.tsx`; shared changes in
+`src/persistence/save.ts`, `src/main.ts`, `src/debug/console.ts`; `tools/vite-content-api.ts`.
+See [usage](STUDIO.md#live-preview--implemented-pr-10) and
+[mockup differences](mockups/studio/README.md#pr-10-implementation-differences--implemented).
 
 ## 7. Definition of done for the program
 
 The owner can build a new Stone Age area — with landmarks, linked activities, new items, recipes,
 buildings with production, tree nodes, tasks and a branching event connected through discoveries —
 without opening a JSON file, playtest it in the game and commit a content-only diff.
+
+### Program status (after PR-10)
+
+All ten PRs are implemented; this records where the definition of done above stands, without
+rewriting the history of the plan.
+
+- **Met (by tool support, each covered by tests):** areas with landmarks and map cells (PR-07, PR-09),
+  linked activities (PR-05, PR-07), new items (PR-05), recipes, buildings and their tree nodes
+  (PR-05, PR-09), tasks and events with branching scenes connected through discoveries (PR-08),
+  reference-aware rename and delete (PR-07), a preview of the saved content with its own save slots
+  (PR-10), and content-only diffs written by the shared formatter (PR-02, PR-05).
+- **Buildings with production** are authored through the generic schema forms (cycles, batches,
+  products); there is no dedicated production editor.
+- **Known gaps:** no end-to-end authoring of a complete Stone Age chapter has been done by the owner
+  yet, so the sentence above is verified piecewise, not as one session. Illustrations are listed but
+  not uploaded or replaced through the Studio. The preview shows saved content only (no unsaved
+  drafts) and, as for any save, drops progress tied to items or places that no longer exist when
+  content is removed. Automatic reload of a separate **Open game** tab depends on the dev server
+  event from PR-10 rather than Vite's own reload.
