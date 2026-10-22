@@ -13,6 +13,7 @@ import { identities, deletionReferences, whereUsed, type Identity } from "./refe
 import { TreeEditor } from "./tree-editor";
 import { MapEditor } from "./map-editor";
 import { blockerLabel, deletionBlockers } from "./tree";
+import { PreviewPanel } from "./preview-panel";
 import "./studio.css";
 
 function Studio() {
@@ -30,6 +31,7 @@ function Studio() {
   const [deleteOrphans, setDeleteOrphans] = useState(false);
   const [deleting, setDeleting] = useState<string>();
   const [historyKey, setHistoryKey] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [hiddenConflicts, setHiddenConflicts] = useState<string[]>([]);
   const source = useRef<HTMLPreElement>(null);
   const { documents } = useMemo(() => loaded ? readDocuments(store.files, false) : { documents: [] }, [store, version, loaded]);
@@ -106,10 +108,12 @@ function Studio() {
         <button disabled={!store.past.length || store.busy} onClick={undo}>Undo</button><button disabled={!store.future.length || store.busy} onClick={redo}>Redo</button>
         <button className="primary" disabled={!canSave} onClick={() => { void save(); }}>Save all</button>
         <button disabled={store.busy} onClick={() => setCreate({ kind: scope })}>Create</button>
+        <button aria-expanded={previewOpen} aria-controls="preview-panel" onClick={() => setPreviewOpen(open => !open)}>Preview</button>
         <button disabled={store.busy} onClick={() => { void refresh(); }}>Refresh from disk</button><a href="/" target="_blank" rel="noreferrer">Open game ↗</a></div>
     </header>
     {store.status && <p className="save-report" role="log">{store.status}</p>}
     {failure && <div role="alert" className="request-error">{failure}. Refresh to try again.</div>}
+    <div className="studio-body">
     <div className="studio-columns">
       <nav className="studio-nav" aria-label="Content navigation">
         <h2>Browse</h2><button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button><button aria-current={scope === "trees" ? "page" : undefined} onClick={() => browse("trees")}>Trees</button><button aria-current={scope === "map" ? "page" : undefined} onClick={() => browse("map")}>Map</button><button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
@@ -135,7 +139,7 @@ function Studio() {
             {selectedSchema && !(area && selected.path === area.path) && <section className="used-by" aria-label="Where used"><h3>Used by</h3>{whereUsed(documents, selected).map((ref) => <button key={`${ref.file}:${ref.path}`} onClick={() => openProblem(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>}
           </section>
         </> : <h2>Content browser</h2>}
-        <section className="diagnostics" aria-label="Diagnostics"><h2>Diagnostics <span>{diagnostics.length}</span></h2>
+        <section className="diagnostics" id="diagnostics" aria-label="Diagnostics"><h2>Diagnostics <span>{diagnostics.length}</span></h2>
           {files.length > 0 && !diagnostics.length && <p className="ok">All content passes the shared registry validation.</p>}
           {diagnostics.length > 0 && <ul>{diagnostics.map((problem, index) => <li key={`${problem.file}:${problem.path}:${index}`}>
             {documents.some((document) => document.path === problem.file) ? <button className="problem-link" onClick={() => openProblem(problem.file, problem.path)}><code>{problem.file}{problem.path && ` › ${problem.path}`}</code></button> : <code>{problem.file || "Content pack"}</code>}
@@ -143,6 +147,8 @@ function Studio() {
           </li>)}</ul>}
         </section>
       </main>
+    </div>
+    {previewOpen && <PreviewPanel store={store} canSave={canSave} save={() => { void save(); }} showDiagnostics={() => document.getElementById("diagnostics")?.scrollIntoView({ block: "start" })} />}
     </div>
     {create && <CreateDialog store={store} kind={create.kind} areaPath={create.areaPath} tree={create.tree} duplicate={documents.find((d) => d.path === create.duplicate)} prefill={create.prefill ?? documents.find((d) => d.path === create.duplicate)?.raw as Record<string, unknown> | undefined} close={() => setCreate(undefined)} created={openCreated} />}
     {target && <Dialog title="Delete entity" close={() => setDeleting(undefined)}><p>{usedBy.length ? "Delete blocked: this entity is used by:" : "Stage deletion of this entity? Save all applies the deletion after pack validation."}</p><ul>{usedBy.map((ref) => <li key={`${ref.file}:${ref.path}`}><code>{blockerLabel(documents, ref)}</code></li>)}</ul>{!!orphans.length && <section aria-label="Activities left without an area"><h3>Activities left without an area</h3><ul>{orphans.map(d => <li key={d.path}>{d.id}</li>)}</ul><label><input type="radio" name="orphans" checked={!deleteOrphans} onChange={() => setDeleteOrphans(false)} />Keep — link them elsewhere before saving</label><label><input type="radio" name="orphans" checked={deleteOrphans} onChange={() => setDeleteOrphans(true)} />Delete them too</label></section>}<button disabled={usedBy.length > 0} onClick={() => { store.delete(target.path, deleteOrphans); setDeleting(undefined); setSelection(""); }}>Delete draft</button></Dialog>}

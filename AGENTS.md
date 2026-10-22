@@ -16,7 +16,7 @@ Include these requirements when delegating visual work. Gameplay, persistence, c
 and tooling changes without visual impact do not require these guides; read them when a task
 also changes presentation. Keep detailed visual rules in the guides rather than copying them here.
 
-## Content Studio — [PR-01 to PR-09 implemented; preview (PR-10) planned]
+## Content Studio — [PR-01 to PR-10 implemented; the plan is complete]
 
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md) is the
 single source for Studio scope, confirmed decisions, open gates and PR order (PR-01 to PR-10).
@@ -48,7 +48,7 @@ npm run test:studio    # Studio browser wiring tests (Chromium)
 npm run check          # tests, content validation, builds, game and Studio browser tests
 ```
 
-URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=first` (always the first wording of each text). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.state()`.
+URL switches: `?speed=0.2` (faster progress bars), `?font=<id>`, `?variants=first` (always the first wording of each text), `?preview` (Studio preview: own save slots `textisland.preview.*`; with `&seed=<digits>` it starts a new game). Debug helpers in the browser console: `ti.give()`, `ti.stat()`, `ti.time(hours)` (advances the clock, it does not set it), `ti.fire()`, `ti.unlock(regionId)`, `ti.state()`.
 
 ## Architecture
 

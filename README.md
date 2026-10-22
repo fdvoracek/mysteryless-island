@@ -138,13 +138,17 @@ Open the browser console:
 ti.give("firewood", 10)   ti.stat("thirst", 0)   ti.time(5)   ti.fire(6)
 ti.state()                ti.felt()                            ti.reset()
 ti.quests()               ti.quest("survive_first_night")      // list / force-start quests
+ti.unlock("forest")                                            // open a place now
 ```
 
-## Local Content Studio — [implemented, PR-01 to PR-09]
+## Local Content Studio — [implemented, PR-01 to PR-10]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/` to browse and edit content with forms
 (create, duplicate, delete, undo/redo, whole-pack Save all), condition and text widgets, an area
 workspace with reference-aware rename, story and event graphs, and creation-tree and map editors.
 Validation uses the same registry as the game. The game is available at `/` on the same server; the
-Studio is excluded from production builds. An embedded game preview (PR-10) remains planned. See
+Studio is excluded from production builds. A collapsible **Preview** panel embeds the game (`/?preview`)
+with its own save slots (`textisland.preview.*`; your game save is untouched), a seeded new game,
+and give item, advance time, unlock area and start task controls. It shows saved content and reloads
+when files change. See
 [Studio usage](docs/STUDIO.md) and the [implementation plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).

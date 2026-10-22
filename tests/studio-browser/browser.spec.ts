@@ -813,3 +813,128 @@ test("map editor moves areas by drag and keyboard, refuses occupied cells, cance
     for (const file of initial) await restoreFile(request, file);
   }
 });
+
+test("preview panel: own save slots, seeded new game, controls, and reload on Studio saves and external edits without reloading the Studio", async ({ page, request }) => {
+  test.setTimeout(90_000);
+  const created = ["content/items/preview_pebble.json", "content/items/external_pebble.json", "content/items/broken_item.json"];
+  type Ti = { state(): { seed: number; time: number; items: Record<string, number>; regions: Record<string, { unlocked: boolean }> }; quests(): Record<string, unknown>; time(h: number): void };
+  const game = () => page.frames().find((frame) => frame !== page.mainFrame())!;
+  const ti = <T,>(read: (ti: Ti) => T) => game().evaluate(`(${read.toString()})(window.ti)`).catch(() => undefined) as Promise<T | undefined>;
+  const gameReady = () => expect.poll(() => ti((api) => !!api.state())).toBe(true);
+  let studioLoads = 0, gameLoads = 0;
+  page.on("framenavigated", (frame) => { if (frame === page.mainFrame()) studioLoads++; else gameLoads++; });
+  try {
+    await page.goto("/studio/");
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.evaluate(() => {
+      localStorage.setItem("textisland.save", "player-autosave"); localStorage.setItem("textisland.saved", "player-slot");
+      (window as unknown as { studioMarker: number }).studioMarker = 1;
+    });
+    await expect(page.locator("iframe")).toHaveCount(0);
+    await page.getByRole("button", { name: "Preview", exact: true }).click();
+    const panel = page.getByRole("complementary", { name: "Game preview" });
+    await expect(panel).toContainText("Preview uses saved content and its own save slots; your game save is untouched.");
+    await gameReady();
+
+    // seeded new game: the same seed gives the same game, and a reload keeps playing it
+    await panel.getByRole("textbox", { name: "Seed" }).fill("12x");
+    await expect(panel.getByRole("button", { name: "New game" })).toBeDisabled();
+    await panel.getByRole("textbox", { name: "Seed" }).fill("1234");
+    await panel.getByRole("button", { name: "New game" }).click();
+    await expect.poll(() => ti((api) => api.state().seed)).toBe(1234);
+    const fresh = JSON.stringify(await ti((api) => api.state()));
+    expect(game().url()).not.toContain("seed");
+    await ti((api) => api.time(2));
+    await panel.getByRole("button", { name: "New game" }).click();
+    await expect.poll(async () => JSON.stringify(await ti((api) => api.state()))).toBe(fresh);
+
+    // the controls call the game's own debug console
+    const before = (await ti((api) => api.state()))!;
+    await panel.getByLabel("Item", { exact: true }).selectOption("knife");
+    await panel.getByLabel("Amount").fill("3");
+    await panel.getByRole("button", { name: "Give item" }).click();
+    await expect.poll(async () => ((await ti((api) => api.state().items.knife)) ?? 0) - (before.items.knife ?? 0)).toBe(3);
+    await panel.getByLabel("Hours").fill("2");
+    await panel.getByRole("button", { name: "Advance time" }).click();
+    await expect.poll(async () => ((await ti((api) => api.state().time)) ?? 0) > before.time).toBe(true);
+    const locked = Object.keys(before.regions).find((id) => !before.regions[id].unlocked)!;
+    await panel.getByLabel("Area", { exact: true }).selectOption(locked);
+    await panel.getByRole("button", { name: "Unlock area" }).click();
+    await expect.poll(async () => (await ti((api) => api.state()))?.regions[locked].unlocked).toBe(true);
+    expect(await ti((api) => api.quests().first_catch)).toBeUndefined();
+    await panel.getByLabel("Task", { exact: true }).selectOption("first_catch");
+    await panel.getByRole("button", { name: "Start task" }).click();
+    await expect.poll(() => ti((api) => api.quests().first_catch !== undefined)).toBe(true);
+
+    // the player's own slots are untouched; the preview wrote its own
+    expect(await page.evaluate(() => [localStorage.getItem("textisland.save"), localStorage.getItem("textisland.saved"), localStorage.getItem("textisland.preview.save") !== null])).toEqual(["player-autosave", "player-slot", true]);
+
+    // a Studio save of a file that exists only in the isolated pack reloads the game, not the Studio
+    const time = await ti((api) => api.state().time);
+    await page.getByRole("button", { name: "Create", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create entity" });
+    await dialog.getByLabel("Create kind").selectOption("items");
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("preview_pebble");
+    await dialog.getByRole("textbox", { name: "name", exact: true }).fill("preview pebble");
+    await dialog.getByRole("combobox", { name: "category", exact: true }).selectOption("material");
+    await dialog.getByRole("button", { name: "Create draft" }).click();
+    await expect(panel).toContainText("Preview shows saved content – 1 unsaved change");
+    await expect(panel.getByLabel("Item", { exact: true }).locator("option", { hasText: "preview_pebble" })).toHaveCount(0);
+    const loadsBefore = gameLoads, studioBefore = studioLoads;
+    await panel.getByRole("button", { name: "Save and reload preview" }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    await expect.poll(() => gameLoads).toBeGreaterThan(loadsBefore);
+    await gameReady();
+    expect(await ti((api) => api.state().time)).toBe(time);
+    await expect(panel).not.toContainText("unsaved change");
+    await panel.getByLabel("Item", { exact: true }).selectOption("preview_pebble");
+    await panel.getByLabel("Amount").fill("2");
+    await panel.getByRole("button", { name: "Give item" }).click();
+    await expect.poll(() => ti((api) => api.state().items.preview_pebble)).toBe(2);
+    expect(studioLoads).toBe(studioBefore);
+
+    // an external edit reloads the game too, and the Studio keeps its drafts and undo history
+    const contents = page.getByRole("region", { name: "File contents" });
+    await page.getByRole("navigation").getByRole("button", { name: /^Items/ }).click();
+    await page.getByRole("searchbox").fill("preview_pebble");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").first().click();
+    await contents.getByRole("textbox", { name: "name", exact: true }).fill("edited pebble");
+    await expect(panel).toContainText("1 unsaved change");
+    const loadsMid = gameLoads;
+    const external = await request.put(`/__studio/files/${created[1]}`, { data: { expectedHash: null, encoding: "utf8", content: '{ "id": "external_pebble", "name": "external pebble", "category": "material" }\n' } });
+    expect(external.ok()).toBe(true);
+    await expect.poll(() => gameLoads).toBeGreaterThan(loadsMid);
+    await gameReady();
+    // the saved item is in the reloaded game's registry (saves drop unknown items), so the game continued
+    expect(await ti((api) => api.state().items.preview_pebble)).toBe(2);
+    expect(studioLoads).toBe(studioBefore);
+    expect(await page.evaluate(() => (window as unknown as { studioMarker?: number }).studioMarker)).toBe(1);
+    await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeEnabled();
+    await expect(page.getByText("1 unsaved files")).toBeVisible();
+    await expect(contents.getByRole("textbox", { name: "name", exact: true })).toHaveValue("edited pebble");
+    const loadsSave = gameLoads;
+    await panel.getByRole("button", { name: "Save and reload preview" }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    await expect(panel).not.toContainText("unsaved change");
+    await expect.poll(() => gameLoads).toBeGreaterThan(loadsSave);
+    await gameReady();
+    await panel.getByRole("button", { name: "Give item" }).click();
+    await game().getByRole("button", { name: "the knife" }).click();
+    await game().locator('[data-choice="close"]').click();
+    await expect(game().locator("body")).toContainText("edited pebble");
+
+    // saved content with registry errors: the game's error screen, a link to the diagnostics, controls off
+    const broken = await request.put(`/__studio/files/${created[2]}`, { data: { expectedHash: null, encoding: "utf8", content: '{ "id": "broken_item", "name": "broken", "category": "material", "unknown": 1 }\n' } });
+    expect(broken.ok()).toBe(true);
+    await expect(game().locator("#app > pre.error")).toBeVisible();
+    await expect(panel).toContainText("The saved content has errors");
+    await expect(panel.getByRole("button", { name: "Give item" })).toBeDisabled();
+    await panel.getByRole("button", { name: "Show diagnostics" }).click();
+    await expect(page.getByRole("region", { name: "Diagnostics" })).toBeInViewport();
+    await expect(page.getByRole("region", { name: "Diagnostics" })).toContainText("broken_item");
+    expect(studioLoads).toBe(studioBefore);
+  } finally {
+    const latest = await studioFiles(request);
+    for (const path of created) { const file = latest.find((f) => f.path === path); if (file) await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } }); }
+  }
+});

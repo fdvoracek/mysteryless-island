@@ -3,7 +3,7 @@ import type { Engine } from "../core/engine";
 /**
  * Debug helpers on window.ti (open the browser console):
  *   ti.give("firewood", 10)   ti.stat("thirst", 0)   ti.time(5)   ti.fire(6)
- *   ti.state()                ti.quests()            ti.quest("survive_first_night")    ti.reset()
+ *   ti.state()                ti.quests()            ti.quest("survive_first_night")    ti.unlock("forest")    ti.reset()
  */
 export function installDebug(getEngine: () => Engine, render: () => void, reset: () => void) {
   // debug changes skip the command pipeline, so re-check quests before drawing
@@ -19,6 +19,8 @@ export function installDebug(getEngine: () => Engine, render: () => void, reset:
     quests() { return JSON.parse(JSON.stringify(getEngine().state.quests)); },
     /** start a quest now, whatever its trigger */
     quest(id: string) { getEngine().startQuest(id); rerender(); },
+    /** open a place now, whatever its unlock rule */
+    unlock(regionId: string) { getEngine().applyEffects([{ unlock: regionId }]); rerender(); },
     reset() { reset(); },
   };
   (window as unknown as { ti: typeof api }).ti = api;
