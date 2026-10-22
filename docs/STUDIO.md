@@ -110,6 +110,9 @@ are built from these entries; no message parsing is used. Missing files show the
 Duplicate activity links are rejected at the repeated array element. The public shared
 content surface is `src/content/index.ts`; it re-exports definitions without loading a pack.
 
+Vite is pinned to `~5.4` in `package.json`: the Studio dev-server plugin (`tools/vite-content-api.ts`)
+relies on Vite 5 behaviour, so a minor upgrade needs a deliberate re-check.
+
 `npm run typecheck` runs the import-boundary lint. `npm run build` checks the produced game bundle
 for Studio/React code. Unit tests exercise the actual production build in a temporary output
 folder and inspect its module list as well. See [testing](TESTING.md) for commands and coverage.
