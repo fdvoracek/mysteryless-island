@@ -6,7 +6,7 @@ export const kindLabels: Record<string, string> = {
   regions: "Areas", activities: "Activities", items: "Items", recipes: "Recipes", buildings: "Buildings",
   quests: "Tasks", events: "Events", sites: "Sites", artwork: "Artwork", trees: "Creation trees", settings: "Game settings", illustrations: "Illustrations",
 };
-export function readDocuments(files: FileDocument[]): { documents: Document[]; diagnostics: ContentProblem[] } {
+export function readDocuments(files: FileDocument[], validate = true): { documents: Document[]; diagnostics: ContentProblem[] } {
   const parsed: Record<string, unknown> = {};
   const diagnostics: ContentProblem[] = [];
   const documents = files.map((file) => {
@@ -21,10 +21,12 @@ export function readDocuments(files: FileDocument[]): { documents: Document[]; d
     const label = typeof value.name === "string" ? value.name : typeof value.title === "string" ? value.title : id;
     return { ...file, kind, id, label, raw, formatted: raw === undefined ? file.content : formatContent(raw) };
   });
-  try { buildRegistry(parsed); }
-  catch (error) {
-    if (error instanceof ContentError) diagnostics.push(...error.diagnostics);
-    else throw error;
+  if (validate) {
+    try { buildRegistry(parsed); }
+    catch (error) {
+      if (error instanceof ContentError) diagnostics.push(...error.diagnostics);
+      else throw error;
+    }
   }
   return { documents, diagnostics };
 }

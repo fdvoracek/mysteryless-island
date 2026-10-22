@@ -1,4 +1,4 @@
-# Content Studio — [implemented, PR-04 foundation]
+# Content Studio — [implemented, PR-05 editor]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
@@ -6,20 +6,66 @@ production build and Pages deployment. `npm run dev` remains the ordinary game w
 Startup prints the exact Studio URL, including custom ports.
 A forbidden or non-JSON file API response prompts you to open that URL without a raw parse error.
 
-The current browser is read-only: navigate by kind or area, search IDs/names/text, and inspect
-canonical JSON including author comments. Area navigation includes the area definition, its
+Navigate by kind or area, search IDs/names/text, and edit content through generic schema-generated
+forms or JSON. Both views preserve author comments (`_` keys), key order and untouched values. Area navigation includes the area definition, its
 linked activities and global activities. Other kinds and singleton settings remain available
 through kind navigation. Illustrations are listed with their encoding and hash.
 
 Diagnostics use the shared content registry. Selecting a problem opens its file and shows the
 field location above the JSON. Invalid JSON stays visible as raw text. Changes made on disk
 refresh through Vite's watcher; returning to the window or choosing **Refresh from disk** also
-reloads the inventory. File API failures appear with a retry action. The game opens in a second
+reloads the inventory. Dirty drafts survive refresh. If their disk file changes or disappears,
+a conflict dialog offers **Reload disk version** or **Keep mine**. Keeping a draft does not grant
+overwrite permission: the next Save opens the dialog again for explicit overwrite with a freshly
+checked hash. A further disk change requires another confirmation. File API failures appear with a retry action. The game opens in a second
 tab through **Open game** and uses its ordinary save slots.
 
-Forms, save/undo/create controls, reference-aware rename/delete, area workspace, graphs and the
-embedded game preview remain planned. The authoritative scope and delivery order live in the
+Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
+undo/redo and explicit saving are **[implemented, PR-05]**. The condition/effect builder and text
+widget, rename, area workspace, graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+
+
+## Editing and saving — [implemented, PR-05]
+
+Form diagnostics validate a comment-stripped copy through the shared registry after a short
+debounce; Save rechecks synchronously before writing. Forms walk the shared Zod schemas, including optional fields, arrays, records and unions. Add or
+unset optional fields, add/remove/reorder array entries, and add/remove record keys. Reference
+fields and reference record keys offer IDs from the current pack, including unsaved drafts.
+Unions offer a value-type selector; discriminated unions use their discriminator. Unsupported
+schema nodes, unknown fields and deeply nested structures use validated JSON input. Conditions
+and texts currently use these generic controls; specialized authoring widgets arrive in PR-06.
+The JSON view also shows the canonical save preview. Existing entity IDs are read-only in the
+form; file renaming is deferred, and changing the root ID in JSON fails filename validation.
+
+**Create** supports the nine independent entity kinds, including artwork. The dialog is generated
+from ID plus required fields and accepts pre-filled optional values. Settings and the two creation
+trees are existing singletons, edited in place. **Duplicate** pre-fills the same dialog and lists
+all nested IDs to replace, including landmarks, cycle steps, item actions, choice IDs and explicit
+text IDs. New IDs must be valid and unique; duplication never silently changes references.
+Creation opens an **unsaved draft**, with registry diagnostics. No placeholder author text is
+inserted. A non-global activity needs an area link; a recipe/building needs its creation-tree node.
+Add these through the generic area/tree forms before saving; no links or nodes are automatic.
+
+**Delete** lists “used by” file and field locations and blocks referenced entities. For an area or
+building this includes references to its owned discoveries or cycle steps. Unreferenced deletion
+is staged until Save; singleton deletion is unavailable. Dirty files are marked in the list.
+**Undo/Redo** and Cmd/Ctrl+Z / Cmd/Ctrl+Shift+Z operate on session drafts. Drafts and history are
+memory-only; malformed JSON buffers also survive view changes and participate in undo/redo.
+Leaving the page warns about unsaved work. Successful saves clear the history.
+
+**Save all** / Cmd/Ctrl+S validates the complete pack, including all drafts, through the shared
+registry and writes every dirty file through `formatContent` and the expected-hash file API.
+Invalid values show inline errors and block saving. If disk content already has diagnostics,
+a save may strictly reduce their count while retaining only existing diagnostics; it cannot
+introduce a new one. The Studio refreshes disk hashes and rechecks the pack before writing.
+
+Writes are sequential, **not a transaction**. If a request fails, the report lists exactly which
+paths were written and which were not. Written files become clean; all unwritten drafts remain
+for correction/retry. An interrupted group can leave an incomplete pack on disk; finish the
+remaining save or use Git to recover. The existing file API guards each write, not the entire
+pack against another editor changing an unrelated file after validation. A `409` retains the
+draft and opens the conflict dialog. A keep-mine choice always needs explicit overwrite.
 
 ## Local file transport
 
@@ -51,8 +97,7 @@ types are omitted from listings. Symlinks are conservatively unsupported even wi
 PUT writes a temporary sibling and renames it atomically. Requests are serialized around hash
 checks and mutations. Rename moves one file without overwriting another; it does not change IDs
 or rewrite references. The API transports raw bytes, including invalid JSON; registry validation
-belongs to the Studio. Higher-level multi-file editing and its per-file reporting arrive in later
-PRs. Git remains the recovery mechanism. Do not expose this dev server through a public proxy.
+belongs to the Studio. The PR-05 editor sequences whole-pack saves and reports per-file results. Git remains the recovery mechanism. Do not expose this dev server through a public proxy.
 
 ## Validation and build boundaries
 
