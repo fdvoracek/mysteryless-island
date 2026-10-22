@@ -2,7 +2,8 @@
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
-production build and Pages deployment. `npm run dev` remains the ordinary game workflow. Startup prints the exact Studio URL, including custom ports.
+production build and Pages deployment. `npm run dev` remains the ordinary game workflow.
+Startup prints the exact Studio URL, including custom ports.
 A forbidden or non-JSON file API response prompts you to open that URL without a raw parse error.
 
 The current browser is read-only: navigate by kind or area, search IDs/names/text, and inspect
@@ -24,7 +25,8 @@ embedded game preview remain planned. The authoritative scope and delivery order
 
 The dev-only `tools/vite-content-api.ts` plugin binds to `127.0.0.1`. Every API request must have
 `Host: 127.0.0.1:<actual-port>` or `Host: localhost:<actual-port>` and, when supplied,
-exactly `Origin: http://<that-same-Host>`. Mixing the two local names is rejected. Forwarded headers do not establish trust. Responses are
+exactly `Origin: http://<that-same-Host>`. Mixing the two local names is rejected.
+Forwarded headers do not establish trust. Responses are
 JSON with `Cache-Control: no-store`; cross-origin access is disabled.
 
 | Request | Input | Successful response |
@@ -55,11 +57,27 @@ PRs. Git remains the recovery mechanism. Do not expose this dev server through a
 ## Validation and build boundaries
 
 `ContentError.problems` and its error message preserve their existing string output;
-`ContentError.diagnostics` adds `{ file, path, message }` locations. Paths use dotted fields and
-array indices; some existing reference diagnostics identify the containing condition/effect.
-Pack-wide errors without a source remain visible without an entity link. The public shared
+`ContentError.diagnostics` contains `{ file, path, message }` entries recorded at each validation
+site **[implemented, PR-04.1]**. Paths point into the raw JSON using dotted fields and numeric
+array indices, including nested conditions, effects and ID-addressed definitions. Error strings
+are built from these entries; no message parsing is used. Missing files show their expected path.
+Duplicate activity links are rejected at the repeated array element. The public shared
 content surface is `src/content/index.ts`; it re-exports definitions without loading a pack.
 
 `npm run typecheck` runs the import-boundary lint. `npm run build` checks the produced game bundle
 for Studio/React code. Unit tests exercise the actual production build in a temporary output
 folder and inspect its module list as well. See [testing](TESTING.md) for commands and coverage.
+
+## Isolated Studio test data — [implemented, PR-04.1]
+
+The serve-only API reads `STUDIO_ROOT` when supplied; otherwise its root is the checkout. This
+option changes the content/image file roots, not the Studio source. The same allowlist, Host/Origin,
+hash and symlink rules apply, including rejection of a symlinked root. With an override, Vite also
+blocks direct access to the checkout's `content/`; Studio dependency scanning uses only its entry.
+Do not use the isolated test server for game playtesting.
+
+`playwright.studio.config.ts` creates a fresh temporary root from `tests/fixtures/content/` for
+each run, adds an isolated-root comment to that copy, and supplies it through `STUDIO_ROOT`.
+Workers share that run's copy; teardown removes it. A guard checks the marker and frozen prose,
+and rejects the checkout's direct content route. Browser tests never read or edit shipped content.
+Run `npm run test:studio`, then `git status --short -- content/` to confirm the shipped pack is clean.

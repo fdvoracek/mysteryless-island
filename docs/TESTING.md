@@ -81,9 +81,22 @@ need permission to bind localhost when running under a restricted sandbox.
 
 `npm run test:studio` starts a separate localhost Vite server and runs `tests/studio-browser/`
 through `playwright.studio.config.ts`. Browser tests cover area/kind/search navigation, read-only
-JSON, diagnostic links, request failure/recovery and narrow-screen layout. Invalid content is
-simulated in the response; tests never edit shipped files or frozen fixtures.
+JSON, diagnostic links, request failure/recovery and narrow-screen layout. **[implemented, PR-04.1]**
+The config copies the frozen pack to a fresh temporary root per run and sets `STUDIO_ROOT`; workers
+share this copy and teardown removes it. A root-marker/frozen-prose guard fails if the API serves
+the checkout’s content, and the direct shipped-content route is blocked. Invalid content is
+simulated in the fixture response; tests never read or edit shipped content or edit frozen files.
 
 `npm run check` includes both browser suites. CI runs the same checks. `npm run typecheck` includes
 `lint:boundaries`; `npm run build` also checks the produced `dist/` for Studio/React contamination.
 Golden traces and save versions are unchanged by PR-04.
+
+## Source diagnostics regression — [implemented, PR-04.1]
+
+`tests/studio/diagnostic-scenarios.ts` creates invalid copies of the frozen pack. The exact ordered
+problem strings were recorded once from main `d609c1e`, before the refactor, into
+`diagnostic-legacy.json`; do not regenerate them to accommodate a mismatch. A table checks exact
+source file/field/message entries for schema, condition, yield, effect, duplicate entity/text ID,
+filename mismatch, activity link, tree cycle and missing-file failures. A broken-pack test compares
+the full ten-message list and complete error text byte for byte. Separate cases reject duplicate
+activity links and verify code-unit ordering. Golden traces remain unchanged.

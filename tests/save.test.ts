@@ -114,7 +114,7 @@ describe("save migration boundary", () => {
     const current = { ...legacy, saveVersion: version };
     const raw = JSON.stringify({ saveVersion: version, current });
     for (const key of ["textisland.save", "textisland.saved"]) localStorage.setItem(key, raw);
-    expect(readSaveStatus(reg)).toMatchObject({ state: null, error: expect.stringContaining("Start a new game") });
+    expect(readSaveStatus(reg)).toMatchObject({ state: null, error: "This save is from an older version of the game. Start a new game to continue. Your saved data has been kept." });
     expect(loadGame(reg)).toBeNull();
     expect(hasSavedGame()).toBe(false);
     expect(restoreState(current, reg)).toBeNull();

@@ -38,9 +38,27 @@ beforeEach(async () => {
   await server.listen();
   port = (server.httpServer!.address() as { port: number }).port;
 });
-afterEach(async () => { await server?.close(); await rm(root, { recursive: true, force: true }); });
+afterEach(async () => { await server?.close(); vi.unstubAllEnvs(); await rm(root, { recursive: true, force: true }); });
 
 describe("localhost content file transport", () => {
+  it("isolates reads/writes in STUDIO_ROOT with the same allowlist and symlink checks", async () => {
+    await server.close();
+    const isolated = join(root, "isolated");
+    await mkdir(join(isolated, "content/items"), { recursive: true });
+    await mkdir(join(isolated, "public/illustrations"), { recursive: true });
+    await writeFile(join(isolated, "content/items/test_item.json"), '{"id":"test_item","name":"isolated fixture"}');
+    vi.stubEnv("STUDIO_ROOT", isolated);
+    server = await createServer({ root, configFile: false, appType: "custom", logLevel: "silent", plugins: [contentApi()], server: { port: 0, hmr: false } });
+    await server.listen(); port = (server.httpServer!.address() as { port: number }).port;
+    const file = await item();
+    expect(JSON.parse(file.content).name).toBe("isolated fixture");
+    expect((await call("PUT", `${prefix}/${file.path}`, { expectedHash: file.hash, content: '{"id":"test_item","name":"changed fixture"}', encoding: "utf8" })).status).toBe(200);
+    expect(await readFile(join(root, "content/items/test_item.json"), "utf8")).toContain("preserve me");
+    expect((await call("PUT", `${prefix}/../package.json`, { expectedHash: null, content: "bad", encoding: "utf8" })).status).toBe(403);
+    await symlink(join(root, "package.json"), join(isolated, "content/items/escape.json"));
+    expect((await call("GET")).status).toBe(403);
+  });
+
   it("notifies the Studio of allowed external file changes only", () => {
     const send = vi.spyOn(server.ws, "send");
     server.watcher.emit("all", "change", join(root, "content/items/test_item.json"));

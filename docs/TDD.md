@@ -949,3 +949,8 @@ ESLint boundaries run during typecheck, and production build tests inspect the e
 graph and files for Studio dependencies. The game entry, engine, persistence, content and frozen
 fixtures remain unchanged by this foundation. Later editor features remain scoped by the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+
+**[implemented, PR-04.1]** Registry validation records raw-file positions at the problem source;
+legacy strings are derived from those structured entries. Studio browser tests use a temporary
+copy of the frozen pack through `STUDIO_ROOT` (see [Studio usage](STUDIO.md)). Registry ID ordering
+uses code-unit comparison. Older-save recovery uses neutral wording without a version bump.

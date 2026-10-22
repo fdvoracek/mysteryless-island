@@ -24,15 +24,27 @@ export function allowedStudioPath(path: string): boolean {
 export function contentApi(): Plugin {
   return {
     name: "textisland-studio-files", apply: "serve",
-    config: () => ({ server: { host: "127.0.0.1", cors: false } }),
-    configureServer(server) {
+    config: (config) => ({
+      optimizeDeps: { entries: ["studio/index.html"] },
+      server: {
+        host: "127.0.0.1", cors: false,
+        // An isolated Studio must not expose the checkout's shipped pack through Vite either.
+        fs: process.env.STUDIO_ROOT ? { deny: [
+          ...(config.server?.fs?.deny ?? [".env", ".env.*", "*.{crt,pem}"]),
+          `${resolve(config.root ?? process.cwd(), "content").split(sep).join("/")}/**`,
+        ] } : undefined,
+      },
+    }),
+    async configureServer(server) {
       const printUrls = server.printUrls.bind(server);
       server.printUrls = () => {
         printUrls();
         const address = server.httpServer?.address();
         if (address && typeof address === "object") server.config.logger.info(`  Studio: http://127.0.0.1:${address.port}/studio/`);
       };
-      const root = resolve(server.config.root);
+      const root = resolve(process.env.STUDIO_ROOT ?? server.config.root);
+      if ((await lstat(root)).isSymbolicLink()) throw new Error("STUDIO_ROOT must not be a symlink");
+      server.watcher.add([join(root, "content"), join(root, "public/illustrations")]);
       const notify = (_event: string, path: string) => {
         const local = relative(root, path).split(sep).join("/");
         if (allowedStudioPath(local)) server.ws.send({ type: "custom", event: "studio:files-changed", data: { path: local } });
