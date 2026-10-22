@@ -322,7 +322,11 @@ test("edits Text forms, alternatives and nested rolls without unrelated changes"
     await expect(page.getByRole("log")).toContainText("Not written: none");
     const baseline = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
     await page.getByRole("spinbutton", { name: "effects.0.roll.0.weight", exact: true }).fill("3");
+    // Disabled also means "save in flight"; wait for its acknowledged write
+    // before reading the file API, rather than racing the PUT with a GET.
+    const saved = page.waitForResponse(response => response.request().method() === "PUT" && response.url().endsWith(`/__studio/files/${path}`));
     await page.getByRole("button", { name: "Save all", exact: true }).click();
+    expect((await saved).ok()).toBe(true);
     await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
     const final = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
     expect(final.content).toBe(baseline.content.replace('"weight": 2', '"weight": 3'));
@@ -498,5 +502,131 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     }
     const forest = (await inventory()).find(f => f.path === forestPath)!;
     if (forest.content !== originalForest.content) expect((await request.put(`/__studio/files/${forestPath}`, { data: { expectedHash: forest.hash, content: originalForest.content, encoding: "utf8" } })).ok()).toBe(true);
+  }
+});
+
+test("story filters, graph/list parity, node navigation and all continuation shortcuts use draft dialogs", async ({ page }) => {
+  const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
+  await page.goto("/studio/");
+  await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+  const nav = page.getByRole("navigation", { name: "Content navigation" });
+  await nav.getByRole("button", { name: "Story", exact: true }).click();
+  const story = page.getByRole("region", { name: "Story workspace" });
+  await story.getByLabel("Story area filter").selectOption("forest");
+  await expect(story.locator('.react-flow__node').filter({ hasText: "rabbit_runs" })).toBeVisible();
+  await page.screenshot({ path: "/tmp/textisland-studio-story.png", fullPage: true });
+  const graphNodes = await story.locator('.react-flow__node').count(), graphEdges = await story.locator('.react-flow__edge').count();
+  await story.getByRole("button", { name: "Accessible list view" }).click();
+  await expect(story.locator('[data-node]')).toHaveCount(graphNodes);
+  await expect(story.locator('[data-edge]')).toHaveCount(graphEdges);
+  for (const node of ["discovery:rabbit_runs", "quest:build_snares"]) {
+    await story.getByLabel("Story node", { exact: true }).selectOption(node);
+    for (const [label, condition] of [["New task when this happens", "trigger"], ["New event when this happens", "trigger"], ["New area unlocked by this", "unlockWhen"]]) {
+      await story.getByRole("button", { name: label, exact: true }).click();
+      const dialog = page.getByRole("dialog", { name: "Create entity" });
+      await expect(dialog.getByLabel("Create file preview")).toContainText(condition);
+      await expect(dialog.getByLabel("Create file preview")).toContainText(node.startsWith("quest") ? '"is": "done"' : '"discovered": "rabbit_runs"');
+      await expect(dialog.getByRole("button", { name: "Create draft", exact: true })).toBeDisabled();
+      await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    }
+  }
+  await story.getByRole("region", { name: "Graph list" }).getByRole("button", { name: /discovery: rabbit_runs/ }).click();
+  await expect(page.getByLabel("Area workspace", { exact: true })).toBeVisible();
+  await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: explore.landmarks.");
+  expect(errors).toEqual([]);
+});
+
+test("event graph edits scenes and choices, retargets deletion and flags JSON damage in the temporary pack", async ({ page, request }) => {
+  const path = "content/events/shipwreck.json";
+  const initial = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+  try {
+    await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("navigation", { name: "Content navigation" }).getByRole("button", { name: /^Events/ }).click();
+    const editor = page.getByRole("region", { name: "Event editor" });
+    await expect(editor).toBeVisible();
+    await editor.getByRole("button", { name: "Add scene", exact: true }).click();
+    let dialog = page.getByRole("dialog", { name: "Add scene", exact: true });
+    await dialog.getByLabel("New scene ID", { exact: true }).fill("browser_scene");
+    await dialog.getByRole("textbox", { name: "scenes.new_scene.text", exact: true }).fill("You enter a clearing.");
+    await dialog.getByRole("textbox", { name: "scenes.new_scene.journal", exact: true }).fill("You enter the clearing.");
+    await dialog.getByRole("button", { name: "Add to draft", exact: true }).click();
+    await expect(editor.getByRole("region", { name: "Event graph checks" })).toContainText("Unreachable scene: browser_scene");
+    await editor.getByRole("button", { name: "Add choice", exact: true }).click();
+    dialog = page.getByRole("dialog", { name: "Add choice", exact: true });
+    await dialog.getByRole("textbox", { name: "scenes.start.choices.new_choice.id", exact: true }).fill("browser_choice");
+    await dialog.getByRole("textbox", { name: "scenes.start.choices.new_choice.label", exact: true }).fill("enter the clearing");
+    await dialog.getByRole("button", { name: "Add next", exact: true }).click();
+    await dialog.getByRole("combobox", { name: "scenes.start.choices.new_choice.next", exact: true }).selectOption("browser_scene");
+    await dialog.getByRole("button", { name: "Add to draft", exact: true }).click();
+    await expect(editor.getByRole("region", { name: "Event graph checks" })).not.toContainText("Unreachable");
+    await page.screenshot({ path: "/tmp/textisland-studio-events.png", fullPage: true });
+    await editor.getByLabel("Selected scene", { exact: true }).selectOption("browser_scene");
+    await editor.getByRole("button", { name: "Delete scene", exact: true }).click();
+    dialog = page.getByRole("dialog", { name: "Delete scene", exact: true });
+    await expect(dialog).toContainText("Deletion blocked");
+    await expect(dialog.getByRole("button", { name: "Retarget and delete scene" })).toBeDisabled();
+    await dialog.getByLabel("Retarget incoming choices").selectOption("swim_knife");
+    await dialog.getByRole("button", { name: "Retarget and delete scene" }).click();
+    await editor.getByRole("button", { name: "Accessible list view" }).click();
+    await expect(editor.locator('[data-node="browser_scene"]')).toHaveCount(0);
+    await editor.getByRole("button", { name: /start → swim_knife: browser_choice/ }).click();
+    await expect(editor.getByRole("textbox", { name: "scenes.start.choices.4.label", exact: true })).toHaveValue("enter the clearing");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.locator('.save-report')).toContainText("Written:");
+    await editor.getByRole("button", { name: "Remove choice browser_choice", exact: true }).click();
+    await editor.getByRole("button", { name: "Add choice", exact: true }).click();
+    dialog = page.getByRole("dialog", { name: "Add choice", exact: true });
+    await dialog.getByRole("textbox", { name: "scenes.start.choices.new_choice.id", exact: true }).fill("browser_new_target_choice");
+    await dialog.getByRole("textbox", { name: "scenes.start.choices.new_choice.label", exact: true }).fill("follow a new path");
+    await dialog.getByRole("checkbox", { name: "Create a new target scene" }).check();
+    await dialog.getByLabel("New target scene ID", { exact: true }).fill("browser_new_target");
+    await dialog.getByRole("textbox", { name: "scenes.new_target_scene.text", exact: true }).fill("You follow a new path.");
+    await dialog.getByRole("textbox", { name: "scenes.new_target_scene.journal", exact: true }).fill("You find a path.");
+    await dialog.getByRole("button", { name: "Add to draft", exact: true }).click();
+    await expect(editor.locator('[data-node="browser_new_target"]')).toHaveCount(1);
+    await editor.getByRole("button", { name: "Remove choice browser_new_target_choice", exact: true }).click();
+    await editor.getByLabel("Selected scene", { exact: true }).selectOption("browser_new_target");
+    await editor.getByRole("button", { name: "Delete scene", exact: true }).click();
+    await page.getByRole("dialog", { name: "Delete scene", exact: true }).getByRole("button", { name: "Delete scene draft", exact: true }).click();
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "JSON", exact: true }).click();
+    const broken = JSON.parse(initial.content); broken.scenes.start.choices[0].next = "missing_browser_scene";
+    await page.getByRole("textbox", { name: "JSON document", exact: true }).fill(JSON.stringify(broken));
+    await page.getByRole("button", { name: "Form", exact: true }).click();
+    await expect(editor.getByRole("region", { name: "Event graph checks" })).toContainText("missing_browser_scene");
+    await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  } finally {
+    const current = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    expect((await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: initial.content, encoding: "utf8" } })).ok()).toBe(true);
+  }
+});
+
+test("creates and saves a task from a landmark continuation without losing the prefilled condition", async ({ page, request }) => {
+  const path = "content/quests/browser_continued_task.json";
+  try {
+    await page.goto("/studio/"); await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("navigation").getByRole("button", { name: "Story", exact: true }).click();
+    const story = page.getByRole("region", { name: "Story workspace" });
+    await story.getByRole("button", { name: "Accessible list view" }).click();
+    await story.getByRole("button", { name: "Continue the story from discovery:rabbit_runs", exact: true }).click();
+    await story.getByRole("button", { name: "New task when this happens", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "Create entity" });
+    await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_continued_task");
+    await dialog.getByRole("textbox", { name: "title", exact: true }).fill("inspect the forest");
+    await dialog.getByRole("combobox", { name: "completeWhen kind", exact: true }).selectOption("discovered");
+    await dialog.getByRole("combobox", { name: "completeWhen.discovered", exact: true }).selectOption("spring");
+    await dialog.getByRole("button", { name: "Create draft", exact: true }).click();
+    expect((await (await request.get("/__studio/files")).json()).files.some((f: { path: string }) => f.path === path)).toBe(false);
+    await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+    await page.getByRole("button", { name: "Save all", exact: true }).click();
+    await expect(page.getByRole("log")).toContainText("Not written: none");
+    const file = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    expect(JSON.parse(file.content).trigger).toEqual({ when: { discovered: "rabbit_runs" } });
+  } finally {
+    const file = (await (await request.get("/__studio/files")).json()).files.find((f: { path: string }) => f.path === path);
+    if (file) expect((await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } })).ok()).toBe(true);
   }
 });

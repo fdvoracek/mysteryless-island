@@ -112,3 +112,28 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .identity-controls { padding: 18px; border-top: 1px solid var(--studio-border); }
 .identity-controls > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; overflow-wrap: anywhere; }
 .studio-dialog label { display: block; margin: 8px 0; }
+
+/* PR-08: derived graphs use the existing neutral Studio palette. */
+.story-panel { grid-column: 2 / -1; }
+.flow-canvas { height: 510px; min-width: 0; border: 1px solid var(--studio-border); background: white; border-radius: 8px; }
+.graph-view { min-width: 0; margin-block: 16px; }
+.graph-view .row-actions { margin-block: 10px; }
+.story-node { display: flex; align-items: center; justify-content: center; overflow-wrap: anywhere; }
+.kind-discovery { background: #f6eedf; border-color: #b08a4a; }
+.kind-quest { background: #e6eef8; border-color: #1f5fad; }
+.kind-region { background: #e5f0e8; border-color: #2e6b3f; }
+.kind-event, .kind-scene { background: #efe9f6; border-color: #6a4c93; }
+.kind-flag { background: #f3f4f6; border-color: #545c66; }
+.graph-view small { display: block; overflow-wrap: anywhere; }
+.event-workspace, .story-workspace { min-width: 0; }
+@media (max-width: 700px) { .story-panel { grid-column: auto; } .flow-canvas { height: 420px; } }
+.is-start { border: 3px solid var(--studio-accent); }
+.kind-missing { border: 2px dashed var(--studio-error); }
+@media (min-width: 1400px) {
+  .event-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 16px; }
+  .event-workspace > .workspace-card:first-child, .event-workspace > [aria-label="Event graph checks"] { grid-column: 1 / -1; }
+  .event-workspace > .graph-view { grid-column: 1; grid-row: 2; }
+  .event-workspace > .row-actions { grid-column: 1; grid-row: 3; }
+  .event-workspace > [aria-label="Selected scene or choice"] { grid-column: 2; grid-row: 2 / 4; }
+}
+.node-continue { display: block; margin: 6px auto 0; padding: 3px 6px; font-size: 11px; }

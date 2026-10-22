@@ -1,4 +1,4 @@
-# Content Studio — [implemented, PR-07 area workspace and rename]
+# Content Studio — [implemented, PR-08 story view and event editor]
 
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
@@ -22,7 +22,7 @@ tab through **Open game** and uses its ordinary save slots.
 
 Generic forms, reference pickers, draft creation/duplication, reference-aware deletion, session
 undo/redo and explicit saving are **[implemented, PR-05]**. Condition/effect builders and the text widget are **[implemented, PR-06]**. Area workspace and rename are **[implemented, PR-07]**.
-Graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
+Story and event graphs are **[implemented, PR-08]**. Creation-tree/map graphs and embedded game preview remain planned. The authoritative scope and delivery order live in the
 [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 
@@ -216,3 +216,45 @@ its content and reference writes. A failure before the move leaves only the old 
 These are sequential operations, not a whole-pack filesystem transaction; use Git to recover if
 needed. Any acknowledged disk mutation clears undo history because session Undo does not revert
 filesystem operations. No save-version or game behavior change is included.
+
+
+## Story and event editors — [implemented, PR-08]
+
+Choose **Story** in Browse for a read-only graph of landmarks, tasks, events, areas and flags.
+Dagre lays it out automatically; no positions are written to content. Pan, zoom, or switch to
+**Accessible list view** for the same nodes, edges and source positions. Area and kind filters
+apply to both views. Area membership follows connected tasks/events/flags from area and landmark
+anchors; hiding a kind also hides its incident edges. Clicking a node opens its entity; landmarks
+open their area workspace scrolled to that landmark. Flags open their Used by inspector.
+
+Each reference position remains a separate edge. Conditions point from the referenced node to
+the owning landmark/entity, labelled trigger, completes, unlocks or when. Effect references use
+the same direction with effect: starts/unlocks labels. Flag edges show setter → flag → reader;
+clearing a flag has its own label. Edges describe references, not guaranteed gameplay order:
+all/any/not and conditional effects retain their semantics in the source forms. Flags supplied
+by the engine say **set by the game**; unknown setters produce nonblocking typo warnings.
+Flag inputs offer existing names and accept a new snake_case name. Flags are not rename targets.
+
+Use **Continue the story** on a landmark/task node (also available in the list), or choose
+one in **Story node** below the graph. **New task when this
+happens**, **New event when this happens**, and **New area unlocked by this** open the existing
+create dialog with discovered or quest-is-done conditions pre-filled. Fill the required fields,
+create a draft, complete its links, then Save all. The dialog never writes files.
+
+Event files open the scene editor in Form mode. Event properties include reachable triggers;
+scenes use modal text and separate journal summaries with the existing guidance. Click a scene,
+a choice edge, or the corresponding accessible list entry to edit it. **Add scene** requests
+an ID and author text. **Add choice** targets an existing scene, closes the event when next is
+omitted, or explicitly creates a new target scene in the same undoable edit. Remove the last
+choice to return a scene to its close behavior. Choice effects use the PR-06 effect builder.
+
+**Rename scene** uses the PR-07 preview and reference rewrite. Start cannot be renamed or deleted
+by these controls. **Delete scene** lists incoming choices and requires another scene as the
+retarget before staging their rewrite and deletion together. Scene-internal references disappear
+with that scene. Undo/redo and Save all retain the existing whole-pack rules.
+
+Graph checks display shared registry errors for missing start/dangling next and Studio-only
+warnings for unreachable scenes. Only registry/input errors block Save. JSON mode remains
+available for inspection and repairs; missing targets stay visible as graph markers. A close
+marker makes choices without next visible in both views. Playtest through **Open game** until
+PR-10; no embedded preview is included.

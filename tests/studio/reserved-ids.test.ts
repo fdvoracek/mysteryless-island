@@ -3,6 +3,9 @@ import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import ts from "typescript";
 import { afterAll, expect, it } from "vitest";
+import { GAME_FLAGS } from "../../src/studio/game-flags";
+import { referenceRole } from "../../src/studio/story";
+import { refKind } from "../../src/studio/schema";
 import { RESERVED_IDENTITIES } from "../../src/studio/reserved";
 import { schemaFor, visitValue } from "../../src/studio/schema";
 
@@ -27,10 +30,12 @@ const HARMLESS_LITERAL_MATCHES = [
 
 it("guards content identities and record keys against unreviewed engine literals", () => {
   const ids = new Set<string>();
+  const flagReads = new Set<string>();
   for (const pack of ["shipped", "fixture"]) for (const file of files(join(STUDIO_ROOT, pack, "content"))) {
     const path = relative(join(STUDIO_ROOT, pack), file), schema = schemaFor(path);
     if (!schema) continue;
-    visitValue(schema, JSON.parse(readFileSync(file, "utf8")), ({ value, path, key }) => {
+    visitValue(schema, JSON.parse(readFileSync(file, "utf8")), ({ schema, value, path, key }) => {
+      if (typeof value === "string" && refKind(schema) === "flag" && !referenceRole({ file: "", path, kind: "flag", id: value }).effect) flagReads.add(value);
       if (typeof value === "string" && (key || path.split(".").at(-1) === "id")) ids.add(value);
     });
   }
@@ -42,6 +47,29 @@ it("guards content identities and record keys against unreviewed engine literals
     const file = relative(root, path), text = readFileSync(path, "utf8");
     const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
     const visit = (node: ts.Node) => {
+      if (file.startsWith("src/core/") && ts.isStringLiteralLike(node) && flagReads.has(node.text) && !GAME_FLAGS.some(flag => flag.id === node.text)) {
+        unmatched.push(`${file}: engine flag ${node.text} needs a documented GAME_FLAGS entry`);
+      }
+      // The engine currently constructs these flags with a finite stat union.
+      // Expand template substitutions from their lexical for-of array, so this
+      // guard also catches new auto_${stat}_unavailable-style protocol flags.
+      if (file.startsWith("src/core/") && ts.isTemplateExpression(node)) {
+        let values = [node.head.text];
+        for (const span of node.templateSpans) {
+          const expression = span.expression;
+          const literals: string[] = [];
+          let parent: ts.Node | undefined = node.parent;
+          while (parent) {
+            if (ts.isForOfStatement(parent) && ts.isIdentifier(expression) && ts.isVariableDeclarationList(parent.initializer) && parent.initializer.declarations.some(d => d.name.getText(source) === expression.text)) {
+              const collect = (child: ts.Node) => { if (ts.isStringLiteral(child)) literals.push(child.text); else ts.forEachChild(child, collect); };
+              collect(parent.expression); break;
+            }
+            parent = parent.parent;
+          }
+          values = values.flatMap(prefix => literals.map(value => prefix + value + span.literal.text));
+        }
+        for (const value of values) if (flagReads.has(value) && !GAME_FLAGS.some(flag => flag.id === value)) unmatched.push(`${file}: constructed engine flag ${value} needs a documented GAME_FLAGS entry`);
+      }
       if (ts.isStringLiteralLike(node) && ids.has(node.text) && !reserved.has(node.text)) {
         const { line } = source.getLineAndCharacterOfPosition(node.getStart(source));
         if (HARMLESS_LITERAL_MATCHES.some(match => match.file === file && match.literal === node.text && match.line === text.split("\n")[line].trim())) return;

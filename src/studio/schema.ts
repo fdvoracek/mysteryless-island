@@ -39,6 +39,19 @@ export function branches(schema: Schema): Schema[] {
 }
 export function branchFor(schema: Schema, value: unknown): number {
   const options = branches(schema);
+  // Strict object unions with one uniquely matching shape need no recursive parse
+  // merely to walk their fields. Validation remains the registry's responsibility.
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const keys = Object.keys(value).filter(key => !key.startsWith("_"));
+    const candidates = options.map((option, index) => ({ node: unwrap(option), index })).filter(({ node }) =>
+      node instanceof z.ZodObject && node._def.unknownKeys === "strict" && keys.length > 0 && keys.every(key => key in node.shape));
+    const onlyStrictObjectsOrPrimitives = options.every(option => {
+      const node = unwrap(option);
+      return node instanceof z.ZodObject ? node._def.unknownKeys === "strict" :
+        node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodArray || node instanceof z.ZodEnum || node instanceof z.ZodLiteral && (node.value === null || typeof node.value !== "object");
+    });
+    if (onlyStrictObjectsOrPrimitives && candidates.length === 1) return candidates[0].index;
+  }
   const valid = options.findIndex((option) => option.safeParse(stripComments(value)).success);
   if (valid >= 0) return valid;
   if (value && typeof value === "object" && !Array.isArray(value)) {

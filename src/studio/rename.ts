@@ -22,8 +22,12 @@ export function replaceAt(raw: unknown, path: string, value: unknown, key = fals
   };
   return replace(raw, 0);
 }
+const planIndexes = new WeakMap<Document[], Map<string, RenamePlan>>();
 const claimedIndexes = new WeakMap<Document[], Set<string>>();
 export function renamePlan(documents: Document[], file: string, path: string, newId: string): RenamePlan {
+  const cacheKey = JSON.stringify([file, path, newId]);
+  const cached = planIndexes.get(documents)?.get(cacheKey);
+  if (cached) return cached;
   const definitions = identities(documents);
   const target = definitions.find(id => id.file === file && id.path === path);
   if (!target) throw new Error("Select an existing identity.");
@@ -59,9 +63,14 @@ export function renamePlan(documents: Document[], file: string, path: string, ne
   const files = new Map(documents.map(d => [d.path, d]));
   for (const [p, content] of drafts) {
     if (content === null) files.delete(p);
-    else files.set(p, { ...owner, path: p, content });
+    else files.set(p, { ...(files.get(p) ?? { ...owner, hash: "" }), path: p, content });
   }
   const problems = readDocuments([...files.values()]).diagnostics;
   if (problems.length) throw new Error(`Rename would leave registry errors: ${problems.map(p => `${p.file} › ${p.path}: ${p.message}`).join("; ")}`);
-  return { target, newId, changes, drafts, move };
+  const plan = { target, newId, changes, drafts, move };
+  let index = planIndexes.get(documents);
+  if (!index) { index = new Map(); planIndexes.set(documents, index); }
+  index.set(cacheKey, plan);
+  if (index.size > 32) index.delete(index.keys().next().value!);
+  return plan;
 }

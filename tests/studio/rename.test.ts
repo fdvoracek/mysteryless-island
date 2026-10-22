@@ -23,8 +23,9 @@ function fixtureFiles(): FileDocument[] {
   }
   walk(join(STUDIO_ROOT, "content")); return result;
 }
+const baselineFiles = fixtureFiles();
 function setup() {
-  let disk = fixtureFiles(), fail = "", revision = 0;
+  let disk = structuredClone(baselineFiles), fail = "", revision = 0;
   const operations: { method: string; path: string; expectedHash: string | null }[] = [];
   const transport: Transport = async (url, init) => {
     if (!init?.method) return Response.json({ files: structuredClone(disk) });
@@ -98,13 +99,13 @@ describe("precise rename and reference ownership", () => {
         const next = store.view.documents.find(d => d.path === (document.path === definition.file ? destination : document.path))!;
         let expected = document.raw;
         for (const change of plan.changes.filter(c => c.file === document.path)) expected = replaceAt(expected, change.path, nextId, change.key);
-        expect(next.content, `${definition.file} › ${definition.path}: ${document.path}`).toBe(formatContent(expected));
+        expect(next.content, `${definition.file} › ${definition.path}: ${document.path}`).toBe(expected === document.raw ? document.formatted : formatContent(expected));
       }
       expect(store.past).toHaveLength(1);
       store.undo(); expect(store.files).toEqual(original.files); expect(store.moves.size).toBe(0);
       store.redo(); expect(store.view.diagnostics).toEqual([]);
     }
-  }, 60000);
+  }, 20000);
   it("resolves landmark references separately from their area, including references in the same area", () => {
     const { store } = setup(), docs = store.view.documents, forest = docs.find(d => d.path === areaPath)!;
     const landmark = identities(docs).find(d => d.file === areaPath && d.kind === "discovery")!;
