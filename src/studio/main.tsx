@@ -4,12 +4,14 @@ import type { ContentProblem } from "../content";
 import { areaDocuments, kindLabels, readDocuments } from "./documents";
 import { StudioStore } from "./store";
 import { entitySchemas, schemaFor } from "./schema";
-import { Field, RawField } from "./form";
+import { Field } from "./form";
+import { JsonEditor } from "./json-editor";
+import { readMode, rememberMode, type EditorMode } from "./editor-mode";
 import { CreateDialog, Dialog, RenameDialog } from "./dialogs";
 import { StoryView } from "./story-view";
 import { EventEditor } from "./event-editor";
 import { AreaWorkspace } from "./area-workspace";
-import { identities, deletionReferences, whereUsed, type Identity } from "./references";
+import { identities, deletionReferences, referenceOptions, whereUsed, type Identity } from "./references";
 import { TreeEditor } from "./tree-editor";
 import { MapEditor } from "./map-editor";
 import { blockerLabel, deletionBlockers } from "./tree";
@@ -25,7 +27,7 @@ function Studio() {
   const [scope, setScope] = useState("all");
   const [query, setQuery] = useState("");
   const [field, setField] = useState("");
-  const [mode, setMode] = useState("form");
+  const [, setModeVersion] = useState(0);
   const [create, setCreate] = useState<{ kind: string; duplicate?: string; areaPath?: string; prefill?: Record<string, unknown>; tree?: { branch: string; after: string[] } }>();
   const [renaming, setRenaming] = useState<Identity>();
   const [deleteOrphans, setDeleteOrphans] = useState(false);
@@ -68,7 +70,8 @@ function Studio() {
     const keydown = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || document.querySelector("dialog[open]")) return;
       if (event.key.toLowerCase() === "s") { event.preventDefault(); if (store.canSave) void save(); }
-      if (event.key.toLowerCase() === "z") { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
+      // The JSON editor owns undo while focused; the Studio history stays on the toolbar.
+      if (event.key.toLowerCase() === "z" && !(event.target instanceof Element && event.target.closest(".cm-editor"))) { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
     };
     const leave = (event: BeforeUnloadEvent) => { if (store.drafts.size) event.preventDefault(); };
     window.addEventListener("keydown", keydown); window.addEventListener("beforeunload", leave);
@@ -83,7 +86,7 @@ function Studio() {
   function browse(value: string) { setScope(value); setSelection(""); setField(""); setQuery(""); }
   function openProblem(file: string, path: string) {
     const destination = documents.find(d => d.path === file);
-    setScope(destination?.kind === "regions" ? `area:${destination.id}` : "all"); setQuery(""); setSelection(file); setField(path); setMode("form");
+    setScope(destination?.kind === "regions" ? `area:${destination.id}` : "all"); setQuery(""); setSelection(file); setField(path);
     requestAnimationFrame(() => {
       const control = document.querySelector(`[data-field="${CSS.escape(path)}"]`);
       control?.scrollIntoView({ block: "center" });
@@ -92,13 +95,15 @@ function Studio() {
     });
   }
   const selectedSchema = selected && schemaFor(selected.path);
+  const mode: EditorMode = selected ? readMode(selected.path, selected.kind) : "form";
+  function setMode(next: EditorMode, path = selected?.path) { if (!path) return; rememberMode(path, next); setModeVersion((n) => n + 1); }
   const target = documents.find((d) => d.path === deleting);
   const orphans = target?.kind === "regions" ? store.orphanActivities(target.path) : [];
   const removedPaths = new Set([target?.path, ...(deleteOrphans ? orphans.map(d => d.path) : [])]);
   const usedBy = target ? [...deletionBlockers(documents, target), ...(deleteOrphans ? orphans.flatMap(d => deletionReferences(documents.filter(other => !removedPaths.has(other.path) || other.path === d.path), d)) : [])] : [];
   const conflict = [...store.conflicts.values()].find((entry) => !hiddenConflicts.includes(`${entry.path}:${entry.disk?.hash ?? "missing"}`));
   const hideConflict = () => { if (conflict) setHiddenConflicts((previous) => [...previous, `${conflict.path}:${conflict.disk?.hash ?? "missing"}`]); };
-  const openCreated = (path: string) => { setCreate(undefined); setScope("all"); setQuery(""); setSelection(path); setMode("form"); if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`); };
+  const openCreated = (path: string) => { setCreate(undefined); setScope("all"); setQuery(""); setSelection(path); setMode("form", path); if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`); };
   return <div className="studio-shell">
     <header className="studio-header">
       <a className="brand" href="/studio/">Mysteryless Island <span>Studio</span></a>
@@ -128,13 +133,11 @@ function Studio() {
       <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}`}>
         {scope === "story" ? <StoryView documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)} open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} /> : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)} open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} /> : selected ? <>
           <div className="document-heading"><div><p>{kindLabels[selected.kind] ?? selected.kind} / {selected.id}</p><h2>{selected.label}</h2><code>{selected.path}</code></div><div className="row-actions">{selectedSchema && <><button aria-pressed={mode === "form"} onClick={() => setMode("form")}>Form</button><button aria-pressed={mode === "json"} onClick={() => setMode("json")}>JSON</button></>}{entitySchemas[selected.kind] && <><button disabled={store.busy} onClick={() => setCreate({ kind: selected.kind, duplicate: selected.path })}>Duplicate</button><button disabled={store.busy} onClick={() => { setDeleteOrphans(false); setDeleting(selected.path); }}>Delete</button></>}</div></div>
-          <section className="json-panel" aria-label="File contents"><div className="json-heading"><h3>{selected.encoding === "utf8" ? mode === "form" ? "Content form" : "Formatted JSON" : "Image file"}</h3><span>{status}</span></div>
+          <section className="json-panel" aria-label="File contents"><div className="json-heading"><h3>{selected.encoding === "utf8" ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3><span>{status}</span></div>
             {field && <p className="field-location">Field: <code>{field}</code></p>}
-            {selectedSchema && selected.raw !== undefined ? <fieldset disabled={store.busy} className="editor-fields" key={`${selected.path}:${historyKey}`}>
-              {mode === "form" && area && selected.path === area.path ? <AreaWorkspace schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter(p => p.file === selected.path)} documents={documents} owner={selected} onChange={raw => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} open={openProblem} newActivity={() => setCreate({ kind: "activities", areaPath: selected.path })} /> : mode === "form" && selected.kind === "events" ? <EventEditor schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter(p => p.file === selected.path)} documents={documents} owner={selected} onChange={raw => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} rename={setRenaming} /> : mode === "form" ? <Field schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter((p) => p.file === selected.path)} documents={documents} owner={selected} onChange={(raw) => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} />
-                : <><RawField schema={selectedSchema} value={selected.raw} path="" problems={[]} documents={documents} owner={selected} onChange={(raw) => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} /><pre aria-label="Canonical file preview">{selected.formatted}</pre></>}
+            {selectedSchema && selected.encoding === "utf8" && (mode === "json" || selected.raw === undefined) ? <JsonEditor key={selected.path} path={selected.path} text={store.buffersFor(selected.path)[""]?.text ?? (store.drafts.has(selected.path) ? selected.content : selected.formatted)} schema={selectedSchema} problems={diagnostics.filter((p) => p.file === selected.path)} references={(kind, path) => referenceOptions(kind, documents, selected, path)} readOnly={store.busy} reveal={field} onEdit={(text) => store.editJson(selected.path, text)} onSettle={() => store.endTyping()} onProblem={(message) => store.setJsonProblem(selected.path, message)} /> : selectedSchema && selected.raw !== undefined ? <fieldset disabled={store.busy} className="editor-fields" key={`${selected.path}:${historyKey}`}>
+              {area && selected.path === area.path ? <AreaWorkspace schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter(p => p.file === selected.path)} documents={documents} owner={selected} onChange={raw => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} open={openProblem} newActivity={() => setCreate({ kind: "activities", areaPath: selected.path })} /> : selected.kind === "events" ? <EventEditor schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter(p => p.file === selected.path)} documents={documents} owner={selected} onChange={raw => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} rename={setRenaming} /> : <Field schema={selectedSchema} value={selected.raw} path="" lockId problems={diagnostics.filter((p) => p.file === selected.path)} documents={documents} owner={selected} onChange={(raw) => store.edit(selected.path, raw)} buffers={store.buffersFor(selected.path)} onError={(path, message, buffer) => store.error(selected.path, path, message, buffer)} />}
             </fieldset> : <pre tabIndex={0} ref={source} aria-label="Read-only file contents">{selected.encoding === "utf8" ? selected.formatted : `${selected.path}\nencoding: base64\nsha256: ${selected.hash}`}</pre>}
-            {selectedSchema && selected.raw === undefined && <textarea aria-label="Repair JSON" value={selected.content} onChange={(event) => store.editText(selected.path, event.target.value)} />}
             {selectedSchema && <section className="identity-controls" aria-label="Rename identities"><h3>Rename IDs</h3>{identities(documents).filter(id => id.file === selected.path).map(id => <div key={id.path}><code>{id.path}: {id.id}</code><button disabled={store.busy || !!id.reserved} title={id.reserved} aria-label={`Rename ${id.path}`} onClick={() => setRenaming(id)}>Rename ID…</button>{id.reserved && <span className="hint">{id.reserved}</span>}</div>)}</section>}
             {selectedSchema && !(area && selected.path === area.path) && <section className="used-by" aria-label="Where used"><h3>Used by</h3>{whereUsed(documents, selected).map((ref) => <button key={`${ref.file}:${ref.path}`} onClick={() => openProblem(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>}
           </section>

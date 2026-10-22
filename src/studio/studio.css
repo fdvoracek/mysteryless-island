@@ -168,3 +168,7 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .preview-controls input[type="number"] { width: 72px; }
 .preview-controls label { display: flex; gap: 6px; align-items: center; color: var(--studio-muted); }
 @media (max-width: 1000px) { .studio-body { flex-direction: column; align-items: stretch; } .preview-panel { width: auto; position: static; max-height: none; border-left: 0; border-top: 1px solid var(--studio-border); } }
+
+.json-editor { height: max(420px, calc(100vh - 300px)); border-top: 1px solid var(--studio-border); }
+.json-editor .cm-editor { height: 100%; background: var(--studio-panel); }
+.cm-json-hover { padding: 4px 8px; max-width: 360px; white-space: pre-wrap; font-size: 12px; }

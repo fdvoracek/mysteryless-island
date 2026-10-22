@@ -11,7 +11,7 @@ export async function checkGameDist(root = "dist") {
         await walk(file);
       } else if (/\.(html|js|css|map)$/.test(entry.name)) {
         const source = await readFile(file, "utf8");
-        if (/studio-root|studio-shell|studio:files-changed|__studio\/files|src\/studio|react-dom|react\.transitional\.element|react\.element|@xyflow\/react|@dagrejs\/dagre/.test(source)) throw new Error(`Studio/React code in game build: ${file}`);
+        if (/studio-root|studio-shell|studio:files-changed|__studio\/files|src\/studio|react-dom|react\.transitional\.element|react\.element|@xyflow\/react|@dagrejs\/dagre|@codemirror|@lezer|cm-editor|cm-content/.test(source)) throw new Error(`Studio/React code in game build: ${file}`);
       }
     }
   }

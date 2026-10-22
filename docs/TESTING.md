@@ -144,6 +144,10 @@ comments and key order. Tests cover one-step undo/redo, nested/local ID and tag 
 contextual production/scene ownership, the sleep-memory today reference, expected-hash ordering,
 and failure before a move or between move and content write with retry.
 
+`tests/studio/json-editor.test.ts` covers the JSON editor without a browser: schema generation, line mapping of
+syntax, duplicate-key and registry problems, completion and the debounced draft sync (a keystroke burst yields one
+store edit and one undo step). `tests/studio-browser/json-editor.spec.ts` checks the editor's wiring: default and
+remembered modes, errors on their lines, completion, editor-owned undo and a minimal `game.json` save.
 `tests/studio/area-workspace.test.ts` renders and round-trips every fixture area unchanged and
 checks explicit grouped activity creation, blocked area/landmark deletion, orphan Keep/relink,
 Delete them too and shared-activity preservation. Browser scenarios use only STUDIO_ROOT and

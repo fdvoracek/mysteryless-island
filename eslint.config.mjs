@@ -1,7 +1,7 @@
 import parser from "@typescript-eslint/parser";
 
 const studioOnly = [
-  { regex: "^(react|react-dom|@xyflow/react|@dagrejs/dagre)(/|$)", message: "React and graph libraries belong only in src/studio." },
+  { regex: "^(react|react-dom|@xyflow/react|@dagrejs/dagre|@codemirror/[^/]+|@lezer/[^/]+)(/|$)", message: "React, graph and editor libraries belong only in src/studio." },
   { regex: "(^|/)studio(/|$)", message: "The game must never import the Studio." },
 ];
 const pure = { regex: "(^|/)(ui|app|persistence|debug)(/|$)|(^|/)main([.]|$)", message: "Content/core cannot depend on game presentation or storage." };
