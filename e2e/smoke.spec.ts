@@ -910,10 +910,10 @@ test("an incompatible save stays intact until the player chooses a new game", as
   const old = JSON.stringify({ saveVersion: 6, current: { saveVersion: 6 } });
   await page.evaluate((raw) => localStorage.setItem("textisland.save", raw), old);
   await page.reload();
-  await expect(page.locator("#app")).toContainText("This save predates crafting and building progression.");
+  await expect(page.locator("#app")).toContainText("This save is from an older version of the game.");
   expect(await page.evaluate(() => localStorage.getItem("textisland.save"))).toBe(old);
   // The recovery screen deliberately reports the rejected save as a script error.
-  for (let i = errors.length - 1; i >= 0; i--) if (errors[i].includes("This save predates crafting and building progression.")) errors.splice(i, 1);
+  for (let i = errors.length - 1; i >= 0; i--) if (errors[i].includes("This save is from an older version of the game.")) errors.splice(i, 1);
   await page.getByRole("button", { name: "start a new game" }).click();
   await expect(page.locator("#eventTitle")).toHaveText("The storm");
 });

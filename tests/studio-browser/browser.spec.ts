@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("browses real files by area/kind, searches, and keeps JSON read-only at desktop and phone widths", async ({ page }) => {
+test("browses frozen fixture files by area/kind, searches, and keeps JSON read-only at desktop and phone widths", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/studio/");
@@ -32,7 +32,7 @@ test("browses real files by area/kind, searches, and keeps JSON read-only at des
 });
 
 test("refreshes external invalid content and links diagnostics to the entity and field", async ({ page, request }) => {
-  // Read real transport output, then simulate an on-disk edit in memory; shipped files stay untouched.
+  // Read the isolated frozen pack, then simulate an external edit in memory.
   const response = await request.get("/__studio/files");
   const original = await response.json() as { files: { path: string; content: string }[] };
   let broken = false;
@@ -52,8 +52,8 @@ test("refreshes external invalid content and links diagnostics to the entity and
   await page.getByRole("button", { name: "Refresh from disk" }).click();
   const diagnostics = page.getByRole("region", { name: "Diagnostics" });
   await expect(diagnostics).toContainText('unknown item "missing_browser_test_item"');
-  await diagnostics.getByRole("button", { name: "content/activities/gather_wood.json › requires" }).click();
-  await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: requires");
+  await diagnostics.getByRole("button", { name: "content/activities/gather_wood.json › requires.item" }).click();
+  await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: requires.item");
   await expect(page.getByRole("region", { name: "File contents" })).toContainText('"id": "gather_wood"');
   await expect(page.getByRole("status")).toHaveText("1 problem");
   broken = false;
@@ -83,3 +83,14 @@ for (const response of [
     await expect(page.getByRole("alert")).not.toContainText("Unexpected token");
   });
 }
+
+test("serves only the isolated frozen fixture pack and blocks the repository content route", async ({ request }, testInfo) => {
+  const response = await request.get("/__studio/files");
+  expect(response.ok()).toBe(true);
+  const { files } = await response.json() as { files: { path: string; content: string }[] };
+  const game = JSON.parse(files.find((file) => file.path === "content/game.json")!.content);
+  expect(game._studio_fixture_root).toBe(testInfo.config.metadata.studioFixtureRoot);
+  const gather = JSON.parse(files.find((file) => file.path === "content/activities/gather_wood.json")!.content);
+  expect(gather.log[0]).toBe("Dry branches snap underfoot.");
+  expect((await request.get("/content/game.json")).status()).toBe(403);
+});

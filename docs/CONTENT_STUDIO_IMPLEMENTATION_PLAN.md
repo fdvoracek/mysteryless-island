@@ -82,7 +82,9 @@ reimplements rules. React and graph libraries are imported only from `src/studio
 
 ### 4.2 Local file API (dev server plugin, `apply: "serve"`)
 
-- Binds to `127.0.0.1`; rejects requests whose `Host`/`Origin` is not the local dev server
+- Binds to `127.0.0.1`; accepts `Host: 127.0.0.1:<port>` or `Host: localhost:<port>`
+  at the actual listening port. When present, `Origin` must be `http://` plus that same Host.
+  Other Hosts/Origins are rejected; forwarded headers are never read
   (protection against DNS rebinding and other sites).
 - `GET /__studio/files` → every file under `content/` and `public/illustrations/`, as raw text plus
   a content hash. `PUT /__studio/files/<path>` with the expected hash → writes atomically
@@ -154,8 +156,9 @@ transition or dual-layout support is needed. The game must still work after ever
    (file layout), `src/content/format.ts`, the `content:format` script and the optional `order`
    field for observably ordered list kinds; PR-03 schema/registry/engine (activity links);
    PR-04 structured `ContentError` (string output unchanged); PR-05 `ref()` metadata (no
-   validation change); PR-10 preview save keys (active only with `?preview`). Any other change to `src/content`, `src/core`, `src/ui`,
-   `src/persistence` or `src/main.ts` is out of scope; stop and ask.
+   validation change); PR-10 preview save keys (active only with `?preview`). Any other change
+   to `src/content`, `src/core`, `src/ui`, `src/persistence` or `src/main.ts` is out of scope;
+   stop and ask.
 3. **Golden traces (PR-01) must stay unchanged** in every Studio PR except the approved
    PR-03 re-recording with narrow parity proof below.
 4. **Saves.** Only PR-03 may bump `SAVE_VERSION` (and only if text keys or state actually change).
@@ -180,8 +183,10 @@ Implementation: [trace scripts](../tests/golden-traces.test.ts) and their commit
 **PR-02 — Formatter and one file per entity.** **[implemented]** Add the formatter and
 `content:format`; loader and registry read one object per file for every list kind, enforce
 `file name == id`, and keep singletons. A one-off migration script splits content and fixtures,
-then is deleted. The only schema change is optional `order: number` on observably ordered list kinds; the registry sorts by `(order ?? +Infinity, id)`. Migration assigns original array
-index × 10 to preserve behavior. Kinds without observable order have no new field. No behavior change.
+then is deleted. The only schema change is optional `order: number` on observably ordered list
+kinds; the registry sorts by `(order ?? +Infinity, id)`. Migration assigns original array
+index × 10 to preserve behavior. Kinds without observable order have no new field.
+No behavior change.
 *Done when:* golden traces unchanged; `content:check` passes and rejects an unformatted file, a
 legacy multi-entity file and a file/id mismatch. *Owner test:* play a fresh game to the first craft.
 
@@ -189,7 +194,8 @@ legacy multi-entity file and a file/id mismatch. *Owner test:* play a fresh game
 `region.activities` becomes a list of IDs; `global` keeps its meaning (offered everywhere).
 A global activity may also be linked: offer it once at its linked position there, and at the end
 elsewhere. Preserve existing action order, including beach’s global links. The registry records
-each activity’s linked areas; engine/selector checks use "linked to the current area or global". Validator: unknown activity ID, an activity neither linked nor global.
+each activity’s linked areas; engine/selector checks use "linked to the current area or global".
+Validator: unknown activity ID, an activity neither linked nor global.
 `did`/`today` counters stay per activity ID across areas. Bump `SAVE_VERSION` if text keys or state
 change.
 *Done when:* golden snapshots are re-recorded once after a temporary old/new comparison proves
@@ -212,6 +218,11 @@ linked to entities. Lint boundary rule, the "no Studio in dist" test and the pub
 *Owner test:* open the Studio, browse Forest and an item, break a reference by hand, see the error.
 Implementation: [usage and transport contract](STUDIO.md), `src/studio/`,
 `tools/vite-content-api.ts`; `npm run test:studio` covers the read-only browser.
+
+**PR-04.1 — diagnostics at source, Studio tests on fixtures, small fixes.** **[implemented]**
+Correct source diagnostics while preserving problem strings, isolate Studio browser tests in
+a temporary frozen pack, reject duplicate activity links, use code-unit registry ordering,
+and give older saves neutral recovery wording. No save-version or gameplay change.
 
 **PR-05 — Generic editor, create dialog and save.** `ref()` metadata in the schema; generic form
 + widget registry (§4.4) with reference pickers; edit, duplicate, delete with "where used"

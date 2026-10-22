@@ -1,0 +1,47 @@
+{
+  "schema": [
+    "content/activities/gather_wood.json: hours: Expected number, received string",
+    "content/regions/forest.json: activities.0: unknown activity \"gather_wood\"",
+    "activity sleep.thoughts[1].lines[21].when: unknown today \"gather_wood\""
+  ],
+  "condition": [
+    "activity gather_wood.requires: unknown item \"missing_item\""
+  ],
+  "yield": [
+    "activity gather_wood.yields[0]: unknown item \"missing_item\""
+  ],
+  "effect": [
+    "activity gather_wood.effects[0]: unknown item \"missing_item\""
+  ],
+  "duplicate": [
+    "content/items/duplicate_knife.json: id: file name must equal id \"knife\"",
+    "duplicate id \"knife\" in content/items/knife.json (already defined in content/items/duplicate_knife.json)"
+  ],
+  "text": [
+    "Error: duplicate text id \"duplicate_passage\""
+  ],
+  "filename": [
+    "content/items/wrong_name.json: id: file name must equal id \"knife\""
+  ],
+  "activity": [
+    "content/regions/beach.json: activities.8: unknown activity \"missing_activity\""
+  ],
+  "cycle": [
+    "content/trees/crafting.json.nodes.after: cycle craft_rock_knife → craft_rock_knife"
+  ],
+  "missing": [
+    "missing content file: content/game.json"
+  ],
+  "brokenPack": [
+    "content/activities/collect_shells.json: hours: Expected number, received string",
+    "content/items/duplicate_knife.json: id: file name must equal id \"knife\"",
+    "duplicate id \"knife\" in content/items/knife.json (already defined in content/items/duplicate_knife.json)",
+    "content/regions/beach.json: activities.4: unknown activity \"collect_shells\"",
+    "content/regions/beach.json: activities.8: unknown activity \"missing_activity\"",
+    "activity sleep.thoughts[1].lines[22].when: unknown today \"collect_shells\"",
+    "activity gather_wood.requires: unknown item \"missing_item\"",
+    "activity gather_wood.effects[0]: unknown item \"missing_item\"",
+    "activity gather_wood.yields[0]: unknown item \"missing_item\"",
+    "content/trees/crafting.json.nodes.after: cycle craft_rock_knife → craft_rock_knife"
+  ]
+}

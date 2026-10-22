@@ -44,7 +44,7 @@ function read(key: string, reg: Registry): SaveRead {
   try {
     const file = JSON.parse(raw) as SaveFile;
     if (requiresFreshGame(file.saveVersion) || requiresFreshGame(file.current?.saveVersion)) {
-      return { state: null, error: "This save predates crafting and building progression. Start a new game to continue. Your saved data has been kept." };
+      return { state: null, error: "This save is from an older version of the game. Start a new game to continue. Your saved data has been kept." };
     }
     if (!Number.isInteger(file.saveVersion) || file.saveVersion !== SAVE_VERSION) {
       return { state: null, error: "This save uses an unsupported version. Your saved data has been kept." };
