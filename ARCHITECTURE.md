@@ -41,11 +41,11 @@ mechanics. Update this document when an architectural decision changes, not for 
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.
 
-## Content Studio program — confirmed direction, not implemented
+## Content Studio program — PR-04 foundation implemented; later editor work planned
 
-A localhost-only React Content Studio inside this single npm package edits content files through a
-dev-server API and previews them in the real game. Scope, the owner's confirmed decisions
-(2026-10-21), open gates and PR order are recorded **only** in
+A localhost-only React Content Studio inside this single npm package provides a read-only browser
+and dev-server file API **[implemented, PR-04]**. Forms and embedded game preview remain planned.
+Scope, the owner’s confirmed decisions (2026-10-21), open gates and PR order are recorded **only** in
 [docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 Architectural consequences that bind all work:
 

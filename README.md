@@ -139,3 +139,11 @@ ti.give("firewood", 10)   ti.stat("thirst", 0)   ti.time(5)   ti.fire(6)
 ti.state()                ti.felt()                            ti.reset()
 ti.quests()               ti.quest("survive_first_night")      // list / force-start quests
 ```
+
+## Local Content Studio — [implemented, PR-04 foundation]
+
+Run `npm run studio` and open `http://127.0.0.1:5173/studio/` to browse content by area or kind,
+search and inspect read-only JSON, and follow shared validation diagnostics to a file and field.
+The game is available at `/` on the same server. The Studio is excluded from production builds.
+Editing forms and game preview remain planned. See [Studio usage](docs/STUDIO.md) and the
+[implementation plan](docs/CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).

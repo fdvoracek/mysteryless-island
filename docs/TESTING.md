@@ -70,3 +70,20 @@ arrays, filename/ID mismatches and invalid order fields, and verify deterministi
 and unlinked globals, action order, unknown/orphan references and text identity uniqueness.
 The frozen pack was migrated by extraction only; activity definitions and area link order
 were verified against their pre-migration forms.
+
+## Studio foundation — [implemented, PR-04]
+
+`npm test` includes `tests/studio/`: real HTTP tests of the file API against temporary directories,
+structured-diagnostic/document tests on frozen data, lint rejection tests, and an actual production
+build checked for Studio/React modules and files. API cases cover traversal, Host/Origin checks,
+symlinks, malformed input, stale hashes, concurrent writes, and binary round trips. These tests
+need permission to bind localhost when running under a restricted sandbox.
+
+`npm run test:studio` starts a separate localhost Vite server and runs `tests/studio-browser/`
+through `playwright.studio.config.ts`. Browser tests cover area/kind/search navigation, read-only
+JSON, diagnostic links, request failure/recovery and narrow-screen layout. Invalid content is
+simulated in the response; tests never edit shipped files or frozen fixtures.
+
+`npm run check` includes both browser suites. CI runs the same checks. `npm run typecheck` includes
+`lint:boundaries`; `npm run build` also checks the produced `dist/` for Studio/React contamination.
+Golden traces and save versions are unchanged by PR-04.

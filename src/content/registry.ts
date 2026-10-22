@@ -46,10 +46,76 @@ export interface TreeIndex {
   order: string[];
 }
 
+export interface ContentProblem { file: string; path: string; message: string }
+
 export class ContentError extends Error {
-  constructor(public problems: string[]) {
+  constructor(public problems: string[], public diagnostics: ContentProblem[] = problems.map((message) => ({ file: "", path: "", message }))) {
     super(`content has ${problems.length} problem(s):\n` + problems.join("\n"));
   }
+}
+
+/** Resolve the validator's existing location vocabulary to raw file/field positions. */
+function diagnosticLocations(files: Record<string, unknown>, problems: string[]): ContentProblem[] {
+  const locations = new Map<string, { file: string; path: string }>();
+  const explicitTexts = new Map<string, { file: string; path: string }>();
+  const kinds: Record<string, string> = { regions: "region", activities: "activity", items: "item", recipes: "recipe", buildings: "building", quests: "quest", events: "event", sites: "site", artwork: "artwork" };
+  for (const [file, raw] of Object.entries(files)) {
+    locations.set(file, { file, path: "" });
+    const name = file.split("/").at(-1)!;
+    if (["game.json", "stats.json", "climate.json"].includes(name)) {
+      locations.set(name, { file, path: "" });
+      locations.set(name.slice(0, -5), { file, path: "" });
+    }
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+    const value = raw as Record<string, unknown>;
+    const kind = kinds[file.split("/").at(-2)!];
+    if (kind && typeof value.id === "string") locations.set(`${kind} ${value.id}`, { file, path: "" });
+    const explore = value.explore as { landmarks?: { id: string }[] } | undefined;
+    if (Array.isArray(explore?.landmarks)) explore.landmarks.forEach((landmark, i) => {
+      if (landmark && typeof landmark.id === "string") locations.set(`landmark ${landmark.id}`, { file, path: `explore.landmarks.${i}` });
+    });
+    if (name === "game.json" && Array.isArray(value.timers)) value.timers.forEach((timer, i) => { if (timer && typeof timer.id === "string") locations.set(`timer ${timer.id}`, { file, path: `timers.${i}` }); });
+    function texts(node: unknown, path: string) {
+      if (!node || typeof node !== "object") return;
+      const object = node as Record<string, unknown>;
+      if (typeof object.id === "string" && Array.isArray(object.variants)) explicitTexts.set(object.id, { file, path });
+      for (const [key, child] of Object.entries(node)) if (!key.startsWith("_")) texts(child, path ? `${path}.${key}` : key);
+    }
+    texts(raw, "");
+  }
+  const aliases = [...locations.keys()].sort((a, b) => b.length - a.length);
+  return problems.map((message) => {
+    const duplicateText = /duplicate text id "([^"]+)"/.exec(message);
+    if (duplicateText) return { ...explicitTexts.get(duplicateText[1])!, message };
+    const alias = aliases.find((key) => message.startsWith(key + ":") || message.startsWith(key + ".") || message.startsWith(key + " "));
+    if (alias) {
+      const location = locations.get(alias)!;
+      const rest = message.slice(alias.length);
+      // Schema errors use "file: field: reason"; reference errors use "entity.field: reason".
+      const schema = /^: ([\w.]+|\(root\)): /.exec(rest);
+      const suffix = schema ? (schema[1] === "(root)" ? "" : schema[1]) : /^\.([^: ]+)/.exec(rest)?.[1] ?? "";
+      let path = [location.path, suffix].filter(Boolean).join(".").replace(/\[(\d+)\]/g, ".$1");
+      // Legacy paths sometimes use an array member's ID rather than its index.
+      let node: unknown = files[location.file];
+      path = path.split(".").filter(Boolean).map((part) => {
+        if (Array.isArray(node) && !/^\d+$/.test(part)) {
+          const index = node.findIndex((value) => value?.id === part || value?.target === part);
+          if (index >= 0) part = String(index);
+        }
+        node = node && typeof node === "object" ? (node as Record<string, unknown>)[part] : undefined;
+        return part;
+      }).join(".");
+      // Artwork's legacy message repeats the owning entity ID after its file.
+      const raw = files[location.file] as { id?: string } | undefined;
+      if (raw?.id && path === `${raw.id}.artwork`) path = "artwork";
+      return { file: location.file, path, message };
+    }
+    const missing = /^missing content file: (.+)$/.exec(message);
+    if (missing) return { file: missing[1], path: "", message };
+    const duplicate = /^duplicate id "([^"]+)" in (.+?) \(already defined/.exec(message);
+    if (duplicate) return { file: duplicate[2], path: "id", message };
+    return { file: "", path: "", message };
+  });
 }
 
 /** Remove keys starting with "_" anywhere in the tree (they are comments). */
@@ -199,7 +265,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
   sort(events);
   sort(buildings);
 
-  if (!game || !stats || !climate) throw new ContentError(problems);
+  if (!game || !stats || !climate) throw new ContentError(problems, diagnosticLocations(files, problems));
 
   const timers = new Map<string, Timer>();
   for (const t of game.timers) { claim(t.id, "game.json timers"); timers.set(t.id, t); }
@@ -520,7 +586,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     }
   }
 
-  if (problems.length) throw new ContentError(problems);
+  if (problems.length) throw new ContentError(problems, diagnosticLocations(files, problems));
 
   const regionOrder = [...regions.values()]
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999) || a.id.localeCompare(b.id))
@@ -531,7 +597,7 @@ export function buildRegistry(files: Record<string, unknown>): Registry {
     textKeys = indexTextKeys({ game, stats, climate, items: [...items.values()], regions: [...regions.values()],
       activities: [...activities.values()].map(({ activity }) => activity),
       recipes: [...recipes.values()], buildings: [...buildings.values()], quests: [...quests.values()], events: [...events.values()] });
-  } catch (error) { throw new ContentError([String(error)]); }
+  } catch (error) { throw new ContentError([String(error)], diagnosticLocations(files, [String(error)])); }
 
   return Object.freeze({
     artwork, trees, sites, textKeys, game, stats, climate, items, regions, regionOrder, timers, activities, quests, events, buildings, recipes, buildingSteps, tags, discoveries, statIds, bandIds, phaseIds,

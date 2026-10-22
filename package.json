@@ -6,23 +6,32 @@
   "description": "A minimalist, data-driven text survival game.",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run typecheck && vite build && node tools/check-game-dist.mjs",
     "build:test": "vite build --mode engine-test",
     "preview": "vite preview",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run lint:boundaries",
     "content:format": "node tools/content-format.mjs",
     "content:check": "vitest run --config vitest.content.config.ts",
     "test:e2e": "npm run build:test && playwright test",
-    "check": "npm test && npm run content:check && npm run build && npm run test:e2e",
-    "prepare": "git config core.hooksPath .githooks || true"
+    "check": "npm test && npm run content:check && npm run build && npm run test:e2e && npm run test:studio",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "studio": "vite --mode studio",
+    "lint:boundaries": "eslint src",
+    "test:studio": "playwright test --config playwright.studio.config.ts"
   },
   "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",
     "@types/node": "^22.9.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@typescript-eslint/parser": "^8.72.0",
+    "eslint": "^10.13.0",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
     "vitest": "^2.1.4"
