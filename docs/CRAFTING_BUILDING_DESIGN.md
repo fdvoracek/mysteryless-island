@@ -50,7 +50,7 @@ flowchart TD
     bed --> shelter[shelter · camp]
     shelter --> barrel[rain barrel · water]
     fire --> fish[fish trap · trapping]
-    fish --> rabbit[rabbit trap · trapping]
+    fish --> snares[snares · trapping]
     fish --> weir[fish weir · trapping]
     fire --> rack[drying rack · preservation]
     fire --> field[corn field · farming]
@@ -357,7 +357,7 @@ Required behavior coverage for implementation:
 
 ## 9. Save boundary and delivery sequence
 
-Save version 7 is the compatibility boundary for this redesign. Check both the save envelope and inner state at the loading boundary.
+Save version 7 was the compatibility boundary for this redesign; the current version is 8 (`SAVE_VERSION`), which also rejects version-7 saves. Check both the save envelope and inner state at the loading boundary.
 Return a specific fresh-game-required result for pre-redesign saves; do not convert historical
 inventory/counters into personal completions or feed old menu popups into the new runtime.
 Keep old data intact until the player uses the existing new-game/recovery flow. Autosave and

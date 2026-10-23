@@ -4,12 +4,12 @@ Version 0.1 (draft for review) · Companion to `docs/GDD.md` · Last updated: 20
 
 Status markers: **[implemented]** describes the current prototype · **[decided]** records design intent · **[proposal]** and **[open]** describe future work. Design examples for knowledge, weather, upgrades, standalone processes and the boat are future extensions; `src/content/schema.ts` is the authoritative supported format.
 
-**Content Studio [approved direction, not implemented]:** a localhost-only React Studio in this single package, editing content files and previewing them in the real game. Scope, decisions and PR order: [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md). See also [testing guidance](TESTING.md).
+**Content Studio [implemented, PR-01 to PR-10]:** a localhost-only React Studio in this single package, editing content files and previewing them in the real game. Usage: [STUDIO.md](STUDIO.md); scope and decisions: [implementation plan](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md). See also [testing guidance](TESTING.md).
 
 **Crafting/building trees [implemented]:** separate centre-panel tabs use one shared graph
 model and renderer. Personal completion of all prerequisites permanently unlocks nodes;
 current resources/tools and discovered local site capabilities still control creation.
-Quests remain goals, not creation gates. Version 7 requires a fresh game for older saves.
+Quests remain goals, not creation gates. Version 7 introduced this redesign; the current save version is 8 (`SAVE_VERSION`), and older saves require a fresh game.
 Paused creation requires its tools again to resume. A first personal craft of an already-owned
 non-repeatable item completes its node but leaves only one inventory copy. See
 [the detailed design](CRAFTING_BUILDING_DESIGN.md) for schemas, saved progression, and validation.
@@ -21,13 +21,13 @@ non-repeatable item completes its node but leaves only one inventory copy. See
 | # | Requirement | Source |
 |---|---|---|
 | R1 | All game content (regions, items, activities, buildings, recipes, processes, knowledge, events, weather, stats) is data. Adding a region needs **no engine code changes**. | your brief |
-| R2 | Content is authored in JSON and stays canonical; the planned Studio edits the same files. | [implemented + proposal] |
+| R2 | Content is authored in JSON and stays canonical; the Studio edits the same files. | [implemented] |
 | R3 | Logic inside data uses **structured conditions** (JSON objects), not code or expression strings. | [decided] |
-| R4 | Player game remains TypeScript + Vite without UI framework; the planned Studio is a React page in the same package, served only by the local dev server. | [implemented + proposal] |
+| R4 | Player game remains TypeScript + Vite without UI framework; the Studio is a React page in the same package, served only by the local dev server. | [implemented] |
 | R5 | **Action-based clock**: the simulation advances only through player commands. | [decided] |
 | R6 | Deterministic and testable: the same seed and commands give the same result. | [implemented] |
 | R7 | English inline; translations are not planned for now. | [implemented] |
-| R8 | Existing validator and debug tools remain; the planned Studio adds form/graph authoring and live preview. Balance simulation is not implied to be implemented. | [implemented + proposal] |
+| R8 | Validator and debug tools remain; the Studio adds form/graph authoring and live preview. Balance simulation is not implemented. | [implemented; simulator future] |
 | R9 | Look and feel of *A Dark Room*: text, buttons, log, status panel, occasional illustrations. | [decided] |
 
 ### What we keep from *A Dark Room*, and what we change
@@ -67,7 +67,7 @@ step persistence and cancellation when loading or restarting. `dispatch` runs th
 synchronously in tests. The classic layout supplies fixed panel IDs to the renderer and owns no game state.
 Core modules use no DOM, wall clock, or unseeded randomness. The validated registry is read-only
 by convention (its outer object is frozen); the runtime state contains plain serializable data.
-The JSON loader already acts as an adapter into `buildRegistry`; the planned Studio validates its
+The JSON loader already acts as an adapter into `buildRegistry`; the Studio validates its
 edits with the same function.
 
 ---
@@ -200,41 +200,47 @@ stockpile; only content-defined item caps apply. Clothing uses the best owned it
 
 | Kind | Lives in | Purpose |
 |---|---|---|
-| `game` | `game.json` | start region, start time, start items and stats, constants |
-| `stat` | `stats.json` | stat definitions, word bands, rates, damage rules |
-| `climate` | `climate.json` | day phases, seasons, weather types, body bands |
-| `item` | `items/*.json` | materials, food, tools, clothing, containers, components |
-| `knowledge` | `knowledge.json` | learned ideas used in conditions |
-| `recipe` | `recipes/*.json` | crafting at a station (camp, workbench, forge, loom) |
-| `region` | `regions/*.json` | region metadata, activity ID links, exploration and landmarks |
-| `activity` | `activities/*.json` | independent actions linked by regions, or global |
-| `event` | `events/*.json` or inside regions | scenes and choices |
-| `ending` | `endings.json` | final scenes |
+| `game` | `game.json` | start region, start time, start items and stats, constants, sleep, tools, journal lines |
+| `stat` | `stats.json` | stat definitions, word bands, rates, multipliers, damage and regen rules |
+| `climate` | `climate.json` | day phases, body bands |
+| `item` | `items/<id>.json` | materials, food, tools, clothing, containers |
+| `recipe` | `recipes/<id>.json` | crafting (node in `trees/crafting.json`) |
+| `building` | `buildings/<id>.json` | construction and local production (node in `trees/building.json`) |
+| `tree` | `trees/{crafting,building}.json` | creation graphs |
+| `site` | `sites/<id>.json` | local site capabilities |
+| `region` | `regions/<id>.json` | region metadata, activity ID links, exploration and landmarks |
+| `activity` | `activities/<id>.json` | independent actions linked by regions, or global |
+| `quest` | `quests/<id>.json` | goals |
+| `event` | `events/<id>.json` | scenes and choices |
+| `artwork` | `artwork/<id>.json` | illustration metadata |
+
+Future kinds (no schema yet): `knowledge`, `weather`/`season`, `ending`.
 
 **[implemented, Studio PR-03]** Regions own descriptions, unlock rules, view/arrival lines and
 landmarks. Activities, items, recipes, buildings and events have independent definitions.
 
-### 6.3 Conditions **[decided: structured]**
+### 6.3 Conditions **[decided: structured; implemented vocabulary below]**
+
+Implemented leaves (`Condition` in `src/content/schema.ts` is authoritative; `range` = optional `gte`/`lte`):
 
 ```ts
 type Condition =
   | { all: Condition[] } | { any: Condition[] } | { not: Condition }
-  | { item: ItemId; gte?: number; lte?: number }        // stockpile amount (default gte 1)
-  | { seen: ItemId }                                    // ever owned
-  | { knowledge: KnowledgeId }
-  | { flag: string } | { counter: string; gte?: number; lte?: number }
-  | { building: BuildingId; level?: number; count?: number }
-  | { region: RegionId }                                // unlocked
-  | { at: RegionId }                                    // player is there now
-  | { discovered: DiscoveryId }
-  | { explored: RegionId; gte: number }
-  | { stat: StatId; gte?: number; lte?: number }
-  | { warmth: BodyBandId[] }
-  | { phase: PhaseId[] } | { season: SeasonId[] } | { weather: WeatherId[] }
-  | { day: { gte?: number; lte?: number } }
-  | { event: EventId; count?: number }                  // event seen
-  | { process: ProcessId; state: "running" | "ready" };
+  | { item: ItemId; gte?; lte? } | { seen: ItemId }          // carried amount / ever owned
+  | { flag: FlagId } | { timer: TimerId; gte?; lte? }
+  | { at: RegionId } | { region: RegionId }                  // here now / unlocked
+  | { stat: StatId; gte?; lte? } | { warmth: BandId[] }
+  | { phase: PhaseId[] } | { effort: Effort[] } | { day: { gte?; lte? } }
+  | { did: Key; gte?; lte? } | { today: Key; gte?; lte? }    // lifetime / since last sleep
+  | { reached: { day; hour? } } | { quest: QuestId; is: "active" | "done" }
+  | { discovered: LandmarkId } | { explored: RegionId; gte?; lte? }
+  | { tool: ToolTag } | { site: SiteId }                     // tool capability / local site capability
+  | { built: BuildingId; here?: boolean } | { sheltered: boolean }
+  | { building: BuildingId; is: "idle" | "working" | "ready" };
 ```
+
+Future leaves from the original design (not implemented): `knowledge`, `season`, `weather`,
+`event` (seen), `process`, building `level`/`count`.
 
 Example: "wearing warm clothes and not in a blizzard":
 
@@ -244,25 +250,24 @@ Example: "wearing warm clothes and not in a blizzard":
 
 The evaluator also has `explain(condition)`. It returns the first unmet leaf as a short phrase for tooltips ("needs: spear", "only in daylight"). Each leaf type has one phrase template in the strings file.
 
-### 6.4 Effects [future superset; current vocabulary in schema.ts]
+### 6.4 Effects **[implemented vocabulary below]**
 
 ```ts
 type Effect =
   | { give: Amounts } | { take: Amounts }
-  | { stat: Partial<Record<StatId, number>> }          // deltas
-  | { learn: KnowledgeId } | { flag: string } | { unflag: string }
-  | { count: string; add: number }
-  | { discover: DiscoveryId } | { unlock: RegionId }
-  | { explore: RegionId; add: number }
-  | { wait: number }                                    // extra hours pass
-  | { log: Text } | { image: ImageId }
-  | { event: EventId }                                  // queue an event
-  | { roll: Outcome[] }                                 // nested weighted choice
-  | { checkpoint: true }
-  | { end: EndingId };
+  | { stat: Partial<Record<StatId, number>> }              // deltas
+  | { timer: TimerId; addHours: number }
+  | { flag: FlagId } | { unflag: FlagId }
+  | { log: Text } | { roll: Outcome[] }                    // nested weighted choice
+  | { startQuest: QuestId } | { unlock: RegionId }
+  | { build: BuildingId }                                  // add one here, no build step
+  | { startCycle: BuildingId; production?: ProductionId; units?: number };
 ```
 
-Each effect type is one handler in `effects.ts`. **Adding a new effect type is the main reason to touch engine code** (§14).
+Future effects from the original design (not implemented): `learn`, `count`, `discover`,
+`explore`, `wait`, `image`, `event`, `checkpoint`, `end`.
+
+Effects are executed in `src/core/engine.ts`. **Adding a new effect type is the main reason to touch engine code** (§14).
 
 ### 6.5 Yields and weighted outcomes
 
@@ -595,7 +600,7 @@ area panel.
 - The engine runs `syncQuests()` after every command (and at a new game): start triggered quests, finish active ones whose goal is met, apply their effects. It repeats up to 10 passes, because finishing one quest can start another.
 - Validator: unknown `did` keys, unknown quest ids, and `"manual"` quests that no effect ever starts are errors. A tag may not share its name with an id.
 
-### 6.11 Climate and stats files (excerpt)
+### 6.11 Climate and stats files (illustrative excerpt; shipped values in `content/climate.json` and `content/stats.json`)
 
 ```json
 {
@@ -790,9 +795,9 @@ commands in `README.md`; a debug overlay is future work.
 - Estimated real time = clicks × seconds-per-click + event scenes × seconds-per-scene (constants in `game.json`).
 - Candid limit: the bot will not play like a human. Use it to catch regressions and gross pacing problems. Final tuning needs real playtests.
 
-### 13.5 Content Studio **[approved direction; NOT implemented]**
+### 13.5 Content Studio **[implemented, PR-01 to PR-10]**
 
-See [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+Usage: [STUDIO.md](STUDIO.md). Scope and decisions: [CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
 
 ---
 
@@ -802,24 +807,29 @@ What you can add **without touching engine code**:
 
 | Change | Files |
 |---|---|
-| New region with activity links and landmarks | new `content/regions/<id>.json` (+ images); independent activity files |
-| New item, food, tool, clothing, container | `content/items/*.json` |
-| New recipe or crafting station (station = any building) | `content/recipes/*.json` |
-| New knowledge | `content/knowledge.json` |
-| New event or story beat | region file or `content/events/*.json` |
-| New weather, season, day phase, temperature rule | `content/climate.json` |
+| New region with activity links and landmarks | new `content/regions/<id>.json` (+ artwork); independent `content/activities/<id>.json` |
+| New item, food, tool, clothing | `content/items/<id>.json` |
+| New recipe | `content/recipes/<id>.json` + a node in `content/trees/crafting.json` |
+| New building with production | `content/buildings/<id>.json` + a node in `content/trees/building.json` |
+| New site capability | `content/sites/<id>.json` + `siteCapabilities` on a region or landmark |
+| New quest | `content/quests/<id>.json` |
+| New event or story beat | `content/events/<id>.json` |
+| New day phase, body band, temperature rule | `content/climate.json` |
 | New survival rule (damage, regen, multiplier) | `content/stats.json` |
-| New boat stage or ending | `content/regions/beach.json`, `content/endings.json` |
+| New artwork | `content/artwork/<id>.json` + file in `public/illustrations/` |
+
+Future content kinds with no schema yet (need code first): knowledge, weather, seasons, endings,
+boat stages.
 
 What **needs code**:
 
 | Change | Where |
 |---|---|
-| A new condition or effect type | one function in `conditions.ts` / `effects.ts` + schema entry |
-| A new modifier type | `systems/` + schema entry |
-| A new stat that isn't a 0–100 meter | `systems/stats.ts` |
-| A new UI panel or mini-game | `src/ui` |
-| A new trigger type for events | `systems/events.ts` |
+| A new condition or effect type | `src/content/schema.ts` + `registry.ts` check + `src/core/conditions.ts` / `engine.ts` + test |
+| A new modifier type | `src/core/` rule helpers (e.g. `action-rules.ts`) + schema entry |
+| A new stat that isn't a 0–100 meter | `src/core/engine.ts`, `state-schema.ts`, selectors |
+| A new UI panel or mini-game | `src/ui/` |
+| A new trigger type for events | `src/core/engine.ts` + schema entry |
 
 **Workflow to add a region (example: a marsh):**
 
@@ -852,8 +862,8 @@ What **needs code**:
 | M4 | Debug console, simulator v1, checkpoints with RNG | Simulator report for beach → lake |
 | M5 | Content pass: all 7 regions, ~60 items, mystery decision applied | Full game reachable per validator |
 | M6 | Shipyard stages, voyage event, endings | Simulator completes the game across 50 seeds |
-| M7 | Illustrations, polish, dark mode, audio (if decided), playtests, balance | Real playtest within 2–4 hours |
-| M8 | Content Studio [planned] | PR-01–PR-10 in CONTENT_STUDIO_IMPLEMENTATION_PLAN.md; game playable after each merge |
+| M7 | Illustrations, polish, dark mode, audio (if decided), playtests, balance | Real playtest completes the game (no fixed playtime cap; GDD §20.7) |
+| M8 | Content Studio **[done]** | PR-01–PR-10 in CONTENT_STUDIO_IMPLEMENTATION_PLAN.md; game playable after each merge |
 
 ---
 
@@ -862,10 +872,10 @@ What **needs code**:
 | Risk | Mitigation |
 |---|---|
 | The condition/effect vocabulary grows too large | Add a new type only when three pieces of content need it; otherwise express it with flags and counters |
-| JSON is tiring to write by hand | Content Studio (planned); `_note` fields for comments |
+| JSON is tiring to write by hand | Content Studio (implemented); `_note` fields for comments |
 | Region files become long | The loader also accepts a region split across `regions/<id>/*.json`, merged by id |
 | Re-evaluating every condition after each command gets slow | Not expected below a few thousand entities; add indexes only when profiling shows a need |
-| Content refactors break saves during development | Owner accepts a fresh game after every PR (2026-10-21). Bump save version with clear restart UI when needed; fresh-game save/reload must always remain working. |
+| Content refactors break saves during development | Any merged PR may require a fresh game (owner, 2026-10-21, confirmed for all PRs 2026-10-23; see ARCHITECTURE.md). Bump save version with clear restart UI when needed; fresh-game save/reload must always remain working. |
 | Image generator licensing | Decide before M7 (GDD §14) |
 
 ## 18. Open technical questions
@@ -887,7 +897,7 @@ reference checks; JSON remains the authoring format, not an engine dependency.
 `core/state-schema.ts` defines both runtime state types and their structural validator.
 `persistence/migrate.ts` is the only compatibility boundary: it rejects pre-redesign saves, repairs
 removed references, and preserves surviving progress. The engine accepts normalized state.
-Version 7 requires a fresh game for all pre-redesign saves. Missing areas relocate to the starting area, and missing
+Version 8 (current) requires a fresh game for all earlier saves; version 7 was the crafting-tree redesign boundary. Missing areas relocate to the starting area, and missing
 pop-ups are dismissed. Unsupported or malformed saves remain on disk and show an explicit
 new-game choice. Major prototype changes may require an announced reset; ordinary content
 updates preserve compatible progress, including earned technology unlocks after dependency edits. Envelope and inner-state versions must agree; both autosave and manual slots respect the version boundary. Incompatible or malformed manual slots are not offered for loading.
@@ -933,10 +943,10 @@ content limits. Bait selection and crop-specific planting controls remain future
 
 ---
 
-## 19. Content Studio [proposed; NOT implemented]
+## 19. Content Studio [implemented, PR-01 to PR-10]
 
 Architecture, decisions, gates and PR order live only in
-[CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md).
+[CONTENT_STUDIO_IMPLEMENTATION_PLAN.md](CONTENT_STUDIO_IMPLEMENTATION_PLAN.md); usage in [STUDIO.md](STUDIO.md).
 
 ## Content Studio foundation — [implemented, PR-04]
 

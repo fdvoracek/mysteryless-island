@@ -54,7 +54,7 @@ Scope, the owner’s confirmed decisions (2026-10-21), open gates and PR order a
 Architectural consequences that bind all work:
 
 - The game never depends on the Studio: Studio PRs are additive and keep game behavior unchanged
-  (plan §5.1). Engine and game-content work is paused while the program runs.
+  (plan §5.1). The program is complete, so the pause on engine and game-content work is lifted.
 - The Studio uses the shared schema, registry and engine; it never reimplements rules and is never
   part of the production build. `src/content` and `src/core` stay free of UI, storage and Studio imports.
 - **Implemented, PR-02:** one entity per file for items, recipes, buildings, quests, events, sites
@@ -73,9 +73,8 @@ Architectural consequences that bind all work:
   root, outside `content/`), the only addition to the file API allowlist. The game never reads or bundles it;
   pins are Studio view state, not content drafts (see [docs/STUDIO.md](docs/STUDIO.md)).
 - Content stays English-only; translations are out of scope for now.
-- **Save waiver during the program:** old saves may be discarded; bump `SAVE_VERSION` and keep the
-  explicit recovery screen. This overrides the old-save testing rule in "Save and presentation
-  compatibility" for Studio PRs only. Fresh-game save/reload must always work.
+- Old saves may be discarded by any merged PR, not only Studio PRs (see "Save and presentation
+  compatibility").
 
 ## Crafting and building trees — implemented
 
@@ -119,7 +118,7 @@ Design rationale and content-authoring model:
   creation or inspection; ordinary clicks and keyboard activation retain their behavior.
   Hide inspection hints during panning and keep all pointer handling in the shared UI.
 - Initial content edges are rock knife to axe and rope independently, fire site to bed to
-  shelter, and fire site to fish trap to rabbit trap. Completing construction of the fire site
+  shelter, and fire site to fish trap to snares. Completing construction of the fire site
   is sufficient; lighting it is not a progression requirement. Further initial links are
   confirmed in the detailed design and `content/trees/`; edges remain editable data.
 - A fresh game is acceptable for this redesign. Implement an explicit incompatible-save
@@ -235,12 +234,14 @@ derived view models; and an injected scheduler for deterministic controller test
 
 ## Save and presentation compatibility
 
-- Change saved shapes through `state-schema.ts` and the loading/migration boundary. Bump the
-  version when needed and test actual old saves, including paused work and collection claims
-  (waived for Content Studio PRs, see above).
-- Preserve compatible progress and RNG streams. Reconcile removed references and return surviving
-  reserved inputs when their work definition disappears. Keep unsupported/malformed saves intact
-  and offer an explicit recovery choice. Major prototype resets require an announced decision.
+- **Fresh-game policy (owner, 2026-10-23):** any merged PR may require a fresh game. When the
+  saved shape changes, bump `SAVE_VERSION` and rely on the explicit recovery screen; no legacy-save
+  migrations or old-save tests are required. Fresh-game save/reload must always work, including
+  paused work and collection claims within the current version.
+- Change saved shapes through `state-schema.ts` and the loading/migration boundary.
+- Within one save version, preserve compatible progress and RNG streams. Reconcile removed
+  references and return surviving reserved inputs when their work definition disappears. Keep
+  unsupported/malformed saves intact and offer an explicit recovery choice.
 - Keep autosave separate from the manual/pre-sleep save slot; a death remains in the autosave.
 - Classic uses fixed panel IDs, selectors, and controls. Keep its CSS scoped and desktop/phone
   behavior usable; font selection stays independent of layout through `--font`.
