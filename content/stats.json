@@ -102,7 +102,6 @@
         "all": [
           { "effort": ["sleep"] },
           { "built": "bed", "here": true },
-          { "at": "beach" },
           { "stat": "hunger", "lte": 50 },
           { "stat": "thirst", "lte": 50 }
         ]

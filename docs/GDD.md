@@ -25,7 +25,7 @@ The screen is a few buttons, a scrolling story log, and a status panel. Occasion
 |---|---|
 | Genre | Text survival / crafting / exploration |
 | Player | One castaway, alone for the whole game **[decided]** |
-| Session | Content-driven; earlier 2–4 h target under revision **[updated design direction; see §20.7]** |
+| Session | Content-driven; no fixed playtime cap **[decided 2026-10-23; see §20.7]** |
 | Platform | Desktop browser **[decided]** |
 | Inspirations | *A Dark Room* (form, pacing, voice), Jules Verne's *The Mysterious Island* (progression from nothing to industry) |
 | Title | Mysteryless Island **[decided]**: a nod to Verne; the player is never sure whether the island hides a mystery |
@@ -51,13 +51,13 @@ The screen is a few buttons, a scrolling story log, and a status panel. Occasion
 
 ## 3. Player experience arc
 
-How the 2–4 hours should feel. Times are targets for the balance simulator (see TDD §13).
+How the arc should feel. Real-time and day columns are the original 2–4 h estimates, kept as relative pacing only; there is no fixed playtime cap (§16, §20.7).
 
 | Real time | In-game days | Phase | What the player feels | Key beats |
 |---|---|---|---|---|
 | 0–10 min | 1–2 | **Washed up** | Disoriented, urgent | Thirst, coconuts, searching the wreck, first fire, first night |
 | 10–40 min | 3–12 | **Getting a grip** | Relief, small mastery | Shelter, stone tools, the forest opens, first hunt |
-| 40–90 min | 13–30 | **Spreading out** | Curiosity, planning | Lake (clay, fresh water), plains (snares, corn, flax), first processes left running |
+| 40–90 min | 13–30 | **Spreading out** | Curiosity, planning | Meadows (river, corn, bees, later flax), lake (clay), first processes left running |
 | 90–150 min | 31–55 | **Iron age** | Triumph | Warm clothes, the mountain, iron ore, the forge is lit, iron tools |
 | 150–210 min | 56–80 | **The shipwright** | Purpose, anticipation | Windmill, sailcloth, pitch, the hull takes shape stage by stage |
 | final 10 min | — | **The voyage** | Release | Launch, voyage event, ending |
@@ -104,7 +104,7 @@ flowchart LR
 
 - **Survival stats** keep the action loop from being free. Gathering 10 logs costs hunger and thirst, so food and water production is always part of the plan.
 - **Processes** (charcoal burning, kiln firing, crops growing) run in in-game time. Starting one before a long trip or before sleep is the main efficiency skill. This replaces *A Dark Room*'s idle village for a solo player.
-- **Region climate** links survival to progression. The mountain is cold, so warm clothes are a prerequisite for iron. The plains have no water, so water containers are a prerequisite for farming.
+- **Region climate** links survival to progression. The mountain is cold, so warm clothes are a prerequisite for iron. The lake holds the clay, so pottery waits on exploring past the forest.
 - **Seasons** add planning. Crops grow only in spring and summer; winter makes the mountain more dangerous.
 
 ---
@@ -117,12 +117,12 @@ flowchart LR
 - Some actions are restricted at night (no exploring without a torch; hunting has worse odds).
 - The game starts at dawn on day 1, early spring **[proposal]**.
 
-**Seasons [proposal]:** 4 seasons × 20 days = an 80-day year, which matches the 2–4 hour target. Season length is a data value.
+**Seasons [proposal]:** 4 seasons × 20 days = an 80-day year (sized for the original 2–4 h estimate; revisit with the content scope). Season length is a data value.
 
 | Season | Days | Effect |
 |---|---|---|
 | Spring | 1–20 | Mild. Planting allowed. Rain common. |
-| Summer | 21–40 | Hot days (thirst ×1.3 on plains and beach). Grass fires possible. |
+| Summer | 21–40 | Hot days (thirst ×1.3 on meadows and beach). Grass fires possible. |
 | Autumn | 41–60 | Harvest. Storms more common (wreckage washes up). |
 | Winter | 61–80 | Cold nights everywhere. No planting. Mountain blizzards. Bad season to sail. |
 
@@ -158,7 +158,7 @@ All stats are numbers from 0 to 100 internally. The status panel shows each one 
 | Thirst | +5 / h working, +2 / h asleep |
 | Energy | −8 / h heavy, −5 / h work, −2 / h light. Costs ×1.5 when hungry or thirsty (41+); ×0.5 when both fed and hydrated (20 or below). Food and drinks restore energy. |
 | Health loss | −3 / h while *freezing*. Hunger, thirst, and exhaustion never damage health. |
-| Health regeneration | +1 / h when fed, quenched and comfortable; +3 / h while sleeping in a shelter under the same conditions |
+| Health regeneration **[implemented]** | Rules stack when hunger and thirst are both ≤ 50: +1 / h when comfortable; +2 / h while asleep; +1 / h more while asleep in a bed in the current area. Shelter itself adds no regeneration. |
 
 With these rates a player with no water goes from *quenched* to *parched* in about 20 hours. That's urgent but survivable.
 
@@ -188,7 +188,7 @@ felt °C        = environment °C + clothing insulation
 
 Body warmth moves **one band per hour** toward the target (like the room temperature in *A Dark Room*). That gives the player time to react.
 
-Region bases **[proposal]:** beach 24, forest 20, lake 18, plains 25, caves 13 (no day/night swing), mountain 6, summit −2.
+Region bases **[proposal]:** beach 24, forest 20, meadows 25, lake 18, caves 13 (no day/night swing), mountain 6, summit −2.
 
 ### 6.3 Food and water
 
@@ -212,21 +212,23 @@ Voluntary sleep requires a bed built in the current area; the sleep button is hi
 
 ## 7. The island
 
-### 7.1 Regions **[proposal: full set; you named beach, forest, plains, mountains, lake]**
+### 7.1 Regions **[beach, forest, meadows implemented; the rest proposal]**
 
 Seven regions; six are required for the boat. One optional region holds the mystery payoff.
+**[decided 2026-10-23]** The implemented meadows replace the earlier "plains" proposal; plains
+content ideas (flax, windmill, caves access) now belong to the meadows.
 
 | # | Region | Base °C | How it unlocks | Main role |
 |---|---|---|---|---|
 | 1 | **The Beach** (camp) | 24 | Start | Camp, wreck salvage, crafting hub, shipyard |
-| 2 | **The Forest** | 20 | Explore the beach until you find *a trail into the trees* | Wood, fibre, hunting, charcoal, pitch, planks |
-| 3 | **The Lake** | 18 | Explore the forest: *the sound of running water* | Fresh water, fish, clay, reeds, kiln, tanning |
-| 4 | **The Plains** | 25 | Explore the lake: *the trees thin out*, **and** own a water container | Rabbits (pelts), corn, flax, windmill |
-| 5 | **The Caves** | 13 | Explore the plains: *dark openings in the hillside*, **and** carry a torch | Stone, flint, limestone, the mystery |
+| 2 | **The Forest** [implemented] | 20 | Beach landmark *the dunes* (`forest_edge`) | Wood, bark/rope, spring water, snares; later charcoal, pitch, planks |
+| 3 | **The Meadows** [implemented] | 25 | Beach landmark *climb the cliff* (`cliff_top`, needs a rope) | Berries, river (water, fish, willow), wild corn, corn field, bees; later flax, windmill |
+| 4 | **The Lake** | 18 | Explore the forest: *the sound of running water* | Clay, reeds, kiln, tanning, retting |
+| 5 | **The Caves** | 13 | Explore the meadows: *dark openings in the hillside*, **and** carry a torch | Stone, flint, limestone, the mystery |
 | 6 | **The Mountain** | 6 | Explore the caves: *a pass above the tree line*, **and** wear warm clothes | Iron ore, goats, snow |
 | 7 | **The Summit** (optional) | −2 | Explore the mountain **and** own a rope | Mystery payoff, best view of the sea, voyage bonus |
 
-**Travel [proposal]:** each region has a travel time from camp (forest 1 h, lake 2 h, plains 2 h, caves 3 h, mountain 4 h, summit 6 h). Switching to a region tab means walking there and costs that time. A *path* upgrade per region halves travel time. This makes distance meaningful even with a global stockpile, and gives a visible reward for progress.
+**Travel [implemented for current regions; rest proposal]:** each region has a travel time from camp (implemented: forest 0.5 h, meadows 1 h; proposed: lake 2 h, caves 3 h, mountain 4 h, summit 6 h). Switching to a region tab means walking there and costs that time. A *path* upgrade per region halves travel time. This makes distance meaningful even with a global stockpile, and gives a visible reward for progress.
 
 Candid trade-off: tab switching that costs time may surprise players used to *A Dark Room*. The tab label shows the cost ("the forest · 1h"), and returning to camp is a separate button.
 
@@ -251,13 +253,14 @@ Each region has five parts: **activities**, **buildings**, **discoveries** (foun
 #### The Lake
 - Activities: drink, fill water containers, fish (spear, then line and hook), dig clay, cut reeds, collect bark, explore.
 - Buildings: fish weir (passive fish per day), kiln (clay → pots, jars, bricks), tanning pit (hide + bark → leather over 48 h), retting pond (flax → fibre over 72 h).
-- Discoveries: *clay banks*, *a shallow bay full of fish*, *the trees thin out* (plains).
+- Discoveries: *clay banks*, *a shallow bay full of fish*.
 - Events: fever from unboiled water, a heron steals fish, something large in the water, a dry spell lowers the lake.
 
-#### The Plains
-- Activities: set snares (rabbit meat, pelts), gather wild corn (food and seed), gather wild flax, plant a field (spring and summer only), harvest, explore.
-- Buildings: corn field (plant → grows 10 days → harvest), flax field, windmill (corn → flour; needs iron gears and sailcloth), lean-to.
-- Discoveries: *a rabbit warren* (snare yield ↑), *wild corn*, *wild flax*, *dark openings in the hillside* (caves).
+#### The Meadows (formerly "the plains")
+- Implemented: pick berries, drink from the river, catch river fish (spear), cut willow, gather wild corn; corn field (sow 2 corn → 3 days), bee hive, fish trap, fish weir. Landmarks: bushes, river, field site, wild corn, bees.
+- Proposed activities: gather wild flax, seasonal planting (spring and summer only).
+- Proposed buildings: flax field, windmill (corn → flour; needs iron gears and sailcloth), lean-to.
+- Proposed discoveries: *wild flax*, *dark openings in the hillside* (caves). Rabbit snares are implemented in the forest, not here.
 - Events: grass fire (summer), a hawk takes the catch, a stampede of wild goats, a rainbow after the storm.
 
 #### The Caves
@@ -315,13 +318,13 @@ flowchart LR
   ore[iron ore · mountain] --> forge
   charcoal --> forge --> iron[iron ingot]
   iron --> tools[saw · pickaxe · axe · hoe] & nails & gears & fittings
-  gears & sailcloth --> mill[windmill · plains]
-  corn[corn field · plains] --> mill --> flour --> biscuit[ship's biscuit]
+  gears & sailcloth --> mill[windmill · meadows]
+  corn[corn field · meadows] --> mill --> flour --> biscuit[ship's biscuit]
   flax --> retting[retting pond · lake] --> fibre --> loom[loom · camp] --> sailcloth
-  pelts[rabbit pelts · plains] & leather --> warm[warm clothes] --> mountainU[unlock mountain]
+  pelts[rabbit pelts · forest snares] & leather --> warm[warm clothes] --> mountainU[unlock mountain]
 ```
 
-Your example chain is the backbone: charcoal (forest) → forge → iron (from ore mined in the mountains) → windmill (plains) → flour from the corn field. Flour becomes ship's biscuit, the voyage provisions.
+Your example chain is the backbone: charcoal (forest) → forge → iron (from ore mined in the mountains) → windmill (meadows) → flour from the corn field. Flour becomes ship's biscuit, the voyage provisions.
 
 ### 8.3 Knowledge **[proposal]**
 
@@ -385,7 +388,7 @@ The arc "survive, build, leave" works on its own. A mystery would give explorati
 - Events have scenes with choices. Choices can have costs, requirements and random outcomes.
 - Hazards are events: damage, lost time, lost items, sickness. The player's gear and knowledge change the options (with a spear you can face the boar; without one you can only climb a tree).
 
-### 11.2 Event budget for 2–4 hours
+### 11.2 Event budget (v1 estimate)
 
 | Type | Count (v1 target) |
 |---|---|
@@ -412,7 +415,21 @@ Current set:
 | Task | Trigger | Done when |
 |---|---|---|
 | survive the first night | start | day 2, 06:00 |
-| build a fishing spear | the school of fish is found | the spear is built (*build*, 10 firewood, 1 h) |
+| better sleep | first night survived | sheltered bed and lit fire in the same area |
+| make a bed | a sheltered place is available | a bed is built |
+| build a shelter | first night survived, unsheltered, away from the beach | a shelter is built |
+| catch a fish | school of fish or river discovered | raw fish seen |
+| build a fish trap | school of fish or river discovered | a fish trap is built |
+| build a fish weir | the trap was emptied twice | a fish weir is built |
+| build a drying rack | automatic eating failed while carrying raw fish or meat | a drying rack is built |
+| build a rain barrel | a built shelter, or beach shelter after the first night | a rain barrel is built |
+| set snares | rabbit runs discovered | snares are built |
+| dig a corn field | field site discovered | a corn field is built |
+| build a bee hive | bees discovered | a bee hive is built |
+| climb the cliff | cliff shells discovered | cliff top discovered |
+| cut logs | any log-dependent task is active | wood chopped once |
+
+`content/quests/` is authoritative; this table is a snapshot (2026-10-23).
 
 Examples the system supports (not shipped): *find water* (start → first drink), *find food* (start → first time eating), *light a fire* (day 1, 16:00 if no fire was ever lit → a fire is burning), *build a roof over your head* (after the first night → shelter built).
 
@@ -481,16 +498,19 @@ Not discussed yet. *A Dark Room*'s state-driven music (per fire level, per villa
 
 ---
 
-## 16. Balance targets
+## 16. Balance targets **[historical estimates, not targets]**
 
-The balance simulator (TDD §13) must confirm these with a scripted player across many seeds.
+**[decided 2026-10-23]** There is no fixed playtime cap (§20.7). The table below is the original
+2–4 h calibration guess, kept only as a relative ordering reference. Do not tune toward these
+numbers; new milestone targets come from simulation and playtests once content scope is settled.
+The meadows now open early from the beach (cliff + rope), so the old plains row no longer applies.
 
-| Milestone | Target in-game day | Target real time |
+| Milestone | Original in-game day | Original real time |
 |---|---|---|
 | First fire | 1 | 5 min |
 | Forest unlocked | 1–2 | 8 min |
+| Meadows unlocked (was plains) | early; not yet measured | — |
 | Lake unlocked | 4–6 | 25 min |
-| Plains unlocked | 10–14 | 45 min |
 | Caves unlocked | 18–22 | 70 min |
 | Warm clothes | 24–30 | 90 min |
 | Mountain unlocked | 26–32 | 95 min |
@@ -525,7 +545,7 @@ Real time is estimated by the simulator from an average cost per click (about 5 
 | Five stats shown as words only | Players can't plan precisely, and may feel cheated by sudden damage | 6-hour warning rule; trend in tooltip; first-time hints in the log |
 | Action clock loses the idle charm | *A Dark Room*'s appeal partly comes from waiting and returning | Production running in game time; persisted work bars; sleep as the "come back later" moment |
 | Global stockpile + no decay = hoarding | Late game becomes trivial | Time and energy are the real limits; water storage is capped by containers; boat costs absorb surplus |
-| A deep tree in 2–4 h | Too many items make the game a checklist | ~60 items cap; every item used in at least two recipes or one boat stage |
+| A deep tree | Too many items make the game a checklist | ~60 items cap; every item used in at least two recipes or one boat stage |
 | Manual saved-game reloads | Repeating random events | Seeded gameplay RNG saved independently from narrative wording |
 | Tabs that cost travel time | Unfamiliar UX | Show cost on the tab; separate "return to camp" button |
 | Survival genre is crowded | Hard to stand out | Strong voice, art and the mystery; finite, well-paced arc |
@@ -572,7 +592,7 @@ Progress-critical region/resource discoveries should be reliably obtainable thro
 
 ### 19.4 Stone Age, detailed proposal
 
-**Goal:** go from empty hands on the beach to a rock knife, bound stone axe, first timber and a basic camp, with exploration opening the route to new materials. Target roughly 20–30 minutes for main early milestones, subject to the existing 2–4-hour playthrough balance target.
+**Goal:** go from empty hands on the beach to a rock knife, bound stone axe, first timber and a basic camp, with exploration opening the route to new materials. Target roughly 20–30 minutes for main early milestones; there is no fixed overall playtime cap (§20.7).
 
 **Required backbone:**
 
@@ -604,7 +624,7 @@ The balance goal is for manual survival upkeep to consume much of the first days
 
 Current content lives in `content/trees/crafting.json`, `content/trees/building.json`, `content/recipes/<id>.json`, `content/buildings/<id>.json`, and the beach/forest/meadows region files. The implemented craft graph currently unlocks axe, spear and cordage directly after the rock knife; this proposal suggests cordage before axe. The implemented building graph has campfire → bed → shelter → rain barrel, fish trap → snares/fish weir, and campfire → corn field; review these edges to separate meaningful knowledge from arbitrary unlock order. Existing rock-knife discovery and recipe costs, bed resource requirements, and survival rules also differ from some of the aspirational early-game examples above.
 
-Keep current region identities (beach, forest, meadows) as implemented and reconcile the GDD's proposed future lake/plains sequence before adding regions. **No code, recipes, building definitions, or balance values change as a result of this GDD-only proposal.**
+Keep current region identities (beach, forest, meadows) as implemented and follow the reconciled region chain in §7.1 (meadows replaced plains) when adding regions. **No code, recipes, building definitions, or balance values change as a result of this GDD-only proposal.**
 
 ### 19.7 Questions for the next design pass
 
@@ -640,7 +660,7 @@ Skill benefits must remain distinguishable: practice gives general efficiency, q
 | Survival | Maintain fire, prepare camps, perform survival routines | Reduced survival effort and better routine efficiency | Fire duration, camp refueling |
 | Metalworking | Personally smelt and forge | Smelting/forging efficiency and forged-tool quality | Better ingot use, fine metalwork |
 
-**Five named ranks [proposal]:** Novice → Practiced → Competent → Expert → Master. XP can rise continuously between ranks; milestone perk choices are proposed at ranks 3 and 5. Neither five ranks, six skills, thresholds, perk lists nor specific reductions are final. Progression can be extended if the game has enough meaningful content; the older fixed 2–4-hour target in §§1, 3, 11 and 16 is no longer a hard design constraint. Do not pad playtime with repetitive grinding.
+**Five named ranks [proposal]:** Novice → Practiced → Competent → Expert → Master. XP can rise continuously between ranks; milestone perk choices are proposed at ranks 3 and 5. Neither five ranks, six skills, thresholds, perk lists nor specific reductions are final. Progression can be extended if the game has enough meaningful content; the older 2–4-hour target was dropped (decided 2026-10-23); §§3, 11 and 16 keep it only as historical estimates. Do not pad playtime with repetitive grinding.
 
 **XP rules [chosen direction]:** reward meaningful completed work, production batches and first-time achievements. Base rewards should reflect the action's underlying task rather than its actual (skill-dependent) duration, so efficient players are not punished for faster work. First-time achievements may grant bonuses; endlessly repeating trivial starter recipes yields little XP. Cancelling/restarting work yields no duplicative progress, and unattended building output must not continuously give player skill XP. One primary skill per action is the default. Tune XP milestones through playtests.
 
@@ -725,7 +745,7 @@ Start with Craftsmanship, Woodworking and Foraging as a vertical slice; validate
 5. Eligibility/rates for individual passive pickups and combined activity balance.
 6. Detailed recipe classifications where firewood or food can be both construction input and carried survival supply.
 7. Handling multiple camps and a possible portable manual loadout adjustment.
-8. Update previously fixed 2–4-hour targets and the balance simulator once content scope is settled.
+8. Set new milestone targets and the balance simulator once content scope is settled.
 
 ---
 

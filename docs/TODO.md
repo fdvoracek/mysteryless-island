@@ -24,7 +24,6 @@ Project backlog for Mysteryless Island. Tasks are grouped by area and are not ne
 - [ ] Implement environment-aware passive gathering perks.
 - [ ] Rebalance survival, progression pacing, and overall playtime after new systems are integrated.
 
-- [ ] Add localization support.
 - [ ] Integrate and use generated graphics in the game.
 
 ## Art
