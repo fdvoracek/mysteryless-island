@@ -263,6 +263,28 @@ variant” link. The explicit ID stays above the rows; the form selector's title
 changes. First-variant guidance, placeholder warnings and mode-switching restrictions remain.
 Generic arrays/records, their Unset controls and nested-object compaction are deferred to UX-04b.
 
+## Lists, records and Unset — [implemented, UX-04b]
+
+Generic scalar/reference/enum arrays use one control per line with ↑ ↓ × actions. Object
+arrays use numbered blocks in a 22 px gutter, normal inspector fields and thin dividers;
+there are no entry boxes or numeric field labels. “+ add entry” retains its existing
+`Add <key> entry` accessible name. Condition/Effect entries keep their own rule toolbar.
+
+Non-inline records show a key token, value and × per row. Reference keys use the shared
+reference label; other keys use mono text. The new-key control and **Add key** remain.
+Inline item-amount records retain the UX-04 appearance.
+
+Union selectors sit compactly at the right of the field label line, preceded by “Value type”
+or “Kind (<discriminator>)”; the selected branch does not repeat the same field label.
+Selectors retain `<path> kind` (or `root kind`) and their existing switching behavior.
+
+Row actions and faint ghost **Unset** buttons appear on their own entry/field hover or keyboard
+focus. Moving to another card hides Unset. Hovering nested fields may also reveal their parent
+field's Unset. At widths ≤760 px and on devices without hover, these controls stay visible.
+All existing control names, editing behavior and Undo/Redo remain unchanged. Rule actions now
+use explicit action data, leaf schemas are memoized, and variant textareas resize for text and
+width changes without reacting to their own height changes.
+
 ## Area workspace and rename — [implemented, PR-07]
 
 Choose an area under **By area** to open Properties, Map and unlock, Text and exploration,

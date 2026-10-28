@@ -5,7 +5,7 @@ import type { JsonBuffer } from "./store";
 import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { rangeCaptions } from "./describe";
-import { Order, registerWidgets } from "./widgets";
+import { Order, registerWidgets, type OrderActions } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
 import { hintFor, hints, humanize, sectionsFor, schemaName, type Section, type FieldHint } from "./hints";
 import { summarize } from "./summary";
@@ -15,7 +15,8 @@ export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
   problems: ContentProblem[]; documents: Document[]; owner: Document;
   buffers?: Record<string, JsonBuffer>;
-  ruleActions?: ReactNode;
+  ruleActions?: OrderActions;
+  hideLabel?: boolean;
   inline?: boolean;
   ruleFields?: { ownKey: string; caption: (key: string) => string };
   presentation?: { schema: Schema; path: string; hint?: FieldHint; rowMember?: boolean; inline?: boolean; hideCaption?: boolean; token?: string };
@@ -129,9 +130,10 @@ export function Field(props: FieldProps) {
   const key = path.split(".").at(-1) ?? "";
   const label = hint?.label ?? humanize(key);
   const inline = props.inline || presentation?.inline;
-  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string, presentation?: FieldProps["presentation"]) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} skipWidget={false} ruleActions={undefined} inline={false} ruleFields={undefined} presentation={presentation} />;
+  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string, presentation?: FieldProps["presentation"], hideLabel = false) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} skipWidget={false} ruleActions={undefined} inline={false} ruleFields={undefined} presentation={presentation} hideLabel={hideLabel} />;
   const issue = problems.filter((problem) => problem.path === path);
   let control: ReactNode;
+  let unionKind: ReactNode;
   const widget = props.skipWidget ? undefined : schemaWidget(schema) ?? (kind ? widgetRegistry.references.get(kind) : undefined);
   const unset = value === undefined && schema.isOptional();
   let scalar = !widget && (Boolean(kind) || depth <= 16 && (node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum || node instanceof z.ZodNativeEnum || node instanceof z.ZodLiteral));
@@ -142,9 +144,10 @@ export function Field(props: FieldProps) {
   else if (branches(node).length) {
     const options = branches(node), index = branchFor(node, value);
     const discriminator = node instanceof z.ZodDiscriminatedUnion ? node.discriminator : undefined;
-    control = <div className="union-field"><label>{discriminator ? `Kind (${discriminator})` : "Value type"}<select aria-label={`${path || "root"} kind`} value={index} onChange={(event) => onChange(initialValue(options[Number(event.target.value)]))}>
+    unionKind = <label className="union-kind"><span>{discriminator ? `Kind (${discriminator})` : "Value type"}</span><select aria-label={`${path || "root"} kind`} value={index} onChange={(event) => onChange(initialValue(options[Number(event.target.value)]))}>
       {options.map((option, i) => <option key={i} value={i}>{branchLabel(option, i)}</option>)}
-    </select></label>{child(options[index], value, path, onChange, `branch-${index}`)}</div>;
+    </select></label>;
+    control = <div className="union-field">{child(options[index], value, path, onChange, `branch-${index}`, undefined, true)}</div>;
   } else if (node instanceof z.ZodObject && (value === null || typeof value !== "object" || Array.isArray(value))) control = <RawField {...props} />;
   else if (node instanceof z.ZodObject) {
     const raw = recordValue(value);
@@ -190,9 +193,11 @@ export function Field(props: FieldProps) {
   } else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => {
     const childPath = [path, index].filter(v => v !== "").join(".");
     const rule = [Condition, Effect].some(schema => unwrap(schema) === unwrap(node.element));
-    const actions = <Order compact={rule} path={childPath} index={index} length={value.length} remove={() => onChange(value.filter((_, i) => i !== index))} move={delta => { const updated = [...value]; [updated[index + delta], updated[index]] = [updated[index], updated[index + delta]]; onChange(updated); }} />;
-    return <div className="array-entry" key={index}><Field {...props} schema={node.element} value={entry} path={childPath} depth={depth + 1} ruleActions={rule ? actions : undefined} skipWidget={false} onChange={next => onChange(value.map((old, i) => i === index ? next : old))} />{!rule && <div className="row-actions">{actions}</div>}</div>;
-  })}<button type="button" onClick={() => onChange([...value, initialValue(node.element)])}>Add {path.split(".").at(-1)} entry</button></div>;
+    const actions: OrderActions = { path: childPath, index, length: value.length, remove: () => onChange(value.filter((_, i) => i !== index)), move: delta => { const updated = [...value]; [updated[index + delta], updated[index]] = [updated[index], updated[index + delta]]; onChange(updated); } };
+    const objectEntry = unwrap(node.element) instanceof z.ZodObject;
+    const field = <Field {...props} schema={node.element} value={entry} path={childPath} depth={depth + 1} presentation={undefined} inline={false} ruleFields={undefined} hideLabel={true} ruleActions={rule ? actions : undefined} skipWidget={false} onChange={next => onChange(value.map((old, i) => i === index ? next : old))} />;
+    return rule ? <div className="array-rule-entry" key={index}>{field}</div> : <div className={objectEntry ? "array-object-entry" : "array-line"} key={index}>{objectEntry ? <><span className="entry-index" aria-hidden="true">{index + 1}</span><div className="entry-fields">{field}</div></> : field}<div className="entry-actions"><Order {...actions} /></div></div>;
+  })}<button className="add-link" type="button" aria-label={`Add ${key} entry`} onClick={() => onChange([...value, initialValue(node.element)])}>+ add entry</button></div>;
   else if (node instanceof z.ZodRecord && value && typeof value === "object" && !Array.isArray(value)) control = <RecordField {...props} inline={inline} />;
   else if (node instanceof z.ZodString) control = <input readOnly={props.lockId && path === "id"} id={id} aria-label={path} value={typeof value === "string" ? value : ""} onChange={(event) => onChange(event.target.value)} />;
   else if (node instanceof z.ZodNumber) control = <input id={id} aria-label={path} type="number" step="any" value={typeof value === "number" ? value : ""} onChange={(event) => onChange(event.target.value === "" ? null : Number(event.target.value))} />;
@@ -203,8 +208,8 @@ export function Field(props: FieldProps) {
   } else if (node instanceof z.ZodLiteral) control = <code>{JSON.stringify(node.value)}</code>;
   else control = <RawField {...props} />;
   scalar = scalar && !unset;
-  return <div className={`form-field${inline ? " rule-inline" : ""}${presentation?.token ? ` rule-token token-${presentation.token}` : ""} ${path && scalar ? "field-scalar" : "field-composite"}${presentation?.rowMember ? " field-row-member" : ""}${node instanceof z.ZodNumber ? " field-number" : ""}${props.lockId && path === "id" ? " field-locked" : ""}`} data-field={path}>
-    {path && !unset && (!presentation?.hideCaption || schema.isOptional()) && <div className="field-label"><div><label htmlFor={id} className={presentation?.hideCaption ? "visually-hidden" : undefined}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{!inline && schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
+  return <div className={`form-field${props.hideLabel ? " field-unlabelled" : ""}${inline ? " rule-inline" : ""}${presentation?.token ? ` rule-token token-${presentation.token}` : ""} ${path && scalar ? "field-scalar" : "field-composite"}${presentation?.rowMember ? " field-row-member" : ""}${node instanceof z.ZodNumber ? " field-number" : ""}${props.lockId && path === "id" ? " field-locked" : ""}`} data-field={path}>
+    {!unset && (unionKind || path && !props.hideLabel && (!presentation?.hideCaption || schema.isOptional())) && <div className="field-label">{path && !props.hideLabel && <div><label htmlFor={id} className={presentation?.hideCaption ? "visually-hidden" : undefined}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>}{unionKind}{!props.hideLabel && !inline && schema.isOptional() && value !== undefined && <button className="field-unset" type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
     <div className="field-control">{control}{inline && schema.isOptional() && value !== undefined && <button className="inline-unset" type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>×</button>}{scalar && hint?.unit && <span className="field-unit">{hint.unit}</span>}</div>{issue.map((problem, index) => <p key={index} className="error field-error">{problem.message}</p>)}
   </div>;
 }
@@ -215,11 +220,11 @@ function RecordField(props: FieldProps) {
   const kind = refKind(node.keySchema);
   const options = kind ? referenceOptions(kind, props.documents, props.owner, props.path) : [];
   const valid = key && !key.startsWith("_") && !(key in raw) && node.keySchema.safeParse(key).success;
-  return <div className={props.inline ? "record-fields record-inline" : "record-fields"}>{Object.entries(raw).map(([name, value]) => <div className={props.inline ? "amount-entry" : "array-entry"} key={name}>{props.inline && <span className="amount-token">{kind ? referenceLabel(kind, name, props.documents) : name}</span>}
-    <Field {...props} inline={props.inline} presentation={{ schema: node.valueSchema, path: [props.path, name].filter(Boolean).join("."), hideCaption: Boolean(props.inline), inline: props.inline }} schema={node.valueSchema} path={[props.path, name].filter(Boolean).join(".")} value={value} depth={(props.depth ?? 0) + 1} onChange={(next) => props.onChange({ ...raw, [name]: next })} />
-    <button type="button" aria-label={`Remove ${props.path}.${name}`} onClick={() => { const updated = { ...raw }; delete updated[name]; props.onChange(updated); }}>{props.inline ? "×" : `Remove ${name}`}</button>
+  return <div className={props.inline ? "record-fields record-inline" : "record-fields"}>{Object.entries(raw).map(([name, value]) => <div className={props.inline ? "amount-entry" : "record-row"} key={name}><span className={props.inline ? "amount-token" : `record-key${kind ? " record-reference" : ""}`}>{kind ? referenceLabel(kind, name, props.documents) : name}</span>
+    <Field {...props} hideLabel={!props.inline} ruleActions={undefined} ruleFields={undefined} inline={props.inline} presentation={{ schema: node.valueSchema, path: [props.path, name].filter(Boolean).join("."), hideCaption: Boolean(props.inline), inline: props.inline }} schema={node.valueSchema} path={[props.path, name].filter(Boolean).join(".")} value={value} depth={(props.depth ?? 0) + 1} onChange={(next) => props.onChange({ ...raw, [name]: next })} />
+    <span className={props.inline ? undefined : "entry-actions"}><button type="button" aria-label={`Remove ${props.path}.${name}`} onClick={() => { const updated = { ...raw }; delete updated[name]; props.onChange(updated); }}>×</button></span>
   </div>)}<div className="record-add">{kind ? <select aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)}><option value="">{props.inline ? "+ item" : "Choose a reference…"}</option>{options.filter((option) => !(option in raw)).map((option) => <option key={option} value={option}>{referenceLabel(kind!, option, props.documents)}</option>)}</select> : <input aria-label={`${props.path} new key`} value={key} onChange={(event) => setKey(event.target.value)} placeholder="new key" />}
-    <button type="button" disabled={!valid} onClick={() => { props.onChange({ ...raw, [key]: initialValue(node.valueSchema) }); setKey(""); }}>Add key</button></div></div>;
+    <button className={props.inline ? undefined : "add-link"} type="button" disabled={!valid} onClick={() => { props.onChange({ ...raw, [key]: initialValue(node.valueSchema) }); setKey(""); }}>Add key</button></div></div>;
 }
 
 registerWidgets(widgetRegistry);

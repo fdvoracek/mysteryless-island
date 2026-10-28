@@ -1,4 +1,4 @@
-import { cloneElement, isValidElement, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { Condition, Effect, Outcome, Text } from "../content";
 import { Field, RawField, type FieldProps, type Widget } from "./form";
@@ -14,7 +14,8 @@ function Errors({ schema, value }: FieldProps) {
   const result = schema.safeParse(stripComments(value));
   return result.success ? null : <div role="alert" className="error">{result.error.issues.map((issue, i) => <p key={i}>{issue.path.join(".")}: {issue.message}</p>)}</div>;
 }
-export function Order({ path, index, length, remove, move, compact = true, beforeRemove }: { compact?: boolean; beforeRemove?: ReactNode; path: string; index: number; length: number; remove: () => void; move: (delta: number) => void }) {
+export interface OrderActions { path: string; index: number; length: number; remove: () => void; move: (delta: number) => void }
+export function Order({ path, index, length, remove, move, compact = true, beforeRemove }: { compact?: boolean; beforeRemove?: ReactNode } & OrderActions) {
   const removeButton = <button type="button" aria-label={`Remove ${path}`} onClick={remove}>{compact ? "×" : "Remove"}</button>;
   return <>{!compact && removeButton}<button type="button" aria-label={`Move up ${path}`} disabled={index === 0} onClick={() => move(-1)}>↑</button><button type="button" aria-label={`Move down ${path}`} disabled={index === length - 1} onClick={() => move(1)}>↓</button>{beforeRemove}{compact && removeButton}</>;
 }
@@ -35,6 +36,22 @@ function RuleWidget(props: FieldProps & { type: "condition" | "effect" }) {
   const raw = object(props.value), keys = Object.keys(raw).filter(k => !k.startsWith("_"));
   const selected = kinds.find(entry => entry.kind === keys.find(key => kinds.some(k => k.kind === key)));
   const known = selected && keys.every(key => key in (unwrap(selected.schema) as z.AnyZodObject).shape);
+  const leafFields = useMemo(() => {
+    const shape = selected ? (unwrap(selected.schema) as z.AnyZodObject).shape : {};
+    const isInline = (schema: Schema): boolean => {
+      const node = unwrap(schema);
+      if (schema === Text) return false;
+      if (refKind(schema) || node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum) return true;
+      if (node instanceof z.ZodArray) return Boolean(refKind(node.element) || unwrap(node.element) instanceof z.ZodEnum);
+      if (node instanceof z.ZodObject) return Object.keys(node.shape).every(k => ["day", "hour", "gte", "lte"].includes(k)) && Object.values(node.shape).every(s => unwrap(s as Schema) instanceof z.ZodNumber);
+      return node instanceof z.ZodRecord && refKind(node.keySchema) === "item" && unwrap(node.valueSchema) instanceof z.ZodNumber;
+    };
+    const inlineKeys = Object.keys(shape).filter(key => isInline(shape[key]));
+    const blocks = Object.keys(shape).filter(key => !inlineKeys.includes(key));
+    return { inlineKeys, blocks };
+  }, [selected?.schema]);
+  const inlineSchema = useMemo(() => z.object(Object.fromEntries(leafFields.inlineKeys.map(key => [key, (unwrap(selected!.schema) as z.AnyZodObject).shape[key]]))), [selected?.schema, leafFields.inlineKeys]);
+  const blockSchema = useMemo(() => z.object(Object.fromEntries(leafFields.blocks.map(key => [key, (unwrap(selected!.schema) as z.AnyZodObject).shape[key]]))), [selected?.schema, leafFields.blocks]);
   const depth = props.ruleDepth ?? 0;
   const fallback = depth >= BUILDER_DEPTH || !known;
   const changeKind = (kind: string) => {
@@ -55,11 +72,11 @@ function RuleWidget(props: FieldProps & { type: "condition" | "effect" }) {
     if (!inserted) Object.assign(updated, next);
     props.onChange(updated);
   };
-  const child = (value: unknown, path: string, onChange: (value: unknown) => void, actions?: ReactNode) => <Field {...props} schema={Condition} value={value} path={path} onChange={onChange} skipWidget={false} ruleActions={actions} ruleDepth={depth + 1} depth={0} />;
+  const child = (value: unknown, path: string, onChange: (value: unknown) => void, actions?: OrderActions) => <Field {...props} schema={Condition} value={value} path={path} onChange={onChange} skipWidget={false} ruleActions={actions} ruleDepth={depth + 1} depth={0} />;
   const group = props.type === "condition" && selected && ["all", "any", "not"].includes(selected.kind);
   const operator = <select className="rule-operator" aria-label={`${props.path} kind`} value={selected?.kind ?? ""} onChange={event => changeKind(event.target.value)}><option value="" disabled>Unknown</option>{kinds.map(k => <option key={k.kind}>{k.kind}</option>)}</select>;
   const jsonButton = <button type="button" aria-label={`${props.path} JSON view`} aria-pressed={json} onClick={() => setJson(!json)}>{"{ }"}</button>;
-  const actions = <div className="rule-actions">{isValidElement<{ beforeRemove?: ReactNode }>(props.ruleActions) ? cloneElement(props.ruleActions, { beforeRemove: jsonButton }) : jsonButton}</div>;
+  const actions = <div className="rule-actions">{props.ruleActions ? <Order {...props.ruleActions} beforeRemove={jsonButton} /> : jsonButton}</div>;
   let control;
   if (fallback || json) control = <><div className="rule-line">{actions}</div>{fallback && <p className="builder-fallback">{depth >= BUILDER_DEPTH ? `Rules at depth ${BUILDER_DEPTH} use JSON.` : "Unknown rule; edit validated JSON."}</p>}<RawField {...props} /><Errors {...props} /></>;
   else if (group) {
@@ -68,28 +85,18 @@ function RuleWidget(props: FieldProps & { type: "condition" | "effect" }) {
       {selected.kind === "not" ? <div className={["all", "any", "not"].some(key => key in object(raw.not)) ? "rule-not" : "rule rule-not"}>{child(raw.not, pathAt(props.path, "not"), next => props.onChange({ ...raw, not: next }))}</div> : !Array.isArray(children) ? <RawField {...props} /> : <>
         {children.map((value, index) => {
           const path = pathAt(pathAt(props.path, selected.kind), index);
-          return <div className="rule-child" key={index}>{child(value, path, next => props.onChange({ ...raw, [selected.kind]: children.map((v, i) => i === index ? next : v) }), <Order path={path} index={index} length={children.length} remove={() => props.onChange({ ...raw, [selected.kind]: children.filter((_, i) => i !== index) })} move={delta => props.onChange({ ...raw, [selected.kind]: reorder(children, index, delta) })} />)}</div>;
+          return <div className="rule-child" key={index}>{child(value, path, next => props.onChange({ ...raw, [selected.kind]: children.map((v, i) => i === index ? next : v) }), { path, index, length: children.length, remove: () => props.onChange({ ...raw, [selected.kind]: children.filter((_, i) => i !== index) }), move: delta => props.onChange({ ...raw, [selected.kind]: reorder(children, index, delta) }) })}</div>;
         })}
         <div className="rule-add"><button className="add-link" type="button" aria-label={`Add condition to ${props.path}`} onClick={() => props.onChange({ ...raw, [selected.kind]: [...children, initialValue(kinds.find(k => k.kind === "item")!.schema)] })}>+ add condition</button><button className="add-link" type="button" aria-label={`Add group to ${props.path}`} onClick={() => props.onChange({ ...raw, [selected.kind]: [...children, { all: [initialValue(kinds.find(k => k.kind === "item")!.schema)] }] })}>+ add group</button></div>
       </>}</>;
   } else {
-    const shape = (unwrap(selected.schema) as z.AnyZodObject).shape;
+    const { inlineKeys, blocks } = leafFields;
     const caption = (key: string) => rangeCaptions[key as keyof typeof rangeCaptions] ?? humanize(key).toLowerCase();
-    const isInline = (schema: Schema): boolean => {
-      const node = unwrap(schema);
-      if (schema === Text) return false;
-      if (refKind(schema) || node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum) return true;
-      if (node instanceof z.ZodArray) return Boolean(refKind(node.element) || unwrap(node.element) instanceof z.ZodEnum);
-      if (node instanceof z.ZodObject) return Object.keys(node.shape).every(k => ["day", "hour", "gte", "lte"].includes(k)) && Object.values(node.shape).every(s => unwrap(s as Schema) instanceof z.ZodNumber);
-      return node instanceof z.ZodRecord && refKind(node.keySchema) === "item" && unwrap(node.valueSchema) instanceof z.ZodNumber;
-    };
-    const inlineKeys = Object.keys(shape).filter(key => isInline(shape[key]));
-    const renderFields = (keys: string[], inline: boolean) => <Field {...props} value={Object.fromEntries(Object.entries(raw).filter(([key]) => keys.includes(key)))} schema={z.object(Object.fromEntries(keys.map(key => [key, shape[key]])))} skipWidget={true} ruleActions={undefined} depth={0} ruleDepth={depth + 1} ruleFields={inline ? { ownKey: selected.kind, caption } : undefined} onChange={next => {
+    const renderFields = (keys: string[], inline: boolean) => <Field {...props} value={Object.fromEntries(Object.entries(raw).filter(([key]) => keys.includes(key)))} schema={inline ? inlineSchema : blockSchema} skipWidget={true} ruleActions={undefined} depth={0} ruleDepth={depth + 1} ruleFields={inline ? { ownKey: selected.kind, caption } : undefined} onChange={next => {
       const updated = { ...raw }, changed = object(next);
       for (const key of keys) { if (key in changed) updated[key] = changed[key]; else delete updated[key]; }
       props.onChange(updated);
     }} />;
-    const blocks = Object.keys(shape).filter(key => !inlineKeys.includes(key));
     control = <><div className="rule-line">{operator}{renderFields(inlineKeys, true)}{actions}</div><Errors {...props} />{blocks.length > 0 && <div className="rule-block">{renderFields(blocks, false)}</div>}{Object.keys(raw).filter(key => key.startsWith("_")).map(key => <details key={key}><summary>{key} (comment)</summary><RawField {...props} path={pathAt(props.path, key)} value={raw[key]} onChange={next => props.onChange({ ...raw, [key]: next })} /></details>)}</>;
   }
   return <section className="rule-widget" aria-label={`${props.type} ${props.path}`}><div className={depth === 0 || group ? "rule" : "rule-content"}>{control}</div>{depth === 0 && <p className="reads-as"><b>Reads as:</b> {describe(props.value, props.type, props.documents)}</p>}</section>;
@@ -106,7 +113,13 @@ function VariantInput({ value, path, change }: { value: string; path: string; ch
     if (!area) return;
     const resize = () => { area.style.height = "auto"; area.style.height = `${area.scrollHeight + 2}px`; };
     resize();
-    const observer = new ResizeObserver(resize); observer.observe(area);
+    let width: number | undefined;
+    const observer = new ResizeObserver(([entry]) => {
+      if (entry.contentRect.width === width) return;
+      width = entry.contentRect.width;
+      resize();
+    });
+    observer.observe(area);
     return () => observer.disconnect();
   }, [value]);
   return <textarea ref={ref} aria-label={path} value={value} rows={1} onChange={e => change(e.target.value)} />;
