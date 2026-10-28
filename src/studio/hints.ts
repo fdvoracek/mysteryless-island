@@ -77,7 +77,7 @@ export function hintFor(objectSchema: Schema, key: string): FieldHint | undefine
 
 export function humanize(key: string): string {
   if (key === "id") return "ID";
-  const words = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/_/g, " ").toLowerCase();
+  const words = key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/_/g, " ").split(" ").map(word => /^[A-Z]$/.test(word) ? word : word.toLowerCase()).join(" ");
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 

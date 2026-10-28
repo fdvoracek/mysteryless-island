@@ -16,7 +16,7 @@ it("looks up wrapped schemas by identity without applying hints to shape copies"
 });
 
 it("humanizes fallback labels", () => {
-  for (const [key, label] of [["visibleWhen", "Visible when"], ["id", "ID"], ["hoursFactor", "Hours factor"], ["name", "Name"]]) expect(humanize(key)).toBe(label);
+  for (const [key, label] of [["visibleWhen", "Visible when"], ["id", "ID"], ["hoursFactor", "Hours factor"], ["name", "Name"], ["baseC", "Base C"], ["warmthC", "Warmth C"], ["C", "C"]]) expect(humanize(key)).toBe(label);
 });
 
 it("binds sections by schema identity and detects unknown, duplicate and split-row keys", () => {

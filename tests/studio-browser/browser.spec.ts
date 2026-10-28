@@ -1058,7 +1058,7 @@ test("sectioned forms use bare file panels while JSON and small forms keep their
   await openSectionActivity(page, "strike_fire");
   const basics = contents.locator(".form-section").filter({ has: page.locator("summary strong", { hasText: /^Basics$/ }) });
   await basics.locator("summary").click();
-  await expect(basics.locator(".form-section-preview")).toHaveText(/1 tag$/);
+  await expect(basics.locator(".form-section-preview")).toHaveText(/tags: 1$/);
   for (const kind of ["Sites", "Artwork"]) {
     await page.getByRole("navigation").getByRole("button", { name: new RegExp(`^${kind}`) }).click();
     await page.getByRole("searchbox").fill("");

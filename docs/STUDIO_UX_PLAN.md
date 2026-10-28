@@ -160,6 +160,9 @@ Empty, loading and error states keep the existing texts unless a PR says otherwi
    schema facts; each one is listed in the PR body and in the mockups README differences section.
 4. PR body includes screenshots at 1440×900 of the changed screens (fixture content via
    `STUDIO_ROOT` is fine) next to the matching mockup area, plus one at 390 px with
-   `document.documentElement.scrollWidth` equal to the viewport width.
+   `document.documentElement.scrollWidth` equal to the viewport width. Evidence lives in
+   `docs/mockups/studio/ux-NN/` as **JPEG or WebP, max 4 images per PR, each ≤ 200 KB**.
+   Comparison images use the same scale for implementation and mockup: crop at 100 %, never
+   shrink one side.
 5. No new UI dependency (component library, icon font, CSS framework). Icons as text glyphs as in
    the mockup until agreed otherwise.

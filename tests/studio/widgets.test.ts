@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
-import { Field, fileContentsClass } from "../../src/studio/form";
+import { Field, fileContentsClass, rootSections } from "../../src/studio/form";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
 import { schemaFor, stripComments, type Schema } from "../../src/studio/schema";
@@ -173,6 +173,32 @@ it("groups root rows in section order and keeps the underlying key order and com
   expect(formatContent(value)).toBe(before);
 });
 
+it("groups rows in raw display order with hint-ordered members and preserves formatted key order", () => {
+  const value = { name: "test", icon: "fish", id: "test", effort: "work", hours: 1 };
+  const before = formatContent(value);
+  const html = render(Activity, value, "activity");
+  expect(html.indexOf('data-field="activity.name"')).toBeLessThan(html.indexOf('class="field-row"'));
+  expect(html.indexOf('class="field-row"')).toBeLessThan(html.indexOf('data-field="activity.id"'));
+  expect(html.indexOf('data-field="activity.hours"')).toBeLessThan(html.indexOf('data-field="activity.effort"'));
+  expect(html.indexOf('data-field="activity.effort"')).toBeLessThan(html.indexOf('data-field="activity.icon"'));
+  expect(formatContent(value)).toBe(before);
+  expect(Object.keys(JSON.parse(formatContent(value)))).toEqual(["name", "icon", "id", "effort", "hours"]);
+});
+
+it("associates reference and flag labels with their controls and multi-select groups with labels", () => {
+  for (const [schema, value, path, tag] of [
+    [Activity.shape.building, "bed", "building", "select"],
+    [z.string().describe("ref:flag"), "test", "flag", "input"],
+  ] as const) {
+    const html = render(schema, value, path);
+    const id = html.match(/<label[^>]*for="([^"]+)"/)![1];
+    expect(html).toContain(`<${tag} id="${id}" aria-label="${path}"`);
+  }
+  const html = render(unionKinds(Condition).find(entry => entry.kind === "phase")!.schema, { phase: ["morning"] }, "");
+  const labelId = html.match(/<label id="([^"]+)"/)![1];
+  expect(html).toContain(`role="group" aria-label="phase" aria-labelledby="${labelId}"`);
+});
+
 it("renders site and artwork hints and keeps a locked ID textbox", () => {
   const artwork = { id: "test", src: "illustrations/test.png", width: 100, height: 50, alt: "Test" };
   const html = renderToStaticMarkup(createElement(Field, { schema: Artwork, value: artwork, path: "", owner, documents, problems: [], lockId: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
@@ -212,12 +238,12 @@ it("summarizes schema node types through shared hints and descriptions", () => {
   expect(summary("effects", [{ flag: "one" }, { unflag: "two" }])).toBe("set flag one, clear flag two");
   for (const text of [["First", "Second"], { id: "text", variants: ["First", "Second"] }, "First"]) expect(summary("text", text)).toBe("“First”");
   expect(summary("text", ["x".repeat(51)])).toBe("“" + "x".repeat(50) + "…”");
-  expect(summary("list", ["a", "b"])).toBe("2 list");
+  expect(summary("list", ["a", "b"])).toBe("list: 2");
   expect(summary("object", {})).toBe("Object");
   expect(summarize(Activity, { visibleWhen: { discovered: "school_of_fish" } }, ["visibleWhen"], documents)).toBe("visible when: " + describe({ discovered: "school_of_fish" }, "condition", documents));
-  expect(summarize(Activity, { tags: ["kindle"], outcomes: [{}, {}, {}] }, ["tags", "outcomes"], documents)).toBe("1 tag · 3 outcomes");
-  expect(summarize(Item, { actions: [{}] }, ["actions"], documents)).toBe("1 item action");
-  expect(summarize(Item, { actions: [{}, {}] }, ["actions"], documents)).toBe("2 item actions");
+  expect(summarize(Activity, { tags: ["kindle"], outcomes: [{}, {}, {}] }, ["tags", "outcomes"], documents)).toBe("tags: 1 · outcomes: 3");
+  expect(summarize(Item, { actions: [{}] }, ["actions"], documents)).toBe("item actions: 1");
+  expect(summarize(Item, { actions: [{}, {}] }, ["actions"], documents)).toBe("item actions: 2");
 });
 
 it("places root string notes above fields/chips and retains nested and non-string comments", () => {
@@ -289,6 +315,8 @@ it("renders the bare file panel only for sectioned document roots in Form mode",
     const html = renderToStaticMarkup(createElement("section", { className: fileContentsClass(schema, mode, value), "aria-label": "File contents" },
       mode === "form" ? createElement(Field, { schema, value, path: "", owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }) : null));
     expect(html.includes('class="json-panel json-panel-bare"')).toBe(bare);
+    expect(mode === "form" && Boolean(rootSections(schema, value)?.length)).toBe(bare);
+    if (mode === "form") expect(html.includes('class="form-section"')).toBe(bare);
     expect(html).toContain('aria-label="File contents"');
   }
 });
