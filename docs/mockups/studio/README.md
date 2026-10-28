@@ -23,6 +23,7 @@ Fonts; offline the system fallbacks are used.
 | [story-view.html](story-view.html) | Story graph: discoveries → tasks → areas/events, with the node inspector and "continue the story" actions | PR-08 **[implemented]** |
 | [event-editor.html](event-editor.html) | Event `shipwreck`: scene graph, modal vs journal text, choices with effects, graph checks | PR-08 **[implemented]** |
 | [create-dialog.html](create-dialog.html) | Generic create dialog, shown for an area: ID plus the schema's required fields, a pre-filled unlock rule from the story view, file preview; Create stays disabled until the entity is valid | PR-05 **[implemented]** (pre-fill used by PR-08) |
+| [redesign-shell.html](redesign-shell.html) | Redesigned shell: tree navigation, activity inspector, rules as sentences, outcomes table, context rail, ⌘K palette, changes drawer, optional-field chips | UX-02..UX-09 [proposal] |
 
 Not drawn: the PR-09 tree and map editors (described below), the diagnostics panel in
 detail, and forms for items, recipes, buildings and tasks (these use the same generic form as the
@@ -45,6 +46,8 @@ The Studio's look is a neutral tool UI, separate from the game's book style
 | UI font | Inter, system-ui fallback | everything except IDs and game text |
 | ID / code font | JetBrains Mono, ui-monospace fallback | IDs, file paths, JSON |
 | Game text font | Source Serif 4, Georgia fallback | journal and modal text previews |
+
+For the redesign, the tokens and component rules in [STUDIO_UX_PLAN.md](../../STUDIO_UX_PLAN.md) §5 extend this table; where older screens differ, the redesign plan wins.
 
 Inline styles in these files are for the mockup only; implement them as Studio components and
 tokens, not by copying markup.
