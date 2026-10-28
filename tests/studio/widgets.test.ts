@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
-import { Field } from "../../src/studio/form";
+import { Field, fileContentsClass } from "../../src/studio/form";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
 import { schemaFor, stripComments, type Schema } from "../../src/studio/schema";
@@ -208,12 +208,16 @@ it("summarizes schema node types through shared hints and descriptions", () => {
   expect(summary("enabled", false)).toBe("");
   expect(summary("effort", "work")).toBe("work");
   expect(summary("reference", "raw_fish")).toBe(referenceLabel("item", "raw_fish", documents));
-  expect(summary("requires", { item: "knife" })).toBe(describe({ item: "knife" }, "condition", documents));
+  expect(summary("requires", { item: "knife" })).toBe("requires: " + describe({ item: "knife" }, "condition", documents));
   expect(summary("effects", [{ flag: "one" }, { unflag: "two" }])).toBe("set flag one, clear flag two");
   for (const text of [["First", "Second"], { id: "text", variants: ["First", "Second"] }, "First"]) expect(summary("text", text)).toBe("“First”");
   expect(summary("text", ["x".repeat(51)])).toBe("“" + "x".repeat(50) + "…”");
   expect(summary("list", ["a", "b"])).toBe("2 list");
   expect(summary("object", {})).toBe("Object");
+  expect(summarize(Activity, { visibleWhen: { discovered: "school_of_fish" } }, ["visibleWhen"], documents)).toBe("visible when: " + describe({ discovered: "school_of_fish" }, "condition", documents));
+  expect(summarize(Activity, { tags: ["kindle"], outcomes: [{}, {}, {}] }, ["tags", "outcomes"], documents)).toBe("1 tag · 3 outcomes");
+  expect(summarize(Item, { actions: [{}] }, ["actions"], documents)).toBe("1 item action");
+  expect(summarize(Item, { actions: [{}, {}] }, ["actions"], documents)).toBe("2 item actions");
 });
 
 it("places root string notes above fields/chips and retains nested and non-string comments", () => {
@@ -269,4 +273,22 @@ it("initializes card DOM from stored collapsed titles and tolerates unavailable 
     html = render(Activity, activity.raw, "");
     expect(html.match(/<details class="form-section" open="">/g)).toHaveLength(4);
   } finally { vi.unstubAllGlobals(); }
+});
+
+it("renders the bare file panel only for sectioned document roots in Form mode", () => {
+  for (const [schema, value, mode, bare] of [
+    [Activity, { name: "test", id: "test", hours: 1 }, "form", true],
+    [Item, { name: "test", id: "test" }, "form", true],
+    [Site, { name: "test", id: "test" }, "form", false],
+    [Artwork, { id: "test", src: "test.png" }, "form", false],
+    [Activity, { name: "test", id: "test" }, "json", false],
+    [Activity, {}, "form", false],
+    [Activity, { _note: "Only a note" }, "form", false],
+    [Activity, null, "form", false],
+  ] as const) {
+    const html = renderToStaticMarkup(createElement("section", { className: fileContentsClass(schema, mode, value), "aria-label": "File contents" },
+      mode === "form" ? createElement(Field, { schema, value, path: "", owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }) : null));
+    expect(html.includes('class="json-panel json-panel-bare"')).toBe(bare);
+    expect(html).toContain('aria-label="File contents"');
+  }
 });

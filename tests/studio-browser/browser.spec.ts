@@ -1039,3 +1039,30 @@ test("saves only the edited author note, preserving its key position and empty s
     expect((await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: original.content, encoding: "utf8" } })).ok()).toBe(true);
   }
 });
+
+test("sectioned forms use bare file panels while JSON and small forms keep their frame", async ({ page }) => {
+  await page.goto("/studio/");
+  await openSectionActivity(page);
+  const contents = page.getByRole("region", { name: "File contents" });
+  await expect(contents).toHaveClass("json-panel json-panel-bare");
+  await expect(contents.getByRole("heading", { name: "Content form", exact: true })).toHaveCount(1);
+  await expect(contents.locator(".json-heading > span")).toHaveText("Read from disk");
+  expect(await contents.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  await page.getByRole("button", { name: "JSON", exact: true }).click();
+  await expect(contents).toHaveClass("json-panel");
+  await page.getByRole("button", { name: "Form", exact: true }).click();
+  await expect(contents).toHaveClass("json-panel json-panel-bare");
+  const rules = contents.locator(".form-section").filter({ has: page.locator("summary strong", { hasText: "When can the player do this?" }) });
+  await rules.locator("summary").click();
+  await expect(rules.locator(".form-section-preview")).toHaveText(/^visible when: .* · requires: /);
+  await openSectionActivity(page, "strike_fire");
+  const basics = contents.locator(".form-section").filter({ has: page.locator("summary strong", { hasText: /^Basics$/ }) });
+  await basics.locator("summary").click();
+  await expect(basics.locator(".form-section-preview")).toHaveText(/1 tag$/);
+  for (const kind of ["Sites", "Artwork"]) {
+    await page.getByRole("navigation").getByRole("button", { name: new RegExp(`^${kind}`) }).click();
+    await page.getByRole("searchbox").fill("");
+    await page.getByRole("region", { name: "Entity list" }).getByRole("button").first().click();
+    await expect(contents).toHaveClass("json-panel");
+  }
+});

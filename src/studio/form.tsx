@@ -6,7 +6,7 @@ import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { registerWidgets } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
-import { hintFor, humanize, sectionsFor, schemaName, type FieldHint } from "./hints";
+import { hintFor, humanize, sectionsFor, schemaName, type Section, type FieldHint } from "./hints";
 import { summarize } from "./summary";
 import { readSections, rememberSection } from "./section-prefs";
 
@@ -63,6 +63,34 @@ function ReferenceField(props: FieldProps) {
     {options.map((id) => <option key={id} value={id}>{referenceLabel(refKind(props.schema)!, id, props.documents)}</option>)}
   </select>;
 }
+export function fileContentsClass(schema: Schema | undefined, mode: string, value: unknown): string {
+  const sectioned = mode === "form" && schema && sectionsFor(schema) && value && typeof value === "object" && !Array.isArray(value)
+    && Object.entries(value).some(([key, entry]) => entry !== undefined && !(key.startsWith("_") && typeof entry === "string"));
+  return `json-panel${sectioned ? " json-panel-bare" : ""}`;
+}
+function OptionalChip({ name, label, add }: { name: string; label: string; add: () => void }) {
+  return <button className="optional-chip" type="button" aria-label={`Add ${name}`} onClick={add}>+ {label}</button>;
+}
+function RootSections({ schema, raw, sections, setKeys, problems, documents, renderFields }: {
+  schema: Schema; raw: Record<string, unknown>; sections: Section[]; setKeys: string[];
+  problems: ContentProblem[]; documents: Document[]; renderFields: (keys: string[]) => ReactNode;
+}) {
+  const shape = (unwrap(schema) as z.ZodObject<z.ZodRawShape>).shape;
+  const grouped = sections.map(section => ({
+    ...section,
+    fields: section.keys.filter(key => setKeys.includes(key) && raw[key] !== undefined && key in shape),
+  }));
+  const listed = new Set(sections.flatMap(section => section.keys));
+  const other = setKeys.filter(key => raw[key] !== undefined && !listed.has(key));
+  grouped.push({ title: "Other", keys: other, fields: other });
+  return grouped.filter(section => section.fields.length).map(section => {
+    const count = problems.filter(problem => section.keys.some(key => problem.path === key || problem.path.startsWith(`${key}.`))).length;
+    return <SectionCard key={`${schemaName(schema)}:${section.title}`} name={schemaName(schema)} title={section.title}
+      preview={summarize(schema, raw, section.fields, documents)} count={count}>
+      {renderFields(section.fields)}
+    </SectionCard>;
+  });
+}
 function SectionCard({ name, title, preview, count, children }: { name?: string; title: string; preview: string; count: number; children: ReactNode }) {
   // This prop stays constant after mount: subsequent native/programmatic toggles belong to the DOM.
   const [initialOpen] = useState(() => !name || !readSections(name).includes(title));
@@ -98,7 +126,7 @@ export function Field(props: FieldProps) {
   const widget = props.skipWidget ? undefined : schemaWidget(schema) ?? (kind ? widgetRegistry.references.get(kind) : undefined);
   const unset = value === undefined && schema.isOptional();
   let scalar = !widget && (Boolean(kind) || depth <= 16 && (node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum || node instanceof z.ZodNativeEnum || node instanceof z.ZodLiteral));
-  if (unset) control = <button className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange(initialValue(schema))}>+ {label}</button>;
+  if (unset) control = <OptionalChip name={key} label={label} add={() => onChange(initialValue(schema))} />;
   else if (widget) { const Component = widget; control = <Component {...props} />; }
   else if (kind) control = <ReferenceField {...props} />;
   else if (depth > 16) control = <RawField {...props} />;
@@ -139,15 +167,15 @@ export function Field(props: FieldProps) {
         <div className="field-row-label">{row}</div><div className="field-row-controls">{members.map(member => notes.includes(`_${member}`) ? <div className="field-row-slot" key={member}>{beforeField(member)}{field(member, true)}</div> : field(member, true))}</div>
       </div>;
     });
-    const grouped = sectionHints?.map(section => ({ ...section, keys: section.keys.filter(key => setKeys.includes(key) && raw[key] !== undefined && key in node.shape) }));
-    if (grouped) {
-      const listed = new Set(sectionHints!.flatMap(section => section.keys));
-      grouped.push({ title: "Other", keys: setKeys.filter(key => raw[key] !== undefined && !listed.has(key)) });
-    }
-    control = <div className={`object-fields${grouped ? " sectioned-fields" : ""}`}>
+    control = <div className={`object-fields${sectionHints ? " sectioned-fields" : ""}`}>
       {notes.filter(key => !(key.slice(1) in node.shape)).map(note)}
-      {grouped ? grouped.filter(section => section.keys.length).map(section => <SectionCard key={`${schemaName(schema)}:${section.title}`} name={schemaName(schema)} title={section.title} preview={summarize(schema, raw, section.keys, props.documents)} count={problems.filter(problem => (sectionHints!.find(hint => hint.title === section.title)?.keys ?? section.keys).some(key => problem.path === key || problem.path.startsWith(`${key}.`))).length}>{renderFields(section.keys)}</SectionCard>) : renderFields(setKeys)}
-      {!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => notes.includes(`_${key}`) ? <span key={key} className="optional-with-note">{beforeField(key)}<button className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button></span> : <button key={key} className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button>)}</div>}
+      {sectionHints ? <RootSections schema={schema} raw={raw} sections={sectionHints} setKeys={setKeys}
+        problems={problems} documents={props.documents} renderFields={renderFields} /> : renderFields(setKeys)}
+      {!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => {
+        const chip = <OptionalChip key={key} name={key} label={hintFor(schema, key)?.label ?? humanize(key)}
+          add={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })} />;
+        return notes.includes(`_${key}`) ? <span key={key} className="optional-with-note">{beforeField(key)}{chip}</span> : chip;
+      })}</div>}
     </div>;
   } else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => <div className="array-entry" key={index}>
     {child(node.element, entry, [path, index].filter((v) => v !== "").join("."), (next) => onChange(value.map((old, i) => i === index ? next : old)))}
