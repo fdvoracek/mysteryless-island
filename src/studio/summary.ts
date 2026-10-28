@@ -32,7 +32,7 @@ export function summarize(schema: Schema, value: Record<string, unknown>, keys: 
     if (typeof v === "string") return [short(v, 40)];
     if (typeof v === "number") return [`${v}${hint?.unit ? ` ${hint.unit}` : ""}`];
     if (typeof v === "boolean") return v ? [label] : [];
-    if (Array.isArray(v)) return [`${v.length} ${v.length === 1 ? label.toLowerCase().replace(/s$/, "") : label.toLowerCase()}`];
+    if (Array.isArray(v)) return [`${label.toLowerCase()}: ${v.length}`];
     return [label];
   }).filter(Boolean).join(" · ");
 }

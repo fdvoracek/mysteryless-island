@@ -6,7 +6,7 @@ import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { registerWidgets } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
-import { hintFor, humanize, sectionsFor, schemaName, type Section, type FieldHint } from "./hints";
+import { hintFor, hints, humanize, sectionsFor, schemaName, type Section, type FieldHint } from "./hints";
 import { summarize } from "./summary";
 import { readSections, rememberSection } from "./section-prefs";
 
@@ -14,6 +14,7 @@ export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
   problems: ContentProblem[]; documents: Document[]; owner: Document;
   buffers?: Record<string, JsonBuffer>;
+  labelId?: string;
   presentation?: { schema: Schema; path: string; hint?: FieldHint; rowMember?: boolean };
   onError: (path: string, message: string, buffer?: JsonBuffer) => void; depth?: number; requiredOnly?: boolean; lockId?: boolean; skipWidget?: boolean; ruleDepth?: number;
 }
@@ -54,36 +55,39 @@ export function RawField({ value, onChange, path, onError, buffers }: FieldProps
     catch (failure) { const message = (failure as Error).message; setError(message); onError(path, message, { text: next, source: serial }); }
   }} />{error && <p className="error" role="alert">{error}</p>}</>;
 }
-function ReferenceField(props: FieldProps) {
+function ReferenceField(props: FieldProps & { id: string }) {
   const options = referenceOptions(refKind(props.schema)!, props.documents, props.owner, props.path);
   const value = typeof props.value === "string" ? props.value : "";
-  if (refKind(props.schema) === "flag") return <><input aria-label={props.path} value={value} onChange={event => props.onChange(event.target.value)} /><select aria-label={`${props.path} existing flag`} value={options.includes(value) ? value : ""} onChange={event => props.onChange(event.target.value)}><option value="">Choose an existing flag…</option>{options.map(id => <option key={id} value={id}>{id}</option>)}</select></>;
-  return <select aria-label={props.path} value={value} onChange={(event) => props.onChange(event.target.value)}>
+  if (refKind(props.schema) === "flag") return <><input id={props.id} aria-label={props.path} value={value} onChange={event => props.onChange(event.target.value)} /><select aria-label={`${props.path} existing flag`} value={options.includes(value) ? value : ""} onChange={event => props.onChange(event.target.value)}><option value="">Choose an existing flag…</option>{options.map(id => <option key={id} value={id}>{id}</option>)}</select></>;
+  return <select id={props.id} aria-label={props.path} value={value} onChange={(event) => props.onChange(event.target.value)}>
     <option value="">Choose a reference…</option>{value && !options.includes(value) && <option value={value}>{value} (unresolved)</option>}
     {options.map((id) => <option key={id} value={id}>{referenceLabel(refKind(props.schema)!, id, props.documents)}</option>)}
   </select>;
 }
+export function rootSections(schema: Schema | undefined, value: unknown): (Section & { fields: string[] })[] | undefined {
+  if (!schema || !value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const sections = sectionsFor(schema), node = unwrap(schema);
+  if (!sections || !(node instanceof z.ZodObject)) return undefined;
+  const raw = recordValue(value);
+  const setKeys = Object.keys(raw).filter(key => raw[key] !== undefined && !(key.startsWith("_") && typeof raw[key] === "string"));
+  const grouped = sections.map(section => ({ ...section, fields: section.keys.filter(key => setKeys.includes(key) && key in node.shape) }));
+  const listed = new Set(sections.flatMap(section => section.keys));
+  const other = setKeys.filter(key => !listed.has(key));
+  grouped.push({ title: "Other", keys: other, fields: other });
+  const nonEmpty = grouped.filter(section => section.fields.length);
+  return nonEmpty;
+}
 export function fileContentsClass(schema: Schema | undefined, mode: string, value: unknown): string {
-  const sectioned = mode === "form" && schema && sectionsFor(schema) && value && typeof value === "object" && !Array.isArray(value)
-    && Object.entries(value).some(([key, entry]) => entry !== undefined && !(key.startsWith("_") && typeof entry === "string"));
-  return `json-panel${sectioned ? " json-panel-bare" : ""}`;
+  return `json-panel${mode === "form" && rootSections(schema, value)?.length ? " json-panel-bare" : ""}`;
 }
 function OptionalChip({ name, label, add }: { name: string; label: string; add: () => void }) {
   return <button className="optional-chip" type="button" aria-label={`Add ${name}`} onClick={add}>+ {label}</button>;
 }
-function RootSections({ schema, raw, sections, setKeys, problems, documents, renderFields }: {
-  schema: Schema; raw: Record<string, unknown>; sections: Section[]; setKeys: string[];
+function RootSections({ schema, raw, groups, problems, documents, renderFields }: {
+  schema: Schema; raw: Record<string, unknown>; groups: NonNullable<ReturnType<typeof rootSections>>;
   problems: ContentProblem[]; documents: Document[]; renderFields: (keys: string[]) => ReactNode;
 }) {
-  const shape = (unwrap(schema) as z.ZodObject<z.ZodRawShape>).shape;
-  const grouped = sections.map(section => ({
-    ...section,
-    fields: section.keys.filter(key => setKeys.includes(key) && raw[key] !== undefined && key in shape),
-  }));
-  const listed = new Set(sections.flatMap(section => section.keys));
-  const other = setKeys.filter(key => raw[key] !== undefined && !listed.has(key));
-  grouped.push({ title: "Other", keys: other, fields: other });
-  return grouped.filter(section => section.fields.length).map(section => {
+  return groups.map(section => {
     const count = problems.filter(problem => section.keys.some(key => problem.path === key || problem.path.startsWith(`${key}.`))).length;
     return <SectionCard key={`${schemaName(schema)}:${section.title}`} name={schemaName(schema)} title={section.title}
       preview={summarize(schema, raw, section.fields, documents)} count={count}>
@@ -127,8 +131,8 @@ export function Field(props: FieldProps) {
   const unset = value === undefined && schema.isOptional();
   let scalar = !widget && (Boolean(kind) || depth <= 16 && (node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum || node instanceof z.ZodNativeEnum || node instanceof z.ZodLiteral));
   if (unset) control = <OptionalChip name={key} label={label} add={() => onChange(initialValue(schema))} />;
-  else if (widget) { const Component = widget; control = <Component {...props} />; }
-  else if (kind) control = <ReferenceField {...props} />;
+  else if (widget) { const Component = widget; control = <Component {...props} labelId={`${id}-label`} />; }
+  else if (kind) control = <ReferenceField {...props} id={id} />;
   else if (depth > 16) control = <RawField {...props} />;
   else if (branches(node).length) {
     const options = branches(node), index = branchFor(node, value);
@@ -145,11 +149,11 @@ export function Field(props: FieldProps) {
     const note = (key: string) => <AuthorNote key={key} name={key} value={raw[key] as string} change={next => onChange({ ...raw, [key]: next })} />;
     const beforeField = (key: string) => notes.includes(`_${key}`) ? note(`_${key}`) : null;
     const setKeys = keys.filter(key => !optional.includes(key) && !notes.includes(key));
-    const sectionHints = path === "" && !props.requiredOnly ? sectionsFor(schema) : undefined;
+    const groups = path === "" && !props.requiredOnly ? rootSections(schema, raw) : undefined;
     const rows = new Map<string, string[]>();
-    for (const key of setKeys) {
+    for (const key of Object.keys(hints.get(unwrap(schema)) ?? {})) {
       const row = hintFor(schema, key)?.row;
-      if (row && raw[key] !== undefined) rows.set(row, [...rows.get(row) ?? [], key]);
+      if (row && setKeys.includes(key) && raw[key] !== undefined) rows.set(row, [...rows.get(row) ?? [], key]);
     }
     const field = (key: string, rowMember = false) => {
       const childSchema = node.shape[key] as Schema | undefined;
@@ -160,16 +164,16 @@ export function Field(props: FieldProps) {
     };
     const renderFields = (displayKeys: string[]) => displayKeys.map(key => {
       const row = hintFor(schema, key)?.row;
-      const members = row && rows.has(row) ? displayKeys.filter(member => rows.get(row)!.includes(member)) : undefined;
+      const members = row && rows.get(row)?.filter(member => displayKeys.includes(member));
       if (!members || members.length < 2) return notes.includes(`_${key}`) ? <div key={key} className="field-with-note">{beforeField(key)}{field(key)}</div> : field(key);
-      if (members[0] !== key) return null;
+      if (displayKeys.find(member => members.includes(member)) !== key) return null;
       return <div key={`row-${row}`} className="field-row" role="group" aria-label={row}>
         <div className="field-row-label">{row}</div><div className="field-row-controls">{members.map(member => notes.includes(`_${member}`) ? <div className="field-row-slot" key={member}>{beforeField(member)}{field(member, true)}</div> : field(member, true))}</div>
       </div>;
     });
-    control = <div className={`object-fields${sectionHints ? " sectioned-fields" : ""}`}>
+    control = <div className={`object-fields${groups ? " sectioned-fields" : ""}`}>
       {notes.filter(key => !(key.slice(1) in node.shape)).map(note)}
-      {sectionHints ? <RootSections schema={schema} raw={raw} sections={sectionHints} setKeys={setKeys}
+      {groups ? <RootSections schema={schema} raw={raw} groups={groups}
         problems={problems} documents={props.documents} renderFields={renderFields} /> : renderFields(setKeys)}
       {!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => {
         const chip = <OptionalChip key={key} name={key} label={hintFor(schema, key)?.label ?? humanize(key)}
@@ -192,7 +196,7 @@ export function Field(props: FieldProps) {
   else control = <RawField {...props} />;
   scalar = scalar && !unset;
   return <div className={`form-field ${path && scalar ? "field-scalar" : "field-composite"}${presentation?.rowMember ? " field-row-member" : ""}${node instanceof z.ZodNumber ? " field-number" : ""}${props.lockId && path === "id" ? " field-locked" : ""}`} data-field={path}>
-    {path && !unset && <div className="field-label"><div><label htmlFor={id}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
+    {path && !unset && <div className="field-label"><div><label id={`${id}-label`} htmlFor={id}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
     <div className="field-control">{control}{scalar && hint?.unit && <span className="field-unit">{hint.unit}</span>}</div>{issue.map((problem, index) => <p key={index} className="error field-error">{problem.message}</p>)}
   </div>;
 }
