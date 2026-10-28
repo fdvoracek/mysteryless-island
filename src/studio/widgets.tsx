@@ -24,7 +24,7 @@ function MultiSelect(props: FieldProps) {
   if (!Array.isArray(props.value) || props.value.some(value => typeof value !== "string")) return <><RawField {...props} /><Errors {...props} /></>;
   const current = props.value as string[];
   const options = kind ? referenceOptions(kind, props.documents, props.owner, props.path) : element instanceof z.ZodEnum ? element.options as string[] : [];
-  return <div className="multi-select" role="group" aria-label={props.path} aria-labelledby={props.labelId}>{[...new Set([...options, ...current])].map(id => <label key={id}><input type="checkbox" aria-label={`${props.path}: ${id}`} checked={current.includes(id)} onChange={event => props.onChange(event.target.checked ? [...current, id] : current.filter(v => v !== id))} />{kind ? referenceLabel(kind, id, props.documents) : id}</label>)}</div>;
+  return <div className="multi-select" role="group" aria-label={props.path}>{[...new Set([...options, ...current])].map(id => <label key={id}><input type="checkbox" aria-label={`${props.path}: ${id}`} checked={current.includes(id)} onChange={event => props.onChange(event.target.checked ? [...current, id] : current.filter(v => v !== id))} />{kind ? referenceLabel(kind, id, props.documents) : id}</label>)}</div>;
 }
 function RuleWidget(props: FieldProps & { type: "condition" | "effect" }) {
   const [json, setJson] = useState(false);

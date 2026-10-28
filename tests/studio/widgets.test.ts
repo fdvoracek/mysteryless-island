@@ -185,7 +185,7 @@ it("groups rows in raw display order with hint-ordered members and preserves for
   expect(Object.keys(JSON.parse(formatContent(value)))).toEqual(["name", "icon", "id", "effort", "hours"]);
 });
 
-it("associates reference and flag labels with their controls and multi-select groups with labels", () => {
+it("associates reference and flag labels with their controls and preserves multi-select group names", () => {
   for (const [schema, value, path, tag] of [
     [Activity.shape.building, "bed", "building", "select"],
     [z.string().describe("ref:flag"), "test", "flag", "input"],
@@ -195,8 +195,8 @@ it("associates reference and flag labels with their controls and multi-select gr
     expect(html).toContain(`<${tag} id="${id}" aria-label="${path}"`);
   }
   const html = render(unionKinds(Condition).find(entry => entry.kind === "phase")!.schema, { phase: ["morning"] }, "");
-  const labelId = html.match(/<label id="([^"]+)"/)![1];
-  expect(html).toContain(`role="group" aria-label="phase" aria-labelledby="${labelId}"`);
+  expect(html).toContain('role="group" aria-label="phase"');
+  expect(html).not.toContain("aria-labelledby");
 });
 
 it("renders site and artwork hints and keeps a locked ID textbox", () => {

@@ -14,7 +14,6 @@ export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
   problems: ContentProblem[]; documents: Document[]; owner: Document;
   buffers?: Record<string, JsonBuffer>;
-  labelId?: string;
   presentation?: { schema: Schema; path: string; hint?: FieldHint; rowMember?: boolean };
   onError: (path: string, message: string, buffer?: JsonBuffer) => void; depth?: number; requiredOnly?: boolean; lockId?: boolean; skipWidget?: boolean; ruleDepth?: number;
 }
@@ -131,7 +130,7 @@ export function Field(props: FieldProps) {
   const unset = value === undefined && schema.isOptional();
   let scalar = !widget && (Boolean(kind) || depth <= 16 && (node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum || node instanceof z.ZodNativeEnum || node instanceof z.ZodLiteral));
   if (unset) control = <OptionalChip name={key} label={label} add={() => onChange(initialValue(schema))} />;
-  else if (widget) { const Component = widget; control = <Component {...props} labelId={`${id}-label`} />; }
+  else if (widget) { const Component = widget; control = <Component {...props} />; }
   else if (kind) control = <ReferenceField {...props} id={id} />;
   else if (depth > 16) control = <RawField {...props} />;
   else if (branches(node).length) {
@@ -196,7 +195,7 @@ export function Field(props: FieldProps) {
   else control = <RawField {...props} />;
   scalar = scalar && !unset;
   return <div className={`form-field ${path && scalar ? "field-scalar" : "field-composite"}${presentation?.rowMember ? " field-row-member" : ""}${node instanceof z.ZodNumber ? " field-number" : ""}${props.lockId && path === "id" ? " field-locked" : ""}`} data-field={path}>
-    {path && !unset && <div className="field-label"><div><label id={`${id}-label`} htmlFor={id}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
+    {path && !unset && <div className="field-label"><div><label htmlFor={id}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
     <div className="field-control">{control}{scalar && hint?.unit && <span className="field-unit">{hint.unit}</span>}</div>{issue.map((problem, index) => <p key={index} className="error field-error">{problem.message}</p>)}
   </div>;
 }
