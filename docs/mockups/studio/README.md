@@ -69,6 +69,9 @@ table; rows require at least two set members, otherwise the field keeps its own 
 Differences: none within the UX-02 scope. The mockup's cards,
 compact rules/text/outcomes, navigation and context rail remain later UX work.
 
+Evidence in [ux-02/](ux-02/): [activity beside mockup](ux-02/activity-comparison.jpg),
+[item beside mockup](ux-02/item-comparison.jpg), [390px activity](ux-02/activity-phone.jpg).
+
 ## PR-05 implementation differences — [implemented]
 
 The owner decision of 2026-10-22 in plan §4.3 supersedes the mockup's immediate-create wording:
@@ -203,9 +206,6 @@ are small local components; the chip markup and card behavior are unchanged.
 
 Real deviations: none. Water can has no set consume/tool fields, so its empty Use card is omitted
 as specified, while its nested item action keeps its existing form.
-
-Evidence in [ux-02/](ux-02/): [activity beside mockup](ux-02/activity-comparison.jpg),
-[item beside mockup](ux-02/item-comparison.jpg), [390px activity](ux-02/activity-phone.jpg).
 
 Evidence in [ux-03/](ux-03/): [open cards beside mockup](ux-03/cards-open-comparison.jpg),
 [collapsed cards beside mockup](ux-03/cards-collapsed-comparison.jpg),
