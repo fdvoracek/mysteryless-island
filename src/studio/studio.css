@@ -217,3 +217,22 @@ li.is-selected { font-weight: 600; }
 .pin-mark { font-size: 11px; opacity: 0.75; }
 .layout-status { color: #2e6b3f; }
 button.layout-failed { color: var(--studio-error); }
+/* UX-03 root cards and editable author notes. */
+.sectioned-fields { gap: 12px; }
+.form-section { min-width: 0; background: var(--studio-panel); border: 1px solid var(--studio-border); border-radius: 8px; }
+.form-section-summary { display: flex; align-items: center; gap: 8px; padding: 9px 14px; cursor: pointer; list-style: none; min-width: 0; }
+.form-section-summary::-webkit-details-marker { display: none; }
+.form-section-summary::before { content: "▸"; color: var(--studio-faint); flex: none; }
+.form-section[open] > .form-section-summary::before { transform: rotate(90deg); }
+.form-section-summary strong { font-size: 13px; flex-shrink: 0; max-width: 70%; }
+.form-section-preview { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: 12px; }
+.form-section[open] > .form-section-summary > .form-section-preview { display: none; }
+.form-section-problems { color: var(--studio-error); background: var(--studio-ground); border-radius: 999px; padding: 2px 6px; font-size: 12px; flex: none; }
+.form-section-body { padding: 4px 14px 14px; border-top: 1px solid #eef0f2; }
+.author-note { background: #fffbea; border: 1px solid #efe3b0; color: #5b4a12; border-radius: 6px; padding: 6px 10px; font-size: 12px; min-width: 0; }
+.author-note textarea { display: block; background: transparent; border: 0; color: inherit; font-family: var(--studio-font); font-size: 12px; padding: 4px 0 0; resize: none; overflow: hidden; }
+.author-note code { overflow-wrap: anywhere; }
+.field-with-note, .field-row-slot { min-width: 0; display: grid; gap: 8px; }
+.field-row-slot { flex: 1 1 100px; }
+.optional-with-note { max-width: 100%; }
+.form-section-summary:focus-visible, .author-note textarea:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 3px; }

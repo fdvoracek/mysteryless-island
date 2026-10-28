@@ -10,6 +10,22 @@ export interface FieldHint {
 }
 
 const schemas: [string, Schema][] = [["Activity", Activity], ["ItemAction", ItemAction], ["Item", Item], ["Site", Site], ["Artwork", Artwork]];
+export const schemaName = (schema: Schema): string | undefined => schemas.find(([, node]) => node === unwrap(schema))?.[0];
+export interface Section { title: string; keys: string[] }
+export const sections = new Map<Schema, Section[]>([
+  [Activity, [
+    { title: "Basics", keys: ["name", "id", "hours", "effort", "icon", "global", "building", "tags"] },
+    { title: "When can the player do this?", keys: ["visibleWhen", "requires", "requiresText", "cost"] },
+    { title: "Journal", keys: ["log", "thoughts", "afterwards"] },
+    { title: "Results", keys: ["yields", "outcomes", "effects"] },
+  ]],
+  [Item, [
+    { title: "Basics", keys: ["name", "plural", "id", "order", "category", "max", "artwork"] },
+    { title: "Use", keys: ["consume", "tool"] },
+    { title: "Item actions", keys: ["actions"] },
+  ]],
+]);
+export const sectionsFor = (schema: Schema): Section[] | undefined => sections.get(unwrap(schema));
 
 export const hints = new Map<Schema, Record<string, FieldHint>>([
   [Activity, {
@@ -65,9 +81,18 @@ export function humanize(key: string): string {
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
-export function staleHints(map = hints): string[] {
+export function staleHints(map = hints, sectionMap = sections): string[] {
   return schemas.flatMap(([name, schema]) => {
     const node = unwrap(schema);
-    return Object.keys(map.get(schema) ?? {}).filter(key => !(node instanceof z.ZodObject) || !(key in node.shape)).map(key => `${name}.${key}`);
+    const errors = Object.keys(map.get(schema) ?? {}).filter(key => !(node instanceof z.ZodObject) || !(key in node.shape)).map(key => `${name}.${key}`);
+    const owners = new Map<string, string>();
+    const rows = new Map<string, string>();
+    for (const section of sectionMap.get(schema) ?? []) for (const key of section.keys) {
+      const row = map.get(schema)?.[key]?.row;
+      if (!(node instanceof z.ZodObject) || !(key in node.shape) || owners.has(key) || row && rows.has(row) && rows.get(row) !== section.title) errors.push(`sections:${name}.${key}`);
+      owners.set(key, section.title);
+      if (row) rows.set(row, section.title);
+    }
+    return errors;
   });
 }

@@ -91,6 +91,9 @@ function Studio() {
     setScope(destination?.kind === "regions" ? `area:${destination.id}` : "all"); setQuery(""); setSelection(file); setField(path);
     requestAnimationFrame(() => {
       const control = document.querySelector(`[data-field="${CSS.escape(path)}"]`);
+      for (let ancestor = control?.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        if (ancestor instanceof HTMLDetailsElement) ancestor.open = true;
+      }
       control?.scrollIntoView({ block: "center" });
       (control?.querySelector("input, select, textarea, button") as HTMLElement | null)?.focus();
       if (!control) source.current?.focus();

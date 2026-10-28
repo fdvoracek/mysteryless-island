@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterAll, expect, it } from "vitest";
+import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
 import { Field } from "../../src/studio/form";
@@ -11,6 +11,9 @@ import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } 
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
 import { schemaFor, stripComments, type Schema } from "../../src/studio/schema";
 import { referenceLabel } from "../../src/studio/references";
+import { sections } from "../../src/studio/hints";
+import { summarize } from "../../src/studio/summary";
+import { readSections, rememberSection } from "../../src/studio/section-prefs";
 import { placeholderMismatch, textChannel } from "../../src/studio/text";
 
 const root = mkdtempSync(join(tmpdir(), "studio-widgets-"));
@@ -121,6 +124,13 @@ it("renders activity hints, scalar rows and optional chips without editing the r
   const activity = documents.find(d => d.id === "catch_fish")!;
   const before = formatContent(activity.raw);
   const html = render(Activity, activity.raw, "", activity);
+  const titles = ["Basics", "When can the player do this?", "Journal", "Results"];
+  expect(html.match(/class="form-section"/g)).toHaveLength(4);
+  let previous = -1;
+  for (const title of titles) { const index = html.indexOf(`<strong>${title}</strong>`); expect(index).toBeGreaterThan(previous); previous = index; }
+  const basics = html.split('<strong>Basics</strong>')[1].split('<strong>When can')[0];
+  for (const key of ["name", "id", "hours", "effort", "icon"]) expect(basics).toContain(`data-field="${key}"`);
+  expect(html.lastIndexOf('class="optional-fields"')).toBeGreaterThan(previous);
   expect(html).toContain('>Visible when</label>');
   // The reference inside the composite condition keeps its path; widget names stay stable too.
   expect(html).toContain('aria-label="visibleWhen kind"');
@@ -135,6 +145,7 @@ it("renders activity hints, scalar rows and optional chips without editing the r
   for (const key of ["global", "building"]) expect(html).toContain(`class="optional-chip" type="button" aria-label="Add ${key}"`);
   expect(html).toContain('aria-label="Add building">+ Building</button>');
   const required = renderToStaticMarkup(createElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: [], requiredOnly: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  expect(required).not.toContain('class="form-section"');
   expect(required).not.toContain('class="optional-fields"');
   expect(required).not.toContain('aria-label="Add building"');
   expect(formatContent(activity.raw)).toBe(before);
@@ -152,13 +163,13 @@ it("keeps a single set row member as its own grid field and unhinted fields visi
   expect(standalone).not.toContain('class="optional-fields"');
 });
 
-it("groups rows in raw display order and keeps the underlying key order and comments", () => {
+it("groups root rows in section order and keeps the underlying key order and comments", () => {
   const value = { id: "test", icon: "fish", _note: "keep", name: "test", effort: "work", hours: 1 };
   const before = formatContent(value);
   const html = render(Activity, value, "");
-  expect(html.indexOf('aria-label="Duration &amp; effort"')).toBeLessThan(html.indexOf('_note (comment)'));
-  expect(html.indexOf('data-field="icon"')).toBeLessThan(html.indexOf('data-field="effort"'));
-  expect(html.indexOf('data-field="effort"')).toBeLessThan(html.indexOf('data-field="hours"'));
+  expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('aria-label="Duration &amp; effort"'));
+  expect(html.indexOf('data-field="hours"')).toBeLessThan(html.indexOf('data-field="effort"'));
+  expect(html.indexOf('data-field="effort"')).toBeLessThan(html.indexOf('data-field="icon"'));
   expect(formatContent(value)).toBe(before);
 });
 
@@ -171,4 +182,91 @@ it("renders site and artwork hints and keeps a locked ID textbox", () => {
   expect(html).toContain('role="group" aria-label="Size"');
   expect(html.match(/class="field-unit">px<\/span>/g)).toHaveLength(2);
   expect(render(Site, { id: "test", name: "test", needs: "Test" }, "")).toContain('class="field-help">Shown when the site is missing</small>');
+});
+
+it("keeps future schema fields in Other and sections off nested objects", () => {
+  expect(render(Activity, {}, "")).not.toContain('class="form-section"');
+  const schema = Activity.extend({ future: z.string() });
+  const local = new Map([[schema, sections.get(Activity)!]]);
+  try {
+    for (const [node, value] of local) sections.set(node, value);
+    const value = { id: "test", name: "test", hours: 1, future: "keep" };
+    const html = render(schema, value, "");
+    expect(html).toContain('<strong>Other</strong>');
+    expect(html.split('<strong>Other</strong>')[1]).toContain('data-field="future"');
+    expect(render(schema, value, "nested")).not.toContain('class="form-section"');
+    expect(render(Activity, { id: "test", name: "test", hours: 1 }, "")).not.toContain('<strong>Journal</strong>');
+  } finally { sections.delete(schema); }
+});
+
+it("summarizes schema node types through shared hints and descriptions", () => {
+  const schema = Activity.extend({ text: Text, reference: z.string().describe("ref:item"), enabled: z.boolean(), list: z.array(z.string()), object: z.object({}), effects: z.array(Effect) });
+  const summary = (key: string, value: unknown) => summarize(schema, { [key]: value }, [key], documents);
+  expect(summary("name", "  " + "x".repeat(41) + "  ")).toBe("x".repeat(40) + "…");
+  expect(summarize(Activity, { id: "skip", hours: 1 }, ["id", "hours"], documents)).toBe("1 h");
+  expect(summary("enabled", true)).toBe("Enabled");
+  expect(summary("enabled", false)).toBe("");
+  expect(summary("effort", "work")).toBe("work");
+  expect(summary("reference", "raw_fish")).toBe(referenceLabel("item", "raw_fish", documents));
+  expect(summary("requires", { item: "knife" })).toBe(describe({ item: "knife" }, "condition", documents));
+  expect(summary("effects", [{ flag: "one" }, { unflag: "two" }])).toBe("set flag one, clear flag two");
+  for (const text of [["First", "Second"], { id: "text", variants: ["First", "Second"] }, "First"]) expect(summary("text", text)).toBe("“First”");
+  expect(summary("text", ["x".repeat(51)])).toBe("“" + "x".repeat(50) + "…”");
+  expect(summary("list", ["a", "b"])).toBe("2 list");
+  expect(summary("object", {})).toBe("Object");
+});
+
+it("places root string notes above fields/chips and retains nested and non-string comments", () => {
+  const fire = documents.find(d => d.id === "strike_fire")!;
+  const html = render(Activity, fire.raw, "", fire);
+  expect(html).toContain('class="author-note"');
+  expect(html).toContain('aria-label="_note"');
+  expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('class="form-section"'));
+  const value = { id: "test", name: "test", hours: 1, _hours: "Time note", _building: "Optional note", _raw: { keep: true } };
+  const before = formatContent(value);
+  const notes = render(Activity, value, "");
+  expect(notes.indexOf('aria-label="_hours"')).toBeLessThan(notes.indexOf('data-field="hours"'));
+  expect(notes.indexOf('aria-label="_building"')).toBeLessThan(notes.indexOf('aria-label="Add building"'));
+  expect(notes).toContain('_raw (comment)');
+  expect(render(Activity, { ...value, _note: "nested" }, "nested")).toContain('_note (comment)');
+  expect(formatContent(value)).toBe(before);
+  for (const node of [Site, Artwork]) {
+    const plain = render(node, { id: "test", _note: "keep" }, "");
+    expect(plain).toContain('aria-label="_note"');
+    expect(plain).not.toContain('class="form-section"');
+  }
+});
+
+it("defaults corrupt or blocked section storage to open and remembers valid titles", () => {
+  let stored = "[]";
+  const storage = { getItem: () => stored, setItem: (_: string, value: string) => { stored = value; } };
+  for (const value of ["{", "null", "{}", '["Basics",3]']) { stored = value; expect(readSections("Activity", storage)).toEqual([]); }
+  const blocked = { getItem: () => { throw new Error("blocked"); }, setItem: () => { throw new Error("blocked"); } };
+  expect(readSections("Activity", blocked)).toEqual([]);
+  expect(() => rememberSection("Activity", "Basics", true, blocked)).not.toThrow();
+  stored = "[]";
+  rememberSection("Activity", "Basics", true, storage);
+  expect(readSections("Activity", storage)).toEqual(["Basics"]);
+  rememberSection("Activity", "Basics", false, storage);
+  expect(readSections("Activity", storage)).toEqual([]);
+});
+
+it("counts section diagnostics only at exact key or descendant paths", () => {
+  const activity = documents.find(d => d.id === "catch_fish")!;
+  const html = renderToStaticMarkup(createElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: ["log", "log.0", "logX", "hours"].map(path => ({ file: activity.path, path, message: "test" })), onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  expect(html.match(/class="form-section-problems">2 problems/g)).toHaveLength(1);
+  expect(html.match(/class="form-section-problems">1 problem/g)).toHaveLength(1);
+});
+
+it("initializes card DOM from stored collapsed titles and tolerates unavailable browser storage", () => {
+  const activity = documents.find(d => d.id === "catch_fish")!;
+  try {
+    vi.stubGlobal("localStorage", { getItem: () => '["Basics"]', setItem: () => { throw new Error("Render must not write preferences"); } });
+    let html = render(Activity, activity.raw, "");
+    expect(html).toContain('<details class="form-section"><summary');
+    expect(html.match(/<details class="form-section" open="">/g)).toHaveLength(3);
+    vi.stubGlobal("localStorage", { getItem: () => { throw new Error("blocked"); } });
+    html = render(Activity, activity.raw, "");
+    expect(html.match(/<details class="form-section" open="">/g)).toHaveLength(4);
+  } finally { vi.unstubAllGlobals(); }
 });

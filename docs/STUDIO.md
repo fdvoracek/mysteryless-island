@@ -89,6 +89,27 @@ dashed **+ Label** chips. Standalone optional fields in the area and event works
 same chip style. Adding a field uses the existing empty initial value; **Unset**, **Undo** and
 **Redo** retain their behavior. Required-only Create forms show no optional chip line.
 
+## Sections and author notes — [implemented, UX-03]
+
+Activity and Item root forms group set fields into collapsible cards. Activity cards are Basics,
+When can the player do this?, Journal and Results; Item cards are Basics, Use and Item actions.
+Empty cards are omitted. Future unlisted fields appear in Other, and the root Optional chip line
+follows all cards. Display order does not reorder the JSON. Nested objects and required-only
+Create forms keep their existing layout; JSON mode remains unchanged.
+
+Cards start open. Collapsed titles are remembered per viewer and schema under
+`studio.sections:<SchemaName>` in localStorage. Closed cards show a short summary of set fields;
+problem badges count exact field paths and descendants. Following a diagnostic or Used by link
+opens every enclosing card before focusing the field. This reveal survives editing and does not
+change the saved collapse preference.
+
+Root string `_` comments are editable yellow notes. A comment named for a schema field, such as
+`_hours`, appears above that field (or its optional chip); other comments appear above the form's
+first card. Editing preserves the comment's key position; clearing it keeps an empty string.
+Delete comment keys in JSON mode. Nested and non-string comments retain raw comment blocks.
+Site and Artwork forms gain notes without cards. Area workspace and event property sections and
+notes are deferred to UX-03b.
+
 ## JSON editor — [implemented]
 
 JSON mode is a CodeMirror 6 editor (Studio-only dependency) over the whole file, including areas

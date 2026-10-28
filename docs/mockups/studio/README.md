@@ -174,3 +174,37 @@ preview uses saved content and its own save slots. With unsaved drafts the panel
 shows saved content – N unsaved changes* with **Save and reload preview**; with registry errors it
 shows **Show diagnostics** next to the game's content error screen. Reload follows the saved files
 automatically; there is no reload button.
+
+## UX-03 implementation differences — [implemented]
+
+Specified by the UX-03 prompt: cards apply only to Activity and Item document roots; empty cards
+are omitted, with unknown/unlisted set fields in Other. Titles are Basics, When can the player do
+this?, Journal and Results for activities; Basics, Use and Item actions for items. The prompt's
+Journal/Results titles replace the mockup's Journal while working/Outcomes. Generic summaries use
+shared reference labels and `describe()` wording, first Text alternatives and array counts;
+there are no journal/roll badges or bespoke outcome summaries. Existing nested widgets, scalar
+row captions, optional chips, shell and Rename IDs stay as implemented in UX-02 and earlier PRs.
+Region/Landmark and the other entity sections are deferred to UX-03b.
+
+Root string comments become editable Note banners with mono keys. Field-specific comments sit
+above their field or optional chip; other notes sit above the first card. No example note is
+invented for `catch_fish`, which has none. Site/Artwork gain notes only. Collapsed titles are
+remembered per schema; diagnostic/Used by reveal opens enclosing details without persisting a
+choice and stays open through subsequent edits. Clearing a note preserves its key and empty
+string. Native summary keyboard activation is retained.
+
+Real deviations: none. Water can has no set consume/tool fields, so its empty Use card is omitted
+as specified, while its nested item action keeps its existing form.
+
+Evidence in [ux-03/](ux-03/): [open cards beside mockup](ux-03/cards-open-comparison.png),
+[collapsed cards beside mockup](ux-03/cards-collapsed-comparison.png),
+[activity open](ux-03/catch-fish-open.png), [activity collapsed](ux-03/catch-fish-collapsed.png),
+[item](ux-03/item-water-can.png), [author note](ux-03/strike-fire-note.png),
+[390px open](ux-03/catch-fish-390.png), [390px collapsed](ux-03/catch-fish-390-collapsed.png).
+Desktop captures use a 1440×900 viewport and disposable fixture content. The 390px captures have
+`document.documentElement.scrollWidth === 390`.
+
+Read-only shipped `content/activities/catch_fish.json` measurement at 1440×900, using
+`.editor-fields.scrollHeight`: UX-02 baseline at `4241ac3` **5,831 px**; UX-03 all open **6,071 px**;
+all four cards collapsed **285 px**. Open cards add their headers/body spacing; nested widget
+compaction remains UX-04/UX-05.
