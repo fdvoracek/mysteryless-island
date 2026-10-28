@@ -65,7 +65,7 @@ it("iterates the Condition and Effect unions: every kind has a schema form and a
 });
 it("resolves widgets through optional/lazy wrappers, including nested outcome fields", () => {
   expect(render(Condition.optional(), { item: "knife" })).toContain('aria-label="requires kind"');
-  expect(render(Effect.optional(), { flag: "test" })).toContain('Effect kind');
+  expect(render(Effect.optional(), { flag: "test" })).toContain('aria-label="requires kind"');
   expect(render(Text.optional(), ["One.", "Two."])).toContain("Alternative variants");
   expect(render(Outcome.optional(), { weight: 1, when: { item: "knife" }, text: "Done." })).toContain('aria-label="requires.when kind"');
 });
@@ -108,10 +108,10 @@ it("preserves three Text forms and plain newlines; warnings are non-mutating", (
     render(Text, text, "log", journal);
     expect(formatContent(text)).toBe(before);
   }
-  expect(render(Text, ["x".repeat(81), "{item}"], "log", journal)).toContain("81 / 80 characters — above journal guidance");
+  expect(render(Text, ["x".repeat(81), "{item}"], "log", journal)).toContain('81/80<span class="visually-hidden"> — above journal guidance');
   expect(render(Text, ["x".repeat(81), "{item}"], "log", journal)).toContain("different {placeholder} sets");
   expect(placeholderMismatch(["{a} {b} {a}", "{b} {a}"])).toBe(false);
-  expect(render(Text, "x".repeat(81), "scenes.start.text", { ...owner, kind: "events" })).not.toContain("80 characters");
+  expect(render(Text, "x".repeat(81), "scenes.start.text", { ...owner, kind: "events" })).not.toContain('class="variant-counter');
 });
 it("classifies narrative channels and leaves unlisted fields plain", () => {
   for (const [kind, path] of [["activities", "log"], ["recipes", "ways.0.log"], ["items", "consume.log"], ["buildings", "cycle.start.log"], ["activities", "outcomes.0.text"], ["events", "scenes.start.effects.0.roll.0.text"], ["quests", "startLog"], ["quests", "doneLog"], ["regions", "description"], ["regions", "firstVisit.log"], ["regions", "arrive.0.text"], ["settings", "sleep.recovery.ground.text"]]) expect(textChannel(kind, path), path).toBe("journal");
@@ -319,4 +319,62 @@ it("renders the bare file panel only for sectioned document roots in Form mode",
     if (mode === "form") expect(html.includes('class="form-section"')).toBe(bare);
     expect(html).toContain('aria-label="File contents"');
   }
+});
+
+it("renders catch_fish as sentence rules, toggle pills and compact journal variants", () => {
+  const activity = documents.find(d => d.id === "catch_fish")!;
+  const raw = activity.raw as Record<string, unknown>;
+  const visible = render(Condition, raw.visibleWhen, "visibleWhen", activity);
+  expect(visible.match(/class="rule-line"/g)).toHaveLength(1);
+  expect(visible).toContain('aria-label="visibleWhen kind"');
+  expect(visible).toContain('rule-token token-discovery');
+  expect(visible.match(/Reads as:/g)).toHaveLength(1);
+  const requires = render(Condition, raw.requires, "requires", activity);
+  expect(requires.match(/class="rule-line"/g)).toHaveLength(3);
+  expect(requires.match(/class="rule"/g)).toHaveLength(1);
+  expect(requires.match(/Reads as:/g)).toHaveLength(1);
+  expect(requires).toContain('of these');
+  expect(requires).toContain('rule-token token-item');
+  for (const [key, caption] of [["gte", "at least"], ["lte", "at most"]]) expect(requires).toContain(`aria-label="Add ${key}">+ ${caption}</button>`);
+  for (const id of ["dawn", "day", "dusk"]) expect(requires).toContain(`aria-label="requires.all.1.phase: ${id}" checked=""`);
+  expect(requires).toContain('<span>+ night</span>');
+  expect(requires).not.toContain('Condition / group kind');
+  expect(requires).not.toContain('Optional:');
+  const journal = render(Text, raw.log, "log", activity);
+  expect(journal.match(/class="variant"/g)).toHaveLength(3);
+  expect(journal.match(/class="variant-counter"/g)).toHaveLength(3);
+  for (let i = 0; i < 3; i++) {
+    expect(journal).toContain(`class="variant-index">${i + 1}</span>`);
+    expect(journal).toContain(`aria-label="log.${i}" rows="1"`);
+  }
+  expect(journal).not.toContain('Alternative 1');
+  expect(render(Text, { id: "named", variants: ["One."] }, "log", activity)).toContain('aria-label="log.id"');
+});
+
+it("keeps set optional ranges and own numeric objects inline with stable controls", () => {
+  const leaf = render(Condition, { item: "knife", gte: 2 });
+  expect(leaf).toContain('>at least</label>');
+  expect(leaf).toContain('aria-label="requires.gte" type="number"');
+  expect(leaf).toContain('aria-label="Unset requires.gte">×</button>');
+  expect(leaf).not.toContain('>Unset</button>');
+  expect(leaf).not.toContain('class="rule-block"');
+  const reached = render(Condition, { reached: { day: 3, hour: 9 } });
+  expect(reached).toContain('aria-label="requires.reached.day"');
+  expect(reached).toContain('>day</label>');
+  expect(reached).toContain('>hour</label>');
+  expect(reached).not.toContain('>Reached</label>');
+  expect(reached).not.toContain('class="rule-block"');
+});
+
+it("renders item amounts inline while keeping roll outcomes below the line", () => {
+  const give = render(Effect, { give: { raw_fish: 2 } }, "outcomes.0.effects.0");
+  expect(give).toContain('class="amount-token">raw_fish — raw fish</span>');
+  expect(give).toContain('aria-label="outcomes.0.effects.0.give.raw_fish" type="number"');
+  expect(give).toContain('aria-label="Remove outcomes.0.effects.0.give.raw_fish"');
+  expect(give).toContain('aria-label="outcomes.0.effects.0.give new key"');
+  expect(give).not.toContain('class="rule-block"');
+  const roll = render(Effect, { roll: [{ weight: 1, effects: [{ give: { raw_fish: 1 } }] }] });
+  expect(roll.indexOf('class="rule-block"')).toBeGreaterThan(roll.indexOf('class="rule-line"'));
+  expect(roll).toContain('aria-label="requires.roll.0.weight"');
+  expect(roll.match(/Reads as:/g)).toHaveLength(1);
 });
