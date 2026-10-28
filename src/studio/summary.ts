@@ -23,7 +23,7 @@ export function summarize(schema: Schema, value: Record<string, unknown>, keys: 
     if (key === "id" || v === undefined || !field) return [];
     const node = unwrap(field), hint = hintFor(schema, key), label = hint?.label ?? humanize(key), kind = refKind(field);
     if (kind && typeof v === "string") return [referenceLabel(kind, v, documents)];
-    if (isNode(field, Condition)) return [describe(v, "condition", documents)];
+    if (isNode(field, Condition)) return [`${label.toLowerCase()}: ${describe(v, "condition", documents)}`];
     if (isNode(field, Text)) {
       const first = typeof v === "string" ? v : Array.isArray(v) ? v[0] : (v as { variants?: unknown[] } | null)?.variants?.[0];
       return typeof first === "string" ? [`“${short(first, 50)}”`] : [];
@@ -32,7 +32,7 @@ export function summarize(schema: Schema, value: Record<string, unknown>, keys: 
     if (typeof v === "string") return [short(v, 40)];
     if (typeof v === "number") return [`${v}${hint?.unit ? ` ${hint.unit}` : ""}`];
     if (typeof v === "boolean") return v ? [label] : [];
-    if (Array.isArray(v)) return [`${v.length} ${label.toLowerCase()}`];
+    if (Array.isArray(v)) return [`${v.length} ${v.length === 1 ? label.toLowerCase().replace(/s$/, "") : label.toLowerCase()}`];
     return [label];
   }).filter(Boolean).join(" · ");
 }

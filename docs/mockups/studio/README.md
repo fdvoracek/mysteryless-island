@@ -182,8 +182,10 @@ are omitted, with unknown/unlisted set fields in Other. Titles are Basics, When 
 this?, Journal and Results for activities; Basics, Use and Item actions for items. The prompt's
 Journal/Results titles replace the mockup's Journal while working/Outcomes. Generic summaries use
 shared reference labels and `describe()` wording, first Text alternatives and array counts;
-there are no journal/roll badges or bespoke outcome summaries. Existing nested widgets, scalar
-row captions, optional chips, shell and Rename IDs stay as implemented in UX-02 and earlier PRs.
+condition parts begin with their lower-case field label and a colon, and one-entry array counts
+drop the label’s trailing “s”. There are no journal/roll badges or bespoke outcome summaries.
+Existing nested widgets, scalar row captions, optional chips, shell and Rename IDs stay as
+implemented in UX-02 and earlier PRs.
 Region/Landmark and the other entity sections are deferred to UX-03b.
 
 Root string comments become editable Note banners with mono keys. Field-specific comments sit
@@ -193,6 +195,12 @@ remembered per schema; diagnostic/Used by reveal opens enclosing details without
 choice and stays open through subsequent edits. Clearing a note preserves its key and empty
 string. Native summary keyboard activation is retained.
 
+The UX-03 review removes the outer white form frame for sectioned roots: cards sit directly on
+the editor ground. The File contents region and Content form heading remain available to
+assistive technology, while its status is a small muted line above the cards. Non-sectioned forms,
+JSON, Rename IDs and Used by retain their existing presentation. OptionalChip and RootSections
+are small local components; the chip markup and card behavior are unchanged.
+
 Real deviations: none. Water can has no set consume/tool fields, so its empty Use card is omitted
 as specified, while its nested item action keeps its existing form.
 
@@ -201,10 +209,12 @@ Evidence in [ux-03/](ux-03/): [open cards beside mockup](ux-03/cards-open-compar
 [activity open](ux-03/catch-fish-open.png), [activity collapsed](ux-03/catch-fish-collapsed.png),
 [item](ux-03/item-water-can.png), [author note](ux-03/strike-fire-note.png),
 [390px open](ux-03/catch-fish-390.png), [390px collapsed](ux-03/catch-fish-390-collapsed.png).
-Desktop captures use a 1440×900 viewport and disposable fixture content. The 390px captures have
+Desktop captures use a 1440×900 viewport and disposable fixture content. Both comparison panels
+are at 100% scale: the implementation editor column is cropped rather than resized; the mockup
+card column keeps its native width. The 390px captures have
 `document.documentElement.scrollWidth === 390`.
 
 Read-only shipped `content/activities/catch_fish.json` measurement at 1440×900, using
-`.editor-fields.scrollHeight`: UX-02 baseline at `4241ac3` **5,831 px**; UX-03 all open **6,071 px**;
-all four cards collapsed **285 px**. Open cards add their headers/body spacing; nested widget
+`.editor-fields.scrollHeight`: UX-02 baseline at `4241ac3` **5,831 px**; reviewed UX-03 all open **6,016 px**;
+all four cards collapsed **249 px**. Open cards add their headers/body spacing; nested widget
 compaction remains UX-04/UX-05.
