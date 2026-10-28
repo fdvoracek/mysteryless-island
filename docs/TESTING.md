@@ -225,3 +225,7 @@ a no-DOM render smoke test and `build.test.ts` asserts the game bundle never ref
 `tests/studio-browser/story-graph.spec.ts` (temporary `STUDIO_ROOT` only, restored afterwards) covers focus, depth,
 Escape, list parity, the edge filter, grouping, persisted options, search, dragging three nodes, reload, unpin,
 reset, a pinned rename and a failed save. The Studio fixture copy includes an empty `studio-layout/`.
+
+Story graph browser interactions target scaled label bounds and scroll nodes into view before
+dragging. Pin updates must keep every node visible, including unchanged nodes whose dimensions
+are already measured. Search must centre its selected node without a competing focus-fit animation.

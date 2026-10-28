@@ -59,7 +59,11 @@ function Canvas({ graph, options, pins, focus, selected, select, open, inspect, 
     return [...boxes, ...nodes];
   }, [arrangement, graph, options.direction, pins, focus, selected, open, inspect, unpin]);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>(computed);
-  useEffect(() => setNodes(computed), [computed, setNodes]);
+  useEffect(() => setNodes(previous => {
+    // Unchanged DOM sizes do not trigger ResizeObserver again after a pin/selection update.
+    const measured = new Map(previous.map(n => [n.id, n.measured]));
+    return computed.map(n => ({ ...n, measured: measured.get(n.id) }));
+  }), [computed, setNodes]);
   const edges = useMemo(() => {
     const parallel = new Map<string, number>(), ids = new Set(graph.nodes.map(n => n.id));
     return graph.edges.filter(e => ids.has(e.source) && ids.has(e.target)).map(e => {
@@ -72,21 +76,21 @@ function Canvas({ graph, options, pins, focus, selected, select, open, inspect, 
   const rf = useReactFlow();
   // Centre on a search hit, and refit after Re-arrange or when the focused set changes.
   const seen = useRef({ centre: centre?.seq, arranged });
+  const focused = useRef<ReadonlySet<string> | undefined>(undefined);
   useEffect(() => {
     if (centre && centre.seq !== seen.current.centre) {
       seen.current.centre = centre.seq;
       const p = arrangement.positions.get(centre.id);
       if (p) void rf.setCenter(p.x + NODE_WIDTH / 2, p.y + NODE_HEIGHT / 2, { zoom: Math.max(rf.getZoom(), 0.8), duration: 150 });
+    } else if (focus && focus !== focused.current) {
+      void rf.fitView({ nodes: [...focus].map(id => ({ id })), duration: 150, padding: 0.3 });
     }
-  }, [centre, arrangement, rf]);
+    focused.current = focus;
+  }, [centre, arrangement, focus, rf]);
   useEffect(() => {
     if (arranged !== seen.current.arranged) { seen.current.arranged = arranged; void rf.fitView({ duration: 150 }); }
   }, [arranged, rf]);
-  const focused = useRef<ReadonlySet<string> | undefined>(undefined);
-  useEffect(() => {
-    if (focus && focus !== focused.current) void rf.fitView({ nodes: [...focus].map(id => ({ id })), duration: 150, padding: 0.3 });
-    focused.current = focus;
-  }, [focus, rf]);
+
   // A fresh view fits unless a viewport was remembered; later structure changes refit via the key below.
   const first = useRef(true);
   const defaultViewport = first.current ? viewport : undefined;

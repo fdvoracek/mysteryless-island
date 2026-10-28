@@ -1,4 +1,4 @@
-import { expect, test, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 
 type Stored = { path: string; content: string; hash: string };
 const files = async (request: APIRequestContext) => (await (await request.get("/__studio/files")).json()).files as Stored[];
@@ -16,8 +16,17 @@ async function restore(request: APIRequestContext, initial: Stored[]) {
 }
 const node = (page: Page, id: string) => page.locator(`.react-flow__node[data-id="${id}"]`);
 const position = (page: Page, id: string) => node(page, id).evaluate(el => { const m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec((el as HTMLElement).style.transform)!; return { x: Math.round(+m[1]), y: Math.round(+m[2]) }; });
+/** Target the label using rendered bounds, including React Flow's fit-to-view scale. */
+async function labelPoint(target: Locator) {
+  await target.scrollIntoViewIfNeeded();
+  const box = (await target.boundingBox())!;
+  return { x: box.width / 3, y: box.height / 10 };
+}
 async function drag(page: Page, id: string, dx: number, dy: number) {
-  const box = (await node(page, id).boundingBox())!, x = box.x + 24, y = box.y + 14;
+  const target = node(page, id), point = await labelPoint(target);
+  await target.hover({ position: point });
+  const box = (await target.boundingBox())!;
+  const x = box.x + point.x, y = box.y + point.y;
   await page.mouse.move(x, y); await page.mouse.down(); await page.mouse.move(x + dx, y + dy, { steps: 10 }); await page.mouse.up();
 }
 async function openStory(page: Page) {
@@ -35,7 +44,7 @@ test("focus, edge filter, grouping, search and layout options work in the graph 
   const total = await story.locator(".react-flow__node").count();
   const edges = () => story.locator(".react-flow__edge").count();
   // (a) focus a landmark and follow its chain
-  await node(page, "discovery:cliff_shells").click({ position: { x: 24, y: 14 } });
+  await node(page, "discovery:cliff_shells").click({ position: await labelPoint(node(page, "discovery:cliff_shells")) });
   await expect(story.getByText("Focus: discovery:cliff_shells · 2 nodes")).toBeVisible();
   await expect(story.locator(".story-node.is-dimmed")).toHaveCount(total - 2);
   await expect(story.locator(".story-node.is-dimmed").first()).toHaveCSS("pointer-events", "none");
@@ -85,7 +94,7 @@ test("focus, edge filter, grouping, search and layout options work in the graph 
     return Math.hypot(n!.x + n!.width / 2 - (canvas!.x + canvas!.width / 2), n!.y + n!.height / 2 - (canvas!.y + canvas!.height / 2));
   }).toBeLessThan(80);
   // double-click opens the entity
-  await node(page, "discovery:cliff_top").dblclick({ position: { x: 24, y: 14 } });
+  await node(page, "discovery:cliff_top").dblclick({ position: await labelPoint(node(page, "discovery:cliff_top")) });
   await expect(page.getByLabel("Area workspace", { exact: true })).toBeVisible();
   expect(await layoutFile(request)).toBeUndefined();
   expect(errors).toEqual([]);
@@ -104,6 +113,9 @@ test("dragged nodes are pinned, saved without Save all, survive a reload, can be
       await expect.poll(async () => (await position(page, id)).y).not.toBe(before.y);
       await expect.poll(async () => Object.keys((await pins(request)) ?? {})).toContain(id);
       await expect(story.locator(".layout-status")).toHaveText("Layout saved");
+      // Updating pins must leave all nodes visible, including those whose size did not change.
+      await expect.poll(() => story.locator(".story-node").evaluateAll(nodes =>
+        nodes.every(n => getComputedStyle(n).visibility === "visible"))).toBe(true);
     }
     await expect(story.locator(".story-node.is-pinned")).toHaveCount(3);
     const saved = await pins(request);
