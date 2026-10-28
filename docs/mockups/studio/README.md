@@ -265,16 +265,23 @@ Read-only shipped catch_fish measurement at 1440×900 with all four cards open:
 Specified by the UX-04b prompt and approved plan: generic arrays lose entry boxes and left
 borders. Scalar/reference/enum entries have no index label; object entries have a faint 11 px,
 1-based index in a 22 px gutter, normal inspector fields and #EEF0F2 dividers. Entry toolbars
-show ↑ ↓ × at the line end or block's top right, with “+ add entry” below. Rule array children
+show ↑ ↓ × at the line end or block's top right, with “+ add entry” below. After review,
+object entries use one grid row with three columns (`22px | minmax(0, 1fr) | auto`): the
+index aligns beside the first field label and actions occupy the right column, including at
+≤760 px. Scalar number inputs are capped at 120 px; row members retain 64 px and inline rule
+numbers retain 56 px. Rule array children
 retain their UX-04 toolbar with no duplicate actions. Non-inline records show a reference-label
-or mono key token, value and ×; inline item-amount records retain their appearance.
+or mono key token, value and ×, with a “+ add key” link retaining the accessible name
+`Add key`; inline item-amount records retain their appearance and “Add key” text.
 
 Union selectors move into the field label line with a faint caption; same-path branch fields
 omit their own label line, so a quest's Trigger label appears once. Array element Fields also
 omit their label lines, leaving only the object's gutter number. Control accessible names stay
 unchanged. Unset becomes faint ghost text on field hover/focus, including row-member captions;
 hovering nested fields may reveal their parent's Unset, as approved. Toolbars and Unset stay
-visible at ≤760 px and without hover. Rendering does not edit content.
+visible at ≤760 px and without hover. Widgets reset label suppression for Fields at different
+paths, so an explicit Text ID retains its label inside an array element. Same-path object
+wrappers retain label suppression. Rendering does not edit content.
 
 Specified differences from the static mockup: outcomes remain fully editable numbered blocks,
 not the UX-05 weight/odds table. Results and Item actions keep UX-03 card titles and UX-02
@@ -290,14 +297,17 @@ Evidence in [ux-04b/](ux-04b/): [Results beside mockup](ux-04b/catch_fish-compar
 [Item actions beside mockup](ux-04b/water_can-comparison.jpg),
 [390 px Results](ux-04b/catch_fish-390.jpg), [390 px Item actions](ux-04b/water_can-390.jpg).
 The implementation uses shipped content read-only; browser tests use the isolated frozen pack.
-Both desktop sides were captured at 1440×900, device scale 1, cropped at native size and placed
+The comparison images were refreshed for the review fixes. Both desktop sides were captured
+at 1440×900, device scale 1, cropped at native size and placed
 beside each other without resizing. Both phone captures have
-`document.documentElement.scrollWidth === 390`. All four JPEGs are ≤200 KB.
+`document.documentElement.scrollWidth === 390`. The revised three-column phone layout was
+rechecked at 390 px with visible actions and no horizontal overflow; the two original phone
+images show the pre-review layout. All four JPEGs are ≤200 KB.
 
 Shipped-content measurements at 1440×900 with every card open, using
 `.editor-fields.scrollHeight`:
 
-| Document | UX-04 baseline (`15d8c23`) | UX-04b | Reduction |
-| --- | ---: | ---: | ---: |
-| `activities/catch_fish.json` | 2,810 px | 2,324 px | 486 px / 17.3% |
-| `items/water_can.json` | 2,644 px | 2,370 px | 274 px / 10.4% |
+| Document | UX-04 baseline (`15d8c23`) | UX-04b before review | UX-04b reviewed | Reduction from UX-04 |
+| --- | ---: | ---: | ---: | ---: |
+| `activities/catch_fish.json` | 2,810 px | 2,324 px | 2,219 px | 591 px / 21.0% |
+| `items/water_can.json` | 2,644 px | 2,370 px | 2,332 px | 312 px / 11.8% |

@@ -417,7 +417,7 @@ it("renders generic records with key tokens, values and named remove actions", (
   expect(html).toContain('aria-label="amounts.first" type="number"');
   expect(html).toContain('aria-label="Remove amounts.first">×</button>');
   expect(html).toContain('aria-label="amounts new key"');
-  expect(html).toContain('>Add key</button>');
+  expect(html).toContain('aria-label="Add key" type="button" disabled="">+ add key</button>');
   expect(html).not.toContain("array-entry");
   const reference = render((unwrap(unionKinds(Effect).find(k => k.kind === "give")!.schema) as z.AnyZodObject).shape.give, { raw_fish: 2 }, "give");
   expect(reference).toContain('class="record-key record-reference">raw_fish — raw fish</span>');
@@ -433,4 +433,12 @@ it("places union kinds in their label line and labels a quest when trigger exact
   expect(labelLine).toContain('aria-label="trigger kind"');
   expect(html).toContain('aria-label="trigger.when kind"');
   expect(render(Quest.shape.trigger, { when: { item: "knife" } }, "")).toContain('aria-label="root kind"');
+});
+
+it("keeps the ID label inside explicit Text array elements while hiding the element label", () => {
+  const html = render(z.array(Text), [{ id: "named", variants: ["One."] }], "texts");
+  expect(html).toContain('data-field="texts.0.id"');
+  expect(html).toContain('>ID</label>');
+  expect(html).toContain('aria-label="texts.0.id"');
+  expect(html).not.toContain('>0</label>');
 });

@@ -72,7 +72,7 @@ function RuleWidget(props: FieldProps & { type: "condition" | "effect" }) {
     if (!inserted) Object.assign(updated, next);
     props.onChange(updated);
   };
-  const child = (value: unknown, path: string, onChange: (value: unknown) => void, actions?: OrderActions) => <Field {...props} schema={Condition} value={value} path={path} onChange={onChange} skipWidget={false} ruleActions={actions} ruleDepth={depth + 1} depth={0} />;
+  const child = (value: unknown, path: string, onChange: (value: unknown) => void, actions?: OrderActions) => <Field {...props} schema={Condition} value={value} path={path} hideLabel={false} onChange={onChange} skipWidget={false} ruleActions={actions} ruleDepth={depth + 1} depth={0} />;
   const group = props.type === "condition" && selected && ["all", "any", "not"].includes(selected.kind);
   const operator = <select className="rule-operator" aria-label={`${props.path} kind`} value={selected?.kind ?? ""} onChange={event => changeKind(event.target.value)}><option value="" disabled>Unknown</option>{kinds.map(k => <option key={k.kind}>{k.kind}</option>)}</select>;
   const jsonButton = <button type="button" aria-label={`${props.path} JSON view`} aria-pressed={json} onClick={() => setJson(!json)}>{"{ }"}</button>;
@@ -145,7 +145,7 @@ function TextWidget(props: FieldProps) {
   };
   return <section className="text-widget" aria-label={`Text ${props.path}`}>
     <div className="text-header"><span className="badge">{channel}</span><span className="variant-count">{values.length} {values.length === 1 ? "variant" : "variants"}</span><select title="Changing text form may change its memo key." aria-label={`${props.path} text form`} value={mode} onChange={e => switchMode(e.target.value)}><option value="single">Single text</option><option value="variants">Alternative variants</option><option value="explicit">Explicit ID and variants</option></select></div>
-    {mode === "explicit" && <Field {...props} schema={(unwrap(branches(Text)[2]) as z.AnyZodObject).shape.id} value={raw.id} path={pathAt(props.path, "id")} skipWidget={false} onChange={id => props.onChange({ ...raw, id })} />}
+    {mode === "explicit" && <Field {...props} schema={(unwrap(branches(Text)[2]) as z.AnyZodObject).shape.id} value={raw.id} path={pathAt(props.path, "id")} hideLabel={false} skipWidget={false} onChange={id => props.onChange({ ...raw, id })} />}
     {values.map((text, index) => <div className="variant" key={index}><span className="variant-index">{index + 1}</span><VariantInput path={mode === "single" ? props.path : pathAt(mode === "explicit" ? pathAt(props.path, "variants") : props.path, index)} value={text} change={next => update(values.map((v, i) => i === index ? next : v))} />{channel === "journal" && <span className={`variant-counter${text.length > 80 ? " warning" : ""}`} title={text.length > 80 ? "above journal guidance" : undefined}>{text.length}/80{text.length > 80 && <span className="visually-hidden"> — above journal guidance</span>}</span>}{mode !== "single" && <div className="variant-actions"><Order path={pathAt(props.path, index)} index={index} length={values.length} remove={() => update(values.filter((_, i) => i !== index))} move={delta => update(reorder(values, index, delta))} /></div>}</div>)}
     {mode !== "single" && <button className="add-link" type="button" aria-label={`Add alternative to ${props.path}`} onClick={() => update([...values, ""])}>+ add variant</button>}
     <p className="text-hint">First variant is used by ?variants=first and tests.</p>
