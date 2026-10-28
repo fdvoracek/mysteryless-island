@@ -71,6 +71,24 @@ remaining save or use Git to recover. The existing file API guards each write, n
 pack against another editor changing an unrelated file after validation. A `409` retains the
 draft and opens the conflict dialog. A keep-mine choice always needs explicit overwrite.
 
+## Inspector layout — [implemented, UX-02]
+
+Scalar fields use a label-left grid, with related set fields together in a row when at least
+two row members are set. Row members have captions; duration and artwork dimensions show units.
+Objects, arrays, rules, text widgets and raw JSON keep their labels above full-width controls.
+At widths of 760 px or less, labels and controls stack. The read-only ID textbox uses mono text
+on a ground background; reference-aware renaming remains in **Rename IDs**.
+
+Studio-only hints bind to the exported Activity, Item, ItemAction, Site and Artwork schema
+objects, providing visible labels and selected help lines. Other fields use humanized keys;
+all controls retain their existing path-based accessible names. Fields without hints still
+render, and rendering never adds values or changes content order.
+
+Unset optional fields appear after the set fields in one **Optional:** line per object, with
+dashed **+ Label** chips. Standalone optional fields in the area and event workspaces use the
+same chip style. Adding a field uses the existing empty initial value; **Unset**, **Undo** and
+**Redo** retain their behavior. Required-only Create forms show no optional chip line.
+
 ## JSON editor — [implemented]
 
 JSON mode is a CodeMirror 6 editor (Studio-only dependency) over the whole file, including areas

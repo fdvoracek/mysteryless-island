@@ -60,6 +60,15 @@ wrong. When a UX decision changes, update the affected file here in the same PR.
 artifact "Content Studio mockup" was the working copy these files were exported from; this folder
 is the reference agents use.
 
+## UX-02 implementation differences — [implemented]
+
+Specified by the UX-02 prompt: composite labels sit above their controls, row members have
+captions, the locked ID remains a read-only textbox without a Rename button, and optional chips
+follow the set fields within each object. Help text follows the prompt's exact schema-bound
+table; rows require at least two set members, otherwise the field keeps its own label.
+Differences: none within the UX-02 scope. The mockup's cards,
+compact rules/text/outcomes, navigation and context rail remain later UX work.
+
 ## PR-05 implementation differences — [implemented]
 
 The owner decision of 2026-10-22 in plan §4.3 supersedes the mockup's immediate-create wording:
