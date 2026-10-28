@@ -259,3 +259,45 @@ all three JPEGs are below 200 KB. The phone capture has document.documentElement
 Read-only shipped catch_fish measurement at 1440×900 with all four cards open:
 .editor-fields.scrollHeight **6,016 px** at baseline **654f06a**, **2,810 px** after UX-04
 (3,206 px / 53.3% reduction). The shipped measurement and fixture screenshot sources are separate.
+
+## UX-04b implementation differences — [implemented]
+
+Specified by the UX-04b prompt and approved plan: generic arrays lose entry boxes and left
+borders. Scalar/reference/enum entries have no index label; object entries have a faint 11 px,
+1-based index in a 22 px gutter, normal inspector fields and #EEF0F2 dividers. Entry toolbars
+show ↑ ↓ × at the line end or block's top right, with “+ add entry” below. Rule array children
+retain their UX-04 toolbar with no duplicate actions. Non-inline records show a reference-label
+or mono key token, value and ×; inline item-amount records retain their appearance.
+
+Union selectors move into the field label line with a faint caption; same-path branch fields
+omit their own label line, so a quest's Trigger label appears once. Array element Fields also
+omit their label lines, leaving only the object's gutter number. Control accessible names stay
+unchanged. Unset becomes faint ghost text on field hover/focus, including row-member captions;
+hovering nested fields may reveal their parent's Unset, as approved. Toolbars and Unset stay
+visible at ≤760 px and without hover. Rendering does not edit content.
+
+Specified differences from the static mockup: outcomes remain fully editable numbered blocks,
+not the UX-05 weight/odds table. Results and Item actions keep UX-03 card titles and UX-02
+inspector fields; the mockup has no item-action card, so both comparisons use its outcome card
+as requested. The shell, native kind choices, rule/text visuals and optional chips remain at
+their current UX stage. No new placeholder controls or content were introduced.
+
+Real deviations from the approved UX-04b scope: none. Action data replaces cloneElement,
+inline/block leaf schemas have stable memoized identities, and the textarea observer compares
+widths before resizing to avoid reacting to its own height changes.
+
+Evidence in [ux-04b/](ux-04b/): [Results beside mockup](ux-04b/catch_fish-comparison.jpg),
+[Item actions beside mockup](ux-04b/water_can-comparison.jpg),
+[390 px Results](ux-04b/catch_fish-390.jpg), [390 px Item actions](ux-04b/water_can-390.jpg).
+The implementation uses shipped content read-only; browser tests use the isolated frozen pack.
+Both desktop sides were captured at 1440×900, device scale 1, cropped at native size and placed
+beside each other without resizing. Both phone captures have
+`document.documentElement.scrollWidth === 390`. All four JPEGs are ≤200 KB.
+
+Shipped-content measurements at 1440×900 with every card open, using
+`.editor-fields.scrollHeight`:
+
+| Document | UX-04 baseline (`15d8c23`) | UX-04b | Reduction |
+| --- | ---: | ---: | ---: |
+| `activities/catch_fish.json` | 2,810 px | 2,324 px | 486 px / 17.3% |
+| `items/water_can.json` | 2,644 px | 2,370 px | 274 px / 10.4% |

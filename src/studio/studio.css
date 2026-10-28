@@ -99,15 +99,48 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .optional-fields { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 14px; border: 1px dashed var(--studio-border); border-radius: 8px; background: var(--studio-panel); color: var(--studio-muted); font-size: 12px; }
 .optional-chip { border-style: dashed; border-radius: 999px; padding: 1px 8px; color: var(--studio-accent); font-size: 12px; overflow-wrap: anywhere; max-width: 100%; }
 .object-fields { display: grid; gap: 8px; min-width: 0; }
-.array-fields, .record-fields, .union-field { min-width: 0; border-left: 2px solid var(--studio-border); padding-left: 12px; }
-.record-fields > .array-entry, .union-field > .form-field { margin-block: 8px; }
+.array-fields, .record-fields, .union-field { min-width: 0; }
+.union-field > .form-field { margin: 0; }
 @media (max-width: 760px) {
   .field-scalar, .field-row { grid-template-columns: minmax(0, 1fr); }
   .field-scalar > .field-error { grid-column: 1; }
   .field-row-controls { flex-direction: column; align-items: stretch; }
   .field-row-member { flex: auto; }
 }
-.array-entry { padding: 8px; margin: 8px 0; border: 1px solid var(--studio-border); border-radius: 6px; }
+/* UX-04b: generic lists share row actions without nested boxes. */
+.array-fields, .record-fields:not(.record-inline) { display: grid; gap: 8px; }
+.array-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.array-line > .form-field { flex: 1; }
+.form-field.field-unlabelled { display: block; }
+.array-line > .form-field, .record-row > .form-field { display: block; margin: 0; min-width: 0; }
+.array-object-entry { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 6px; min-width: 0; padding-block: 6px; }
+.array-object-entry + .array-object-entry { border-top: 1px solid #eef0f2; }
+.entry-index { grid-column: 1; grid-row: 1; color: var(--studio-faint); font-size: 11px; padding-top: 3px; text-align: right; }
+.entry-fields { grid-column: 2; grid-row: 2; min-width: 0; }
+.entry-fields > .form-field, .array-rule-entry > .form-field { margin: 0; }
+.array-object-entry > .entry-actions { grid-column: 2; grid-row: 1; justify-self: end; }
+.entry-fields > .form-field > .field-control > .outcome-widget { border: 0; padding: 0; margin: 0; }
+.record-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; min-width: 0; }
+.record-key { font-family: var(--studio-code); font-size: 11px; overflow-wrap: anywhere; min-width: 0; }
+.record-reference { font-family: var(--studio-font); background: #f1f2f4; border-radius: 5px; padding: 1px 7px; }
+.entry-actions { display: flex; gap: 2px; opacity: 0; }
+.entry-actions button { border: 0; background: transparent; padding: 2px 4px; font-size: 12px; }
+.array-line:hover > .entry-actions, .array-line:focus-within > .entry-actions,
+.array-object-entry:hover > .entry-actions, .array-object-entry:focus-within > .entry-actions,
+.record-row:hover > .entry-actions, .record-row:focus-within > .entry-actions { opacity: 1; }
+.union-kind { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; color: var(--studio-faint); font-size: 11px; min-width: 0; }
+.union-kind select { width: auto; max-width: 100%; padding: 1px 5px; font-size: 11px; }
+.field-label > .field-unset { opacity: 0; border: 0; background: transparent; color: var(--studio-faint); font-size: 11px; padding: 2px 0; }
+.form-field:hover > .field-label > .field-unset, .form-field:focus-within > .field-label > .field-unset { opacity: 1; }
+@media (max-width: 760px) {
+  .entry-actions, .field-label > .field-unset { opacity: 1; }
+  .record-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .record-row > .record-key { grid-column: 1; }
+  .record-row > .form-field { grid-column: 1; grid-row: 2; }
+  .record-row > .entry-actions { grid-column: 2; grid-row: 2; }
+  .union-kind { flex-wrap: wrap; }
+}
+@media (hover: none) { .entry-actions, .field-label > .field-unset { opacity: 1; } }
 .row-actions, .record-add, .dialog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .document-heading { flex-wrap: wrap; }
 .field-error { font-size: 12px; overflow-wrap: anywhere; }

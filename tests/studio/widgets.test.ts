@@ -5,11 +5,11 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
+import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, formatContent } from "../../src/content";
 import { Field, fileContentsClass, rootSections } from "../../src/studio/form";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
-import { schemaFor, stripComments, type Schema } from "../../src/studio/schema";
+import { schemaFor, stripComments, unwrap, type Schema } from "../../src/studio/schema";
 import { referenceLabel } from "../../src/studio/references";
 import { sections } from "../../src/studio/hints";
 import { summarize } from "../../src/studio/summary";
@@ -377,4 +377,60 @@ it("renders item amounts inline while keeping roll outcomes below the line", () 
   expect(roll.indexOf('class="rule-block"')).toBeGreaterThan(roll.indexOf('class="rule-line"'));
   expect(roll).toContain('aria-label="requires.roll.0.weight"');
   expect(roll.match(/Reads as:/g)).toHaveLength(1);
+});
+
+it("renders scalar array lines with compact named actions and no element labels", () => {
+  const html = render(Activity.shape.tags, ["kindle", "fire"], "tags");
+  expect(html.match(/class="array-line"/g)).toHaveLength(2);
+  expect(html).not.toMatch(/>[01]<\/label>|entry-index|array-entry/);
+  for (const index of [0, 1]) {
+    expect(html).toContain(`aria-label="tags.${index}"`);
+    for (const action of ["Move up", "Move down", "Remove"]) expect(html).toContain(`aria-label="${action} tags.${index}"`);
+  }
+  expect(html).toContain('aria-label="Remove tags.0">×</button>');
+  expect(html).toContain('aria-label="Add tags entry">+ add entry</button>');
+});
+
+it("renders numbered object blocks without boxes or element labels and resets array layout props", () => {
+  const schema = Activity.shape.yields;
+  const values = [{ item: "raw_fish", min: 1, max: 1 }, { item: "raw_fish", min: 2, max: 2 }];
+  expect(schema.safeParse(values).success).toBe(true);
+  const html = render(schema, values, "yields");
+  expect(html.match(/class="array-object-entry"/g)).toHaveLength(2);
+  for (const i of [1, 2]) expect(html).toContain(`class="entry-index" aria-hidden="true">${i}</span>`);
+  expect(html).not.toMatch(/array-entry|>[01]<\/label>/);
+  expect(html).toContain('aria-label="Add yields entry">+ add entry</button>');
+  const inherited = renderToStaticMarkup(createElement(Field, {
+    schema, value: values, path: "yields", inline: true,
+    presentation: { schema, path: "yields", inline: true }, ruleFields: { ownKey: "item", caption: () => "wrong caption" },
+    owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {},
+  }));
+  const entries = inherited.slice(inherited.indexOf('class="array-object-entry"'));
+  expect(entries).not.toMatch(/inline-object|rule-inline|wrong caption|>[01]<\/label>/);
+  expect(entries).toContain('aria-label="yields.0.item"');
+});
+
+it("renders generic records with key tokens, values and named remove actions", () => {
+  const html = render(z.record(z.string(), z.number()), { first: 2 }, "amounts");
+  expect(html).toContain('class="record-row"');
+  expect(html).toContain('class="record-key">first</span>');
+  expect(html).toContain('aria-label="amounts.first" type="number"');
+  expect(html).toContain('aria-label="Remove amounts.first">×</button>');
+  expect(html).toContain('aria-label="amounts new key"');
+  expect(html).toContain('>Add key</button>');
+  expect(html).not.toContain("array-entry");
+  const reference = render((unwrap(unionKinds(Effect).find(k => k.kind === "give")!.schema) as z.AnyZodObject).shape.give, { raw_fish: 2 }, "give");
+  expect(reference).toContain('class="record-key record-reference">raw_fish — raw fish</span>');
+});
+
+it("places union kinds in their label line and labels a quest when trigger exactly once", () => {
+  const html = render(Quest.shape.trigger, { when: { item: "knife" } }, "trigger");
+  expect(html.match(/>Trigger<\/label>/g)).toHaveLength(1);
+  const labelLine = html.slice(html.indexOf('class="field-label"'), html.indexOf('<div class="field-control">'));
+  expect(labelLine).toContain('>Trigger</label>');
+  expect(labelLine).toContain('class="union-kind"');
+  expect(labelLine).toContain('>Value type</span>');
+  expect(labelLine).toContain('aria-label="trigger kind"');
+  expect(html).toContain('aria-label="trigger.when kind"');
+  expect(render(Quest.shape.trigger, { when: { item: "knife" } }, "")).toContain('aria-label="root kind"');
 });
