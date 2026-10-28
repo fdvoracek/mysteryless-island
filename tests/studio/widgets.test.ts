@@ -4,7 +4,8 @@ import { join, relative } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it } from "vitest";
-import { Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
+import { z } from "zod";
+import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, formatContent } from "../../src/content";
 import { Field } from "../../src/studio/form";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
@@ -114,4 +115,60 @@ it("classifies narrative channels and leaves unlisted fields plain", () => {
   for (const [kind, path] of [["events", "scenes.start.text"], ["regions", "explore.view.0.text"], ["regions", "explore.nothingLeft"], ["regions", "explore.landmarks.0.text"], ["settings", "newPlace.text"]]) expect(textChannel(kind, path), path).toBe("modal");
   expect(textChannel("items", "unknown")).toBe("text");
   expect(stripComments({ _note: "keep", all: [{ flag: "test" }] })).toEqual({ all: [{ flag: "test" }] });
+});
+
+it("renders activity hints, scalar rows and optional chips without editing the raw tree", () => {
+  const activity = documents.find(d => d.id === "catch_fish")!;
+  const before = formatContent(activity.raw);
+  const html = render(Activity, activity.raw, "", activity);
+  expect(html).toContain('>Visible when</label>');
+  // The reference inside the composite condition keeps its path; widget names stay stable too.
+  expect(html).toContain('aria-label="visibleWhen kind"');
+  expect(html).toContain('aria-label="visibleWhen.discovered"');
+  expect(render(z.object({ visibleWhen: z.string() }), { visibleWhen: "test" }, "")).toContain('aria-label="visibleWhen"');
+  expect(html).toContain('class="field-help">Button appears</small>');
+  const row = html.split('role="group" aria-label="Duration &amp; effort">')[1].split('data-field="visibleWhen"')[0];
+  for (const key of ["hours", "effort", "icon"]) expect(row).toContain(`data-field="${key}"`);
+  for (const caption of ["Hours", "Effort", "Icon"]) expect(row).toContain(`>${caption}</label>`);
+  expect(row).toContain('class="field-unit">h</span>');
+  expect(html).toContain('class="optional-fields"><span>Optional:</span>');
+  for (const key of ["global", "building"]) expect(html).toContain(`class="optional-chip" type="button" aria-label="Add ${key}"`);
+  expect(html).toContain('aria-label="Add building">+ Building</button>');
+  const required = renderToStaticMarkup(createElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: [], requiredOnly: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  expect(required).not.toContain('class="optional-fields"');
+  expect(required).not.toContain('aria-label="Add building"');
+  expect(formatContent(activity.raw)).toBe(before);
+});
+
+it("keeps a single set row member as its own grid field and unhinted fields visible", () => {
+  const html = render(Item, { id: "test", name: "test", category: "material" }, "");
+  expect(html).not.toContain('role="group"');
+  expect(html).toMatch(/class="form-field field-scalar" data-field="category"/);
+  expect(html).toContain('>Category</label>');
+  expect(html).toContain('aria-label="Add max">+ Max carried</button>');
+  expect(render(z.object({ newField: z.string() }), { newField: "value" }, "")).toContain('>New field</label>');
+  const standalone = render(z.string().optional(), undefined, "explore");
+  expect(standalone).toContain('class="optional-chip" type="button" aria-label="Add explore">+ Explore</button>');
+  expect(standalone).not.toContain('class="optional-fields"');
+});
+
+it("groups rows in raw display order and keeps the underlying key order and comments", () => {
+  const value = { id: "test", icon: "fish", _note: "keep", name: "test", effort: "work", hours: 1 };
+  const before = formatContent(value);
+  const html = render(Activity, value, "");
+  expect(html.indexOf('aria-label="Duration &amp; effort"')).toBeLessThan(html.indexOf('_note (comment)'));
+  expect(html.indexOf('data-field="icon"')).toBeLessThan(html.indexOf('data-field="effort"'));
+  expect(html.indexOf('data-field="effort"')).toBeLessThan(html.indexOf('data-field="hours"'));
+  expect(formatContent(value)).toBe(before);
+});
+
+it("renders site and artwork hints and keeps a locked ID textbox", () => {
+  const artwork = { id: "test", src: "illustrations/test.png", width: 100, height: 50, alt: "Test" };
+  const html = renderToStaticMarkup(createElement(Field, { schema: Artwork, value: artwork, path: "", owner, documents, problems: [], lockId: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  expect(html).toContain('field-locked" data-field="id"');
+  expect(html).toMatch(/<input[^>]*readOnly=""[^>]*aria-label="id"/);
+  expect(html).toContain('>Image path</label>');
+  expect(html).toContain('role="group" aria-label="Size"');
+  expect(html.match(/class="field-unit">px<\/span>/g)).toHaveLength(2);
+  expect(render(Site, { id: "test", name: "test", needs: "Test" }, "")).toContain('class="field-help">Shown when the site is missing</small>');
 });

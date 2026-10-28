@@ -6,11 +6,13 @@ import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { registerWidgets } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
+import { hintFor, humanize, type FieldHint } from "./hints";
 
 export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
   problems: ContentProblem[]; documents: Document[]; owner: Document;
   buffers?: Record<string, JsonBuffer>;
+  presentation?: { schema: Schema; path: string; hint?: FieldHint; rowMember?: boolean };
   onError: (path: string, message: string, buffer?: JsonBuffer) => void; depth?: number; requiredOnly?: boolean; lockId?: boolean; skipWidget?: boolean; ruleDepth?: number;
 }
 export type Widget = (props: FieldProps) => ReactNode;
@@ -63,11 +65,17 @@ export function Field(props: FieldProps) {
   const { schema, value, onChange, path, problems, depth = 0 } = props;
   const id = useId();
   const node = unwrap(schema), kind = refKind(schema);
-  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} skipWidget={false} />;
+  const presentation = props.presentation?.path === path && props.presentation.schema === schema ? props.presentation : undefined;
+  const hint = presentation?.hint;
+  const key = path.split(".").at(-1) ?? "";
+  const label = hint?.label ?? humanize(key);
+  const child = (childSchema: Schema, childValue: unknown, childPath: string, change: (value: unknown) => void, key?: string, presentation?: FieldProps["presentation"]) => <Field key={key ?? childPath} {...props} schema={childSchema} value={childValue} path={childPath} onChange={change} depth={depth + 1} skipWidget={false} presentation={presentation} />;
   const issue = problems.filter((problem) => problem.path === path);
   let control: ReactNode;
   const widget = props.skipWidget ? undefined : schemaWidget(schema) ?? (kind ? widgetRegistry.references.get(kind) : undefined);
-  if (value === undefined && schema.isOptional()) control = <button type="button" onClick={() => onChange(initialValue(schema))}>Add {path.split(".").at(-1)}</button>;
+  const unset = value === undefined && schema.isOptional();
+  let scalar = !widget && (Boolean(kind) || depth <= 16 && (node instanceof z.ZodString || node instanceof z.ZodNumber || node instanceof z.ZodBoolean || node instanceof z.ZodEnum || node instanceof z.ZodNativeEnum || node instanceof z.ZodLiteral));
+  if (unset) control = <button className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange(initialValue(schema))}>+ {label}</button>;
   else if (widget) { const Component = widget; control = <Component {...props} />; }
   else if (kind) control = <ReferenceField {...props} />;
   else if (depth > 16) control = <RawField {...props} />;
@@ -81,14 +89,29 @@ export function Field(props: FieldProps) {
   else if (node instanceof z.ZodObject) {
     const raw = recordValue(value);
     const keys = [...Object.keys(raw), ...Object.keys(node.shape).filter((key) => !(key in raw))];
-    control = <div className="object-fields">{keys.filter((key) => !props.requiredOnly || key in raw || !(node.shape[key] as Schema)?.isOptional()).map((key) => {
+    const optional = keys.filter(key => (node.shape[key] as Schema | undefined)?.isOptional() && raw[key] === undefined);
+    const setKeys = keys.filter(key => !optional.includes(key));
+    const rows = new Map<string, string[]>();
+    for (const key of setKeys) {
+      const row = hintFor(schema, key)?.row;
+      if (row && raw[key] !== undefined) rows.set(row, [...rows.get(row) ?? [], key]);
+    }
+    const field = (key: string, rowMember = false) => {
       const childSchema = node.shape[key] as Schema | undefined;
       const childPath = [path, key].filter(Boolean).join(".");
       const change = (next: unknown) => { const updated = { ...raw }; if (next === undefined) delete updated[key]; else updated[key] = next; onChange(updated); };
       if (!childSchema) return <details key={key}><summary>{key}{key.startsWith("_") ? " (comment)" : " (unknown field)"}</summary><RawField {...props} path={childPath} value={raw[key]} onChange={change} /></details>;
-      if (props.lockId && childPath === "id") return <label key={key}>id<input aria-label="id" value={String(raw.id ?? "")} readOnly /></label>;
-      return child(childSchema, raw[key], childPath, change);
-    })}</div>;
+      return child(childSchema, raw[key], childPath, change, key, { schema: childSchema, path: childPath, hint: hintFor(schema, key), rowMember });
+    };
+    control = <div className="object-fields">{setKeys.map(key => {
+      const row = hintFor(schema, key)?.row;
+      const members = row ? rows.get(row) : undefined;
+      if (!members || members.length < 2) return field(key);
+      if (members[0] !== key) return null;
+      return <div key={`row-${row}`} className="field-row" role="group" aria-label={row}>
+        <div className="field-row-label">{row}</div><div className="field-row-controls">{members.map(member => field(member, true))}</div>
+      </div>;
+    })}{!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => <button key={key} className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button>)}</div>}</div>;
   } else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => <div className="array-entry" key={index}>
     {child(node.element, entry, [path, index].filter((v) => v !== "").join("."), (next) => onChange(value.map((old, i) => i === index ? next : old)))}
     <div className="row-actions"><button type="button" aria-label={`Remove ${path}.${index}`} onClick={() => onChange(value.filter((_, i) => i !== index))}>Remove</button><button type="button" disabled={!index} aria-label={`Move up ${path}.${index}`} onClick={() => { const updated = [...value]; [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]]; onChange(updated); }}>↑</button><button type="button" disabled={index === value.length - 1} aria-label={`Move down ${path}.${index}`} onClick={() => { const updated = [...value]; [updated[index + 1], updated[index]] = [updated[index], updated[index + 1]]; onChange(updated); }}>↓</button></div>
@@ -102,9 +125,10 @@ export function Field(props: FieldProps) {
     control = <select id={id} aria-label={path} value={String(value ?? "")} onChange={(event) => onChange(event.target.value)}><option value="">Choose…</option>{options.map((option) => <option key={option}>{option}</option>)}</select>;
   } else if (node instanceof z.ZodLiteral) control = <code>{JSON.stringify(node.value)}</code>;
   else control = <RawField {...props} />;
-  return <div className="form-field" data-field={path}>
-    {path && <div className="field-label"><label htmlFor={id}>{path.split(".").at(-1)}</label>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
-    {control}{issue.map((problem, index) => <p key={index} className="error field-error">{problem.message}</p>)}
+  scalar = scalar && !unset;
+  return <div className={`form-field ${path && scalar ? "field-scalar" : "field-composite"}${presentation?.rowMember ? " field-row-member" : ""}${node instanceof z.ZodNumber ? " field-number" : ""}${props.lockId && path === "id" ? " field-locked" : ""}`} data-field={path}>
+    {path && !unset && <div className="field-label"><div><label htmlFor={id}>{label}</label>{hint?.help && <small className="field-help">{hint.help}</small>}</div>{schema.isOptional() && value !== undefined && <button type="button" aria-label={`Unset ${path}`} onClick={() => onChange(undefined)}>Unset</button>}</div>}
+    <div className="field-control">{control}{scalar && hint?.unit && <span className="field-unit">{hint.unit}</span>}</div>{issue.map((problem, index) => <p key={index} className="error field-error">{problem.message}</p>)}
   </div>;
 }
 function RecordField(props: FieldProps) {

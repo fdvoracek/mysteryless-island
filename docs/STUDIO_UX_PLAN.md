@@ -41,7 +41,7 @@ None. G1 and G2 resolved as D7 and D8.
 | PR | Scope | Main files | Risk |
 |---|---|---|---|
 | UX-01 | Docs only: add this plan + mockup, link from STUDIO.md and mockups README | `docs/` | none |
-| UX-02 | Hint registry + inspector grid: `src/studio/hints.ts`; Field renders hinted label/help; label-left grid for scalars; related scalars in one row; unset optional fields become one always-visible chip line “Optional: + icon · + building …”. Hints for Activity, Item, ItemAction, Site, Artwork. | `form.tsx`, `hints.ts`, `studio.css`, tests | medium (form core) |
+| UX-02 **[implemented]** | Hint registry + inspector grid: `src/studio/hints.ts`; Field renders hinted label/help; label-left grid for scalars; related scalars in one row; unset optional fields become one always-visible chip line “Optional: + icon · + building …”. Hints for Activity, Item, ItemAction, Site, Artwork. | `form.tsx`, `hints.ts`, `studio.css`, tests | medium (form core) |
 | UX-03 | Collapsible **sections** with one-line summaries (from hints + `describe()`), remembered per kind in `localStorage`; `_` comment keys shown as an **author note** banner (editable, still preserved in place). Hints for Region/Landmark, Recipe, Building, Quest, Event props. | `form.tsx`, `area-workspace.tsx`, `hints.ts` | medium |
 | UX-04 | Compact **arrays and rules**: no index boxes; row actions in a hover/focus toolbar (labels unchanged); conditions as sentence rows; text variants as compact serif rows with inline counter. | `form.tsx`, `widgets.tsx`, `studio.css` | medium-high (tests) |
 | UX-05 | **Outcomes table**: weight + % odds, first text + variant count, effect chips; row expands to full editor. | `widgets.tsx` | low-medium |

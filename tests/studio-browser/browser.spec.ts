@@ -5,6 +5,24 @@ import { unwrap, type Schema } from "../../src/studio/schema";
 import { expect, test } from "@playwright/test";
 import { editorText, setEditorText } from "./editor";
 
+test("adds an optional activity building with a chip and undoes the unsaved field", async ({ page }) => {
+  await page.goto("/studio/");
+  await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+  await page.getByRole("navigation").getByRole("button", { name: /^Activities/ }).click();
+  await page.getByRole("searchbox").fill("catch_fish");
+  const entry = page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^catch_fish$/ }) });
+  await entry.click();
+  const contents = page.getByRole("region", { name: "File contents" });
+  await expect(contents.getByRole("combobox", { name: "building", exact: true })).toHaveCount(0);
+  await contents.getByRole("button", { name: "Add building", exact: true }).click();
+  await expect(contents.getByRole("combobox", { name: "building", exact: true })).toBeVisible();
+  await expect(entry).toContainText("Unsaved");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(contents.getByRole("combobox", { name: "building", exact: true })).toHaveCount(0);
+  await expect(contents.getByRole("button", { name: "Add building", exact: true })).toBeVisible();
+  await expect(entry).not.toContainText("Unsaved");
+});
+
 test("browses frozen fixture files by area/kind, searches, and edits generic forms at desktop and phone widths", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
