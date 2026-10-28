@@ -960,3 +960,82 @@ test("preview panel: own save slots, seeded new game, controls, and reload on St
     for (const path of created) { const file = latest.find((f) => f.path === path); if (file) await request.delete(`/__studio/files/${path}`, { data: { expectedHash: file.hash } }); }
   }
 });
+
+async function openSectionActivity(page: import("@playwright/test").Page, id = "catch_fish") {
+  await page.getByRole("navigation").getByRole("button", { name: /^Activities/ }).click();
+  await page.getByRole("searchbox").fill(id);
+  await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: new RegExp(`^${id}$`) }) }).click();
+}
+
+test("remembers collapsed cards across reload and activities, including keyboard activation", async ({ page }) => {
+  await page.goto("/studio/");
+  await openSectionActivity(page);
+  const cards = page.locator(".form-section");
+  await expect(cards.locator("summary strong")).toHaveText(["Basics", "When can the player do this?", "Journal", "Results"]);
+  const basics = cards.filter({ has: page.locator("summary strong", { hasText: /^Basics$/ }) });
+  await expect(basics).toHaveAttribute("open", "");
+  await basics.locator("summary").click();
+  await expect(basics).not.toHaveAttribute("open");
+  await expect(basics.locator(".form-section-preview")).toHaveText("catch fish · 1 h · work · fish");
+  // Closed controls remain mounted.
+  await expect(basics.locator('[aria-label="hours"]')).toHaveCount(1);
+  await page.reload();
+  await openSectionActivity(page);
+  await expect(basics).not.toHaveAttribute("open");
+  await openSectionActivity(page, "strike_fire");
+  await expect(basics).not.toHaveAttribute("open");
+  await basics.locator("summary").focus();
+  await page.keyboard.press("Enter");
+  await expect(basics).toHaveAttribute("open", "");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("studio.sections:Activity")!))).toEqual([]);
+});
+
+test("reveals diagnostic ancestors without changing preferences and stays open after editing", async ({ page }) => {
+  await page.goto("/studio/");
+  await openSectionActivity(page);
+  const basics = page.locator(".form-section").filter({ has: page.locator("summary strong", { hasText: /^Basics$/ }) });
+  const hours = page.getByRole("spinbutton", { name: "hours", exact: true });
+  await hours.fill("0");
+  await expect(page.getByRole("status")).toHaveText("3 problems");
+  await basics.locator("summary").click();
+  await expect(basics.locator(".form-section-problems")).toHaveText("1 problem");
+  const stored = await page.evaluate(() => localStorage.getItem("studio.sections:Activity"));
+  await page.getByRole("region", { name: "Diagnostics" }).getByRole("button", { name: "content/activities/catch_fish.json › hours", exact: true }).click();
+  await expect(basics).toHaveAttribute("open", "");
+  await expect(hours).toBeFocused();
+  await hours.press("End");
+  await hours.press("1");
+  await expect(basics).toHaveAttribute("open", "");
+  expect(await page.evaluate(() => localStorage.getItem("studio.sections:Activity"))).toBe(stored);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+});
+
+test("saves only the edited author note, preserving its key position and empty strings", async ({ page, request }) => {
+  const path = "content/activities/strike_fire.json";
+  const files = async () => (await (await request.get("/__studio/files")).json()).files as { path: string; hash: string; content: string }[];
+  const original = (await files()).find(file => file.path === path)!;
+  try {
+    await page.goto("/studio/");
+    await openSectionActivity(page, "strike_fire");
+    const note = page.getByRole("textbox", { name: "_note", exact: true });
+    const old = JSON.parse(original.content)._note;
+    await expect(note).toHaveValue(old);
+    await note.fill("");
+    await expect(note).toHaveValue("");
+    await expect(page.locator('.author-note code')).toHaveText("_note");
+    for (const next of ["", "An edited author note."]) {
+      await note.fill(next);
+      const saved = page.waitForResponse(response => response.request().method() === "PUT" && response.url().endsWith(`/__studio/files/${path}`));
+      await page.getByRole("button", { name: "Save all", exact: true }).click();
+      expect((await saved).ok()).toBe(true);
+      await expect(page.getByRole("button", { name: "Save all", exact: true })).toBeDisabled();
+      const current = (await files()).find(file => file.path === path)!;
+      expect(current.content).toBe(original.content.replace(JSON.stringify(old), JSON.stringify(next)));
+      expect(Object.keys(JSON.parse(current.content))).toEqual(Object.keys(JSON.parse(original.content)));
+    }
+  } finally {
+    const current = (await files()).find(file => file.path === path)!;
+    expect((await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: original.content, encoding: "utf8" } })).ok()).toBe(true);
+  }
+});

@@ -6,7 +6,9 @@ import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { registerWidgets } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
-import { hintFor, humanize, type FieldHint } from "./hints";
+import { hintFor, humanize, sectionsFor, schemaName, type FieldHint } from "./hints";
+import { summarize } from "./summary";
+import { readSections, rememberSection } from "./section-prefs";
 
 export interface FieldProps {
   schema: Schema; value: unknown; onChange: (value: unknown) => void; path: string;
@@ -61,6 +63,27 @@ function ReferenceField(props: FieldProps) {
     {options.map((id) => <option key={id} value={id}>{referenceLabel(refKind(props.schema)!, id, props.documents)}</option>)}
   </select>;
 }
+function SectionCard({ name, title, preview, count, children }: { name?: string; title: string; preview: string; count: number; children: ReactNode }) {
+  // This prop stays constant after mount: subsequent native/programmatic toggles belong to the DOM.
+  const [initialOpen] = useState(() => !name || !readSections(name).includes(title));
+  return <details className="form-section" open={initialOpen}>
+    <summary className="form-section-summary" onClick={event => {
+      event.preventDefault();
+      const details = event.currentTarget.parentElement as HTMLDetailsElement;
+      details.open = !details.open;
+      if (name) rememberSection(name, title, !details.open);
+    }}><strong>{title}</strong>{count > 0 && <span className="form-section-problems">{count} {count === 1 ? "problem" : "problems"}</span>}<span className="form-section-preview">{preview}</span></summary>
+    <div className="form-section-body object-fields">{children}</div>
+  </details>;
+}
+function AuthorNote({ name, value, change }: { name: string; value: string; change: (value: string) => void }) {
+  const area = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const element = area.current;
+    if (element) { element.style.height = "auto"; element.style.height = `${element.scrollHeight}px`; }
+  }, [value]);
+  return <div className="author-note" data-field={name}><div>Note <code>{name}</code></div><textarea ref={area} aria-label={name} rows={1} value={value} onChange={event => change(event.target.value)} /></div>;
+}
 export function Field(props: FieldProps) {
   const { schema, value, onChange, path, problems, depth = 0 } = props;
   const id = useId();
@@ -90,7 +113,11 @@ export function Field(props: FieldProps) {
     const raw = recordValue(value);
     const keys = [...Object.keys(raw), ...Object.keys(node.shape).filter((key) => !(key in raw))];
     const optional = keys.filter(key => (node.shape[key] as Schema | undefined)?.isOptional() && raw[key] === undefined);
-    const setKeys = keys.filter(key => !optional.includes(key));
+    const notes = path === "" && !props.requiredOnly ? keys.filter(key => key.startsWith("_") && typeof raw[key] === "string") : [];
+    const note = (key: string) => <AuthorNote key={key} name={key} value={raw[key] as string} change={next => onChange({ ...raw, [key]: next })} />;
+    const beforeField = (key: string) => notes.includes(`_${key}`) ? note(`_${key}`) : null;
+    const setKeys = keys.filter(key => !optional.includes(key) && !notes.includes(key));
+    const sectionHints = path === "" && !props.requiredOnly ? sectionsFor(schema) : undefined;
     const rows = new Map<string, string[]>();
     for (const key of setKeys) {
       const row = hintFor(schema, key)?.row;
@@ -103,15 +130,25 @@ export function Field(props: FieldProps) {
       if (!childSchema) return <details key={key}><summary>{key}{key.startsWith("_") ? " (comment)" : " (unknown field)"}</summary><RawField {...props} path={childPath} value={raw[key]} onChange={change} /></details>;
       return child(childSchema, raw[key], childPath, change, key, { schema: childSchema, path: childPath, hint: hintFor(schema, key), rowMember });
     };
-    control = <div className="object-fields">{setKeys.map(key => {
+    const renderFields = (displayKeys: string[]) => displayKeys.map(key => {
       const row = hintFor(schema, key)?.row;
-      const members = row ? rows.get(row) : undefined;
-      if (!members || members.length < 2) return field(key);
+      const members = row && rows.has(row) ? displayKeys.filter(member => rows.get(row)!.includes(member)) : undefined;
+      if (!members || members.length < 2) return notes.includes(`_${key}`) ? <div key={key} className="field-with-note">{beforeField(key)}{field(key)}</div> : field(key);
       if (members[0] !== key) return null;
       return <div key={`row-${row}`} className="field-row" role="group" aria-label={row}>
-        <div className="field-row-label">{row}</div><div className="field-row-controls">{members.map(member => field(member, true))}</div>
+        <div className="field-row-label">{row}</div><div className="field-row-controls">{members.map(member => notes.includes(`_${member}`) ? <div className="field-row-slot" key={member}>{beforeField(member)}{field(member, true)}</div> : field(member, true))}</div>
       </div>;
-    })}{!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => <button key={key} className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button>)}</div>}</div>;
+    });
+    const grouped = sectionHints?.map(section => ({ ...section, keys: section.keys.filter(key => setKeys.includes(key) && raw[key] !== undefined && key in node.shape) }));
+    if (grouped) {
+      const listed = new Set(sectionHints!.flatMap(section => section.keys));
+      grouped.push({ title: "Other", keys: setKeys.filter(key => raw[key] !== undefined && !listed.has(key)) });
+    }
+    control = <div className={`object-fields${grouped ? " sectioned-fields" : ""}`}>
+      {notes.filter(key => !(key.slice(1) in node.shape)).map(note)}
+      {grouped ? grouped.filter(section => section.keys.length).map(section => <SectionCard key={`${schemaName(schema)}:${section.title}`} name={schemaName(schema)} title={section.title} preview={summarize(schema, raw, section.keys, props.documents)} count={problems.filter(problem => (sectionHints!.find(hint => hint.title === section.title)?.keys ?? section.keys).some(key => problem.path === key || problem.path.startsWith(`${key}.`))).length}>{renderFields(section.keys)}</SectionCard>) : renderFields(setKeys)}
+      {!props.requiredOnly && optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => notes.includes(`_${key}`) ? <span key={key} className="optional-with-note">{beforeField(key)}<button className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button></span> : <button key={key} className="optional-chip" type="button" aria-label={`Add ${key}`} onClick={() => onChange({ ...raw, [key]: initialValue(node.shape[key]) })}>+ {hintFor(schema, key)?.label ?? humanize(key)}</button>)}</div>}
+    </div>;
   } else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => <div className="array-entry" key={index}>
     {child(node.element, entry, [path, index].filter((v) => v !== "").join("."), (next) => onChange(value.map((old, i) => i === index ? next : old)))}
     <div className="row-actions"><button type="button" aria-label={`Remove ${path}.${index}`} onClick={() => onChange(value.filter((_, i) => i !== index))}>Remove</button><button type="button" disabled={!index} aria-label={`Move up ${path}.${index}`} onClick={() => { const updated = [...value]; [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]]; onChange(updated); }}>↑</button><button type="button" disabled={index === value.length - 1} aria-label={`Move down ${path}.${index}`} onClick={() => { const updated = [...value]; [updated[index + 1], updated[index]] = [updated[index], updated[index + 1]]; onChange(updated); }}>↓</button></div>

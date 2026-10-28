@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { Activity, Artwork, Item, ItemAction, Site } from "../../src/content";
-import { hintFor, hints, humanize, staleHints } from "../../src/studio/hints";
+import { hintFor, hints, humanize, staleHints, sections, sectionsFor } from "../../src/studio/hints";
 
 it("binds the shipped hints to exported schema objects and rejects stale shape keys", () => {
   expect([...hints.keys()]).toEqual([Activity, ItemAction, Item, Site, Artwork]);
@@ -17,4 +17,13 @@ it("looks up wrapped schemas by identity without applying hints to shape copies"
 
 it("humanizes fallback labels", () => {
   for (const [key, label] of [["visibleWhen", "Visible when"], ["id", "ID"], ["hoursFactor", "Hours factor"], ["name", "Name"]]) expect(humanize(key)).toBe(label);
+});
+
+it("binds sections by schema identity and detects unknown, duplicate and split-row keys", () => {
+  expect([...sections.keys()]).toEqual([Activity, Item]);
+  expect(sectionsFor(Activity.optional())).toBe(sections.get(Activity));
+  expect(sectionsFor(Activity.omit({ global: true }))).toBeUndefined();
+  expect(staleHints(hints, new Map([[Activity, [{ title: "Bad", keys: ["notAField"] }]]]))).toEqual(["sections:Activity.notAField"]);
+  expect(staleHints(hints, new Map([[Activity, [{ title: "One", keys: ["name"] }, { title: "Two", keys: ["name"] }]]]))).toEqual(["sections:Activity.name"]);
+  expect(staleHints(hints, new Map([[Activity, [{ title: "One", keys: ["hours"] }, { title: "Two", keys: ["effort"] }]]]))).toEqual(["sections:Activity.effort"]);
 });
