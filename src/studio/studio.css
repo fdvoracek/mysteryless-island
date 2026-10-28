@@ -92,6 +92,7 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .field-row-member { display: block; flex: 1 1 100px; min-width: 0; }
 .field-row-member > .field-label { font-size: 11px; color: var(--studio-faint); margin-bottom: 4px; }
 .field-row-member.field-number { flex: 0 1 auto; }
+.field-scalar.field-number > .field-control > input { max-width: 120px; }
 .field-row-member.field-number > .field-control input { width: 64px; }
 .field-unit { font-size: 12px; color: var(--studio-muted); flex: none; }
 .field-locked > .field-control input { font-family: var(--studio-code); background: var(--studio-ground); }
@@ -113,13 +114,14 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .array-line > .form-field { flex: 1; }
 .form-field.field-unlabelled { display: block; }
 .array-line > .form-field, .record-row > .form-field { display: block; margin: 0; min-width: 0; }
-.array-object-entry { display: grid; grid-template-columns: 22px minmax(0, 1fr); column-gap: 6px; min-width: 0; padding-block: 6px; }
+.array-object-entry { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; column-gap: 6px; align-items: start; min-width: 0; padding-block: 6px; }
 .array-object-entry + .array-object-entry { border-top: 1px solid #eef0f2; }
-.entry-index { grid-column: 1; grid-row: 1; color: var(--studio-faint); font-size: 11px; padding-top: 3px; text-align: right; }
-.entry-fields { grid-column: 2; grid-row: 2; min-width: 0; }
+.entry-index { grid-column: 1; grid-row: 1; color: var(--studio-faint); font-size: 11px; padding-top: 8px; text-align: right; }
+.entry-fields { grid-column: 2; grid-row: 1; min-width: 0; }
 .entry-fields > .form-field, .array-rule-entry > .form-field { margin: 0; }
-.array-object-entry > .entry-actions { grid-column: 2; grid-row: 1; justify-self: end; }
+.array-object-entry > .entry-actions { grid-column: 3; grid-row: 1; justify-self: end; }
 .entry-fields > .form-field > .field-control > .outcome-widget { border: 0; padding: 0; margin: 0; }
+.entry-fields > .form-field > .field-control > .outcome-widget > .form-field { margin: 0; }
 .record-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; min-width: 0; }
 .record-key { font-family: var(--studio-code); font-size: 11px; overflow-wrap: anywhere; min-width: 0; }
 .record-reference { font-family: var(--studio-font); background: #f1f2f4; border-radius: 5px; padding: 1px 7px; }
@@ -134,6 +136,7 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .form-field:hover > .field-label > .field-unset, .form-field:focus-within > .field-label > .field-unset { opacity: 1; }
 @media (max-width: 760px) {
   .entry-actions, .field-label > .field-unset { opacity: 1; }
+  .array-object-entry > .entry-index { padding-top: 1px; }
   .record-row { grid-template-columns: minmax(0, 1fr) auto; }
   .record-row > .record-key { grid-column: 1; }
   .record-row > .form-field { grid-column: 1; grid-row: 2; }
