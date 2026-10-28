@@ -219,3 +219,43 @@ Read-only shipped `content/activities/catch_fish.json` measurement at 1440×900,
 `.editor-fields.scrollHeight`: UX-02 baseline at `4241ac3` **5,831 px**; reviewed UX-03 all open **6,016 px**;
 all four cards collapsed **249 px**. Open cards add their headers/body spacing; nested widget
 compaction remains UX-04/UX-05.
+
+## UX-04 implementation differences — [implemented]
+
+Specified by the UX-04 prompt and approved refinements: Condition/Effect operators remain native
+kind selects with unchanged options and accessible names, styled uppercase without visible kind
+labels. All/any headers read “[all/any] of these”; leaf reference tokens, phase/warmth/effort
+checkbox pills and inline scalar fields share the existing schema forms. Absent range fields
+show “+ at least” / “+ at most” chips; set optional inline fields use a ghost × with their existing
+Unset name. Simple own-key objects keep inner captions, and own-key booleans have no caption.
+Complex fields and roll outcomes stay below the sentence; give/take amounts reuse the record
+editor inline. Only depth-zero rules have Reads as summaries; nested groups/not children are boxed.
+
+Text has a widget-header channel badge and variant count, the existing form select, numbered
+serif auto-height rows, journal-only n/80 counters and “+ add variant”. Explicit IDs remain above
+the rows. Actions belong to their own row, show on hover/focus and remain visible on narrow or
+hoverless devices. Hidden checkboxes expose their focus ring on the pill. A small minimum text
+row height keeps actions below the counter without covering either text or counter.
+
+Specified differences from the static mockup: root composites retain UX-02 labels above controls;
+UX-03's “Journal” card title stays, with the channel badge inside the widget rather than the card
+header. The operators use schema names ITEM/PHASE rather than CARRYING/PHASE IS; groups use the
+prompt's header order. Fixture requires.item has no gte, so no default value is written or shown.
+Every top-level rule gets its own summary using unchanged describe() wording. Existing reference
+labels retain their em-dash separator, and native reference selects retain every option. Only
+groups expose add-condition/group links. Text form controls and the first-variant hint remain.
+The fixture's prose differs from the mockup; neither pack was edited for screenshots.
+
+Real deviations from the approved UX-04 scope: none. Generic array/record entry boxes, outer
+Unset controls, shell, outcome tables and card-title badges remain deferred; UX-04b owns generic
+row compaction and Unset hover/focus behavior.
+
+Evidence in [ux-04/](ux-04/): [rules beside mockup](ux-04/rules-comparison.jpg),
+[text beside mockup](ux-04/text-comparison.jpg), [390px rules and text](ux-04/catch-fish-390.jpg).
+Both comparison sides were captured at 1440×900 with device scale 1, cropped at native size and
+placed beside each other without resizing. The implementation uses a disposable fixture pack;
+all three JPEGs are below 200 KB. The phone capture has document.documentElement.scrollWidth = 390.
+
+Read-only shipped catch_fish measurement at 1440×900 with all four cards open:
+.editor-fields.scrollHeight **6,016 px** at baseline **654f06a**, **2,810 px** after UX-04
+(3,206 px / 53.3% reduction). The shipped measurement and fixture screenshot sources are separate.

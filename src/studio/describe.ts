@@ -13,6 +13,7 @@ export function unionKinds(schema: Schema): { kind: string; schema: Schema }[] {
 }
 type Phrase = (v: Record<string, any>, name: (kind: string, id: string) => string, recurse: (v: unknown) => string) => string;
 const range = (v: Record<string, unknown>, fallback = "") => [v.gte !== undefined ? `at least ${v.gte}` : "", v.lte !== undefined ? `at most ${v.lte}` : ""].filter(Boolean).join(" and ") || fallback;
+export const rangeCaptions = { gte: "at least", lte: "at most" } as const;
 export const conditionPhrases: Record<string, Phrase> = {
   all: (v, _, d) => `(${v.all.map(d).join(" and ")})`, any: (v, _, d) => `(${v.any.map(d).join(" or ")})`, not: (v, _, d) => `not (${d(v.not)})`,
   item: (v, n) => `carrying ${n("item", v.item)}: ${range(v, "at least 1")}`,

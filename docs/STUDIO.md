@@ -215,7 +215,8 @@ show their raw ID. Summaries use Studio-only `describe()`, without evaluating ga
 All/any groups support adding conditions or groups, removing and reordering. They require at
 least one child: an empty group shows an inline error and blocks Save. Switching multiple
 children to not wraps them in all, preserving the children under not's single child.
-Phase, warmth and effort use checkbox multi-selects; ranges and day/reached objects use fields.
+Phase, warmth and effort use checkbox multi-selects styled as toggle pills; ranges and
+day/reached objects use inline fields (UX-04).
 
 Effect lists support every schema kind, item amounts, stat deltas, timer changes, flags, journal
 logs, quest starts, unlocks, buildings and cycles. Roll effects contain weighted outcomes with
@@ -232,7 +233,7 @@ extra alternatives explicitly first. Text objects with author comments retain th
 form so comments cannot be discarded by conversion. Changing representation may change the
 text memo key. No text is rewritten automatically.
 
-A small channel table labels known modal and journal fields; unlisted fields are simply Text.
+A small channel table badges known modal and journal fields; unlisted fields carry a text badge.
 Scene and discovery passages, exploration views/nothingLeft, and new-place text are modal.
 Arrival/description, work and item logs, outcome text, thoughts, quest start/done logs and timer
 warnings are journal. Quest doneLog also appears in the completion note and retains the journal
@@ -241,6 +242,26 @@ Different placeholder sets between alternatives also produce a warning. Both are
 never block saving; schema/reference errors still do. Comments, object key order and untouched
 values are preserved, and Save all retains the PR-05 whole-pack validation and sequential writes.
 
+
+## Rules and texts — [implemented, UX-04]
+
+Rules use sentence rows: the kind select is an uppercase operator without a visible kind label,
+followed by reference tokens, checkbox toggle pills and inline scalar fields. Range captions are
+“at least” and “at most”; unset optional fields remain add chips. Set optional inline fields
+have a small × with their existing Unset accessible name. Complex fields, including roll
+outcomes, stay below the sentence. Give/take item amounts use item tokens and number inputs.
+All/any groups say “of these”; nested groups and not children have indented boxes. Each
+independent top-level rule has one Reads as summary; nested rules do not repeat it.
+
+Rule row actions (↑ ↓ { } ×) and text row actions (↑ ↓ ×) appear on that row's hover or keyboard
+focus. They remain visible on narrow and hoverless devices. Checkbox pills show the focus
+outline on the pill itself. Existing path-based accessible names and editing behavior stay intact.
+
+Text widgets show a channel badge, variant count and compact text-form selector. Alternatives
+are numbered serif rows with auto-height textareas, journal-only n/80 counters and a “+ add
+variant” link. The explicit ID stays above the rows; the form selector's title explains memo-key
+changes. First-variant guidance, placeholder warnings and mode-switching restrictions remain.
+Generic arrays/records, their Unset controls and nested-object compaction are deferred to UX-04b.
 
 ## Area workspace and rename — [implemented, PR-07]
 

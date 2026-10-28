@@ -1066,3 +1066,67 @@ test("sectioned forms use bare file panels while JSON and small forms keep their
     await expect(contents).toHaveClass("json-panel");
   }
 });
+
+test("sentence rules support pill edits, keyboard focus, row actions and narrow screens", async ({ page }) => {
+  await page.goto("/studio/");
+  await page.getByRole("navigation").getByRole("button", { name: /^Activities/ }).click();
+  await page.getByRole("searchbox").fill("catch_fish");
+  const entry = page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^catch_fish$/ }) });
+  await entry.click();
+  const rule = page.getByRole("region", { name: "condition requires", exact: true });
+  const night = rule.getByRole("checkbox", { name: "requires.all.1.phase: night", exact: true });
+  await night.check();
+  await expect(night).toBeChecked();
+  await expect(entry).toContainText("Unsaved");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(night).not.toBeChecked();
+  await expect(entry).not.toContainText("Unsaved");
+
+  // Enter the next rule line using Tab, with the pointer away from the form.
+  await page.mouse.move(0, 0);
+  await rule.getByRole("combobox", { name: "requires kind", exact: true }).focus();
+  await page.keyboard.press("Tab"); // group JSON action
+  await page.keyboard.press("Tab"); // item operator
+  await expect(rule.getByRole("combobox", { name: "requires.all.0 kind", exact: true })).toBeFocused();
+  const itemActions = rule.getByRole("region", { name: "condition requires.all.0", exact: true }).locator(".rule-actions");
+  const phaseActions = rule.getByRole("region", { name: "condition requires.all.1", exact: true }).locator(".rule-actions");
+  await expect(itemActions).toHaveCSS("opacity", "1");
+  await expect(phaseActions).toHaveCSS("opacity", "0");
+  for (let i = 0; i < 12; i++) {
+    if (await rule.getByRole("button", { name: "Move down requires.all.0", exact: true }).evaluate(e => e === document.activeElement)) break;
+    await page.keyboard.press("Tab");
+  }
+  await expect(rule.getByRole("button", { name: "Move down requires.all.0", exact: true })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(rule.getByRole("combobox", { name: "requires.all.0 kind", exact: true })).toHaveValue("phase");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+
+  await rule.getByRole("combobox", { name: "requires.all.1 kind", exact: true }).focus();
+  await page.keyboard.press("Tab");
+  const dawn = rule.getByRole("checkbox", { name: "requires.all.1.phase: dawn", exact: true });
+  await expect(dawn).toBeFocused();
+  await expect(dawn.locator("..")).toHaveCSS("outline-style", "solid");
+  await expect(dawn.locator("..")).toHaveCSS("outline-width", "2px");
+  await page.keyboard.press("Space");
+  await expect(dawn).not.toBeChecked();
+  await expect(entry).toContainText("Unsaved");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(dawn).toBeChecked();
+
+  await rule.getByRole("button", { name: "Add gte", exact: true }).click();
+  await expect(rule.getByRole("spinbutton", { name: "requires.all.0.gte", exact: true })).toBeVisible();
+  await expect(rule.getByRole("button", { name: "Unset requires.all.0.gte", exact: true })).toHaveText("×");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await rule.getByRole("button", { name: "requires.all.0 JSON view", exact: true }).click();
+  await expect(rule.getByRole("textbox", { name: "requires.all.0", exact: true })).toBeVisible();
+  await expect(rule.getByRole("combobox", { name: "requires.all.1 kind", exact: true })).toBeVisible();
+  await rule.getByRole("button", { name: "requires.all.0 JSON view", exact: true }).click();
+  await expect(rule.getByRole("combobox", { name: "requires.all.0 kind", exact: true })).toBeVisible();
+
+  await page.setViewportSize({ width: 390, height: 900 });
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+  await expect(itemActions).toHaveCSS("opacity", "1");
+  const text = page.getByRole("region", { name: "Text log", exact: true });
+  await expect(text.locator(".variant")).toHaveCount(3);
+  await expect(text.locator(".variant-actions").first()).toHaveCSS("opacity", "1");
+});
