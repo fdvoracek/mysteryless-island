@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio Redesign Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--ground:#F3F4F6;--panel:#fff;--border:#D9DCE1;--input:#C9CDD3;--ink:#16191D;--muted:#545C66;--faint:#8A929C;--accent:#1F5FAD;--accent-soft:#E6EEF8;--ok:#245733;--ok-soft:#E5F0E8;--warn:#8A4608;--warn-soft:#FBF0E2;--err:#9A2A1F;--disc:#F6EEDF;--task:#E6EEF8;--area:#E5F0E8;--event:#EFE9F6;
+--ui:Inter,system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;--serif:"Source Serif 4",Georgia,serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:13px/1.45 var(--ui)}
+button{font:inherit;color:inherit;background:var(--panel);border:1px solid var(--input);border-radius:6px;padding:4px 10px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.ghost{border-color:transparent;background:transparent}
+button.ghost:hover{background:var(--ground)}
+code,.mono{font-family:var(--mono);font-size:12px}
+input,select,textarea{font:inherit;color:inherit;border:1px solid var(--input);border-radius:5px;padding:4px 7px;background:#fff;width:100%}
+textarea{font-family:var(--serif);font-size:14px;resize:vertical;min-height:34px}
+.app{display:grid;grid-template-rows:48px 1fr 26px;height:100vh}
+/* top bar */
+.top{display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--panel);border-bottom:1px solid var(--border)}
+.brand{font-weight:600;white-space:nowrap}.brand span{color:var(--muted);font-weight:400}
+.cmdk{flex:0 1 420px;display:flex;justify-content:space-between;color:var(--faint);background:var(--ground);border-color:var(--border);margin-left:16px}
+.cmdk kbd{font:11px var(--mono);border:1px solid var(--border);border-radius:4px;padding:0 4px;background:#fff}
+.spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;font-weight:500}
+.chip.ok{background:var(--ok-soft);color:var(--ok)}.chip.warn{background:var(--warn-soft);color:var(--warn)}
+.dirty-btn{border-color:var(--warn);color:var(--warn)}
+/* body */
+.main{display:grid;grid-template-columns:220px 300px 1fr 280px;min-height:0}
+.main>*{min-height:0;overflow:auto}
+.side{background:var(--panel);border-right:1px solid var(--border);padding:10px 6px}
+.side h4{margin:14px 8px 4px;font-size:10.5px;letter-spacing:.08em;color:var(--faint);text-transform:uppercase}
+.nav{display:flex;align-items:center;gap:6px;width:100%;border:0;background:none;padding:4px 8px;border-radius:5px;text-align:left}
+.nav:hover{background:var(--ground)}.nav[aria-current]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.nav .n{margin-left:auto;color:var(--faint);font-size:11px}
+.nav .tw{width:10px;color:var(--faint);font-size:9px}
+.nav.sub{padding-left:26px}
+.dot{width:8px;height:8px;border-radius:2px;flex:none}
+/* list */
+.list{background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column}
+.list-head{padding:10px 12px 8px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--panel)}
+.list-head h2{margin:0;font-size:15px}.list-head p{margin:2px 0 8px;color:var(--muted);font-size:12px}
+.filters{display:flex;gap:4px;flex-wrap:wrap}.filters button{font-size:11.5px;padding:1px 8px;border-radius:999px}
+.filters button[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr auto;gap:0 8px;padding:7px 12px;border-bottom:1px solid #EEF0F2;cursor:pointer}
+.row:hover{background:#FAFBFC}.row[aria-selected=true]{background:var(--accent-soft);box-shadow:inset 3px 0 var(--accent)}
+.row b{font-weight:500}.row code{color:var(--muted);font-size:11px}
+.row .meta{grid-column:1/3;color:var(--muted);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .r{text-align:right;color:var(--muted);font-size:11.5px}
+.badge{font-size:10.5px;border-radius:4px;padding:0 5px;background:var(--ground);color:var(--muted);border:1px solid var(--border)}
+.badge.unsaved{background:var(--warn-soft);color:var(--warn);border-color:#EAD3B5}
+.list-foot{margin-top:auto;padding:8px 12px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--panel)}
+/* editor */
+.editor{padding:0 20px 40px}
+.doc-head{position:sticky;top:0;z-index:2;background:var(--ground);padding:12px 0 10px;display:flex;align-items:flex-end;gap:12px;border-bottom:1px solid var(--border);margin-bottom:14px}
+.crumb{color:var(--muted);font-size:12px}.crumb a{color:var(--accent);text-decoration:none}
+.doc-head h1{margin:2px 0 0;font-size:20px;display:flex;align-items:center;gap:8px}
+.seg{display:inline-flex;border:1px solid var(--input);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0}.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:12px}
+.card>summary{list-style:none;cursor:pointer;padding:9px 14px;display:flex;align-items:center;gap:8px;font-weight:600}
+.card>summary::-webkit-details-marker{display:none}
+.card>summary::before{content:"▸";color:var(--faint);font-size:10px;transition:transform .15s}
+.card[open]>summary::before{transform:rotate(90deg)}
+.card>summary .sum{font-weight:400;color:var(--muted);font-size:12px;margin-left:auto;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card[open]>summary .sum{display:none}
+.card .body{padding:4px 14px 14px;border-top:1px solid #EEF0F2}
+.grid{display:grid;grid-template-columns:130px 1fr;gap:8px 14px;align-items:center;margin-top:10px}
+.grid>label{color:var(--muted);font-size:12.5px}
+.grid>label small{display:block;color:var(--faint);font-size:11px}
+.inline{display:flex;gap:8px;align-items:center}.inline>*{flex:1}
+.lock{display:flex;gap:6px;align-items:center}.lock code{flex:1;padding:4px 7px;background:var(--ground);border-radius:5px}
+.rule{border:1px solid var(--border);border-radius:6px;padding:6px 8px;background:#FAFBFC}
+.sentence{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tok{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--input);background:#fff;border-radius:5px;padding:1px 7px}
+.tok.ref{background:var(--disc);border-color:#E4D6BC}.tok.item{background:#F1F2F4}
+.tok .x{color:var(--faint);cursor:pointer}
+.op{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.rule-line{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px dashed #E7E9EC}
+.rule-line:last-of-type{border-bottom:0}
+.rule-line .acts{margin-left:auto;opacity:0;display:flex;gap:2px}.rule-line:hover .acts{opacity:1}
+.addlink{color:var(--accent);background:none;border:0;padding:4px 0;font-size:12px}
+.alt{display:grid;grid-template-columns:22px 1fr 54px;gap:6px;align-items:start;margin-bottom:6px}
+.alt .i{color:var(--faint);font-size:11px;padding-top:7px;text-align:right}
+.alt .cnt{font-size:11px;color:var(--faint);padding-top:7px}.alt .cnt.warn{color:var(--warn)}
+.outcomes{width:100%;border-collapse:collapse;margin-top:8px}
+.outcomes th{text-align:left;font-size:11px;color:var(--faint);font-weight:500;padding:4px 6px;border-bottom:1px solid var(--border)}
+.outcomes td{padding:7px 6px;border-bottom:1px solid #EEF0F2;vertical-align:top}
+.outcomes tr.o{cursor:pointer}.outcomes tr.o:hover td{background:#FAFBFC}
+.bar{height:6px;border-radius:3px;background:var(--accent-soft);overflow:hidden;width:70px;margin-top:4px}.bar i{display:block;height:100%;background:var(--accent)}
+.serif{font-family:var(--serif);font-size:14px}
+.fx{display:inline-block;border-radius:4px;padding:0 6px;font-size:12px;background:var(--ok-soft);color:var(--ok)}
+.fx.none{background:var(--ground);color:var(--faint)}
+.expand td{background:#FAFBFC}
+.optline{display:flex;flex-wrap:wrap;gap:6px;align-items:center;color:var(--muted);font-size:12px;margin:0 0 12px;padding:8px 14px;border:1px dashed var(--border);border-radius:8px;background:var(--panel)}
+.chip-add{font-size:12px;padding:1px 8px;border-radius:999px;border-style:dashed;color:var(--accent)}
+.note{background:#FFFBEA;border:1px solid #EFE3B0;border-radius:6px;padding:6px 10px;font-size:12px;color:#5B4A12;margin-bottom:12px}
+/* rail */
+.rail{background:var(--panel);border-left:1px solid var(--border);padding:12px}
+.rail h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);margin:16px 0 6px}
+.rail h3:first-child{margin-top:0}
+.ref{display:block;width:100%;text-align:left;border:1px solid var(--border);border-radius:6px;padding:6px 8px;margin-bottom:5px}
+.ref small{display:block;color:var(--muted);font-family:var(--mono);font-size:10.5px}
+.okline{color:var(--ok);font-size:12px}
+.preview-mini{border:1px solid var(--border);border-radius:6px;padding:8px;font-family:var(--serif);font-size:13px;background:#FBF8F2}
+/* status bar */
+.status{display:flex;align-items:center;gap:16px;padding:0 12px;background:var(--panel);border-top:1px solid var(--border);font-size:11.5px;color:var(--muted)}
+/* overlays */
+.scrim{position:fixed;inset:0;background:rgba(22,25,29,.35);display:none;z-index:10}
+.scrim.on{display:block}
+.palette{position:fixed;top:70px;left:50%;transform:translateX(-50%);width:min(620px,92vw);background:#fff;border-radius:10px;box-shadow:0 20px 50px rgba(0,0,0,.25);display:none;z-index:11;overflow:hidden}
+.palette.on{display:block}
+.palette input{border:0;border-bottom:1px solid var(--border);border-radius:0;padding:12px 14px;font-size:15px}
+.palette .grp{padding:6px 14px 2px;font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.07em}
+.palette .it{display:flex;gap:10px;align-items:center;padding:7px 14px;cursor:pointer}
+.palette .it:hover,.palette .it.sel{background:var(--accent-soft)}
+.palette .it code{margin-left:auto;color:var(--muted)}
+.drawer{position:fixed;right:0;top:48px;bottom:26px;width:420px;background:#fff;border-left:1px solid var(--border);box-shadow:-10px 0 30px rgba(0,0,0,.08);transform:translateX(100%);transition:transform .2s;z-index:9;padding:14px;overflow:auto}
+.drawer.on{transform:none}
+.diff{font:11.5px/1.5 var(--mono);background:var(--ground);border-radius:6px;padding:6px 8px;margin:6px 0 12px;white-space:pre-wrap}
+.diff .a{color:var(--ok)}.diff .d{color:var(--err)}
+/* annotations */
+.ann{display:none;position:absolute;z-index:5;background:#C2410C;color:#fff;font-size:11px;font-weight:600;border-radius:999px;min-width:20px;height:20px;padding:0 6px;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+body.annot .ann{display:inline-flex}
+.rel{position:relative}
+.legend{display:none;position:fixed;left:12px;bottom:36px;width:360px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,.15);padding:10px 12px;z-index:8;font-size:12px;max-height:60vh;overflow:auto}
+body.annot .legend{display:block}
+.legend ol{margin:4px 0 0;padding-left:18px}.legend li{margin-bottom:4px}
+@media (max-width:1100px){.main{grid-template-columns:200px 260px 1fr}.rail{display:none}}
+@media (max-width:760px){.main{grid-template-columns:1fr}.main>*,.grid>*{min-width:0}.side,.list{display:none}.cmdk{display:none}.editor{padding:0 16px 40px}.grid{grid-template-columns:1fr}
+.top{gap:6px;padding:0 16px}.top .brand,.top .wide{display:none}.dirty-btn .long{display:none}
+.doc-head{flex-wrap:wrap}.rule-line,.inline,.sentence{flex-wrap:wrap}.rule-line .acts{opacity:1}
+.outcomes{table-layout:fixed}.outcomes td{overflow-wrap:anywhere}
+.status .hints{display:none}.legend{width:auto;right:12px}.drawer{width:100vw}}
+</style>
+</head>
+<body class="annot">
+<div class="app">
+  <header class="top rel">
+    <div class="brand">Mysteryless Island <span>Studio</span></div>
+    <button class="cmdk rel" id="openK"><span>⌕ Jump to, search or create…</span><kbd>⌘K</kbd><span class="ann" style="right:-8px;top:-8px">1</span></button>
+    <div class="spacer"></div>
+    <span class="chip ok rel">● Valid<span class="ann" style="right:-14px;top:-10px">2</span></span>
+    <button class="dirty-btn rel" id="openChanges">2 unsaved<span class="long"> changes</span><span class="ann" style="right:-8px;top:-8px">3</span></button>
+    <button class="ghost wide" title="Undo ⌘Z">↶</button><button class="ghost wide" title="Redo ⇧⌘Z">↷</button>
+    <button class="primary">Save all</button>
+    <button class="wide">▶ Preview</button>
+    <button class="ghost" title="Refresh from disk · Open game ↗">⋯</button>
+  </header>
+
+  <div class="main">
+    <!-- Sidebar -->
+    <nav class="side rel" aria-label="Content">
+      <span class="ann" style="left:150px;top:6px">4</span>
+      <h4>World</h4>
+      <button class="nav"><span class="tw"></span>🗺 Map</button>
+      <button class="nav"><span class="tw"></span>⟿ Story</button>
+      <button class="nav"><span class="tw"></span>⑂ Creation trees</button>
+      <h4>Areas</h4>
+      <button class="nav"><span class="tw">▾</span><span class="dot" style="background:#9CC3A6"></span>the beach<span class="n">camp</span></button>
+      <button class="nav sub" aria-current="page">Activities<span class="n">8</span></button>
+      <button class="nav sub">Landmarks &amp; exploration<span class="n">0</span></button>
+      <button class="nav sub">Area settings</button>
+      <button class="nav"><span class="tw">▸</span><span class="dot" style="background:#9CC3A6"></span>the forest<span class="n">0.5 h</span></button>
+      <button class="nav"><span class="tw">▸</span><span class="dot" style="background:#9CC3A6"></span>the meadows<span class="n">1 h</span></button>
+      <button class="nav" style="color:var(--accent)"><span class="tw"></span>+ New area</button>
+      <h4>Library</h4>
+      <button class="nav"><span class="tw"></span>Items<span class="n">28</span></button>
+      <button class="nav"><span class="tw"></span>Recipes<span class="n">5</span></button>
+      <button class="nav"><span class="tw"></span>Buildings<span class="n">10</span></button>
+      <button class="nav"><span class="tw"></span>Tasks<span class="n">14</span></button>
+      <button class="nav"><span class="tw"></span>Events<span class="n">1</span></button>
+      <button class="nav"><span class="tw"></span>Sites<span class="n">8</span></button>
+      <button class="nav"><span class="tw"></span>Artwork &amp; illustrations<span class="n">2</span></button>
+      <button class="nav"><span class="tw"></span>All activities<span class="n">17</span></button>
+      <h4>Settings</h4>
+      <button class="nav"><span class="tw"></span>Game · Stats · Climate</button>
+    </nav>
+
+    <!-- List -->
+    <section class="list rel" aria-label="Activities in the beach">
+      <span class="ann" style="right:8px;top:8px">5</span>
+      <div class="list-head">
+        <h2>Activities · the beach</h2>
+        <p>8 linked, in the order the player sees them · drag to reorder</p>
+        <input placeholder="Filter this list…" style="margin-bottom:6px">
+        <div class="filters"><button aria-pressed="true">All</button><button aria-pressed="false">Area-only</button><button aria-pressed="false">Global</button><button aria-pressed="false">Has problems</button></div>
+      </div>
+      <div id="rows"></div>
+      <div class="list-foot"><button style="width:100%">+ New activity in the beach</button><div style="margin-top:6px;color:var(--muted);font-size:11.5px">or <a href="#" style="color:var(--accent)">link an existing one…</a></div></div>
+    </section>
+
+    <!-- Editor -->
+    <main class="editor">
+      <div class="doc-head rel">
+        <span class="ann" style="left:-12px;top:12px">6</span>
+        <div style="flex:1">
+          <div class="crumb"><a href="#">the beach</a> › <a href="#">Activities</a> › catch_fish</div>
+          <h1>catch fish <span class="badge unsaved">Unsaved</span></h1>
+        </div>
+        <div class="seg"><button aria-pressed="true">Form</button><button aria-pressed="false">JSON</button></div>
+        <button title="Duplicate · Rename ID · Delete">⋯</button>
+      </div>
+
+      <div class="note">📝 <b>Author note</b> (<code>_note</code>): example — shown only when the file has <code>_</code> keys; replaces the raw “(comment)” blocks. catch_fish itself has none.</div>
+
+      <details class="card rel" open>
+        <summary>Basics<span class="sum">catch fish · 1 h · work · fish</span></summary>
+        <span class="ann" style="right:10px;top:8px">7</span>
+        <div class="body"><div class="grid">
+          <label>Name <small>shown on the button</small></label><input value="catch fish">
+          <label>ID</label><div class="lock"><code>catch_fish</code><button class="ghost" style="font-size:12px">Rename…</button></div>
+          <label>Duration &amp; effort</label>
+          <div class="inline"><div class="inline" style="flex:0 0 110px"><input value="1" style="width:60px">h</div><select><option>work</option><option>light</option><option>heavy</option><option>sleep</option></select><select><option>🐟 fish</option></select></div>
+        </div></div>
+      </details>
+
+      <details class="card rel" open>
+        <summary>When can the player do this?<span class="sum">visible after school_of_fish · needs spear, daylight</span></summary>
+        <span class="ann" style="right:10px;top:8px">8</span>
+        <div class="body"><div class="grid" style="align-items:start">
+          <label style="padding-top:6px">Visible when <small>button appears</small></label>
+          <div class="rule"><div class="rule-line"><span class="op">discovered</span><span class="tok ref">school_of_fish · the shallows <span class="x">×</span></span><span class="acts"><button class="ghost">{ }</button><button class="ghost">⋯</button></span></div>
+            <button class="addlink">+ add condition</button></div>
+          <label style="padding-top:6px">Requires <small>button enabled</small></label>
+          <div class="rule">
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:2px">All of <select style="width:auto;padding:0 4px;font-size:11.5px"><option>all</option><option>any</option></select></div>
+            <div class="rule-line"><span class="op">carrying</span><span class="tok item">fishing_spear · fishing spear</span><span class="op">at least</span><input value="1" style="width:50px"><span class="acts"><button class="ghost">↑</button><button class="ghost">↓</button><button class="ghost">⋯</button></span></div>
+            <div class="rule-line"><span class="op">phase is</span><span class="tok">dawn ×</span><span class="tok">day ×</span><span class="tok">dusk ×</span><span class="tok" style="color:var(--faint);border-style:dashed">+ night</span><span class="acts"><button class="ghost">↑</button><button class="ghost">↓</button><button class="ghost">⋯</button></span></div>
+            <button class="addlink">+ add condition</button> <button class="addlink">+ add group</button>
+          </div>
+          <label></label><div style="font-size:12px;color:var(--muted)"><b>Reads as:</b> carrying fishing spear ≥ 1 and phase is dawn, day or dusk</div>
+        </div></div>
+      </details>
+
+      <details class="card rel" open>
+        <summary>Journal while working <span class="badge">journal · 3 variants</span><span class="sum">“You wade cautiously into the shallows…”</span></summary>
+        <span class="ann" style="right:10px;top:8px">9</span>
+        <div class="body"><div style="margin-top:10px">
+          <div class="alt"><span class="i">1</span><textarea rows="1">You wade cautiously into the shallows with the spear held ready.</textarea><span class="cnt">64/80</span></div>
+          <div class="alt"><span class="i">2</span><textarea rows="1">Standing knee-deep in cold water, you wait for the fish to approach.</textarea><span class="cnt">68/80</span></div>
+          <div class="alt"><span class="i">3</span><textarea rows="1">With the spear prepared, you advance slowly through the water.</textarea><span class="cnt">62/80</span></div>
+          <button class="addlink">+ add variant</button>
+        </div></div>
+      </details>
+
+      <details class="card rel" open>
+        <summary>Outcomes <span class="badge">roll · 3</span><span class="sum">40% 2 fish · 40% 1 fish · 20% nothing</span></summary>
+        <span class="ann" style="right:10px;top:8px">10</span>
+        <div class="body">
+          <table class="outcomes" id="outcomes">
+            <thead><tr><th style="width:90px">Weight</th><th>Text (first of variants)</th><th style="width:120px">Effects</th><th style="width:30px"></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <button class="addlink">+ add outcome</button>
+        </div>
+      </details>
+
+      <div class="optline rel"><span class="ann" style="left:-12px;top:-6px">13</span><span>Optional:</span><button class="chip-add" aria-label="Add global">+ Global</button><button class="chip-add" aria-label="Add building">+ Building</button><button class="chip-add" aria-label="Add requiresText">+ Requires text</button><button class="chip-add" aria-label="Add cost">+ Cost</button><button class="chip-add" aria-label="Add effects">+ Effects</button><button class="chip-add" aria-label="Add yields">+ Yields</button><button class="chip-add" aria-label="Add thoughts">+ Thoughts</button><button class="chip-add" aria-label="Add afterwards">+ Afterwards</button><button class="chip-add" aria-label="Add tags">+ Tags</button></div>
+    </main>
+
+    <!-- Right rail -->
+    <aside class="rail rel">
+      <span class="ann" style="right:10px;top:8px">11</span>
+      <h3>Problems in this file</h3>
+      <div class="okline">✓ No problems</div>
+      <h3>Linked from</h3>
+      <button class="ref">the beach · activity 7 of 8<small>regions/beach.json › activities.6</small></button>
+      <h3>Referenced by</h3>
+      <button class="ref">sleep<small>activities/sleep.json › visibleWhen…</small></button>
+      <h3>Uses</h3>
+      <button class="ref">school_of_fish · landmark<small>visibleWhen</small></button>
+      <button class="ref">fishing_spear · item<small>requires.all.0</small></button>
+      <button class="ref">raw_fish · item<small>outcomes.0/1 effects</small></button>
+      <h3>Try it</h3>
+      <div class="preview-mini">You wade cautiously into the shallows with the spear held ready.</div>
+      <button style="width:100%;margin-top:6px">▶ Play from here <span style="color:var(--faint)">(gives spear, unlocks beach)</span></button>
+    </aside>
+  </div>
+
+  <footer class="status rel">
+    <span class="ann" style="left:4px;top:-10px">12</span>
+    <span>✓ 0 problems</span><span>2 unsaved files</span><span>Layout saved</span><span class="hints" style="margin-left:auto">Read from disk 11:42 · ⌘S save · ⌘K jump · ⌘\ toggle panels</span>
+  </footer>
+</div>
+
+<!-- Command palette -->
+<div class="scrim" id="scrim"></div>
+<div class="palette" id="palette" role="dialog" aria-label="Jump to">
+  <input id="kq" placeholder="Type a name, ID, or ‘new’…" value="fish">
+  <div class="grp">Content</div>
+  <div class="it sel">🎯 catch fish <span class="badge">activity · beach</span><code>catch_fish</code></div>
+  <div class="it">🎯 catch fish <span class="badge">activity · meadows</span><code>catch_river_fish</code></div>
+  <div class="it">📦 raw fish <span class="badge">item</span><code>raw_fish</code></div>
+  <div class="it">📦 fishing spear <span class="badge">item</span><code>fishing_spear</code></div>
+  <div class="it">✅ first catch <span class="badge">task</span><code>first_catch</code></div>
+  <div class="grp">Text</div>
+  <div class="it">“Two fish lie upon the sand…” <code>catch_fish › outcomes.0.text.0</code></div>
+  <div class="grp">Create</div>
+  <div class="it">＋ New activity in the beach</div>
+  <div class="it">＋ New item “fish …”</div>
+</div>
+
+<!-- Changes drawer -->
+<aside class="drawer" id="drawer" aria-label="Unsaved changes">
+  <div style="display:flex;align-items:center"><h3 style="margin:0;font-size:15px">Unsaved changes</h3><button class="ghost" style="margin-left:auto" id="closeDrawer">✕</button></div>
+  <p style="color:var(--muted);font-size:12px">Review before Save all. Discard per file.</p>
+  <div style="display:flex;align-items:center;gap:6px"><b>activities/catch_fish.json</b><button class="ghost" style="margin-left:auto;font-size:12px">Discard</button></div>
+  <div class="diff"><span class="d">-  "weight": 2,</span>
+<span class="a">+  "weight": 3,</span></div>
+  <div style="display:flex;align-items:center;gap:6px"><b>regions/beach.json</b><button class="ghost" style="margin-left:auto;font-size:12px">Discard</button></div>
+  <div class="diff">   activities: reordered
+<span class="d">-  … "collect_stones", "catch_fish" …</span>
+<span class="a">+  … "catch_fish", "collect_stones" …</span></div>
+  <button class="primary" style="width:100%">Save all (2 files)</button>
+</aside>
+
+<div class="legend">
+  <div style="display:flex;align-items:center"><b>Annotations</b><button class="ghost" style="margin-left:auto;font-size:12px" id="hideAnn">Hide</button></div>
+  <ol>
+    <li><b>⌘K palette</b> replaces the search box: jump to any ID/name/text, and create in context.</li>
+    <li>Validation chip opens the global Problems list (no longer at the bottom of the page).</li>
+    <li>Unsaved count opens a <b>changes drawer</b> with per-file diff and Discard.</li>
+    <li><b>One tree</b> instead of Browse / By area / By kind. Areas expand to their parts.</li>
+    <li>List rows carry a <b>distinguishing meta line</b> (requires/global) — three “light fire” rows are now tellable apart. Drag = reorder area links.</li>
+    <li>Sticky header: breadcrumb, Form / JSON (content opens in Form, settings in JSON), rare actions in ⋯ (Duplicate, Rename ID, Delete).</li>
+    <li><b>Inspector grid</b>: label left, related scalars inline in one row. Cards collapse to a one-line summary.</li>
+    <li>Conditions as <b>sentence rows</b> (op · token · value); reorder/remove on hover, JSON per rule via { }.</li>
+    <li>Text variants: compact serif rows, counter inline. No “0 / 1 / 2” index boxes or per-item button rows.</li>
+    <li>Rolls as a <b>table</b> with % odds; click a row to expand its text variants, condition and effects.</li>
+    <li><b>Context rail</b>: this file's problems, links in/out, quick preview. Replaces Used by / Rename IDs at the page bottom.</li>
+    <li>Status bar: save/layout state and shortcuts.</li>
+    <li><b>Optional chips</b>: unset optional fields as one always-visible line; each chip keeps the accessible name “Add &lt;key&gt;”.</li>
+  </ol>
+  <p style="margin:6px 0 0;color:var(--muted)">Click ⌘K, “2 unsaved changes”, list rows and outcome rows — they work.</p>
+</div>
+
+<script>
+const rows=[
+ ["light fire","light_fire","0.25 h","global · with matches",""],
+ ["light fire","strike_fire","1 h","global · stones, no matches",""],
+ ["light fire","make_fire","1 h","global · drill, no stones",""],
+ ["stoke fire","stoke_fire","0.25 h","global · fire is burning",""],
+ ["collect shells","collect_shells","0.5 h","always",""],
+ ["pick up stones","collect_stones","0.5 h","always",""],
+ ["catch fish","catch_fish","1 h","after school_of_fish · spear, daylight","sel"],
+ ["sleep","sleep","8 h","global",""]
+];
+document.getElementById("rows").innerHTML=rows.map(r=>`<div class="row" ${r[4]?'aria-selected="true"':''}><span><b>${r[0]}</b> <code>${r[1]}</code></span><span class="r">${r[2]}${r[4]?' <span class="badge unsaved">●</span>':''}</span><span class="meta">${r[3].startsWith("global")?'<span class="badge">global</span> '+r[3].slice(8):r[3]}</span></div>`).join("");
+document.querySelectorAll(".row").forEach(el=>el.onclick=()=>{document.querySelectorAll(".row").forEach(x=>x.removeAttribute("aria-selected"));el.setAttribute("aria-selected","true")});
+const outs=[
+ [4,"Two fish lie upon the sand, taken by successive strokes of the spear.",'<span class="fx">+2 raw fish</span>',["Your patience has secured two fish from the shallow water.","Two small fish struggle briefly upon the shore: a useful return for the effort."]],
+ [4,"A single fish is taken. It will provide at least one meal.",'<span class="fx">+1 raw fish</span>',["The spear rises with one fish upon its point.","Your effort produces one fish, a modest but welcome catch."]],
+ [2,"The fish turn aside before the spear can reach them.",'<span class="fx none">nothing</span>',["At each movement the school disperses into deeper water.","The water clouds around the spear, which returns without a catch."]]
+];
+const tot=outs.reduce((a,o)=>a+o[0],0);
+const tb=document.querySelector("#outcomes tbody");
+tb.innerHTML=outs.map((o,i)=>`<tr class="o" data-i="${i}"><td><input value="${o[0]}" style="width:44px"> <span style="color:var(--muted)">${Math.round(o[0]/tot*100)}%</span><div class="bar"><i style="width:${o[0]/tot*100}%"></i></div></td><td class="serif">${o[1]} <span class="badge">+${o[3].length}</span></td><td>${o[2]}</td><td>▸</td></tr><tr class="expand" data-for="${i}" hidden><td></td><td colspan="3">${[o[1],...o[3]].map((t,j)=>`<div class="alt"><span class="i">${j+1}</span><textarea rows="1">${t}</textarea><span class="cnt">${t.length}/80</span></div>`).join("")}<button class="addlink">+ variant</button> · <button class="addlink">+ condition</button> · <button class="addlink">+ effect</button></td></tr>`).join("");
+tb.querySelectorAll("tr.o").forEach(tr=>tr.addEventListener("click",e=>{if(e.target.tagName==="INPUT")return;const x=tb.querySelector(`[data-for="${tr.dataset.i}"]`);x.hidden=!x.hidden;tr.lastElementChild.textContent=x.hidden?"▸":"▾"}));
+document.querySelectorAll(".cnt").forEach(c=>{const n=parseInt(c.textContent);if(n>80)c.classList.add("warn")});
+const pal=document.getElementById("palette"),scrim=document.getElementById("scrim"),drawer=document.getElementById("drawer");
+const openK=()=>{pal.classList.add("on");scrim.classList.add("on");document.getElementById("kq").focus()};
+const close=()=>{pal.classList.remove("on");scrim.classList.remove("on");drawer.classList.remove("on")};
+document.getElementById("openK").onclick=openK;scrim.onclick=close;
+document.getElementById("openChanges").onclick=()=>drawer.classList.toggle("on");
+document.getElementById("closeDrawer").onclick=close;
+document.getElementById("hideAnn").onclick=()=>document.body.classList.remove("annot");
+document.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openK()}if(e.key==="Escape")close()});
+pal.querySelectorAll(".it").forEach(it=>it.onclick=close);
+</script>
+</body>
+</html>

@@ -34,6 +34,7 @@ Do not copy its decisions into other files. Working rules for a Studio PR:
    `SAVE_VERSION`, keep the recovery screen); no legacy-save migrations.
 4. Keep game-rule tests on the frozen fixtures; the Studio never reimplements engine rules.
 5. Never change shipped story or balance to exercise the editor; use fixtures or revert test content.
+6. UX redesign PRs (UX-01..UX-09) follow [docs/STUDIO_UX_PLAN.md](docs/STUDIO_UX_PLAN.md): one numbered PR at a time, the UI specification (§5) is binding, and every UI PR follows the design-conformance rules (§6), including screenshots compared with [docs/mockups/studio/redesign-shell.html](docs/mockups/studio/redesign-shell.html).
 
 ## Commands
 

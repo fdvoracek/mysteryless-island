@@ -1,5 +1,7 @@
 # Content Studio — [implemented, PR-10 live preview; JSON editor mode]
 
+Redesign in progress: [Studio UX plan](STUDIO_UX_PLAN.md) [proposal].
+
 Run `npm run studio` and open `http://127.0.0.1:5173/studio/`. The same dev server serves the
 ordinary game at `/`. Use Node 22.13 or newer. The Studio and its file API are absent from the
 production build and Pages deployment. `npm run dev` remains the ordinary game workflow.
