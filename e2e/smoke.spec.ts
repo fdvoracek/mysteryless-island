@@ -322,7 +322,7 @@ test("exploration modals and the route map show discoveries, tooltips and travel
   await expect(tab(page, "the forest")).toHaveClass(/here/);
   await expect(async () => centred("the forest")).toPass(); // the map slides to the forest
   await action(page, "collect wood").click();
-  await action(page, "collect wood").click();
+  await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
   await explore(page, "spring");
   await expect(action(page, "look around")).not.toContainText("*"); // nothing left in the forest
   await action(page, "drink water").click();
@@ -368,7 +368,7 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await expect(node(page, "craft", "craft_spear").locator(".cd")).toHaveCSS("transition-duration", `${STEP_MS / 1000}s`);
   await page.locator("#buildTab").dispatchEvent("click");
   await page.locator("#areaTab").dispatchEvent("click");
-  await expect(page.locator("#workBox")).toBeVisible();
+  await expect(page.locator("#workBox")).toHaveCount(0);
   await page.locator("#craftTab").dispatchEvent("click");
   const busyInfo = node(page, "craft", "craft_spear").locator(".tree-info");
   await busyInfo.focus();
@@ -376,7 +376,6 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   await busyInfo.evaluate((el) => el.closest(".tree-scroll")!.dispatchEvent(new Event("scroll")));
   await expect(tooltip(page)).toBeVisible();
   await busyInfo.evaluate((el) => { (el as HTMLElement).dataset.testIdentity = "preserved"; });
-  await node(page, "craft", "craft_spear").locator(".btn").dispatchEvent("click");
   expect((await state()).time).toBe(start);
   await expect(page.locator("#wrap")).toHaveClass(/busy/);
   await expect(page.locator("#wrap")).toHaveAttribute("aria-busy", "true");
@@ -444,17 +443,17 @@ test("the clock ticks by quarters while work runs, with crafted items and buildi
   const beforePause = (await state()).time;
   await action(page, "collect wood").dispatchEvent("click");
   await page.clock.runFor(STEP_MS);
-  await page.locator("#work .btn", { hasText: "pause" }).click();
+  await action(page, "collect wood").click();
   await expect(page.locator("#wrap")).not.toHaveClass(/busy/);
   await page.clock.runFor(STEP_MS * 4);
   expect((await state()).time).toBe(beforePause + 15);
   await page.reload();
-  await expect(page.locator("#work .btn", { hasText: "resume" })).toBeVisible();
+  await expect(action(page, "collect wood")).toHaveAttribute("aria-label", /resume collect wood/);
   expect((await state()).time).toBe(beforePause + 15);
-  await page.locator("#work .btn", { hasText: "resume" }).click();
+  await action(page, "collect wood").click();
   await page.clock.runFor(STEP_MS);
   expect((await state()).time).toBe(beforePause + 30);
-  await expect(page.locator("#workBox")).toBeHidden();
+  await expect(page.locator("#workBox")).toHaveCount(0);
 });
 
 test("central sections keep local building controls and portable item controls usable on desktop and phone", async ({ page }) => {
@@ -676,7 +675,7 @@ test("compact trees keep all nodes readable and hints inspectable on desktop and
       await expect(button).toHaveAttribute("aria-disabled", "true");
       await expect(tooltip(page)).toBeVisible();
       await button.press("Enter");
-      await expect(page.locator("#workBox")).toBeHidden();
+      await expect(page.locator("#workBox")).toHaveCount(0);
       await page.keyboard.press("Escape");
       await expect(tooltip(page)).toBeHidden();
       await chip.locator(".tree-info").click();
@@ -893,7 +892,7 @@ test("a pinned tall tree tooltip scrolls its full requirements without dismissin
   await tip.press("End");
   await expect.poll(() => tip.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   await expect(tip).toBeVisible();
-  await expect(page.locator("#workBox")).toBeHidden();
+  await expect(page.locator("#workBox")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(tip).toBeHidden();
   await expect(info).toBeFocused();

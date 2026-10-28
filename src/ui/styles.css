@@ -308,4 +308,4 @@ button { font: inherit; color: inherit; touch-action: manipulation; -webkit-tap-
 .tab .dot, .tab .name { position: relative; z-index: 1; }
 
 /* Work can be paused even while ordinary actions remain locked. */
-.busy #work .btn { pointer-events: auto; cursor: pointer; }
+.busy .btn.running, .busy .tab.running { pointer-events: auto; cursor: pointer; }

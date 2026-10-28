@@ -35,8 +35,7 @@ mechanics. Update this document when an architectural decision changes, not for 
   and all three centre tabs. It stays the same through travel and tab changes. Its artwork ID
   is authored in `game.json`; per-region artwork metadata is only a fallback when no global
   panorama is configured. Do not generate separate area headers for now.
-  The journal heading comes from the current region view, never parsed log text; work controls
-  remain outside tabpanels. Delivery sequence and acceptance evidence live in
+  The journal heading comes from the current region view, never parsed log text; progress and pause/resume controls stay on the action buttons themselves. Delivery sequence and acceptance evidence live in
   [the milestone record](docs/UI_REDESIGN_PROGRESS.md).
 - Add abstractions to solve demonstrated duplication or an agreed extension need. Do not build
   a generic framework, plugin system, or new dependency solely for hypothetical features.

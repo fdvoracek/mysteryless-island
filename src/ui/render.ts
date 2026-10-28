@@ -370,6 +370,8 @@ export class UI {
         el.dataset.id = bv.id;
         el.innerHTML = `<span class="label"></span><span class="cd"></span><span class="tip" role="tooltip"></span>`;
       }
+      el.disabled = false;
+      el.removeAttribute("aria-label");
       el.onclick = () => { if (!el!.classList.contains("off")) this.send(bv.command, el!); };
       const label = el.querySelector(".label")!;
       label.textContent = bv.label;
@@ -549,15 +551,21 @@ export class UI {
 
   /** Render saved work state. CSS animates only between committed clock steps. */
   private renderWork(v: View) {
-    this.els.workBox.hidden = !v.work.length;
-    this.renderControlRows(this.els.work, v.work);
     this.root.querySelectorAll(".running").forEach((el) => el.classList.remove("running"));
     for (const work of v.work) {
       const selector = work.target.kind === "travel" ? `.tab[data-id="${work.target.id}"]` : `.btn[data-id="${work.target.id}"]`;
-      const sources = [this.root.querySelector<HTMLElement>(selector), this.els.work.querySelector<HTMLElement>(`.btn[data-id="work:${work.id}"]`)];
+      const sources = [this.root.querySelector<HTMLButtonElement>(selector)];
       for (const source of sources) {
         if (!source) continue;
         source.classList.toggle("running", work.running);
+        const control = work.actions[0];
+        source.classList.toggle("off", !control.enabled);
+        source.disabled = !control.enabled;
+        source.setAttribute("aria-disabled", String(!control.enabled));
+        source.setAttribute("aria-label", `${control.label} ${work.label}, ${work.word}`);
+        source.onclick = () => { if (control.enabled) this.send(control.command, source); };
+        const tip = source.querySelector<HTMLElement>(".tip");
+        if (tip && !tip.hidden) tip.append(div(`${work.word} · click to ${control.label}`));
         const bar = source.querySelector<HTMLElement>(".cd");
         if (!bar) continue;
         const key = `${work.id}:${work.remaining}:${work.running}`;

@@ -162,8 +162,7 @@ once at completion. `Engine.dispatch` drains the same steps synchronously for si
 `app/action-controller.ts` owns browser scheduling and persists every committed step. The UI
 only renders work/progress. Reload resumes the saved work without accounting for offline time.
 Sleep advances the clock instantly to 06:00, pausing all player work while building production
-continues. Leaving an area pauses its work; materials stay reserved until resumed. A shared
-pause/resume control is available in the classic layout. The current UI still offers one active
+continues. Leaving an area pauses its work; materials stay reserved until resumed. Progress stays on each action’s own button; clicking that button pauses or resumes its work. The current UI still offers one active
 player action at a time; the core scheduler supports equal focus sharing, with focus allocation
 isolated for future perks. Effort rates are weighted by each concurrent action's focus share.
 The test-speed URL multiplier changes wall-clock scheduling only.

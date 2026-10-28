@@ -13,8 +13,7 @@ export const panel = {
   /** places you can walk to (region tabs) */
   places: () => `<nav class="tabs" id="tabs" aria-label="places"></nav>`,
   /** All controls in their display order. */
-  actions: () => `<div class="action-section" id="workBox" hidden><div id="work"></div></div>
-  <div class="centre-tabs" role="tablist" aria-label="actions">
+  actions: () => `<div class="centre-tabs" role="tablist" aria-label="actions">
     <button id="areaTab" role="tab" aria-controls="areaPanel" aria-selected="true">area</button>
     <button id="craftTab" role="tab" aria-controls="craftPanel" aria-selected="false" tabindex="-1">crafting</button>
     <button id="buildTab" role="tab" aria-controls="buildPanel" aria-selected="false" tabindex="-1">building</button>
@@ -39,7 +38,7 @@ export const panel = {
 /** ids that must exist in the classic skeleton */
 export const REQUIRED_IDS = [
   "areaTab", "craftTab", "buildTab", "areaPanel", "craftPanel", "buildPanel", "craftTree", "buildTree",
-  "areaPanorama", "regionTitle", "wrap", "log", "tabs", "actions", "clock", "status", "workBox", "work",
+  "areaPanorama", "regionTitle", "wrap", "log", "tabs", "actions", "clock", "status",
   "consumablesBox", "consumables",
   "quests", "questsBox", "buildings", "buildingsBox", "inventory", "inventoryBox",
 ] as const;
