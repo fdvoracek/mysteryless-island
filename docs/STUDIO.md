@@ -487,3 +487,24 @@ own save slots; your game save is untouched.*
 
 Under `STUDIO_ROOT` (the Studio browser tests) the game loads that root's `content/` as a whole
 instead of the checkout's; the checkout's `content/` stays blocked. Without it nothing changes.
+
+## Outcomes table — [implemented, UX-05]
+
+Outcome arrays (activity, building-step and consume outcomes, plus effect rolls) show compact
+rows with editable weight, rounded percentage, odds bar, first text variant and variant count,
+and effects described with the existing reference labels. Zero total weight shows “—”. If any
+row has a condition, every percentage is marked “≈”; the header explains that shares assume
+every condition holds, and conditioned rows carry a `when` badge.
+
+Click a row's text/effects or activate `Edit <path>.<index>` to expand its existing condition,
+Text and effects editor. Text selection does not toggle the row. Weight stays in the row,
+with its original accessible name and inline diagnostics; there is no second weight input.
+The new “+ add outcome” row opens immediately and focuses its weight. Reorder/remove controls
+appear on hover or keyboard focus, and remain visible on touch/narrow screens. Expansion is
+session-only; Undo or navigation may reset it.
+
+Interior diagnostics open the relevant row, and diagnostic links reveal hidden ancestor rows
+before focusing the field. A weight diagnostic leaves its row collapsed because weight is
+already visible. Collapsed card summaries show each share and its first effect (or “nothing”).
+At ≤760 px each row stacks weight/actions, text, then effects. Deep recursion retains the
+existing validated JSON fallback. No gameplay, content, save-format or `describe()` wording changes.

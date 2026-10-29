@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Condition, Effect, Text } from "../content";
+import { Condition, Effect, Outcome, Text } from "../content";
 import type { Document } from "./documents";
 import { describe } from "./describe";
 import { hintFor, humanize } from "./hints";
@@ -29,6 +29,12 @@ export function summarize(schema: Schema, value: Record<string, unknown>, keys: 
       return typeof first === "string" ? [`“${short(first, 50)}”`] : [];
     }
     if (node instanceof z.ZodArray && isNode(node.element, Effect) && Array.isArray(v)) return [v.map(effect => describe(effect, "effect", documents)).join(", ")];
+    if (node instanceof z.ZodArray && isNode(node.element, Outcome) && Array.isArray(v)) {
+      const rows = v.map(value => value && typeof value === "object" ? value as Record<string, unknown> : {});
+      const total = rows.reduce((sum, row) => sum + (typeof row.weight === "number" ? row.weight : 0), 0);
+      const prefix = rows.some(row => row.when !== undefined) ? "≈" : "";
+      return [rows.map(row => `${prefix}${total === 0 ? "—" : `${Math.round((typeof row.weight === "number" ? row.weight : 0) / total * 100)}%`} ${Array.isArray(row.effects) && row.effects.length ? describe(row.effects[0], "effect", documents) : "nothing"}`).join(" · ")];
+    }
     if (typeof v === "string") return [short(v, 40)];
     if (typeof v === "number") return [`${v}${hint?.unit ? ` ${hint.unit}` : ""}`];
     if (typeof v === "boolean") return v ? [label] : [];

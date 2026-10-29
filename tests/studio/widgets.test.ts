@@ -241,7 +241,7 @@ it("summarizes schema node types through shared hints and descriptions", () => {
   expect(summary("list", ["a", "b"])).toBe("list: 2");
   expect(summary("object", {})).toBe("Object");
   expect(summarize(Activity, { visibleWhen: { discovered: "school_of_fish" } }, ["visibleWhen"], documents)).toBe("visible when: " + describe({ discovered: "school_of_fish" }, "condition", documents));
-  expect(summarize(Activity, { tags: ["kindle"], outcomes: [{}, {}, {}] }, ["tags", "outcomes"], documents)).toBe("tags: 1 · outcomes: 3");
+  expect(summarize(Activity, { tags: ["kindle"], outcomes: [{}, {}, {}] }, ["tags", "outcomes"], documents)).toBe("tags: 1 · — nothing · — nothing · — nothing");
   expect(summarize(Item, { actions: [{}] }, ["actions"], documents)).toBe("item actions: 1");
   expect(summarize(Item, { actions: [{}, {}] }, ["actions"], documents)).toBe("item actions: 2");
 });
@@ -441,4 +441,61 @@ it("keeps the ID label inside explicit Text array elements while hiding the elem
   expect(html).toContain('>ID</label>');
   expect(html).toContain('aria-label="texts.0.id"');
   expect(html).not.toContain('>0</label>');
+});
+
+it("renders Outcome arrays as collapsed odds rows without edits or duplicate weights", () => {
+  const fish = documents.find(d => d.id === "catch_fish")!;
+  const raw = fish.raw as Record<string, unknown>;
+  const before = formatContent(raw);
+  const html = render(Activity.shape.outcomes, raw.outcomes, "outcomes", fish);
+  expect(html.match(/class="outcome-row"/g)).toHaveLength(3);
+  expect(html.match(/class="outcome-bar"/g)).toHaveLength(3);
+  expect(html.match(/class="outcome-share">40%/g)).toHaveLength(2);
+  expect(html).toContain('class="outcome-share">20%');
+  expect(html.match(/>\+2<\/span>/g)).toHaveLength(3);
+  expect(html).toContain("Two fish, flapping on the sand.");
+  expect(html).toContain("give 2 raw_fish — raw fish");
+  expect(html).toContain("give 1 raw_fish — raw fish");
+  expect(html).toContain('class="outcome-empty">nothing');
+  expect(html.match(/aria-label="outcomes.0.weight"/g)).toHaveLength(1);
+  expect(html).toContain('data-field="outcomes.0.weight"');
+  expect(html.match(/aria-expanded="false"/g)).toHaveLength(3);
+  expect(html.match(/hidden=""/g)!.length).toBeGreaterThanOrEqual(3);
+  expect(html).not.toContain("Shares assume every condition holds.");
+  expect(html).not.toContain("≈");
+  expect(html).toContain('aria-label="Add outcomes entry">+ add outcome');
+  expect(formatContent(raw)).toBe(before);
+});
+
+it("shows zero and conditional odds, and binds outcome tables to schema identity", () => {
+  const schema = z.array(Outcome);
+  const zero = render(schema, [{ weight: 0 }, { weight: 0 }], "outcomes");
+  expect(zero.match(/class="outcome-share">—/g)).toHaveLength(2);
+  const html = render(schema, [{ weight: 4 }, { weight: 4, when: { flag: "test" } }, { weight: 2 }], "outcomes");
+  expect(html).toContain('title="Shares assume every condition holds."');
+  expect(html.match(/class="outcome-share">≈/g)).toHaveLength(3);
+  expect(html.match(/>when<\/span>/g)).toHaveLength(1);
+  expect(render(z.array(z.object({ weight: z.number() })), [{ weight: 1 }])).not.toContain('class="outcome-table"');
+  const roll = render(Effect, { roll: [{ weight: 1 }] });
+  expect(roll).toContain('class="outcome-table"');
+  expect(roll).toContain('aria-label="Add roll entry"');
+  const fallback = renderToStaticMarkup(createElement(Field, { schema, value: [{ weight: 1 }], path: "outcomes", ruleDepth: BUILDER_DEPTH, owner, documents, problems: [], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
+  expect(fallback).toContain("builder-fallback");
+  expect(fallback).not.toContain('class="outcome-table"');
+});
+
+it("summarizes Outcome arrays using shares and only their first described effect", () => {
+  const outcomes = [{ weight: 4, effects: [{ give: { raw_fish: 2 } }, { flag: "extra" }] }, { weight: 4 }, { weight: 2 }];
+  expect(summarize(Activity, { outcomes }, ["outcomes"], documents)).toBe("40% give 2 raw_fish — raw fish · 40% nothing · 20% nothing");
+  expect(summarize(Activity, { outcomes: outcomes.map((o, i) => i === 1 ? { ...o, when: { flag: "test" } } : o) }, ["outcomes"], documents)).toBe("≈40% give 2 raw_fish — raw fish · ≈40% nothing · ≈20% nothing");
+  expect(summarize(Activity, { outcomes: [{ weight: 0 }] }, ["outcomes"], documents)).toBe("— nothing");
+});
+
+it("reveals interior diagnostics but keeps weight diagnostics in collapsed rows", () => {
+  const schema = z.array(Outcome), value = [{ weight: -1, text: "Test" }];
+  for (const [path, expanded] of [["outcomes.0.weight", false], ["outcomes.0.text", true]] as const) {
+    const html = renderToStaticMarkup(createElement(Field, { schema, value, path: "outcomes", owner, documents, problems: [{ file: owner.path, path, message: "test problem" }], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
+    expect(html).toContain(`aria-expanded="${expanded}"`);
+    expect(html).toContain('>1 problem</span>');
+  }
 });

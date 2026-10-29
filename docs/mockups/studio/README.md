@@ -311,3 +311,32 @@ Shipped-content measurements at 1440×900 with every card open, using
 | --- | ---: | ---: | ---: | ---: |
 | `activities/catch_fish.json` | 2,810 px | 2,324 px | 2,219 px | 591 px / 21.0% |
 | `items/water_can.json` | 2,644 px | 2,370 px | 2,332 px | 312 px / 11.8% |
+
+## UX-05 implementation differences — [implemented]
+
+Specified versus the static annotation 10: rows use div grids with the approved
+`100px | minmax(0,1fr) | minmax(0,180px) | auto` columns and the current Results card/Outcomes
+field label. Weight is a 56 px existing Field with its diagnostic wrapper; chips use the
+unchanged `describe()` phrases and reference labels rather than the mockup's shortened “+2 raw
+fish”. The row toolbar adds the existing reorder/remove actions and the accessible Edit toggle.
+Actions appear on hover/focus and stay visible at ≤760 px or without hover. The expanded editor
+reuses all existing fields except weight, including optional chips and comments, and stays
+mounted while hidden. The existing shell and card titles remain at their prior UX stage.
+
+The owner's approved refinements apply: only conditioned arrays have the assumption title and
+“≈” shares; text/effects cells are plain divs with mouse-only toggling and ignore active text
+selection. Weight diagnostics stay in collapsed rows; interior diagnostics reveal their editor.
+Actual deviations from the approved UX-05 specification: none.
+
+Evidence: [collapsed table beside annotation 10](ux-05/outcomes-comparison.jpg),
+[1440×900 desktop](ux-05/outcomes-desktop.jpg),
+[one expanded row](ux-05/outcomes-expanded.jpg),
+[390 px stacked rows](ux-05/outcomes-phone.jpg).
+Desktop and mockup were captured at 1440×900, device scale 1; the comparison places native-size
+crops side by side at 100%, without resizing either side. The comparison canvas is 1554×354.
+All four JPEGs are ≤200 KB. Shipped content was opened read-only for these captures; browser
+tests use the disposable frozen pack. Phone `document.documentElement.scrollWidth` is 390.
+
+Shipped `catch_fish`, 1440×900, every card open and outcome rows collapsed:
+`.editor-fields.scrollHeight` is **1,223 px**, versus the reviewed UX-04b baseline **2,219 px**
+recorded above (996 px / 44.9% reduction).
