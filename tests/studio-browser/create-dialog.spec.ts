@@ -17,6 +17,32 @@ test("top-bar Create defaults to its scope, including selected All files documen
   await expect(page.getByRole("dialog", { name: "Create entity" }).getByLabel("Create kind")).toHaveValue("quests");
 });
 
+test("Still needed follows rendered fields, labels nested problems, and explains taken IDs", async ({ page }) => {
+  await page.goto("/studio/");
+  await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
+  await page.getByRole("button", { name: "Create", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Create entity" });
+  await dialog.getByLabel("Create kind").selectOption("activities");
+  const renderedLabels = await dialog.locator("[data-field]").evaluateAll(fields => fields
+    .filter(field => ["id", "name", "hours", "effort"].includes(field.getAttribute("data-field") ?? ""))
+    .map(field => field.querySelector(":scope > .field-label label")!.textContent!.trim()));
+  await expect(dialog.locator(".create-needed")).toHaveText(`Still needed: ${renderedLabels.join(", ")}`);
+  expect(renderedLabels).toHaveLength(4);
+  expect(renderedLabels).toEqual(expect.arrayContaining(["ID", "Name", "Hours", "Effort"]));
+  await expect(dialog.locator(".field-error")).toHaveCount(0);
+  await dialog.getByLabel("Create kind").selectOption("regions");
+  await expect(dialog.locator(".create-needed")).toContainText("Climate › Base C");
+  await dialog.getByLabel("Create kind").selectOption("quests");
+  await expect(dialog.locator(".create-needed")).toHaveText("Still needed: ID, Title, Done when"); // Existing Complete when hint.
+  await dialog.getByLabel("Create kind").selectOption("items");
+  const id = dialog.getByRole("textbox", { name: "id", exact: true });
+  await id.fill("raw_fish");
+  await id.blur();
+  await expect(dialog.locator('[data-field="id"] .field-error')).toHaveText("Already used by item raw fish — choose a new ID.");
+  await id.fill("Bad ID");
+  await expect(dialog.locator('[data-field="id"] .field-error')).toHaveText("Use lowercase letters, digits and _ — and a new ID.");
+});
+
 test("Create guides untouched fields, suggests IDs, stops on manual ID, and resets on kind change", async ({ page }) => {
   await page.goto("/studio/");
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");

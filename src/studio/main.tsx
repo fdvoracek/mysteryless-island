@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import type { ContentProblem } from "../content";
-import { areaDocuments, kindLabels, readDocuments } from "./documents";
+import { areaDocuments, defaultCreateKind, kindLabels, readDocuments } from "./documents";
 import { StudioStore } from "./store";
 import { entitySchemas, schemaFor } from "./schema";
 import { FormContext, Field, fileContentsClass } from "./form";
@@ -24,13 +24,6 @@ import { DocumentHeader } from "./shell/DocumentHeader";
 import { Sidebar } from "./shell/Sidebar";
 import { EntityList } from "./shell/EntityList";
 import "./studio.css";
-
-export function defaultCreateKind(scope: string, selected?: { kind: string }): string {
-  if (Object.hasOwn(entitySchemas, scope)) return scope;
-  if (scope.startsWith("area:")) return "activities";
-  if (scope === "all" && selected && Object.hasOwn(entitySchemas, selected.kind)) return selected.kind;
-  return "items";
-}
 
 function Studio() {
   const [store] = useState(() => new StudioStore());

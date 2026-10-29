@@ -1,4 +1,5 @@
 import { buildRegistry, ContentError, formatContent, type ContentProblem } from "../content";
+import { entitySchemas } from "./schema";
 
 export interface FileDocument { path: string; content: string; encoding: "utf8" | "base64"; hash: string }
 export interface Document extends FileDocument { kind: string; id: string; label: string; raw?: unknown; formatted: string }
@@ -10,6 +11,12 @@ export const kindSingulars: Record<string, string> = {
   regions: "area", activities: "activity", items: "item", recipes: "recipe", buildings: "building",
   quests: "task", events: "event", sites: "site", artwork: "artwork", trees: "creation tree",
 };
+export function defaultCreateKind(scope: string, selected?: { kind: string }): string {
+  if (Object.hasOwn(entitySchemas, scope)) return scope;
+  if (scope.startsWith("area:")) return "activities";
+  if (scope === "all" && selected && Object.hasOwn(entitySchemas, selected.kind)) return selected.kind;
+  return "items";
+}
 // Bounded revision caches: immutable document trees and registry diagnostics can
 // be reused by rename preview/staging and history without walking a pack again.
 const documentCache = new Map<string, Document>();
