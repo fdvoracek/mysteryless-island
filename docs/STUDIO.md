@@ -80,7 +80,8 @@ At widths of 760 px or less, labels and controls stack. The read-only ID textbox
 on a ground background; reference-aware renaming remains in **Rename IDs**.
 
 Studio-only hints bind to the exported Activity, Item, ItemAction, Site and Artwork schema
-objects, providing visible labels and selected help lines. Other fields use humanized keys;
+objects, providing visible labels and selected help lines. **[implemented, UX-03b]** Region,
+Landmark, Recipe, RecipeWay, Building, BuildingStep, Quest and GameEvent also have hints. Other fields use humanized keys;
 all controls retain their existing path-based accessible names. Fields without hints still
 render, and rendering never adds values or changes content order.
 
@@ -112,8 +113,26 @@ Root string `_` comments are editable yellow notes. A comment named for a schema
 `_hours`, appears above that field (or its optional chip); other comments appear above the form's
 first card. Editing preserves the comment's key position; clearing it keeps an empty string.
 Delete comment keys in JSON mode. Nested and non-string comments retain raw comment blocks.
-Site and Artwork forms gain notes without cards. Area workspace and event property sections and
-notes are deferred to UX-03b.
+Site and Artwork forms gain notes without cards.
+
+**[implemented, UX-03b]** Recipe cards are Basics / Requirements / Ways; Building cards are
+Basics / Building it / Production; Task cards are Basics / Start and finish / Journal / Rewards.
+They reuse the same optional fields, summary and note rules. Recipe ways and building cycle
+steps show Duration & effort rows; inline building construction/cycle objects keep humanized
+field names because hints bind only to exported schemas.
+
+**[implemented, UX-03b]** The area workspace uses the same remembered cards under
+`studio.sections:Region`. Landmarks appears only when exploration exists; Add explore remains
+in Text and exploration. Root string notes sit above their fields (`_explore` above the
+exploration fields); unmatched notes sit at the top of Properties. Landmark entries have
+dividers and hover/focus toolbars, always visible at ≤760 px or without hover. Closed Landmarks,
+Linked activities and Used by summarize as `landmarks: n`, `activities: n` and `references: n`.
+Landmark diagnostics count only on Landmarks, activity-link diagnostics on Linked activities;
+Text and exploration excludes landmark paths, and Used by has no problem badge.
+
+**[implemented, UX-03b]** Event properties is one remembered card under
+`studio.sections:GameEvent`, with Title / Opens / Only when / Repeat labels and editable root
+notes. The scene graph, selected scene/choice panel and add dialogs retain their existing forms.
 
 ## JSON editor — [implemented]
 

@@ -1,26 +1,37 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { z } from "zod";
 import { Region } from "../content";
 import type { Document } from "./documents";
-import { Field, type FieldProps } from "./form";
+import { AuthorNote, SectionCard, Field, type FieldProps } from "./form";
 import { getAt, whereUsed, deletionReferences, referenceLabel } from "./references";
 import { initialValue, unwrap, type Schema } from "./schema";
 import { replaceAt } from "./rename";
 import { MapGrid } from "./map-cells";
+import { hintFor } from "./hints";
+import { summarize } from "./summary";
 
 export function AreaWorkspace(props: FieldProps & { open: (file: string, path: string) => void; newActivity: () => void }) {
   const raw = props.value as Record<string, unknown>;
   const shape = Region.shape;
   const [link, setLink] = useState("");
   const [blocked, setBlocked] = useState<{ file: string; path: string }[]>([]);
-  const field = (schema: Schema, path: string) => <Field key={path} {...props} schema={schema} path={path} value={getAt(raw, path)} onChange={value => {
+  const field = (schema: Schema, path: string, hideLabel = false) => <Field key={path} {...props} schema={schema} path={path} hideLabel={hideLabel} value={getAt(raw, path)} presentation={{ schema, path, hint: hintFor(Region, path) }} onChange={value => {
     if (value === undefined) {
       const next = replaceAt(raw, path, undefined) as Record<string, unknown>;
       // JSON serialization omits optional undefined fields, preserving all other raw keys.
       props.onChange(next);
     } else props.onChange(replaceAt(raw, path, value));
   }} />;
-  const fields = (keys: string[]) => keys.map(key => field(shape[key as keyof typeof shape], key));
+  const notes = Object.keys(raw).filter(key => key.startsWith("_") && typeof raw[key] === "string");
+  const note = (key: string) => <AuthorNote key={key} name={key} value={raw[key] as string} change={value => props.onChange({ ...raw, [key]: value })} />;
+  const before = (key: string) => notes.includes(`_${key}`) ? note(`_${key}`) : null;
+  const fields = (keys: string[]) => keys.map(key => <div className="field-with-note" key={key}>{before(key)}{field(shape[key as keyof typeof shape], key)}</div>);
+  const properties = Object.keys(shape).filter(key => !["map", "unlockWhen", "hintWhen", "description", "firstVisit", "arrive", "explore", "activities"].includes(key));
+  const inPath = (path: string, key: string) => path === key || path.startsWith(`${key}.`);
+  const card = (title: string, keys: string[], children: ReactNode, preview = summarize(Region, raw, keys, props.documents)) => {
+    const count = title === "Used by" ? 0 : props.problems.filter(problem => keys.some(key => inPath(problem.path, key)) && (title !== "Text and exploration" || !inPath(problem.path, "explore.landmarks"))).length;
+    return <SectionCard name="Region" title={title} preview={preview} count={count}><section>{children}</section></SectionCard>;
+  };
   const explore = raw.explore as { landmarks?: unknown[] } | undefined;
   const exploreShape = (unwrap(shape.explore) as z.AnyZodObject).shape;
   const landmarks = Array.isArray(explore?.landmarks) ? explore.landmarks : [];
@@ -29,33 +40,34 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
   const activities = props.documents.filter(d => d.kind === "activities");
   const updateLinks = (next: string[]) => props.onChange({ ...raw, activities: next });
   const used = (path: string, title: string) => <section aria-label={`Used by ${title}`}><h3>{title}</h3>{whereUsed(props.documents, props.owner, path).map(ref => <button type="button" key={`${ref.file}:${ref.path}`} onClick={() => props.open(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>;
-  return <div className="area-workspace" aria-label="Area workspace">
-    <section className="workspace-card"><h2>Properties</h2>{fields(Object.keys(shape).filter(key => !["map", "unlockWhen", "hintWhen", "description", "firstVisit", "arrive", "explore", "activities"].includes(key)))}
-      {Object.keys(raw).filter(key => !(key in shape)).map(key => <details key={key}><summary>{key}</summary><pre>{JSON.stringify(raw[key], null, 2)}</pre></details>)}
-    </section>
-    <section className="workspace-card"><h2>Map and unlock</h2><MapCells documents={props.documents} owner={props.owner} choose={map => props.onChange({ ...raw, map })} />{fields(["map", "unlockWhen", "hintWhen"])}</section>
-    <section className="workspace-card"><h2>Text and exploration</h2>{fields(["description", "firstVisit", "arrive"])}
-      {explore ? Object.keys(exploreShape).filter(key => key !== "landmarks").map(key => field(exploreShape[key], `explore.${key}`)) : field(shape.explore, "explore")}
-    </section>
-    {explore && <section className="workspace-card"><h2>Landmarks</h2>{landmarks.map((landmark, index) => {
+  return <section className="area-workspace" aria-label="Area workspace">
+    {card("Properties", properties, <>
+      {notes.filter(key => !(key.slice(1) in shape)).map(note)}{fields(properties)}
+      {Object.keys(raw).filter(key => !(key in shape) && !notes.includes(key)).map(key => <details key={key}><summary>{key}</summary><pre>{JSON.stringify(raw[key], null, 2)}</pre></details>)}
+    </>)}
+    {card("Map and unlock", ["map", "unlockWhen", "hintWhen"], <><MapCells documents={props.documents} owner={props.owner} choose={map => props.onChange({ ...raw, map })} />{fields(["map", "unlockWhen", "hintWhen"])}</>)}
+    {card("Text and exploration", ["description", "firstVisit", "arrive", "explore"], <>{fields(["description", "firstVisit", "arrive"])}
+      {before("explore")}{explore ? Object.keys(exploreShape).filter(key => key !== "landmarks").map(key => field(exploreShape[key], `explore.${key}`)) : field(shape.explore, "explore")}
+    </>)}
+    {explore && card("Landmarks", ["explore.landmarks"], <>{landmarks.map((landmark, index) => {
       const path = `explore.landmarks.${index}`, id = (landmark as { id?: string })?.id ?? String(index);
       const remove = () => {
         const refs = deletionReferences(props.documents, props.owner, path);
         setBlocked(refs); if (!refs.length) props.onChange(replaceAt(raw, "explore.landmarks", landmarks.filter((_, i) => i !== index)));
       };
-      return <section data-field={path} tabIndex={-1} className="landmark-entry" key={index} aria-label={`Landmark ${id}`}><h3>{id || "New landmark"}</h3>{field(landmarkSchema, path)}
-        <div className="row-actions"><button type="button" onClick={remove}>Remove landmark {id}</button>{[-1, 1].map(delta => <button type="button" key={delta} disabled={index + delta < 0 || index + delta >= landmarks.length} aria-label={`Move ${delta < 0 ? "up" : "down"} landmark ${id}`} onClick={() => { const next = [...landmarks]; [next[index], next[index + delta]] = [next[index + delta], next[index]]; props.onChange(replaceAt(raw, "explore.landmarks", next)); }}>{delta < 0 ? "↑" : "↓"}</button>)}</div>
+      return <section data-field={path} tabIndex={-1} className="workspace-object-entry" key={index} aria-label={`Landmark ${id}`}><h3>{id || "New landmark"}</h3>{field(landmarkSchema, path, true)}
+        <div className="entry-actions"><button type="button" onClick={remove}>Remove landmark {id}</button>{[-1, 1].map(delta => <button type="button" key={delta} disabled={index + delta < 0 || index + delta >= landmarks.length} aria-label={`Move ${delta < 0 ? "up" : "down"} landmark ${id}`} onClick={() => { const next = [...landmarks]; [next[index], next[index + delta]] = [next[index + delta], next[index]]; props.onChange(replaceAt(raw, "explore.landmarks", next)); }}>{delta < 0 ? "↑" : "↓"}</button>)}</div>
       </section>;
     })}
       <button type="button" onClick={() => props.onChange(replaceAt(raw, "explore.landmarks", [...landmarks, initialValue(landmarkSchema)]))}>Add landmark</button>
       {!!blocked.length && <div role="alert" className="error">Removal blocked: this landmark is referenced.{blocked.map(ref => <button type="button" key={`${ref.file}:${ref.path}`} onClick={() => props.open(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</div>}
-    </section>}
-    <section className="workspace-card"><h2>Linked activities</h2>{links.map((id, index) => <div className="linked-activity" key={`${id}:${index}`}><button type="button" onClick={() => { const activity = activities.find(d => d.id === id); if (activity) props.open(activity.path, ""); }}>{referenceLabel("activity", id, props.documents)}</button><button type="button" onClick={() => updateLinks(links.filter((_, i) => i !== index))}>Unlink {id}</button>{[-1, 1].map(delta => <button type="button" key={delta} aria-label={`Move ${delta < 0 ? "up" : "down"} activity ${id}`} disabled={index + delta < 0 || index + delta >= links.length} onClick={() => { const next = [...links]; [next[index], next[index + delta]] = [next[index + delta], next[index]]; updateLinks(next); }}>{delta < 0 ? "↑" : "↓"}</button>)}</div>)}
+    </>, `landmarks: ${landmarks.length}`)}
+    {card("Linked activities", ["activities"], <>{before("activities")}{links.map((id, index) => <div className="linked-activity" key={`${id}:${index}`}><button type="button" onClick={() => { const activity = activities.find(d => d.id === id); if (activity) props.open(activity.path, ""); }}>{referenceLabel("activity", id, props.documents)}</button><button type="button" onClick={() => updateLinks(links.filter((_, i) => i !== index))}>Unlink {id}</button>{[-1, 1].map(delta => <button type="button" key={delta} aria-label={`Move ${delta < 0 ? "up" : "down"} activity ${id}`} disabled={index + delta < 0 || index + delta >= links.length} onClick={() => { const next = [...links]; [next[index], next[index + delta]] = [next[index + delta], next[index]]; updateLinks(next); }}>{delta < 0 ? "↑" : "↓"}</button>)}</div>)}
       <div className="row-actions"><select aria-label="Existing activity" value={link} onChange={e => setLink(e.target.value)}><option value="">Choose an activity…</option>{activities.filter(d => !links.includes(d.id)).map(d => <option value={d.id} key={d.id}>{referenceLabel("activity", d.id, props.documents)}</option>)}</select><button type="button" disabled={!link || links.includes(link)} onClick={() => { updateLinks([...links, link]); setLink(""); }}>Link existing</button><button type="button" onClick={props.newActivity}>New activity in this area</button></div>
       <h3>Global activities offered here</h3><ul>{activities.filter(d => (d.raw as { global?: boolean })?.global).map(d => <li key={d.path}>{d.id}{links.includes(d.id) ? " (at linked position)" : " (after linked activities)"}</li>)}</ul>
-    </section>
-    <section className="workspace-card used-by"><h2>Used by</h2>{used("id", `Area ${props.owner.id}`)}{landmarks.map((entry, index) => <div key={index}>{used(`explore.landmarks.${index}.id`, `Landmark ${(entry as { id?: string })?.id ?? index}`)}</div>)}</section>
-  </div>;
+    </>, `activities: ${links.length}`)}
+    {card("Used by", [], <div className="used-by">{used("id", `Area ${props.owner.id}`)}{landmarks.map((entry, index) => <div key={index}>{used(`explore.landmarks.${index}.id`, `Landmark ${(entry as { id?: string })?.id ?? index}`)}</div>)}</div>, `references: ${whereUsed(props.documents, props.owner, "id").length + landmarks.reduce<number>((count, _, index) => count + whereUsed(props.documents, props.owner, `explore.landmarks.${index}.id`).length, 0)}`)}
+  </section>;
 }
 function MapCells({ documents, owner, choose }: { documents: Document[]; owner: Document; choose: (map: { x: number; y: number }) => void }) {
   const areas = documents.filter(d => d.kind === "regions").map(d => {

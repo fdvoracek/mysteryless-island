@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Activity, Artwork, Item, ItemAction, Site } from "../content";
+import { Activity, Artwork, Item, ItemAction, Site, Region, Landmark, Recipe, RecipeWay, Building, BuildingStep, Quest, GameEvent } from "../content";
 import { unwrap, type Schema } from "./schema";
 
 export interface FieldHint {
@@ -9,7 +9,7 @@ export interface FieldHint {
   unit?: string;
 }
 
-const schemas: [string, Schema][] = [["Activity", Activity], ["ItemAction", ItemAction], ["Item", Item], ["Site", Site], ["Artwork", Artwork]];
+const schemas: [string, Schema][] = [["Activity", Activity], ["ItemAction", ItemAction], ["Item", Item], ["Site", Site], ["Artwork", Artwork], ["Region", Region], ["Landmark", Landmark], ["Recipe", Recipe], ["RecipeWay", RecipeWay], ["Building", Building], ["BuildingStep", BuildingStep], ["Quest", Quest], ["GameEvent", GameEvent]];
 export const schemaName = (schema: Schema): string | undefined => schemas.find(([, node]) => node === unwrap(schema))?.[0];
 export interface Section { title: string; keys: string[] }
 export const sections = new Map<Schema, Section[]>([
@@ -23,6 +23,22 @@ export const sections = new Map<Schema, Section[]>([
     { title: "Basics", keys: ["name", "plural", "id", "order", "category", "max", "artwork"] },
     { title: "Use", keys: ["consume", "tool"] },
     { title: "Item actions", keys: ["actions"] },
+  ]],
+  [Recipe, [
+    { title: "Basics", keys: ["item", "id", "label", "count", "multiple", "tags"] },
+    { title: "Requirements", keys: ["requires"] },
+    { title: "Ways", keys: ["ways"] },
+  ]],
+  [Building, [
+    { title: "Basics", keys: ["name", "id", "order", "artwork", "icon", "hint", "word", "max", "warmthC", "timer"] },
+    { title: "Building it", keys: ["build"] },
+    { title: "Production", keys: ["cycle"] },
+  ]],
+  [Quest, [
+    { title: "Basics", keys: ["title", "id", "order"] },
+    { title: "Start and finish", keys: ["trigger", "completeWhen"] },
+    { title: "Journal", keys: ["startLog", "doneLog"] },
+    { title: "Rewards", keys: ["effects"] },
   ]],
 ]);
 export const sectionsFor = (schema: Schema): Section[] | undefined => sections.get(unwrap(schema));
@@ -68,6 +84,83 @@ export const hints = new Map<Schema, Record<string, FieldHint>>([
     width: { label: "Width", row: "Size", unit: "px" },
     height: { label: "Height", row: "Size", unit: "px" },
     alt: { label: "Alt text" },
+  }],
+  [Region, {
+    name: { label: "Name" },
+    title: { label: "Title" },
+    description: { label: "First-visit text", help: "Shown on the first visit" },
+    travelHours: { label: "Travel from camp", help: "0 = the camp", unit: "h" },
+    map: { label: "Map cell" },
+    hintWhen: { label: "“?” shown when", help: "While locked; default from the start" },
+    unlockWhen: { label: "Unlocked when" },
+    shelterWhen: { label: "Natural shelter when" },
+    firstVisit: { label: "First visit" },
+    arrive: { label: "On return", help: "Every line whose condition holds" },
+    explore: { label: "Look around" },
+    activities: { label: "Activities" },
+    siteCapabilities: { label: "Sites" },
+  }],
+  [Landmark, {
+    label: { label: "Button", help: "In the look-around pop-up" },
+    hours: { label: "Hours", row: "Duration & effort", unit: "h" },
+    effort: { label: "Effort", row: "Duration & effort" },
+    visibleWhen: { label: "Offered when" },
+    requires: { label: "Requires", help: "Button enabled" },
+    requiresText: { label: "Requires text", help: "Reason shown while disabled" },
+    text: { label: "Discovery passage", help: "Shown in the pop-up" },
+    journal: { label: "Journal line", help: "Short; defaults to the passage" },
+    siteCapabilities: { label: "Sites" },
+  }],
+  [Recipe, {
+    item: { label: "Makes" },
+    count: { label: "Count" },
+    label: { label: "Button label", help: "Default: the item's name" },
+    requires: { label: "Requires", help: "Combined with the chosen way" },
+    multiple: { label: "Repeatable", help: "Can be made again while you have one" },
+    ways: { label: "Ways", help: "One is chosen automatically" },
+  }],
+  [RecipeWay, {
+    hours: { label: "Hours", row: "Duration & effort", unit: "h" },
+    effort: { label: "Effort", row: "Duration & effort" },
+    visibleWhen: { label: "Visible when" },
+    requires: { label: "Requires" },
+    requiresText: { label: "Requires text", help: "Reason shown while disabled" },
+    cost: { label: "Cost", help: "Items used up" },
+    log: { label: "Journal at start", help: "Logged when the work starts" },
+  }],
+  [Building, {
+    name: { label: "Name" },
+    hint: { label: "Hover hint", help: "Shown in the buildings panel" },
+    icon: { label: "Map icon", help: "Shown when hovering the place" },
+    max: { label: "Max per place", help: "Default 1" },
+    build: { label: "Building it", help: "Label, time, cost, requirements" },
+    warmthC: { label: "Warmth", help: "Added to the felt temperature here", unit: "°C" },
+    timer: { label: "State timer" },
+    word: { label: "Panel word", help: "Default “built”" },
+    cycle: { label: "Production cycle" },
+  }],
+  [BuildingStep, {
+    label: { label: "Label" },
+    hours: { label: "Hours", row: "Duration & effort", unit: "h" },
+    effort: { label: "Effort", row: "Duration & effort" },
+    requires: { label: "Requires" },
+    requiresText: { label: "Requires text", help: "Reason shown while disabled" },
+    cost: { label: "Cost", help: "Items used up" },
+    log: { label: "Journal at start", help: "Logged when the work starts" },
+  }],
+  [Quest, {
+    title: { label: "Title" },
+    trigger: { label: "Starts", help: "start, manual (startQuest effect) or when" },
+    completeWhen: { label: "Done when" },
+    startLog: { label: "Start journal" },
+    doneLog: { label: "Done journal", help: "Also shown in the completion note" },
+    effects: { label: "Rewards", help: "Applied when the task is done" },
+  }],
+  [GameEvent, {
+    title: { label: "Title" },
+    trigger: { label: "Opens" },
+    when: { label: "Only when", help: "Extra condition for any trigger" },
+    repeat: { label: "Repeat", help: "Comes back after the cooldown" },
   }],
 ]);
 

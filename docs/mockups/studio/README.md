@@ -341,3 +341,48 @@ tests use the disposable frozen pack. Phone `document.documentElement.scrollWidt
 Shipped `catch_fish`, 1440×900, every card open and outcome rows collapsed:
 `.editor-fields.scrollHeight` is **1,223 px**, versus the reviewed UX-04b baseline **2,219 px**
 recorded above (996 px / 44.9% reduction).
+
+## UX-03b implementation differences — [implemented]
+
+Specified: reuse the UX-02 inspector/help/row mechanism and UX-03 cards, summaries, section
+preferences and author notes for areas, recipes, buildings, tasks and Event properties.
+The approved prompt supplies the exact labels, help and section tables. Only exported schema
+objects receive hints: inline `Building.build` / `Building.cycle` keep humanized nested fields;
+`cycle.start` / `cycle.collect` use BuildingStep hints. Generic forms omit empty cards and retain
+Other and optional chips. Existing path-based control names are unchanged.
+
+Real implementation: area cards preserve their inner sections and separate Used by lists.
+Landmarks exists only with exploration; Add explore remains in Text and exploration. Field
+notes precede their fields, `_explore` precedes the exploration fields, and unmatched root notes
+start Properties. Landmarks and Linked activities count only their own diagnostic paths;
+Text and exploration excludes `explore.landmarks` and descendants; Used by has no badge.
+Landmarks use divider-separated entries with ID headings and hover/focus toolbars (always
+visible at ≤760 px / without hover), retaining Remove/Move control names. Their redundant
+numeric field caption is hidden, as in UX-04b object arrays. Only Event properties gets a card;
+the scene graph, selected panel, checks and add dialogs are unchanged.
+
+Actual deviations from the approved UX-03b scope: none. The existing area/event outer file
+frame remains because shell work is outside this PR; generic sectioned forms retain the UX-03
+bare frame. The mockup has no area/building/task examples, so comparisons use its note, card,
+inspector and row examples. The shell, context rail and new widgets are outside this PR.
+
+Evidence (captured read-only from shipped content at 1440×900, device scale 1):
+[forest Properties and one landmark beside mockup](ux-03b/area-comparison.jpg),
+[fish trap and its cycle beside mockup](ux-03b/building-comparison.jpg),
+[task beside mockup](ux-03b/task-comparison.jpg),
+and [390 px landmark](ux-03b/area-phone.jpg).
+Comparisons place native-size crops at 100%, without resizing either side; the area/building
+images contain captures from two scroll positions. The four JPEGs are each ≤200 KB.
+Phone `document.documentElement.scrollWidth` is exactly 390.
+
+Shipped content at 1440×900, every card open, `.editor-fields.scrollHeight`:
+
+| Document | Before (`eb72ad7`) | UX-03b | Change |
+| --- | ---: | ---: | ---: |
+| `regions/forest.json` | 8,462 px | 8,752 px | +290 px |
+| `buildings/fish_trap.json` | 2,679 px | 2,838 px | +159 px |
+| `quests/build_fish_trap.json` | 705 px | 873 px | +168 px |
+
+The plan's approximately 18,800 px forest measurement predates UX-02..05; the before column
+above is the actual requested base. Added help, cards and editable notes increase the fully
+expanded height; collapsed cards make individual groups skimmable without changing content.

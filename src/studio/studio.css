@@ -165,10 +165,16 @@ textarea { font-family: var(--studio-code); resize: vertical; }
 .multi-select { display: flex; flex-wrap: wrap; gap: 12px; }
 .multi-select label { display: flex; align-items: center; gap: 5px; }
 select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 3px; }
-.area-workspace { display: grid; gap: 16px; }
+.area-workspace { display: grid; gap: 12px; }
 .workspace-card { min-width: 0; border: 1px solid var(--studio-border); border-radius: 8px; padding: 16px; }
 .workspace-card h2 { font-size: 16px; margin-bottom: 12px; }
-.landmark-entry { padding: 12px; margin: 12px 0; border: 1px solid var(--studio-border); border-radius: 6px; }
+.workspace-object-entry { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; min-width: 0; padding-block: 8px; }
+.workspace-object-entry + .workspace-object-entry { border-top: 1px solid #eef0f2; }
+.workspace-object-entry > h3 { grid-column: 1; grid-row: 1; overflow-wrap: anywhere; }
+.workspace-object-entry > .form-field { grid-column: 1 / -1; grid-row: 2; margin: 0; }
+.workspace-object-entry > .entry-actions { grid-column: 2; grid-row: 1; flex-wrap: wrap; justify-content: end; }
+.workspace-object-entry:hover > .entry-actions, .workspace-object-entry:focus-within > .entry-actions { opacity: 1; }
+.form-section-body > section { min-width: 0; display: grid; gap: 8px; }
 .map-cells { display: grid; gap: 4px; overflow: auto; max-width: 100%; margin: 12px 0; }
 .map-cells button { min-height: 56px; padding: 6px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; font-size: 11px; }
 .linked-activity { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--studio-border); }
@@ -194,7 +200,7 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .kind-missing { border: 2px dashed var(--studio-error); }
 @media (min-width: 1400px) {
   .event-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 380px); gap: 16px; }
-  .event-workspace > .workspace-card:first-child, .event-workspace > [aria-label="Event graph checks"] { grid-column: 1 / -1; }
+  .event-workspace > .form-section:first-child, .event-workspace > [aria-label="Event graph checks"] { grid-column: 1 / -1; }
   .event-workspace > .graph-view { grid-column: 1; grid-row: 2; }
   .event-workspace > .row-actions { grid-column: 1; grid-row: 3; }
   .event-workspace > [aria-label="Selected scene or choice"] { grid-column: 2; grid-row: 2 / 4; }
