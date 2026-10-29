@@ -7,7 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
 import { AreaWorkspace } from "../../src/studio/area-workspace";
 import { EventEditor } from "../../src/studio/event-editor";
-import { Field } from "../../src/studio/form";
+import { Field, FormContext } from "../../src/studio/form";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
 import { schemaFor } from "../../src/studio/schema";
 import { StudioStore } from "../../src/studio/store";
@@ -37,9 +37,11 @@ function renderForm(owner: Document, view: string): string {
     onChange: () => { throw new Error("Rendering must not edit content"); },
     onError: () => { throw new Error("Rendering must not report errors"); },
   };
-  const element = view === "area" ? createElement(AreaWorkspace, { ...props, open: () => {}, newActivity: () => {} })
-    : view === "event" ? createElement(EventEditor, { ...props, rename: () => {} }) : createElement(Field, props);
-  return renderToStaticMarkup(element);
+  const { owner: formOwner, documents: formDocuments, problems, buffers, lockId, onError, ...field } = props;
+  const element = view === "area" ? createElement(AreaWorkspace, { ...field, open: () => {}, newActivity: () => {} })
+    : view === "event" ? createElement(EventEditor, { ...field, rename: () => {} }) : createElement(Field, field);
+  return renderToStaticMarkup(createElement(FormContext.Provider,
+    { value: { owner: formOwner, documents: formDocuments, problems, buffers, lockId, onError } }, element));
 }
 
 function normalizeIds(markup: string): string {

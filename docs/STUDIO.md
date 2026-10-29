@@ -533,3 +533,16 @@ before focusing the field. A weight diagnostic leaves its row collapsed because 
 already visible. Collapsed card summaries show each share and its first effect (or “nothing”).
 At ≤760 px each row stacks weight/actions, text, then effects. Deep recursion retains the
 existing validated JSON fallback. No gameplay, content, save-format or `describe()` wording changes.
+
+## Form internals — [implemented, UX-05.1]
+
+`FormContext` and `useForm()` share one document's references, diagnostics, JSON buffers, error
+reporting and creation/ID flags. Each `Field` receives its own `view` for presentation; nested
+fields construct their view explicitly. ESLint prohibits JSX spreads in the form modules and
+limits lines to 160 characters. Cards, rules, text variants and outcomes live in separate modules;
+the original form/widget exports remain available.
+
+The permanent markup guard snapshots normalized HTML lengths and SHA-256 hashes for every
+fixture Form view and area workspace. Local HTML is written to `test-results/form-markup/` for
+debugging. UI PRs that intentionally change form markup regenerate it with `vitest -u` and say
+so in the PR body; refactors must not.

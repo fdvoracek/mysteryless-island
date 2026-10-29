@@ -1,7 +1,8 @@
+import { FormContext, type FieldProps, type FormContextValue } from "../../src/studio/form";
 import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { createElement } from "react";
+import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -58,7 +59,7 @@ describe("schema-driven forms and draft documents", () => {
     for (const owner of store.view.documents) {
       const schema = schemaFor(owner.path)!;
       const original = structuredClone(owner.raw);
-      const html = renderToStaticMarkup(createElement(Field, { schema, value: owner.raw, path: "", problems: [], documents: store.view.documents, owner, onChange: () => { throw new Error("Rendering must not edit content"); }, onError: () => {} }));
+      const html = renderToStaticMarkup(formElement(Field, { schema, value: owner.raw, path: "", problems: [], documents: store.view.documents, owner, onChange: () => { throw new Error("Rendering must not edit content"); }, onError: () => {} }));
       expect(html.length, owner.path).toBeGreaterThan(0);
       expect(owner.raw).toEqual(original);
       store.edit(owner.path, owner.raw);
@@ -121,12 +122,12 @@ describe("schema-driven forms and draft documents", () => {
     const { store } = setup(), owner = store.view.documents[0];
     const props = { value: ["a", 2], path: "future", problems: [], documents: store.view.documents, owner, onChange: () => {}, onError: () => {} };
     const schema = z.tuple([z.string(), z.number()]);
-    expect(renderToStaticMarkup(createElement(Field, { ...props, schema }))).toContain("textarea");
+    expect(renderToStaticMarkup(formElement(Field, { ...props, schema }))).toContain("textarea");
     widgetRegistry.nodes.set(schema, () => "custom schema widget");
-    expect(renderToStaticMarkup(createElement(Field, { ...props, schema }))).toContain("custom schema widget");
+    expect(renderToStaticMarkup(formElement(Field, { ...props, schema }))).toContain("custom schema widget");
     widgetRegistry.nodes.delete(schema);
     const union = z.discriminatedUnion("type", [z.object({ type: z.literal("a"), name: z.string() }), z.object({ type: z.literal("b"), count: z.number() })]);
-    expect(renderToStaticMarkup(createElement(Field, { ...props, schema: union, value: { type: "b", count: 2 } }))).toContain("Kind (type)");
+    expect(renderToStaticMarkup(formElement(Field, { ...props, schema: union, value: { type: "b", count: 2 } }))).toContain("Kind (type)");
   });
 });
 function strip(value: unknown): unknown {
@@ -245,3 +246,9 @@ describe("whole-pack saves", () => {
     store.undo(); expect(store.drafts.has(path)).toBe(true);
   });
 });
+
+function formElement<P extends FieldProps>(component: ComponentType<P>, props: P & FormContextValue) {
+  const { documents, owner, problems, buffers, onError, requiredOnly, lockId, ...field } = props;
+  return createElement(FormContext.Provider, { value: { documents, owner, problems, buffers, onError, requiredOnly, lockId } },
+    createElement(component, field as unknown as P));
+}

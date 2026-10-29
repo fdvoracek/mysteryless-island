@@ -1,4 +1,5 @@
-import { createElement } from "react";
+import { FormContext, type FieldProps, type FormContextValue } from "../../src/studio/form";
+import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it } from "vitest";
 import { formatContent } from "../../src/content";
@@ -14,7 +15,7 @@ function setup() { const store = new StudioStore(); store.disk = structuredClone
 it("renders and round-trips every fixture event unchanged through its scene editor", () => {
   const store = setup(), before = structuredClone(store.files), documents = store.view.documents;
   for (const owner of documents.filter(d => d.kind === "events")) {
-    const html = renderToStaticMarkup(createElement(EventEditor, { schema: schemaFor(owner.path)!, value: owner.raw, path: "", lockId: true, documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
+    const html = renderToStaticMarkup(formElement(EventEditor, { schema: schemaFor(owner.path)!, value: owner.raw, path: "", lockId: true, documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
     expect(html).toContain('aria-label="Event editor"'); expect(html).toContain("Graph checks");
     store.edit(owner.path, owner.raw); expect(store.drafts.size).toBe(0);
   }
@@ -78,7 +79,7 @@ it("list views and laid-out graphs expose exactly the same nodes and edges; area
 it("cards only event properties, applies hints and keeps scene controls and comments unchanged", () => {
   const store = setup(), documents = store.view.documents, owner = documents.find(d => d.id === "shipwreck")!;
   const value = { ...owner.raw as object, _when: "Condition note", _title: "Title note", _note: "General note", _raw: { keep: true } };
-  const html = renderToStaticMarkup(createElement(EventEditor, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
+  const html = renderToStaticMarkup(formElement(EventEditor, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
   expect(html.match(/class="form-section"/g)).toHaveLength(1);
   for (const label of ["Event properties", ">Title</label>", ">Opens</label>", "+ Only when", "+ Repeat", 'aria-label="Selected scene or choice"', 'aria-label="Event scene graph"', 'aria-label="Event graph checks"', 'aria-label="scenes.start.text"']) expect(html).toContain(label);
   expect(html.indexOf('aria-label="_title"')).toBeLessThan(html.indexOf('data-field="title"'));
@@ -93,3 +94,9 @@ it("cards only event properties, applies hints and keeps scene controls and comm
   expect(optional.indexOf('aria-label="_when"')).toBeLessThan(optional.indexOf('aria-label="Add when"'));
 
 });
+
+function formElement<P extends FieldProps>(component: ComponentType<P>, props: P & FormContextValue) {
+  const { documents, owner, problems, buffers, onError, requiredOnly, lockId, ...field } = props;
+  return createElement(FormContext.Provider, { value: { documents, owner, problems, buffers, onError, requiredOnly, lockId } },
+    createElement(component, field as unknown as P));
+}

@@ -1,7 +1,8 @@
+import { FormContext, type FieldProps, type FormContextValue } from "../../src/studio/form";
 import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { createElement } from "react";
+import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -31,7 +32,7 @@ function files(base: string): FileDocument[] {
 const documents = readDocuments(files(root)).documents;
 const owner = documents.find(d => d.kind === "activities")!;
 function render(schema: Schema, value: unknown, path = "requires", document: Document = owner) {
-  return renderToStaticMarkup(createElement(Field, { schema, value, path, owner: document, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  return renderToStaticMarkup(formElement(Field, { schema, value, path, owner: document, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
 }
 const conditions: Record<string, unknown> = {
   all: { all: [{ item: "knife" }] }, any: { any: [{ flag: "test" }] }, not: { not: { sheltered: false } },
@@ -145,7 +146,7 @@ it("renders activity hints, scalar rows and optional chips without editing the r
   expect(html).toContain('class="optional-fields"><span>Optional:</span>');
   for (const key of ["global", "building"]) expect(html).toContain(`class="optional-chip" type="button" aria-label="Add ${key}"`);
   expect(html).toContain('aria-label="Add building">+ Building</button>');
-  const required = renderToStaticMarkup(createElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: [], requiredOnly: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  const required = renderToStaticMarkup(formElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: [], requiredOnly: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
   expect(required).not.toContain('class="form-section"');
   expect(required).not.toContain('class="optional-fields"');
   expect(required).not.toContain('aria-label="Add building"');
@@ -202,7 +203,7 @@ it("associates reference and flag labels with their controls and preserves multi
 
 it("renders site and artwork hints and keeps a locked ID textbox", () => {
   const artwork = { id: "test", src: "illustrations/test.png", width: 100, height: 50, alt: "Test" };
-  const html = renderToStaticMarkup(createElement(Field, { schema: Artwork, value: artwork, path: "", owner, documents, problems: [], lockId: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  const html = renderToStaticMarkup(formElement(Field, { schema: Artwork, value: artwork, path: "", owner, documents, problems: [], lockId: true, onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
   expect(html).toContain('field-locked" data-field="id"');
   expect(html).toMatch(/<input[^>]*readOnly=""[^>]*aria-label="id"/);
   expect(html).toContain('>Image path</label>');
@@ -284,7 +285,7 @@ it("defaults corrupt or blocked section storage to open and remembers valid titl
 
 it("counts section diagnostics only at exact key or descendant paths", () => {
   const activity = documents.find(d => d.id === "catch_fish")!;
-  const html = renderToStaticMarkup(createElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: ["log", "log.0", "logX", "hours"].map(path => ({ file: activity.path, path, message: "test" })), onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
+  const html = renderToStaticMarkup(formElement(Field, { schema: Activity, value: activity.raw, path: "", owner: activity, documents, problems: ["log", "log.0", "logX", "hours"].map(path => ({ file: activity.path, path, message: "test" })), onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }));
   expect(html.match(/class="form-section-problems">2 problems/g)).toHaveLength(1);
   expect(html.match(/class="form-section-problems">1 problem/g)).toHaveLength(1);
 });
@@ -319,7 +320,7 @@ it("renders the bare file panel only for sectioned document roots in Form mode",
     [Activity, null, "form", false],
   ] as const) {
     const html = renderToStaticMarkup(createElement("section", { className: fileContentsClass(schema, mode, value, workspace), "aria-label": "File contents" },
-      mode === "form" ? createElement(Field, { schema, value, path: "", owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }) : null));
+      mode === "form" ? formElement(Field, { schema, value, path: "", owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }) : null));
     expect(html.includes('class="json-panel json-panel-bare"')).toBe(bare);
     expect(mode === "form" && Boolean(workspace || rootSections(schema, value)?.length)).toBe(bare);
     if (mode === "form") expect(html.includes('class="form-section"')).toBe(Boolean(rootSections(schema, value)?.length));
@@ -406,9 +407,9 @@ it("renders numbered object blocks without boxes or element labels and resets ar
   for (const i of [1, 2]) expect(html).toContain(`class="entry-index" aria-hidden="true">${i}</span>`);
   expect(html).not.toMatch(/array-entry|>[01]<\/label>/);
   expect(html).toContain('aria-label="Add yields entry">+ add entry</button>');
-  const inherited = renderToStaticMarkup(createElement(Field, {
-    schema, value: values, path: "yields", inline: true,
-    presentation: { schema, path: "yields", inline: true }, ruleFields: { ownKey: "item", caption: () => "wrong caption" },
+  const inherited = renderToStaticMarkup(formElement(Field, {
+    schema, value: values, path: "yields",
+    view: { inline: true, ruleFields: { ownKey: "item", caption: () => "wrong caption" } },
     owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {},
   }));
   const entries = inherited.slice(inherited.indexOf('class="array-object-entry"'));
@@ -485,7 +486,7 @@ it("shows zero and conditional odds, and binds outcome tables to schema identity
   const roll = render(Effect, { roll: [{ weight: 1 }] });
   expect(roll).toContain('class="outcome-table"');
   expect(roll).toContain('aria-label="Add roll entry"');
-  const fallback = renderToStaticMarkup(createElement(Field, { schema, value: [{ weight: 1 }], path: "outcomes", ruleDepth: BUILDER_DEPTH, owner, documents, problems: [], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
+  const fallback = renderToStaticMarkup(formElement(Field, { schema, value: [{ weight: 1 }], path: "outcomes", ruleDepth: BUILDER_DEPTH, owner, documents, problems: [], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
   expect(fallback).toContain("builder-fallback");
   expect(fallback).not.toContain('class="outcome-table"');
 });
@@ -500,7 +501,7 @@ it("summarizes Outcome arrays using shares and only their first described effect
 it("reveals interior diagnostics but keeps weight diagnostics in collapsed rows", () => {
   const schema = z.array(Outcome), value = [{ weight: -1, text: "Test" }];
   for (const [path, expanded] of [["outcomes.0.weight", false], ["outcomes.0.text", true]] as const) {
-    const html = renderToStaticMarkup(createElement(Field, { schema, value, path: "outcomes", owner, documents, problems: [{ file: owner.path, path, message: "test problem" }], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
+    const html = renderToStaticMarkup(formElement(Field, { schema, value, path: "outcomes", owner, documents, problems: [{ file: owner.path, path, message: "test problem" }], onChange: () => { throw Error("Render must not edit"); }, onError: () => {} }));
     expect(html).toContain(`aria-expanded="${expanded}"`);
     expect(html).toContain('>1 problem</span>');
   }
@@ -541,3 +542,9 @@ it("renders recipe, building and task cards in table order with exported nested 
     }
   }
 });
+
+function formElement<P extends FieldProps>(component: ComponentType<P>, props: P & FormContextValue) {
+  const { documents, owner, problems, buffers, onError, requiredOnly, lockId, ...field } = props;
+  return createElement(FormContext.Provider, { value: { documents, owner, problems, buffers, onError, requiredOnly, lockId } },
+    createElement(component, field as unknown as P));
+}
