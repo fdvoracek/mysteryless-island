@@ -1,11 +1,11 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { z } from "zod";
-import { Condition, Effect, type ContentProblem } from "../content";
+import { Condition, Effect, Outcome, type ContentProblem } from "../content";
 import type { JsonBuffer } from "./store";
 import type { Document } from "./documents";
 import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type Schema } from "./schema";
 import { rangeCaptions } from "./describe";
-import { Order, registerWidgets, type OrderActions } from "./widgets";
+import { Order, OutcomeTable, registerWidgets, type OrderActions } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
 import { hintFor, hints, humanize, sectionsFor, schemaName, type Section, type FieldHint } from "./hints";
 import { summarize } from "./summary";
@@ -190,7 +190,8 @@ export function Field(props: FieldProps) {
         return notes.includes(`_${key}`) ? <span key={key} className="optional-with-note">{beforeField(key)}{chip}</span> : chip;
       })}</div>}
     </div>;
-  } else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => {
+  } else if (node instanceof z.ZodArray && Array.isArray(value) && unwrap(node.element) === unwrap(Outcome)) control = <OutcomeTable {...props} />;
+  else if (node instanceof z.ZodArray && Array.isArray(value)) control = <div className="array-fields">{value.map((entry, index) => {
     const childPath = [path, index].filter(v => v !== "").join(".");
     const rule = [Condition, Effect].some(schema => unwrap(schema) === unwrap(node.element));
     const actions: OrderActions = { path: childPath, index, length: value.length, remove: () => onChange(value.filter((_, i) => i !== index)), move: delta => { const updated = [...value]; [updated[index + delta], updated[index]] = [updated[index], updated[index + delta]]; onChange(updated); } };
