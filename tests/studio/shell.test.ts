@@ -32,6 +32,15 @@ it("keeps zero unsaved files, disk status, refresh and game link in the status b
   expect(html).not.toContain('role="status"');
 });
 
+it.each([[0, "✓ 0 problems"], [1, "1 problem"], [2, "2 problems"]] as const)(
+  "uses correct wording for %i problems", (problemCount, wording) => {
+    const html = renderToStaticMarkup(createElement(StatusBar, {
+      problemCount, unsaved: 0, status: "Read from disk", busy: false, refresh: noop,
+    }));
+    expect(html).toContain(`>${wording}</span>`);
+  },
+);
+
 it("renders breadcrumb button, draft-only badge, selected modes and a closed disclosure", () => {
   const header = (unsaved: boolean, mode: "form" | "json") => renderToStaticMarkup(createElement(DocumentHeader, {
     kind: "Activities", id: "catch_fish", title: "catch fish", path: "content/activities/catch_fish.json",

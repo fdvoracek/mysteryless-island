@@ -8,7 +8,7 @@ async function openFish(page: Page) {
   await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^catch_fish$/ }) }).click();
 }
 
-test("More actions discloses existing dialogs, closes on Escape and outside pointer, and restores focus", async ({ page }) => {
+test("More actions returns focus on Escape and lets outside clicks focus and edit fields", async ({ page }) => {
   await openFish(page);
   const more = page.getByRole("button", { name: "More actions" });
   await expect(more).toHaveAttribute("aria-expanded", "false");
@@ -20,9 +20,16 @@ test("More actions discloses existing dialogs, closes on Escape and outside poin
   await expect(more).toBeFocused();
   await expect(more).toHaveAttribute("aria-expanded", "false");
   await more.click();
-  await page.locator(".document-heading h2").click();
-  await expect(more).toBeFocused();
+  const name = page.getByRole("region", { name: "File contents" }).getByRole("textbox", { name: "name", exact: true });
+  await name.click();
   await expect(more).toHaveAttribute("aria-expanded", "false");
+  await expect(name).toBeFocused();
+  await page.keyboard.type("x");
+  await expect(name).toHaveValue("catch fishx");
+  await expect(page.locator(".document-heading .unsaved-badge")).toHaveText("Unsaved");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(name).toHaveValue("catch fish");
+  await expect(page.locator(".document-heading .unsaved-badge")).toHaveCount(0);
   await more.click();
   await more.click();
   await expect(more).toHaveAttribute("aria-expanded", "false");
@@ -55,7 +62,7 @@ test("validation focuses Diagnostics and status-bar refresh reads external chang
   await expect(page.getByRole("status")).toHaveText("1 problem");
   await page.getByRole("button", { name: "1 problem", exact: true }).click();
   await expect(page.getByRole("region", { name: "Diagnostics" })).toBeFocused();
-  await expect(footer).toContainText("1 problems");
+  await expect(footer).toContainText("1 problem");
   broken = false;
   await footer.getByRole("button", { name: "Refresh from disk" }).click();
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");

@@ -8,10 +8,7 @@ export function MoreMenu({ busy, duplicate, remove }: { busy: boolean; duplicate
     if (!open) return;
     const outside = (event: PointerEvent) => {
       if (event.target instanceof Node && !root.current?.contains(event.target)) {
-        // Keep the pointer's default focus change from undoing the disclosure's focus return.
-        event.preventDefault();
         setOpen(false);
-        trigger.current?.focus();
       }
     };
     document.addEventListener("pointerdown", outside);
