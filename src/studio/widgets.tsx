@@ -1,4 +1,5 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import { z } from "zod";
 import { Condition, Effect, Outcome, Text } from "../content";
 import { Field, RawField, type FieldProps, type Widget } from "./form";
@@ -107,6 +108,10 @@ function OutcomeWidget(props: FieldProps) {
   return <section className="outcome-widget" aria-label={`Outcome ${props.path}`}>{depth >= BUILDER_DEPTH ? <><p className="builder-fallback">Nested outcomes use JSON at depth {BUILDER_DEPTH}.</p><RawField {...props} /></> : <Field {...props} schema={unwrap(Outcome)} skipWidget={true} ruleDepth={depth + 1} depth={0} />}<Errors {...props} /></section>;
 }
 
+export function boundedExpansion(expanded: number[], length: number): number[] {
+  return expanded.filter(index => index < length);
+}
+
 export function OutcomeTable(props: FieldProps) {
   const values = props.value as unknown[];
   const node = unwrap(Outcome) as z.AnyZodObject;
@@ -116,7 +121,9 @@ export function OutcomeTable(props: FieldProps) {
   const problems = props.problems.filter(p => p.path.startsWith(props.path + "."));
   // Weight diagnostics belong to the always-visible row, not the hidden editor.
   const revealIndices = values.flatMap((_, i) => problems.some(p => (p.path === pathAt(props.path, i) || p.path.startsWith(pathAt(props.path, i) + ".")) && p.path !== pathAt(pathAt(props.path, i), "weight")) ? [i] : []);
-  const [expanded, setExpanded] = useState<number[]>(() => revealIndices);
+  const [storedExpansion, setExpanded] = useState<number[]>(() => revealIndices);
+  const expanded = boundedExpansion(storedExpansion, values.length);
+  if (expanded.length !== storedExpansion.length) setExpanded(expanded);
   const diagnosticKey = JSON.stringify(revealIndices);
   useEffect(() => { setExpanded(old => [...new Set([...old, ...JSON.parse(diagnosticKey) as number[]])]); }, [diagnosticKey]);
   useEffect(() => {
@@ -124,7 +131,7 @@ export function OutcomeTable(props: FieldProps) {
     const reveal = (event: Event) => {
       const path = (event as CustomEvent<string>).detail;
       const index = values.findIndex((_, i) => path.startsWith(pathAt(props.path, i) + ".") && path !== pathAt(pathAt(props.path, i), "weight"));
-      if (index >= 0) setExpanded(old => old.includes(index) ? old : [...old, index]);
+      if (index >= 0) flushSync(() => setExpanded(old => old.includes(index) ? old : [...old, index]));
     };
     element?.addEventListener("studio:reveal", reveal);
     return () => element?.removeEventListener("studio:reveal", reveal);
@@ -157,7 +164,7 @@ export function OutcomeTable(props: FieldProps) {
           <div className="outcome-weight"><Field {...common} schema={node.shape.weight} path={weightPath} value={raw.weight} inline presentation={{ schema: node.shape.weight, path: weightPath, inline: true, hideCaption: true }} onChange={weight => update(i, { ...raw, weight })} /><span className="outcome-share">{conditional && "≈"}{share === null ? "—" : `${share}%`}</span><span className="outcome-bar" aria-hidden="true"><span style={{ width: `${Math.max(0, Math.min(100, share ?? 0))}%` }} /></span>{raw.when !== undefined && <span className="badge">when</span>}</div>
           <div className="outcome-text" onClick={() => click(i)}><span className={texts.length ? "outcome-first" : "outcome-empty"}>{texts.length ? String(texts[0]) : "no text"}</span>{texts.length > 1 && <span className="badge">+{texts.length - 1}</span>}{count > 0 && <span className="form-section-problems">{count} {count === 1 ? "problem" : "problems"}</span>}</div>
           <div className="outcome-effects" onClick={() => click(i)}>{effects.length ? effects.map((effect, index) => <span className="outcome-chip" key={index} title={describe(effect, "effect", props.documents)}>{describe(effect, "effect", props.documents)}</span>) : <span className="outcome-empty">nothing</span>}</div>
-          <div className="outcome-actions"><button type="button" aria-label={`Edit ${path}`} aria-expanded={open} aria-controls={editorId} onClick={() => toggle(i)}>{open ? "▾" : "▸"}</button><Order path={path} index={i} length={values.length} remove={() => { setExpanded(old => old.filter(n => n !== i).map(n => n > i ? n - 1 : n)); props.onChange(values.filter((_, index) => index !== i)); }} move={delta => { setExpanded(old => old.map(n => n === i ? i + delta : n === i + delta ? i : n)); props.onChange(reorder(values, i, delta)); }} /></div>
+          <div className="outcome-controls"><button className="outcome-toggle" type="button" aria-label={`Edit ${path}`} aria-expanded={open} aria-controls={editorId} onClick={() => toggle(i)}>{open ? "▾" : "▸"}</button><div className="outcome-actions"><Order path={path} index={i} length={values.length} remove={() => { setExpanded(old => old.filter(n => n !== i).map(n => n > i ? n - 1 : n)); props.onChange(values.filter((_, index) => index !== i)); }} move={delta => { setExpanded(old => old.map(n => n === i ? i + delta : n === i + delta ? i : n)); props.onChange(reorder(values, i, delta)); }} /></div></div>
         </div>
         <div className="outcome-editor" id={editorId} hidden={!open}><Field {...common} schema={editorSchema} path={path} value={Object.fromEntries(Object.entries(raw).filter(([key]) => key !== "weight"))} ruleDepth={(props.ruleDepth ?? 0) + 1} skipWidget onChange={next => {
           const updated = { ...raw }, changed = object(next);

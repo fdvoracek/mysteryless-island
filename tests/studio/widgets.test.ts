@@ -7,6 +7,7 @@ import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, formatContent } from "../../src/content";
 import { Field, fileContentsClass, rootSections } from "../../src/studio/form";
+import { boundedExpansion } from "../../src/studio/widgets";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
 import { readDocuments, type Document, type FileDocument } from "../../src/studio/documents";
 import { schemaFor, stripComments, unwrap, type Schema } from "../../src/studio/schema";
@@ -498,4 +499,13 @@ it("reveals interior diagnostics but keeps weight diagnostics in collapsed rows"
     expect(html).toContain(`aria-expanded="${expanded}"`);
     expect(html).toContain('>1 problem</span>');
   }
+});
+
+
+it("bounds expansion indices to the current outcome array without mutating the input", () => {
+  const expanded = [0, 2];
+  expect(boundedExpansion(expanded, 2)).toEqual([0]);
+  expect(boundedExpansion(expanded, 0)).toEqual([]);
+  expect(boundedExpansion(expanded, 3)).toEqual([0, 2]);
+  expect(expanded).toEqual([0, 2]);
 });

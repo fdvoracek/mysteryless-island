@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { editorText, setEditorText } from "./editor";
 
 async function openFish(page: Page) {
   await page.goto("/studio/");
@@ -121,4 +122,48 @@ test("expanded outcome edits save only the intended text while preserving commen
     current = (await (await request.get("/__studio/files")).json()).files.find((file: { path: string }) => file.path === path);
     await request.put(`/__studio/files/${path}`, { data: { expectedHash: current.hash, content: original.content, encoding: "utf8" } });
   }
+});
+
+
+test("outcome carets stay visible without hover while order actions wait for hover or focus", async ({ page }) => {
+  await openFish(page);
+  await page.mouse.move(0, 0);
+  for (let i = 0; i < 3; i++) {
+    await expect(edit(page, i)).toBeVisible();
+    await expect(edit(page, i)).toHaveText("▸");
+    await expect(edit(page, i)).toHaveCSS("font-size", "14px");
+    await expect(edit(page, i)).toHaveCSS("color", "rgb(138, 146, 156)");
+    await expect(edit(page, i).locator("..")).toHaveCSS("opacity", "1");
+    await expect(page.locator(".outcome-actions").nth(i)).toHaveCSS("opacity", "0");
+  }
+  await edit(page).click();
+  await expect(edit(page)).toHaveText("▾");
+  await expect(edit(page)).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(".outcome-actions").first()).toHaveCSS("opacity", "1");
+  await page.getByRole("searchbox").focus();
+  await page.mouse.move(0, 0);
+  await expect(page.locator(".outcome-actions").first()).toHaveCSS("opacity", "0");
+  await page.locator(".outcome-row").first().hover();
+  await expect(page.locator(".outcome-actions").first()).toHaveCSS("opacity", "1");
+});
+
+test("removing an expanded third outcome in JSON leaves no missing editor and supports Undo", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await openFish(page);
+  await edit(page, 2).click();
+  await expect(edit(page, 2)).toHaveAttribute("aria-expanded", "true");
+  await page.getByRole("button", { name: "JSON", exact: true }).click();
+  const raw = JSON.parse(await editorText(page));
+  raw.outcomes.pop();
+  await setEditorText(page, JSON.stringify(raw, null, 2));
+  await expect(page.getByRole("region", { name: "Entity list" })).toContainText("Unsaved");
+  await page.getByRole("button", { name: "Form", exact: true }).click();
+  await expect(page.locator(".outcome-row")).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Edit outcomes.2", exact: true })).toHaveCount(0);
+  await expect(page.locator(".outcome-editor:not([hidden])")).toHaveCount(0);
+  await undo(page);
+  await expect(page.locator(".outcome-row")).toHaveCount(3);
+  await expect(edit(page, 2)).toHaveAttribute("aria-expanded", "false");
+  expect(errors).toEqual([]);
 });
