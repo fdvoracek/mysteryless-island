@@ -50,7 +50,7 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-05.1 **[implemented]** | Form API cleanup with document context, explicit per-field `view`, split form modules, no JSX spreads and a permanent markup hash guard; no visible change. | `form.tsx`, `cards.tsx`, `widgets.tsx`, `rules.tsx`, `text-widget.tsx`, `outcomes.tsx`, workspace/dialog call sites | medium (refactor) |
 | UX-06a **[implemented]** | **Shell header, status bar and document header**: slim top bar, sticky document header with Form/JSON and Duplicate/Delete disclosure, status bar; presentation split into `shell/` under UX-05.1 lint rules. | `main.tsx`, `shell/`, `studio.css` | medium |
 | UX-06b **[implemented]** | **Context rail**: problems in this file, Linked from, Referenced by, Uses, Rename IDs. | `main.tsx`/`shell/`, `references.ts` | medium |
-| UX-06c | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8); diagnostics drawer from the status chip. | `shell/`, `store.ts` | high — plan first |
+| UX-06c **[implemented]** | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8). Diagnostics drawer dropped by owner: validation chip keeps scrolling to global Diagnostics; file problems stay in the rail. | `shell/`, `store.ts` | high — plan first |
 | UX-07 | **Navigation tree** (World / Areas ▸ parts / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
 | UX-09 | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
@@ -101,8 +101,8 @@ Radii: inputs 5 px, buttons 6 px, cards 8 px, chips 999 px.
   validation chip · Undo/Redo icon buttons · **Save all** (primary) · **Create** · Preview.
   **Create stays visible until UX-07** adds “+ New … here” in the list. Search stays until UX-08.
   The validation button retains its inner status role and scrolls to/focuses existing Diagnostics;
-  the diagnostics drawer follows in UX-06c. Unsaved count lives in the status bar for UX-06a;
-  the changes drawer follows in UX-06c.
+  this behavior remains in UX-06c (diagnostics drawer dropped by owner). UX-06c adds the
+  “N unsaved” changes button between validation and Undo; the status-bar count stays unchanged.
 - UX-06a status bar: problems count · “N unsaved files” (including zero) · right-aligned store
   status, **Refresh from disk**, **Open game ↗**, and “⌘S save · ⌘Z undo” hints.
   Story layout status and its retry button remain in the story toolbar: they are rendered inside
@@ -164,7 +164,18 @@ Preview is open at any width, it stacks below the editor without a scroll-height
 ### 5.7 Overlays (UX-06, UX-08)
 - **Changes drawer**: 420 px from the right between top and status bar, slides (200 ms). Per file:
   bold path, ghost Discard (D8 rules), mono diff (removed = error colour, added = ok colour).
-  Footer: primary “Save all (n files)”.
+  Footer: primary “Save all (n files)”. **[implemented, UX-06c]** Uses the existing modal Dialog,
+  with Escape/× close, focus containment and focus return to the unsaved button (search field
+  when the last change has gone). Full width at 390 px; reduced motion disables entry animation.
+  Entries show modified/new/deleted/moved badges and two-line-context, numbered JSON diffs
+  in house format (raw text fallback), capped at 200 lines with an omitted-line count. Discard
+  removes an existing non-moved file's draft, inputs and conflict as one normal undo step;
+  new files show “New file — remove it with ⋯ → Delete.” and either rename path shows
+  “Part of a rename — Undo the rename to discard.” Disabled reasons are visible and in titles.
+  Save uses existing whole-pack validation, conflict and partial-failure handling; blocked
+  diagnostics show “Fix n problems first”. The empty drawer stays open until closed.
+  **No diagnostics drawer:** dropped by owner; validation still scrolls to global Diagnostics,
+  and the context rail retains problems in this file.
 - **⌘K palette**: centred, 620 px max, 70 px from top, radius 10, large shadow, scrim
   `rgba(22,25,29,.35)`. Input 15 px, groups Content / Text / Create with micro headings; result =
   icon · name · kind/area badge · right-aligned mono ID. Arrow keys move selection, Enter opens,

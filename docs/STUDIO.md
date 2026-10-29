@@ -584,3 +584,27 @@ At widths of 1100 px and above the rail is a 280 px sticky column with its own s
 1100 px it stacks after the editor, before global Diagnostics. Opening Preview always stacks
 the rail, preserving editor space (at least 480 px at 1440 px). Story, Trees, Map and image views
 have no document rail. There is no Try it section; use the existing Preview panel.
+
+
+## Unsaved changes — [implemented, UX-06c]
+
+The top bar's **N unsaved** button opens **Unsaved changes**, a right-hand modal drawer.
+Each file has a modified/new/deleted/moved badge, a path button opening the editor, and a
+numbered diff with two context lines. Both sides use canonical house formatting, so whitespace
+alone does not appear as a change. Rename destinations compare against the original disk file.
+Each file shows at most 200 diff lines and reports omitted lines; long lines wrap.
+Opening a staged deletion shows its disk contents read-only until Discard restores it.
+
+**Discard** restores an existing file's disk version in memory, including staged deletions,
+and clears only that file's input buffers, errors and conflict. It never writes to disk.
+Undo restores the discarded draft and inputs; Redo discards them again. Discard is disabled
+for new files (**New file — remove it with ⋯ → Delete.**) and both paths of a pending rename
+(**Part of a rename — Undo the rename to discard.**). These reasons remain visible.
+
+**Save all (n files)** uses the existing Save all action and validation/conflict rules. When
+blocked by diagnostics, the drawer says **Fix n problems first**. After saving or discarding
+the last change, it stays open with **No unsaved changes**. Escape or × closes it; focus returns
+to the unsaved button, or to Search content when the button disappears. At 390 px the drawer
+fills the width; reduced-motion preferences disable its slide animation. The status bar keeps
+its **N unsaved files** count. The validation chip still scrolls to global Diagnostics; the
+context rail lists the current file's problems. There is no diagnostics drawer.

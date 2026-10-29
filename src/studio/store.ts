@@ -97,6 +97,18 @@ export class StudioStore {
     catch (error) { if (error instanceof ContentError || error instanceof SyntaxError) return undefined; throw error; }
   }
   get canSave() { return !this.busy && this.drafts.size > 0 && !this.inputErrors.size && permitsSave(this.baseline, this.view.diagnostics); }
+  canDiscard(path: string): { ok: true } | { ok: false; reason: string } {
+    if (this.moves.has(path) || [...this.moves.values()].includes(path)) {
+      return { ok: false, reason: "Part of a rename — Undo the rename to discard." };
+    }
+    if (!this.disk.some(file => file.path === path)) return { ok: false, reason: "New file — remove it with ⋯ → Delete." };
+    return { ok: true };
+  }
+  discard(path: string): void {
+    if (this.busy || !this.drafts.has(path) || !this.canDiscard(path).ok) return;
+    this.checkpoint();
+    this.drafts.delete(path); this.clearInputs(path); this.conflicts.delete(path); this.notify();
+  }
   private snapshot(): Snapshot {
     return { moves: new Map(this.moves), drafts: new Map(this.drafts), errors: new Map(this.inputErrors), buffers: new Map(this.buffers),
       conflicts: new Map([...this.conflicts].map(([path, conflict]) => [path, { ...conflict }])),
