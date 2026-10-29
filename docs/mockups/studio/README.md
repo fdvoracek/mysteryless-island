@@ -469,7 +469,7 @@ Owner-approved differences from the static mockup:
   hunks show two context lines, textual −/+ signs and error/ok colours. Long lines wrap,
   with no nested scroll region; each file is capped at 200 lines with an omitted count.
 - Both sides use house formatting, with raw-text fallback. Move destinations compare against
-  source disk content and show **renamed from …**. Sources remain listed as moved too.
+  source disk content and show **renamed from …**. Sources show **moved to …** without a diff; destinations retain the content diff against the source disk file.
 - Disabled Discard reasons are faint text and titles. Existing files, including staged
   deletions, use one ordinary undo step; new files require Delete, and rename paths require
   Undo. Deleted-path links open disk contents read-only until restored.

@@ -42,6 +42,8 @@ export function lineDiff(before: string, after: string): Hunk[] {
   return hunks;
 }
 export function fileDiff(path: string, draft: string | null, disk: FileDocument[], moves: ReadonlyMap<string, string>) {
+  const to = draft === null ? moves.get(path) : undefined;
+  if (to) return { path, status: "moved", from: undefined, to, hunks: [] as Hunk[], omitted: 0 };
   const from = [...moves].find(([, to]) => to === path)?.[0];
   const original = disk.find(file => file.path === (from ?? path));
   const status = from || moves.has(path) ? "moved" : draft === null ? "deleted" : !original ? "new" : "modified";
@@ -52,5 +54,5 @@ export function fileDiff(path: string, draft: string | null, disk: FileDocument[
     const visible = hunk.lines.slice(0, remaining); remaining -= visible.length;
     return visible.length ? [{ lines: visible }] : [];
   });
-  return { path, status, from, hunks: capped, omitted: Math.max(0, total - 200) };
+  return { path, status, from, to, hunks: capped, omitted: Math.max(0, total - 200) };
 }

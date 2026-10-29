@@ -17,7 +17,9 @@ it("reports modified, new, deleted and both move sides, comparing destination wi
   expect(deleted.status).toBe("deleted");
   expect(deleted.hunks[0].lines.every(line => line.kind === "removed")).toBe(true);
   const moves = new Map([["old.json", "new.json"]]);
-  expect(fileDiff("old.json", null, disk, moves).status).toBe("moved");
+  expect(fileDiff("old.json", null, disk, moves)).toMatchObject({
+    status: "moved", to: "new.json", hunks: [], omitted: 0,
+  });
   const moved = fileDiff("new.json", '{"a":2}', disk, moves);
   expect(moved).toMatchObject({ status: "moved", from: "old.json" });
   expect(moved.hunks[0].lines).toEqual([

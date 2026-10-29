@@ -36,6 +36,7 @@ test("two-field diff, keyboard close/focus, Discard refresh, Undo/Redo and path 
   await trigger.focus(); await page.keyboard.press("Enter");
   const dialog = drawer(page);
   await expect(dialog).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Save all (1 file)", exact: true })).toBeVisible();
   await expect(dialog).toContainText("activities/catch_fish.json");
   await expect(dialog).toContainText("modified");
   await expect(dialog.locator(".removed .diff-text")).toHaveText(['  "name": "catch fish",', '      "weight": 4,']);
@@ -89,7 +90,13 @@ test("rename source and destination refuse Discard; Undo restores the rename", a
     await expect(section).toContainText(moveReason);
     await expect(section).toContainText("moved");
   }
-  await expect(dialog).toContainText("renamed from activities/catch_fish.json");
+  const source = dialog.getByRole("region", { name: fish, exact: true });
+  await expect(source).toContainText("moved to activities/drawer_fish.json");
+  await expect(source.locator(".diff-line")).toHaveCount(0);
+  const destination = dialog.getByRole("region", { name: "content/activities/drawer_fish.json", exact: true });
+  await expect(destination).toContainText("renamed from activities/catch_fish.json");
+  await expect(destination.locator(".removed .diff-text")).toHaveText(['  "id": "catch_fish",']);
+  await expect(destination.locator(".added .diff-text")).toHaveText(['  "id": "drawer_fish",']);
   await page.keyboard.press("Escape");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
   await expect(page.getByRole("button", { name: /unsaved changes/ })).toHaveCount(0);
@@ -152,7 +159,7 @@ test("drawer explains validation blocking and respects reduced motion", async ({
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.getByRole("button", { name: /unsaved changes/ }).click();
   const dialog = drawer(page);
-  await expect(dialog.getByRole("button", { name: "Save all (1 files)", exact: true })).toBeDisabled();
-  await expect(dialog).toContainText(/Fix \d+ problems first/);
+  await expect(dialog.getByRole("button", { name: "Save all (1 file)", exact: true })).toBeDisabled();
+  await expect(dialog).toContainText(/Fix \d+ problems? first/);
   await expect(dialog).toHaveCSS("animation-name", "none");
 });
