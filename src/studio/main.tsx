@@ -25,6 +25,13 @@ import { Sidebar } from "./shell/Sidebar";
 import { EntityList } from "./shell/EntityList";
 import "./studio.css";
 
+export function defaultCreateKind(scope: string, selected?: { kind: string }): string {
+  if (Object.hasOwn(entitySchemas, scope)) return scope;
+  if (scope.startsWith("area:")) return "activities";
+  if (scope === "all" && selected && Object.hasOwn(entitySchemas, selected.kind)) return selected.kind;
+  return "items";
+}
+
 function Studio() {
   const [store] = useState(() => new StudioStore());
   const version = useSyncExternalStore(store.subscribe, () => store.version);
@@ -165,7 +172,7 @@ function Studio() {
       canUndo={!!store.past.length && !store.busy} canRedo={!!store.future.length && !store.busy}
       canSave={canSave} busy={store.busy} previewOpen={previewOpen} search={setQuery}
       showDiagnostics={showDiagnostics} undo={undo} redo={redo} save={() => { void save(); }}
-      create={() => setCreate({ kind: scope })} togglePreview={() => setPreviewOpen(open => !open)} />
+      create={() => setCreate({ kind: defaultCreateKind(scope, selected) })} togglePreview={() => setPreviewOpen(open => !open)} />
     {store.status && <p className="save-report" role="log">{store.status}</p>}
     {failure && <div role="alert" className="request-error">{failure}. Refresh to try again.</div>}
     <div className={`studio-body${previewOpen ? " preview-open" : ""}`}>

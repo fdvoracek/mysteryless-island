@@ -53,7 +53,7 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-06c **[implemented]** | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8). Diagnostics drawer dropped by owner: validation chip keeps scrolling to global Diagnostics; file problems stay in the rail. | `shell/`, `store.ts` | high — plan first |
 | UX-07 **[implemented]** | **Navigation tree** (World / Areas / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
-| UX-09 | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
+| UX-09 **[implemented]** | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
 | later | Story toolbar compaction; table view for items/recipes (CastleDB-style) | — | deferred |
 
 Each PR updates `docs/STUDIO.md` (marks [implemented]) and the mockup README differences section.
