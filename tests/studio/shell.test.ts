@@ -1,6 +1,8 @@
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
+import { ChangesDrawer } from "../../src/studio/shell/ChangesDrawer";
+import { StudioStore } from "../../src/studio/store";
 import { TopBar } from "../../src/studio/shell/TopBar";
 import { StatusBar } from "../../src/studio/shell/StatusBar";
 import { DocumentHeader } from "../../src/studio/shell/DocumentHeader";
@@ -71,5 +73,25 @@ it.each([0, 2])("shows the changes trigger only for a nonzero count (%i)", unsav
     expect(html).toContain('>2 unsaved</button>');
     expect(html.indexOf('role="status"')).toBeLessThan(html.indexOf('class="unsaved-button"'));
     expect(html.indexOf('class="unsaved-button"')).toBeLessThan(html.indexOf('aria-label="Undo"'));
+  }
+});
+
+
+it.each([
+  [1, "files", "Save all (1 file)"], [2, "files", "Save all (2 files)"],
+  [1, "problems", "Fix 1 problem first"], [2, "problems", "Fix 2 problems first"],
+  [1, "inputs", "Fix 1 invalid input first"], [2, "inputs", "Fix 2 invalid inputs first"],
+] as const)("uses drawer footer wording for %i %s", (count, kind, wording) => {
+  const store = new StudioStore();
+  for (let i = 0; i < (kind === "files" ? count : 1); i++) store.drafts.set(`content/items/test_${i}.json`, "{}");
+  if (kind === "inputs") for (let i = 0; i < count; i++) store.inputErrors.set(`content/items/test_0.json:field${i}`, "Invalid");
+  const html = renderToStaticMarkup(createElement(ChangesDrawer, {
+    store, canSave: kind === "files", problemCount: kind === "files" ? 0 : count, validating: false,
+    close: noop, open: noop, discard: noop, save: noop,
+  }));
+  expect(html).toContain(wording);
+  if (kind === "inputs") {
+    expect(html).not.toContain("Saving is unavailable.");
+    expect(html).not.toMatch(/Fix \d+ problems? first/);
   }
 });

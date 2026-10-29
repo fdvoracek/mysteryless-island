@@ -20,6 +20,7 @@ function FileChange({ store, path, draft, open, discard }: {
       <button type="button" className="change-discard" aria-label={`Discard ${path}`} disabled={!allowed.ok || store.busy}
         title={allowed.ok ? undefined : allowed.reason} onClick={() => discard(path)}>Discard</button>
     </div>
+    {diff.to && <p className="change-reason">moved to {diff.to.replace(/^content\//, "")}</p>}
     {diff.from && <p className="change-reason">renamed from {diff.from.replace(/^content\//, "")}</p>}
     {!allowed.ok && <p className="change-reason">{allowed.reason}</p>}
     <div className="change-diff" aria-label={`Diff ${path}`}>
@@ -39,7 +40,7 @@ export function ChangesDrawer({ store, canSave, problemCount, validating, close,
   store: StudioStore; canSave: boolean; problemCount: number; validating: boolean; close: () => void;
   open: (path: string) => void; discard: (path: string) => void; save: () => void;
 }) {
-  const count = store.drafts.size;
+  const count = store.drafts.size, invalidInputs = store.inputErrors.size;
   return <Dialog title="Unsaved changes" close={close}>
     <div className="changes-drawer">
       <p className="changes-intro">Review before Save all. Discard per file.</p>
@@ -48,8 +49,10 @@ export function ChangesDrawer({ store, canSave, problemCount, validating, close,
         : <p className="changes-empty">No unsaved changes</p>}
       <footer className="changes-footer">
         {!canSave && count > 0 && <p className="change-reason">{store.busy ? "Saving…" : validating ? "Validating…"
-          : problemCount ? `Fix ${problemCount} problems first` : "Saving is unavailable."}</p>}
-        <button type="button" className="primary" disabled={!canSave} onClick={save}>Save all ({count} files)</button>
+          : invalidInputs ? `Fix ${invalidInputs} invalid ${invalidInputs === 1 ? "input" : "inputs"} first`
+          : problemCount ? `Fix ${problemCount} ${problemCount === 1 ? "problem" : "problems"} first` : "Saving is unavailable."}</p>}
+        <button type="button" className="primary" disabled={!canSave} onClick={save}>
+          Save all ({count} {count === 1 ? "file" : "files"})</button>
       </footer>
     </div>
   </Dialog>;
