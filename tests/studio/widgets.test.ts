@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, Recipe, Building, formatContent } from "../../src/content";
+import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, Recipe, Building, Region, GameEvent, formatContent } from "../../src/content";
 import { Field, fileContentsClass, rootSections } from "../../src/studio/form";
 import { boundedExpansion } from "../../src/studio/widgets";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
@@ -303,9 +303,14 @@ it("initializes card DOM from stored collapsed titles and tolerates unavailable 
 });
 
 it("renders the bare file panel only for sectioned document roots in Form mode", () => {
-  for (const [schema, value, mode, bare] of [
+  for (const [schema, value, mode, bare, workspace] of [
     [Activity, { name: "test", id: "test", hours: 1 }, "form", true],
     [Item, { name: "test", id: "test" }, "form", true],
+    [Region, { id: "test", name: "test" }, "form", true, true],
+    [GameEvent, { id: "test", title: "test" }, "form", true, true],
+    [Region, { id: "test", name: "test" }, "json", false, true],
+    [GameEvent, { id: "test", title: "test" }, "json", false, true],
+    [Region, { id: "test", name: "test" }, "form", false, false],
     [Site, { name: "test", id: "test" }, "form", false],
     [Artwork, { id: "test", src: "test.png" }, "form", false],
     [Activity, { name: "test", id: "test" }, "json", false],
@@ -313,11 +318,11 @@ it("renders the bare file panel only for sectioned document roots in Form mode",
     [Activity, { _note: "Only a note" }, "form", false],
     [Activity, null, "form", false],
   ] as const) {
-    const html = renderToStaticMarkup(createElement("section", { className: fileContentsClass(schema, mode, value), "aria-label": "File contents" },
+    const html = renderToStaticMarkup(createElement("section", { className: fileContentsClass(schema, mode, value, workspace), "aria-label": "File contents" },
       mode === "form" ? createElement(Field, { schema, value, path: "", owner, documents, problems: [], onChange: () => { throw new Error("Render must not edit"); }, onError: () => {} }) : null));
     expect(html.includes('class="json-panel json-panel-bare"')).toBe(bare);
-    expect(mode === "form" && Boolean(rootSections(schema, value)?.length)).toBe(bare);
-    if (mode === "form") expect(html.includes('class="form-section"')).toBe(bare);
+    expect(mode === "form" && Boolean(workspace || rootSections(schema, value)?.length)).toBe(bare);
+    if (mode === "form") expect(html.includes('class="form-section"')).toBe(Boolean(rootSections(schema, value)?.length));
     expect(html).toContain('aria-label="File contents"');
   }
 });

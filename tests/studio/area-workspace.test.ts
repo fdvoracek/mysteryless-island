@@ -92,13 +92,14 @@ it("renders forest cards, editable root notes and landmark hints without double-
   expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('data-field="id"'));
   expect(html).toContain('<summary>_raw</summary>');
   expect(html).not.toContain('landmark-entry');
+  expect(html).toContain('class="add-link" type="button" aria-label="Add landmark">+ add landmark</button>');
   const forest = owner.raw as { explore: { landmarks: { id: string }[] } };
   expect(html).toContain('<section class="area-workspace" aria-label="Area workspace">');
   expect(html).toContain('<section aria-label="Used by Area forest">');
   for (const landmark of forest.explore.landmarks) {
     expect(html).toContain(`aria-label="Landmark ${landmark.id}"`);
     expect(html).toContain(`<section aria-label="Used by Landmark ${landmark.id}">`);
-    expect(html).toContain(`Remove landmark ${landmark.id}`);
+    expect(html).toContain(`aria-label="Remove landmark ${landmark.id}">×</button>`);
     expect(html).toContain(`aria-label="Move up landmark ${landmark.id}"`);
     expect(html).toContain(`aria-label="Move down landmark ${landmark.id}"`);
   }
@@ -111,4 +112,31 @@ it("renders forest cards, editable root notes and landmark hints without double-
   const empty = render(without, "explore.name");
   expect(empty).not.toContain('<strong>Landmarks</strong>');
   expect(empty).toContain('aria-label="Add explore"');
+});
+
+
+it("groups unset area fields into one trailing Optional line per card and preserves entry control names", () => {
+  const store = setup(), documents = store.view.documents, owner = documents.find(d => d.kind === "regions" && d.id === "forest")!;
+  const value = { id: "forest", name: "forest", title: "Forest", description: "Trees.", climate: { baseC: 18 }, travelHours: 1, activities: ["gather_wood"], _artwork: "Art note", _explore: "Explore note" };
+  const html = renderToStaticMarkup(createElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
+  expect(html.match(/class="optional-fields"/g)).toHaveLength(3);
+  for (const [title, next, keys] of [
+    ["Properties", "Map and unlock", ["artwork", "siteCapabilities", "order", "shelterWhen"]],
+    ["Map and unlock", "Text and exploration", ["map", "unlockWhen", "hintWhen"]],
+    ["Text and exploration", "Linked activities", ["firstVisit", "arrive", "explore"]],
+  ] as const) {
+    const card = html.split(`<strong>${title}</strong>`)[1].split(`<strong>${next}</strong>`)[0];
+    expect(card.match(/class="optional-fields"/g)).toHaveLength(1);
+    const [fields, optional] = card.split('class="optional-fields"');
+    expect(fields).not.toContain('class="optional-chip"');
+    expect(optional).toContain('<span>Optional:</span>');
+    for (const key of keys) {
+      expect(optional).toContain(`aria-label="Add ${key}"`);
+      expect(fields).not.toContain(`data-field="${key}"`);
+    }
+    if (title === "Properties") expect(optional.indexOf('aria-label="_artwork"')).toBeLessThan(optional.indexOf('aria-label="Add artwork"'));
+    if (title === "Text and exploration") expect(optional.indexOf('aria-label="_explore"')).toBeLessThan(optional.indexOf('aria-label="Add explore"'));
+  }
+  expect(html).toContain('class="entry-actions"><button type="button" aria-label="Move up activity gather_wood"');
+  expect(html).toContain('aria-label="Unlink gather_wood">×</button>');
 });

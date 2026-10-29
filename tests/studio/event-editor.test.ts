@@ -77,11 +77,19 @@ it("list views and laid-out graphs expose exactly the same nodes and edges; area
 
 it("cards only event properties, applies hints and keeps scene controls and comments unchanged", () => {
   const store = setup(), documents = store.view.documents, owner = documents.find(d => d.id === "shipwreck")!;
-  const value = { ...owner.raw as object, _title: "Title note", _note: "General note", _raw: { keep: true } };
+  const value = { ...owner.raw as object, _when: "Condition note", _title: "Title note", _note: "General note", _raw: { keep: true } };
   const html = renderToStaticMarkup(createElement(EventEditor, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
   expect(html.match(/class="form-section"/g)).toHaveLength(1);
   for (const label of ["Event properties", ">Title</label>", ">Opens</label>", "+ Only when", "+ Repeat", 'aria-label="Selected scene or choice"', 'aria-label="Event scene graph"', 'aria-label="Event graph checks"', 'aria-label="scenes.start.text"']) expect(html).toContain(label);
   expect(html.indexOf('aria-label="_title"')).toBeLessThan(html.indexOf('data-field="title"'));
   expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('data-field="id"'));
   expect(html).toContain('<summary>_raw</summary>');
+  const properties = html.split('<strong>Event properties</strong>')[1].split('<section class="graph-view"')[0];
+  const [fields, optional] = properties.split('class="optional-fields"');
+  expect(properties.match(/class="optional-fields"/g)).toHaveLength(1);
+  expect(fields).not.toContain('class="optional-chip"');
+  expect(optional).toContain('<span>Optional:</span>');
+  for (const key of ["when", "repeat"]) expect(optional).toContain(`aria-label="Add ${key}"`);
+  expect(optional.indexOf('aria-label="_when"')).toBeLessThan(optional.indexOf('aria-label="Add when"'));
+
 });

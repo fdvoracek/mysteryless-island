@@ -81,11 +81,11 @@ export function rootSections(schema: Schema | undefined, value: unknown): (Secti
   const nonEmpty = grouped.filter(section => section.fields.length);
   return nonEmpty;
 }
-export function fileContentsClass(schema: Schema | undefined, mode: string, value: unknown): string {
-  return `json-panel${mode === "form" && rootSections(schema, value)?.length ? " json-panel-bare" : ""}`;
+export function fileContentsClass(schema: Schema | undefined, mode: string, value: unknown, workspace = false): string {
+  return `json-panel${mode === "form" && (workspace || rootSections(schema, value)?.length) ? " json-panel-bare" : ""}`;
 }
 const labelForInline = (key: string) => rangeCaptions[key as keyof typeof rangeCaptions] ?? humanize(key).toLowerCase();
-function OptionalChip({ name, label, add }: { name: string; label: string; add: () => void }) {
+export function OptionalChip({ name, label, add }: { name: string; label: string; add: () => void }) {
   return <button className="optional-chip" type="button" aria-label={`Add ${name}`} onClick={add}>+ {label}</button>;
 }
 function RootSections({ schema, raw, groups, problems, documents, renderFields }: {
