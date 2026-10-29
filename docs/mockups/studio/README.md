@@ -326,6 +326,7 @@ mounted while hidden. The existing shell and card titles remain at their prior U
 The owner's approved refinements apply: only conditioned arrays have the assumption title and
 “≈” shares; text/effects cells are plain divs with mouse-only toggling and ignore active text
 selection. Weight diagnostics stay in collapsed rows; interior diagnostics reveal their editor.
+The 14 px faint Edit caret is always visible in its own fixed-width slot at the row end; only reorder/remove actions wait for hover or focus.
 Actual deviations from the approved UX-05 specification: none.
 
 Evidence: [collapsed table beside annotation 10](ux-05/outcomes-comparison.jpg),
