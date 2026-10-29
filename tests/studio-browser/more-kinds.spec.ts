@@ -3,7 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function forest(page: Page) {
   await page.goto("/studio/");
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
-  await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "the forest", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "id", exact: true })).toHaveValue("forest");
 }
 const card = (page: Page, title: string) => page.locator(".area-workspace > .form-section").filter({ has: page.locator("summary strong", { hasText: new RegExp(`^${title}$`) }) });
@@ -26,7 +26,7 @@ test("area cards remember collapsed landmarks and linked activities across reloa
     await expect(card(page, title).locator(".form-section-preview")).toHaveText(summary);
   }
   await page.reload();
-  await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "the forest", exact: true }).click();
   for (const title of ["Landmarks", "Linked activities"]) await expect(card(page, title)).not.toHaveAttribute("open");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("studio.sections:Region")!))).toEqual(["Landmarks", "Linked activities"]);
   await page.setViewportSize({ width: 390, height: 844 });

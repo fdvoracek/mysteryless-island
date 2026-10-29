@@ -494,3 +494,28 @@ Captions sit outside the captures. The phone source is 390×844;
 `document.documentElement.scrollWidth === 390`, and the drawer has scrollWidth/clientWidth
 389/389 (its border accounts for the remaining pixel). All three JPEGs are ≤200 KB.
 All captures use a disposable copy of frozen fixture content; no content is written by the drawer.
+
+## UX-07 implementation differences — [implemented]
+
+- World retains the accessible names Map, Story and Trees. Areas have one named row with camp
+  or travel hours, without disclosures or child rows: the row opens the area workspace and
+  its existing area-plus-activities list. Library includes All files and each kind in
+  `kindLabels` order; Settings retains Game settings. No decorative glyphs or area-state dots.
+- Existing global Search content stays; list filters, chips, drag ordering and a second link
+  action at the footer are deferred. Existing linking remains in the area workspace. Candidate
+  order is unchanged (area file first), rather than the mockup's activity-only player order.
+- Activity metadata uses the existing `describe()` output for visibility, then requirements,
+  rather than handcrafted shorthand. Long metadata uses ellipsis and a full-text title.
+  Item rows show category and tool tags; other kinds retain their kind label. Unsaved retains
+  its text as well as a warning dot. Top-bar Create remains until UX-08.
+- Columns retain page scrolling and phone stacking. The desktop sidebar/list use the specified
+  220/300 px widths; existing narrower breakpoints and Preview sizing remain.
+- Kind creation footers use `entitySchemas`, the same source as the existing Create dialog.
+  Unsupported kinds (Illustrations, Creation trees and Game settings) have no creation footer;
+  area scopes retain their contextual linked-activity creation action.
+- No markup snapshots were regenerated: region `(form)` cases directly test generic `Field`,
+  while `(area)` cases already test AreaWorkspace. Runtime routing does not change either.
+
+Evidence: [100% comparison](ux-07/comparison.jpeg), [three light-fire rows](ux-07/light-fire.jpeg),
+[390 px phone](ux-07/phone.jpeg). Desktop screenshots use a 1440×900 viewport, with equal-scale
+520 px crops in the comparison. Phone `document.documentElement.scrollWidth` equals 390.

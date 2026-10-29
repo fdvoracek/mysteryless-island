@@ -21,6 +21,8 @@ import { TopBar } from "./shell/TopBar";
 import { StatusBar } from "./shell/StatusBar";
 import { ContextRail } from "./shell/ContextRail";
 import { DocumentHeader } from "./shell/DocumentHeader";
+import { Sidebar } from "./shell/Sidebar";
+import { EntityList } from "./shell/EntityList";
 import "./studio.css";
 
 function Studio() {
@@ -125,8 +127,6 @@ function Studio() {
   const definitions = useMemo(() => identities(documents).filter(id => id.file === selectedPath), [documents, selectedPath]);
   const rootIdentity = definitions.find(id => id.path === "id");
   const hasRail = !!selected && !!schemaFor(selected.path) && !["story", "trees", "map"].includes(scope);
-  const kinds = Object.keys(kindLabels).filter((kind) => documents.some((document) => document.kind === kind));
-  const areas = documents.filter((document) => document.kind === "regions");
   function browse(value: string) { setScope(value); setSelection(""); setField(""); setQuery(""); }
   function openProblem(file: string, path: string) {
     const destination = documents.find(d => d.path === file);
@@ -170,30 +170,13 @@ function Studio() {
     {failure && <div role="alert" className="request-error">{failure}. Refresh to try again.</div>}
     <div className={`studio-body${previewOpen ? " preview-open" : ""}`}>
     <div className="studio-columns">
-      <nav className="studio-nav" aria-label="Content navigation">
-        <h2>Browse</h2>
-        <button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button>
-        <button aria-current={scope === "trees" ? "page" : undefined} onClick={() => browse("trees")}>Trees</button>
-        <button aria-current={scope === "map" ? "page" : undefined} onClick={() => browse("map")}>Map</button>
-        <button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
-        <h2>By area</h2>{areas.map((document) => <button key={document.path}
-          aria-current={scope === `area:${document.id}` ? "page" : undefined}
-          onClick={() => browse(`area:${document.id}`)}>{document.id}</button>)}
-        <button onClick={() => setCreate({ kind: "regions" })}>+ new area</button>
-        <h2>By kind</h2>{kinds.map((kind) => <button key={kind} aria-current={scope === kind ? "page" : undefined}
-          onClick={() => browse(kind)}>{kindLabels[kind]}<span>{documents.filter((document) => document.kind === kind).length}</span></button>)}
-      </nav>
-      {!["story", "trees", "map"].includes(scope) && <section className="entity-list" aria-label="Entity list">
-        <div className="list-heading"><h1>{area ? area.label : kindLabels[scope] ?? "All files"}</h1>
-          <p>{visible.length} files{area && " · area and available activities"}</p></div>
-        {visible.map((document) => <button key={document.path} aria-pressed={selected?.path === document.path}
-          onClick={() => { setSelection(document.path); setField(""); }}>
-          <strong>{document.label}</strong><code>{document.id}</code>
-          {store.drafts.has(document.path) && <span className="dirty">Unsaved</span>}
-          <small>{kindLabels[document.kind] ?? document.kind}
-            {diagnostics.some((problem) => problem.file === document.path) ? " · has problems" : ""}</small></button>)}
-        {!visible.length && <p className="empty">{files.length ? "No files match this search." : status}</p>}
-      </section>}
+      <Sidebar documents={documents} scope={scope} browse={browse}
+        openArea={document => { browse(`area:${document.id}`); setSelection(document.path); }}
+        newArea={() => setCreate({ kind: "regions" })} />
+      {!["story", "trees", "map"].includes(scope) && <EntityList documents={documents} visible={visible}
+        selectedPath={selected?.path} scope={scope} area={area} drafts={store.drafts} diagnostics={diagnostics}
+        empty={files.length ? "No files match this search." : status}
+        select={path => { setSelection(path); setField(""); }} create={setCreate} />}
       <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}${hasRail ? " has-context" : ""}`}>
         {scope === "story" ? <StoryView store={store} documents={documents} open={openProblem}
           create={(kind, prefill) => setCreate({ kind, prefill })} />
@@ -209,7 +192,7 @@ function Studio() {
             duplicate={() => setCreate({ kind: selected.kind, duplicate: selected.path })}
             remove={() => { setDeleteOrphans(false); setDeleting(selected.path); }} />
           <section className={fileContentsClass(selectedSchema, mode, selected.raw,
-            Boolean(selectedSchema && selected.raw !== undefined && (area && selected.path === area.path || selected.kind === "events")))}
+            Boolean(selectedSchema && selected.raw !== undefined && (selected.kind === "regions" || selected.kind === "events")))}
             aria-label="File contents"><div className="json-heading">
               <h3>{selected.encoding === "utf8"
                 ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3></div>
@@ -227,7 +210,7 @@ function Studio() {
               <FormContext.Provider value={{ documents, owner: selected, problems: diagnostics.filter(p => p.file === selected.path),
                 buffers: store.buffersFor(selected.path), lockId: true,
                 onError: (path, message, buffer) => store.error(selected.path, path, message, buffer) }}>
-              {area && selected.path === area.path
+              {selected.kind === "regions"
                 ? <AreaWorkspace schema={selectedSchema} value={selected.raw} path="" onChange={raw => store.edit(selected.path, raw)}
                   open={openProblem} newActivity={() => setCreate({ kind: "activities", areaPath: selected.path })} />
                 : selected.kind === "events"

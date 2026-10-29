@@ -93,7 +93,7 @@ test("1024px rail stacks and remains keyboard usable; 390px paths do not overflo
 
 test("area reference groups move intact to the rail with explicit empty states; special views omit it", async ({ page }) => {
   await page.goto("/studio/");
-  await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
+  await page.getByRole("navigation").getByRole("button", { name: "the forest", exact: true }).click();
   await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^forest$/ }) }).click();
   await expect(rail(page).getByRole("region", { name: "Used by Area forest", exact: true })).toBeVisible();
   const groups = rail(page).getByRole("region", { name: /^Used by Landmark / });
