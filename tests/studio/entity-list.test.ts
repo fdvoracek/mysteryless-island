@@ -2,8 +2,14 @@ import { readFileSync } from "node:fs";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
-import { EntityList } from "../../src/studio/shell/EntityList";
-import { kindSingulars, readDocuments } from "../../src/studio/documents";
+import { EntityList, distinguishingMeta } from "../../src/studio/shell/EntityList";
+import { areaDocuments, kindSingulars, readDocuments } from "../../src/studio/documents";
+import { readContentFiles } from "../helpers";
+
+const fixtureDocuments = readDocuments(Object.entries(readContentFiles()).map(([path, raw]) => ({
+  path, content: JSON.stringify(raw), encoding: "utf8" as const, hash: "fixture",
+}))).documents;
+const beach = fixtureDocuments.find(document => document.id === "beach")!;
 
 const { documents } = readDocuments(["light_fire", "strike_fire", "make_fire"].map(id => ({
   path: `content/activities/${id}.json`, encoding: "utf8" as const, hash: id,
@@ -50,4 +56,47 @@ it("renders item category and tool tags, empty item metadata and kind labels", (
   expect(html).toContain('tool · sharp · fire_starter');
   expect(html).toContain('entity-row-meta" title=""></span>');
   expect(html).toContain('entity-row-meta" title="Sites">Sites</span>');
+});
+
+it("removes only parts shared by all same-named visible beach activities", () => {
+  const rows = areaDocuments(fixtureDocuments, beach);
+  const meta = distinguishingMeta(rows, fixtureDocuments);
+  const fire = rows.filter(row => row.label === "light fire");
+  const texts = fire.map(row => meta.get(row.path)!);
+  expect(new Set(texts).size).toBe(3);
+  for (const text of texts) {
+    expect(text).not.toContain("campfire");
+    expect(text).not.toContain("fire hours");
+  }
+  expect(texts[0]).toMatch(/^carrying matches/);
+  expect(texts[1]).toMatch(/^not \(carrying matches.* · carrying stone/);
+  expect(texts[2]).toMatch(/^not \(carrying matches.* · not \(carrying stone/);
+  const unique = distinguishingMeta([fire[0]], fixtureDocuments).get(fire[0].path)!;
+  expect(unique).toContain("campfire built here");
+  expect(unique).not.toMatch(/^\(/);
+  const fallback = distinguishingMeta([fire[0], { ...fire[0], path: "copy" }], fixtureDocuments);
+  expect(fallback.get("copy")).toBe(`(${unique})`);
+});
+
+it("unwraps a unique top-level any group and falls back to requirements or always", () => {
+  const rows = [
+    { ...documents[0], label: "unique", raw: { requires: { any: [{ item: "matches" }, { item: "stone" }] } } },
+    { ...documents[1], label: "unconditional", raw: {} },
+  ];
+  const meta = distinguishingMeta(rows, fixtureDocuments);
+  expect(meta.get(rows[0].path)).toMatch(/^carrying matches.* or carrying stone.*1$/);
+  expect(meta.get(rows[1].path)).toBe("always");
+});
+
+it("orders the fixture beach area before its linked activities in authored player order", () => {
+  expect(areaDocuments([...fixtureDocuments].reverse(), beach).map(document => document.id)).toEqual([
+    "beach", "light_fire", "strike_fire", "make_fire", "stoke_fire", "collect_shells", "collect_stones", "catch_fish", "sleep",
+  ]);
+});
+
+it("appends unlinked globals by name without repeating linked globals", () => {
+  const area = { ...beach, raw: { ...beach.raw as object, activities: ["sleep", "collect_shells"] } };
+  expect(areaDocuments([...fixtureDocuments].reverse(), area).map(document => document.id)).toEqual([
+    "beach", "sleep", "collect_shells", "light_fire", "make_fire", "strike_fire", "stoke_fire",
+  ]);
 });

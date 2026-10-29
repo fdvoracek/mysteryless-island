@@ -22,7 +22,7 @@ export function Sidebar({ documents, scope, browse, openArea, newArea }: {
     <button onClick={newArea}>+ New area</button>
     <h2>Library</h2>
     {row("all", "All files", documents.length)}
-    {Object.keys(kindLabels).filter(kind => kind !== "settings")
+    {Object.keys(kindLabels).filter(kind => kind !== "settings" && count(kind) > 0)
       .map(kind => row(kind, kindLabels[kind], count(kind)))}
     <h2>Settings</h2>
     {row("settings", kindLabels.settings, count("settings"))}

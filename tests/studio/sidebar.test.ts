@@ -20,7 +20,7 @@ it("renders the four navigation groups, ordered kinds, counts and named area tra
   expect(html).toContain('aria-label="the forest" aria-current="page">the forest<span>0.5 h</span>');
   expect(html).toContain('All files<span>4</span>');
   expect(html).toContain('Items<span>1</span>');
-  expect(html).toContain('Illustrations<span>0</span>');
+  expect(html).not.toContain('Illustrations');
   expect(html).toContain('Game settings<span>1</span>');
   expect(html.indexOf('Areas<span>2')).toBeLessThan(html.indexOf('Items<span>1'));
   expect(html).not.toContain('aria-expanded');
