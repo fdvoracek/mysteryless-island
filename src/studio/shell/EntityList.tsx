@@ -16,7 +16,9 @@ export function distinguishingMeta(rows: Document[], documents: Document[]): Map
   });
   return new Map(activities.map(activity => {
     const peers = activities.filter(other => other.row.label === activity.row.label);
-    const unique = activity.parts.filter(part => !peers.every(peer => peer.parts.includes(part)));
+    const frequency = (part: string) => peers.filter(peer => peer.parts.includes(part)).length;
+    const unique = activity.parts.filter(part => !peers.every(peer => peer.parts.includes(part)))
+      .sort((a, b) => frequency(a) - frequency(b));
     return [activity.row.path, peers.length > 1 ? unique.join(" · ") || activity.full : activity.unwrapped];
   }));
 }

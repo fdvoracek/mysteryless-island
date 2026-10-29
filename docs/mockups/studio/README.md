@@ -508,6 +508,7 @@ All captures use a disposable copy of frozen fixture content; no content is writ
   rather than handcrafted shorthand. Same-named visible activities omit condition parts shared
   by every peer; unique names omit outer group parentheses. Long metadata uses ellipsis and a
   full-text title.
+  Remaining parts appear least-shared first, preserving original order for equal frequencies.
   Item rows show category and tool tags; other kinds retain their kind label. Unsaved retains
   its text as well as a warning dot. Top-bar Create remains until UX-08.
 - Columns retain page scrolling and phone stacking. The desktop sidebar/list use the specified

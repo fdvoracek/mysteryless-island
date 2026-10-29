@@ -69,13 +69,22 @@ it("removes only parts shared by all same-named visible beach activities", () =>
     expect(text).not.toContain("fire hours");
   }
   expect(texts[0]).toMatch(/^carrying matches/);
-  expect(texts[1]).toMatch(/^not \(carrying matches.* · carrying stone/);
-  expect(texts[2]).toMatch(/^not \(carrying matches.* · not \(carrying stone/);
+  expect(texts[1]).toMatch(/^carrying stone.* · not \(carrying matches/);
+  expect(texts[2]).toMatch(/^not \(carrying stone.* · not \(carrying matches/);
   const unique = distinguishingMeta([fire[0]], fixtureDocuments).get(fire[0].path)!;
   expect(unique).toContain("campfire built here");
   expect(unique).not.toMatch(/^\(/);
   const fallback = distinguishingMeta([fire[0], { ...fire[0], path: "copy" }], fixtureDocuments);
   expect(fallback.get("copy")).toBe(`(${unique})`);
+});
+
+it("keeps original order between equally frequent distinguishing parts", () => {
+  const flags = [["first", "shared", "second"], ["shared", "other"], ["third"]];
+  const rows = documents.map((document, index) => ({
+    ...document, raw: { visibleWhen: { all: flags[index].map(flag => ({ flag })) } },
+  }));
+  expect(distinguishingMeta(rows, fixtureDocuments).get(rows[0].path))
+    .toBe("flag first is set · flag second is set · flag shared is set");
 });
 
 it("unwraps a unique top-level any group and falls back to requirements or always", () => {
