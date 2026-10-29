@@ -1,5 +1,6 @@
 type TopBarProps = {
   query: string; validation: string; problemCount: number; canUndo: boolean; canRedo: boolean;
+  unsaved?: number; changesOpen?: boolean; showChanges?: () => void;
   canSave: boolean; busy: boolean; previewOpen: boolean;
   search: (value: string) => void; showDiagnostics: () => void; undo: () => void; redo: () => void;
   save: () => void; create: () => void; togglePreview: () => void;
@@ -16,6 +17,9 @@ export function TopBar(props: TopBarProps) {
         aria-label={props.validation} onClick={props.showDiagnostics}>
         <span role="status">{props.validation}</span>
       </button>
+      {(!!props.unsaved || props.changesOpen) && <button type="button" className="unsaved-button"
+        aria-label={`${props.unsaved ?? 0} unsaved changes`} aria-expanded={!!props.changesOpen}
+        onClick={props.showChanges}>{props.unsaved ?? 0} unsaved</button>}
       <button type="button" aria-label="Undo" title="Undo ⌘Z / Ctrl+Z" disabled={!props.canUndo} onClick={props.undo}>↶</button>
       <button type="button" aria-label="Redo" title="Redo ⇧⌘Z / Ctrl+Shift+Z" disabled={!props.canRedo} onClick={props.redo}>↷</button>
       <button type="button" className="primary" disabled={!props.canSave} onClick={props.save}>Save all</button>

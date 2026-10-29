@@ -58,3 +58,18 @@ it("renders breadcrumb button, draft-only badge, selected modes and a closed dis
   expect(clean).toContain('aria-label="More actions" aria-haspopup="true" aria-expanded="false"');
   expect(clean).not.toMatch(/>Duplicate<|>Delete</);
 });
+
+it.each([0, 2])("shows the changes trigger only for a nonzero count (%i)", unsaved => {
+  const html = renderToStaticMarkup(createElement(TopBar, {
+    query: "", validation: "Valid · 0 problems", problemCount: 0, canUndo: true, canRedo: false,
+    canSave: true, busy: false, previewOpen: false, search: noop, showDiagnostics: noop,
+    undo: noop, redo: noop, save: noop, create: noop, togglePreview: noop, unsaved, showChanges: noop,
+  }));
+  if (!unsaved) expect(html).not.toContain("unsaved-button");
+  else {
+    expect(html).toContain('aria-label="2 unsaved changes"');
+    expect(html).toContain('>2 unsaved</button>');
+    expect(html.indexOf('role="status"')).toBeLessThan(html.indexOf('class="unsaved-button"'));
+    expect(html.indexOf('class="unsaved-button"')).toBeLessThan(html.indexOf('aria-label="Undo"'));
+  }
+});

@@ -485,3 +485,39 @@ button.layout-failed { color: var(--studio-error); }
 .context-settings { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; font-size: 11px; margin-top: 6px; }
 .context-settings button { border: 0; border-radius: 3px; padding: 1px 0; background: transparent; color: var(--studio-accent); font-size: 11px; }
 .context-settings button:hover { text-decoration: underline; }
+
+/* UX-06c: the existing modal supplies keyboard containment and Escape handling. */
+.unsaved-button { color: var(--studio-warning); border-color: #ead3b5; background: var(--studio-panel); white-space: nowrap; }
+.studio-dialog:has(.changes-drawer) {
+  position: fixed; inset: 48px 0 var(--studio-status-height) auto; margin: 0; width: min(420px, 100vw);
+  height: calc(100dvh - 48px - var(--studio-status-height)); max-width: 100vw; max-height: none;
+  padding: 14px; border: 0; border-left: 1px solid var(--studio-border); border-radius: 0;
+  box-shadow: -10px 0 30px #00000014; overflow-y: auto; animation: changes-enter 200ms ease-out;
+}
+.studio-dialog:has(.changes-drawer)::backdrop { background: transparent; }
+.studio-dialog:has(.changes-drawer) .dialog-heading { margin-bottom: 14px; gap: 8px; }
+.studio-dialog:has(.changes-drawer) h2 { font-size: 15px; }
+.studio-dialog:has(.changes-drawer) .dialog-heading button { border: 0; padding: 2px 6px; background: transparent; }
+.changes-intro { color: var(--studio-muted); font-size: 12px; margin-bottom: 16px; }
+.file-change { margin-bottom: 18px; min-width: 0; }
+.change-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.change-path { font: bold 11px var(--studio-code); border: 0; padding: 0; background: transparent; overflow-wrap: anywhere; min-width: 0; flex: 1 1 210px; }
+.change-status { color: var(--studio-muted); background: var(--studio-ground); border-radius: 4px; padding: 1px 4px; font-size: 11px; }
+.change-discard { font-size: 12px; border: 0; padding: 2px 4px; background: transparent; margin-left: auto; }
+.change-reason { color: var(--studio-faint); font-size: 11px; overflow-wrap: anywhere; margin-bottom: 6px; }
+.change-diff { background: var(--studio-ground); border-radius: 6px; padding: 8px; font: 11px/1.6 var(--studio-code); }
+.change-diff:empty { display: none; }
+.diff-hunk + .diff-hunk { border-top: 1px dashed var(--studio-border); margin-top: 8px; padding-top: 8px; }
+.diff-line { display: grid; grid-template-columns: 3ch 3ch 1ch minmax(0, 1fr); gap: 4px; color: var(--studio-muted); }
+.diff-line.removed { color: var(--studio-error); }
+.diff-line.added { color: var(--studio-ok); }
+.diff-number { text-align: right; color: var(--studio-faint); font-size: 10px; }
+.diff-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.changes-footer { margin-top: 16px; }
+.changes-footer button { width: 100%; text-align: center; }
+.changes-empty { color: var(--studio-muted); }
+@keyframes changes-enter { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .studio-dialog:has(.changes-drawer) { animation: none; } }
+@media (max-width: 760px) {
+  .studio-dialog:has(.changes-drawer) { width: 100vw; }
+}

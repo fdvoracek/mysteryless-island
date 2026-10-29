@@ -252,3 +252,71 @@ function formElement<P extends FieldProps>(component: ComponentType<P>, props: P
   return createElement(FormContext.Provider, { value: { documents, owner, problems, buffers, onError, requiredOnly, lockId } },
     createElement(component, field as unknown as P));
 }
+
+describe("per-file Discard", () => {
+  it("discards a modified file as one undo step, clears only its inputs/conflict, and makes remaining edits saveable", () => {
+    const { store, writes } = setup();
+    const other = "content/activities/catch_fish.json";
+    store.edit(itemPath, { ...raw(store, itemPath), name: "changed knife" });
+    store.edit(other, { ...raw(store, other), name: "changed fish" });
+    store.error(itemPath, "amount", "invalid", { text: "bad", source: "1" });
+    store.buffers.set(`${other}:name`, { text: "other", source: '"changed fish"' });
+    store.conflicts.set(itemPath, { path: itemPath, disk: store.disk.find(file => file.path === itemPath) });
+    store.inputErrors.set(`${other}:name`, "other error");
+    const otherBuffer = store.buffers.get(`${other}:name`);
+    expect(store.canSave).toBe(false);
+    const history = store.past.length;
+    store.discard(itemPath);
+    expect(store.past).toHaveLength(history + 1);
+    expect(store.drafts.has(itemPath)).toBe(false);
+    expect(store.buffersFor(itemPath)).toEqual({});
+    expect([...store.inputErrors.keys()].some(key => key.startsWith(itemPath + ":"))).toBe(false);
+    expect(store.conflicts.has(itemPath)).toBe(false);
+    expect(store.buffers.get(`${other}:name`)).toEqual(otherBuffer);
+    expect(store.drafts.has(other)).toBe(true);
+    expect(store.inputErrors.get(`${other}:name`)).toBe("other error");
+    expect(store.canSave).toBe(false);
+    store.inputErrors.delete(`${other}:name`);
+    expect(store.canSave).toBe(true);
+    store.undo();
+    expect(JSON.parse(store.drafts.get(itemPath)! as string).name).toBe("changed knife");
+    expect(store.inputErrors.get(`${itemPath}:amount`)).toBe("invalid");
+    expect(store.buffersFor(itemPath).amount.text).toBe("bad");
+    expect(store.conflicts.has(itemPath)).toBe(true);
+    store.redo();
+    expect(store.drafts.has(itemPath)).toBe(false);
+    expect(store.canSave).toBe(true);
+    expect(writes).toEqual([]);
+  });
+  it("restores a staged deletion and refuses new files, both rename paths, and mutation while saving", () => {
+    const { store, writes } = setup();
+    const path = store.create("items", { id: "discard_test", name: "discard test", category: "tool" });
+    expect(store.canDiscard(path)).toEqual({ ok: false, reason: "New file — remove it with ⋯ → Delete." });
+    const history = store.past.length;
+    store.discard(path);
+    expect(store.past).toHaveLength(history);
+    expect(store.drafts.has(path)).toBe(true);
+    store.undo();
+    const activity = "content/activities/catch_fish.json";
+    const destination = store.rename(activity, "id", "renamed_discard_fish");
+    for (const file of [activity, destination]) {
+      expect(store.canDiscard(file)).toEqual({ ok: false, reason: "Part of a rename — Undo the rename to discard." });
+      const drafts = new Map(store.drafts), steps = store.past.length;
+      store.discard(file);
+      expect(store.drafts).toEqual(drafts); expect(store.past).toHaveLength(steps);
+    }
+    store.undo();
+    store.drafts.set(activity, null);
+    store.notify();
+    expect(store.drafts.get(activity)).toBeNull();
+    store.busy = true; store.discard(activity);
+    expect(store.drafts.get(activity)).toBeNull();
+    store.busy = false; store.discard(activity);
+    expect(store.drafts.has(activity)).toBe(false);
+    expect(store.view.documents.some(file => file.path === activity)).toBe(true);
+    expect(store.canSave).toBe(false);
+    store.undo(); expect(store.drafts.get(activity)).toBeNull();
+    store.redo(); expect(store.drafts.has(activity)).toBe(false);
+    expect(writes).toEqual([]);
+  });
+});

@@ -451,3 +451,46 @@ Evidence in [ux-06b/](ux-06b/): [catch_fish beside annotation 11](ux-06b/catch-f
 places both rail crops side by side at 100%, without resizing. The forest, stacked and phone
 images add a caption above a native-size viewport capture. The phone’s measured scrollWidth is
 390. All four JPEG files are ≤200 KB.
+
+## UX-06c implementation differences — [implemented]
+
+Annotation 3 supplies the 420 px right-hand changes drawer between the 48 px top and 26 px
+status offsets. It uses the existing modal Dialog for keyboard containment, Escape and ×,
+with a transparent backdrop preserving the mockup's surrounding appearance. Entry slides
+for 200 ms; reduced motion disables the animation. At 390 px it fills the viewport width.
+The prior wrapped phone shell stays in place behind the modal; navigation redesign is deferred.
+
+Owner-approved differences from the static mockup:
+
+- The trigger visibly says **N unsaved**, with accessible name **N unsaved changes**, between
+  validation and Undo. The status bar retains the exact **N unsaved files** wording.
+- Real JSON diffs replace the mockup's illustrative snippets. Paths use the specified mono
+  type and open their editor; badges identify modified/new/deleted/moved files. Numbered
+  hunks show two context lines, textual −/+ signs and error/ok colours. Long lines wrap,
+  with no nested scroll region; each file is capped at 200 lines with an omitted count.
+- Both sides use house formatting, with raw-text fallback. Move destinations compare against
+  source disk content and show **renamed from …**. Sources remain listed as moved too.
+- Disabled Discard reasons are faint text and titles. Existing files, including staged
+  deletions, use one ordinary undo step; new files require Delete, and rename paths require
+  Undo. Deleted-path links open disk contents read-only until restored.
+- The footer uses existing Save all semantics and explains validation blocking. The empty
+  drawer stays open after the last change goes away. Its zero-count trigger remains mounted
+  until close, then disappears. Focus returns to the trigger while changes remain, or the
+  always-enabled search field when none remain, as approved in review.
+- The diagnostics drawer was explicitly dropped by the owner: validation still scrolls to
+  global Diagnostics, and the context rail retains this file's problems.
+
+Diffs compute only for mounted entries while the drawer is open, memoized by disk hash,
+exact draft text and move source (plus source-side move destination for correct status).
+Common prefix/suffix lines are removed before LCS allocation. The 3,000-line one-line-edit
+unit test has a 50 ms limit. Save/conflict/move/partial-failure behavior and form markup stay
+unchanged. Discard refreshes editor fields through the existing Undo history-key mechanism.
+
+Evidence: [drawer beside annotation 3](ux-06c/drawer-comparison.jpg),
+[desktop and disabled Discard reason](ux-06c/drawer-desktop.jpg),
+[390 px drawer](ux-06c/drawer-phone.jpg). Both desktop sources use 1440×900, device scale 1.
+The comparison places native-size 420×826 crops side by side at 100%, without resizing.
+Captions sit outside the captures. The phone source is 390×844;
+`document.documentElement.scrollWidth === 390`, and the drawer has scrollWidth/clientWidth
+389/389 (its border accounts for the remaining pixel). All three JPEGs are ≤200 KB.
+All captures use a disposable copy of frozen fixture content; no content is written by the drawer.

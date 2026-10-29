@@ -16,6 +16,7 @@ import { TreeEditor } from "./tree-editor";
 import { MapEditor } from "./map-editor";
 import { blockerLabel, deletionBlockers } from "./tree";
 import { PreviewPanel } from "./preview-panel";
+import { ChangesDrawer } from "./shell/ChangesDrawer";
 import { TopBar } from "./shell/TopBar";
 import { StatusBar } from "./shell/StatusBar";
 import { ContextRail } from "./shell/ContextRail";
@@ -40,6 +41,7 @@ function Studio() {
   const [deleteOrphans, setDeleteOrphans] = useState(false);
   const [deleting, setDeleting] = useState<string>();
   const [historyKey, setHistoryKey] = useState(0);
+  const [changesOpen, setChangesOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [hiddenConflicts, setHiddenConflicts] = useState<string[]>([]);
   const source = useRef<HTMLPreElement>(null);
@@ -66,6 +68,14 @@ function Studio() {
   async function refresh() {
     try { await store.refresh(); setLoaded(true); setFailure(""); }
     catch (error) { setFailure((error as Error).message); }
+  }
+  function closeChanges() {
+    setChangesOpen(false);
+    requestAnimationFrame(() => {
+      const trigger = document.querySelector<HTMLButtonElement>(".unsaved-button");
+      const search = document.querySelector<HTMLInputElement>(".search input");
+      (trigger ?? search)?.focus();
+    });
   }
   function undo() { store.undo(); setHistoryKey((key) => key + 1); }
   function redo() { store.redo(); setHistoryKey((key) => key + 1); }
@@ -104,7 +114,9 @@ function Studio() {
   const visible = candidates.filter((document) =>
     `${document.path} ${document.id} ${document.label} ${document.encoding === "utf8" ? document.content : ""}`
       .toLowerCase().includes(query.toLowerCase()));
-  const selected = documents.find((document) => document.path === selection) ?? visible[0];
+  const deletedSelection = store.drafts.get(selection) === null
+    ? readDocuments(store.disk.filter(document => document.path === selection), false).documents[0] : undefined;
+  const selected = documents.find((document) => document.path === selection) ?? deletedSelection ?? visible[0];
   const selectedPath = selected?.path;
   const context = useMemo(() => {
     const document = documents.find(d => d.path === selectedPath);
@@ -148,7 +160,8 @@ function Studio() {
     if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`);
   };
   return <div className="studio-shell">
-    <TopBar query={query} validation={validationText} problemCount={problemCount}
+    <TopBar unsaved={store.drafts.size} changesOpen={changesOpen} showChanges={() => setChangesOpen(true)}
+      query={query} validation={validationText} problemCount={problemCount}
       canUndo={!!store.past.length && !store.busy} canRedo={!!store.future.length && !store.busy}
       canSave={canSave} busy={store.busy} previewOpen={previewOpen} search={setQuery}
       showDiagnostics={showDiagnostics} undo={undo} redo={redo} save={() => { void save(); }}
@@ -201,7 +214,8 @@ function Studio() {
               <h3>{selected.encoding === "utf8"
                 ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3></div>
             {field && <p className="field-location">Field: <code>{field}</code></p>}
-            {selectedSchema && selected.encoding === "utf8" && (mode === "json" || selected.raw === undefined)
+            {deletedSelection ? <pre tabIndex={0} ref={source} aria-label="Read-only file contents">{selected.formatted}</pre>
+              : selectedSchema && selected.encoding === "utf8" && (mode === "json" || selected.raw === undefined)
               ? <JsonEditor key={selected.path} path={selected.path}
                 text={store.buffersFor(selected.path)[""]?.text ?? (store.drafts.has(selected.path) ? selected.content : selected.formatted)}
                 schema={selectedSchema} problems={diagnostics.filter((p) => p.file === selected.path)}
@@ -244,6 +258,9 @@ function Studio() {
     </div>
     <StatusBar problemCount={problemCount} unsaved={store.drafts.size} status={status} busy={store.busy}
       refresh={() => { void refresh(); }} />
+    {changesOpen && <ChangesDrawer store={store} canSave={canSave} problemCount={problemCount} validating={validating}
+      close={closeChanges} open={path => { closeChanges(); openProblem(path, ""); }}
+      discard={path => { store.discard(path); setHistoryKey(key => key + 1); }} save={() => { void save(); }} />}
     {create && <CreateDialog store={store} kind={create.kind} areaPath={create.areaPath} tree={create.tree}
       duplicate={documents.find((d) => d.path === create.duplicate)}
       prefill={create.prefill ?? documents.find((d) => d.path === create.duplicate)?.raw as Record<string, unknown> | undefined}
