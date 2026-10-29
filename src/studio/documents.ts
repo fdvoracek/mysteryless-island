@@ -6,6 +6,10 @@ export const kindLabels: Record<string, string> = {
   regions: "Areas", activities: "Activities", items: "Items", recipes: "Recipes", buildings: "Buildings",
   quests: "Tasks", events: "Events", sites: "Sites", artwork: "Artwork", trees: "Creation trees", settings: "Game settings", illustrations: "Illustrations",
 };
+export const kindSingulars: Record<string, string> = {
+  regions: "area", activities: "activity", items: "item", recipes: "recipe", buildings: "building",
+  quests: "task", events: "event", sites: "site", artwork: "artwork", trees: "creation tree",
+};
 // Bounded revision caches: immutable document trees and registry diagnostics can
 // be reused by rename preview/staging and history without walking a pack again.
 const documentCache = new Map<string, Document>();

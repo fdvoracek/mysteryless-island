@@ -32,19 +32,29 @@ p { line-height: 1.6; }
 .ok { color: var(--studio-ok); }
 .validation.ok { background: var(--studio-area); }
 .error { color: var(--studio-error); }
-.studio-columns { display: grid; grid-template-columns: 210px 260px minmax(0, 1fr); min-height: calc(100vh - 96px); }
-.studio-nav, .entity-list { background: var(--studio-panel); border-right: 1px solid var(--studio-border); padding: 20px 12px; }
-.studio-nav h2 { margin: 18px 8px 8px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--studio-muted); }
+.studio-columns { display: grid; grid-template-columns: 220px 300px minmax(0, 1fr); min-height: calc(100vh - 96px); }
+.studio-nav, .entity-list { min-width: 0; background: var(--studio-panel); border-right: 1px solid var(--studio-border); }
+.studio-nav { padding: 20px 6px; }
+.studio-nav h2 { margin: 18px 8px 8px; font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--studio-faint); }
 .studio-nav h2:first-child { margin-top: 0; }
-.studio-nav button { width: 100%; border: 0; display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; }
-.studio-nav button span { color: var(--studio-muted); font-size: 12px; }
+.studio-nav button { width: 100%; border: 0; display: flex; justify-content: space-between; gap: 8px; margin: 2px 0; padding: 4px 8px; border-radius: 5px; }
+.studio-nav button span { color: var(--studio-muted); font-size: 12px; white-space: nowrap; }
 [aria-current="page"], button[aria-pressed="true"] { background: var(--studio-accent-soft); color: var(--studio-accent); }
-.entity-list { padding: 20px 12px; }
-.list-heading { padding: 0 8px 20px; }
+.studio-nav button[aria-current="page"] { font-weight: 500; background: var(--studio-accent-soft); color: var(--studio-accent); }
+.entity-list { padding: 0; }
+.list-heading { position: sticky; top: 48px; z-index: 2; padding: 12px; background: var(--studio-panel); border-bottom: 1px solid #eef0f2; }
+.list-heading h1 { font-size: 15px; font-weight: 600; }
 .list-heading p, .document-heading p, .json-heading span, .empty { font-size: 12px; color: var(--studio-muted); }
-.entity-list button { width: 100%; display: flex; flex-direction: column; gap: 5px; border: 1px solid transparent; margin-bottom: 6px; overflow-wrap: anywhere; }
-.entity-list button[aria-pressed="true"] { border-color: var(--studio-accent); }
-.entity-list small { color: var(--studio-muted); }
+.entity-list .entity-row { width: 100%; display: flex; flex-direction: column; gap: 3px; border: 0; border-bottom: 1px solid #eef0f2; border-radius: 0; padding: 8px 12px; }
+.entity-list .entity-row[aria-pressed="true"] { box-shadow: inset 3px 0 var(--studio-accent); }
+.entity-row-title { display: flex; align-items: baseline; gap: 4px; width: 100%; min-width: 0; }
+.entity-row-title strong { font-weight: 500; flex-shrink: 0; }
+.entity-row-title code { color: var(--studio-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.entity-row-key { margin-left: auto; white-space: nowrap; color: var(--studio-muted); font-size: 12px; }
+.entity-row-meta { display: block; max-width: 100%; min-height: 17px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: 12px; }
+.global-badge { background: var(--studio-ground); border: 1px solid var(--studio-border); border-radius: 3px; font-size: 11px; padding: 0 3px; margin-right: 4px; }
+.list-foot { position: sticky; bottom: 26px; padding: 12px; background: var(--studio-panel); border-top: 1px solid var(--studio-border); }
+.list-foot button { width: 100%; padding: 5px 8px; }
 .document-panel { min-width: 0; padding: 28px; }
 .document-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .document-heading h2 { font-size: 26px; margin: 6px 0; }
@@ -521,3 +531,5 @@ button.layout-failed { color: var(--studio-error); }
 @media (max-width: 760px) {
   .studio-dialog:has(.changes-drawer) { width: 100vw; }
 }
+
+@media (max-width: 760px) { .list-heading { top: 0; } .list-foot { bottom: 0; } }

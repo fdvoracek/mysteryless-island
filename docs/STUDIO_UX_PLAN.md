@@ -51,7 +51,7 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-06a **[implemented]** | **Shell header, status bar and document header**: slim top bar, sticky document header with Form/JSON and Duplicate/Delete disclosure, status bar; presentation split into `shell/` under UX-05.1 lint rules. | `main.tsx`, `shell/`, `studio.css` | medium |
 | UX-06b **[implemented]** | **Context rail**: problems in this file, Linked from, Referenced by, Uses, Rename IDs. | `main.tsx`/`shell/`, `references.ts` | medium |
 | UX-06c **[implemented]** | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8). Diagnostics drawer dropped by owner: validation chip keeps scrolling to global Diagnostics; file problems stay in the rail. | `shell/`, `store.ts` | high — plan first |
-| UX-07 | **Navigation tree** (World / Areas ▸ parts / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
+| UX-07 **[implemented]** | **Navigation tree** (World / Areas / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
 | UX-09 | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
 | later | Story toolbar compaction; table view for items/recipes (CastleDB-style) | — | deferred |
@@ -99,7 +99,7 @@ Radii: inputs 5 px, buttons 6 px, cards 8 px, chips 999 px.
   inline rows wrap; outcome table uses fixed layout with wrapping text.
 - UX-06a top bar, left to right: brand · existing Search content searchbox (max 420 px) · spacer ·
   validation chip · Undo/Redo icon buttons · **Save all** (primary) · **Create** · Preview.
-  **Create stays visible until UX-07** adds “+ New … here” in the list. Search stays until UX-08.
+  **Create stays visible until UX-08**, alongside UX-07’s “+ New … here” in the list. Search stays until UX-08.
   The validation button retains its inner status role and scrolls to/focuses existing Diagnostics;
   this behavior remains in UX-06c (diagnostics drawer dropped by owner). UX-06c adds the
   “N unsaved” changes button between validation and Undo; the status-bar count stays unchanged.
@@ -109,10 +109,12 @@ Radii: inputs 5 px, buttons 6 px, cards 8 px, chips 999 px.
   StoryView rather than supplied as a simple prop.
 
 ### 5.3 Sidebar (UX-07)
-Four groups with uppercase micro headings: **World** (Map, Story, Creation trees), **Areas** (each
-area expandable to Activities n / Landmarks & exploration n / Area settings; right-aligned meta =
-camp or travel hours; “+ New area”), **Library** (Items, Recipes, Buildings, Tasks, Events, Sites,
-Artwork & illustrations, All activities, each with count), **Settings** (Game · Stats · Climate).
+Four groups with uppercase micro headings: **World** (Map, Story, Trees), **Areas** (one row
+per area, name plus right-aligned camp or travel hours; “+ New area”), **Library** (All files,
+then every kind except settings in `kindLabels` order, each with count), **Settings**
+(Game settings with count). Areas have no disclosures or child rows: clicking a row selects
+its area scope and opens its area workspace. The list includes the area file and available
+linked/global activities, retaining the existing candidate order.
 Item: 4×8 px padding, radius 5, hover ground, current = accent-soft bg + accent text 500.
 
 ### 5.4 List (UX-07)

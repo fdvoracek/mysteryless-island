@@ -608,3 +608,19 @@ to the unsaved button, or to Search content when the button disappears. At 390 p
 fills the width; reduced-motion preferences disable its slide animation. The status bar keeps
 its **N unsaved files** count. The validation chip still scrolls to global Diagnostics; the
 context rail lists the current file's problems. There is no diagnostics drawer.
+
+## Navigation — [implemented, UX-07]
+
+The sidebar groups World (Map, Story, Trees), Areas, Library and Settings. Area rows show
+names and travel hours (or camp); clicking one opens its workspace and a list of its area
+file plus linked and global activities. Library scopes show file counts. Region Form views
+always use the area workspace, including selections from All files, Areas and search.
+
+List rows show names, IDs and distinguishing metadata: activities show hours, a global badge
+when applicable and their visibility condition (or requirements, or always); items show their
+category and tool tags. Unsaved and problem markers remain visible. Search behavior is unchanged.
+The list footer opens the existing Create dialog for the current kind, or creates an activity
+linked to the current area as one undoable draft operation. All files and Settings have no
+contextual creation footer. Kind footers use `entitySchemas`, matching the Create dialog;
+unsupported kinds (Illustrations and Creation trees) also have no footer. The top-bar Create
+button remains until UX-08.

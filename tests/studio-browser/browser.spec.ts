@@ -29,7 +29,7 @@ test("browses frozen fixture files by area/kind, searches, and edits generic for
   await page.goto("/studio/");
   await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
   const navigation = page.getByRole("navigation", { name: "Content navigation" });
-  await navigation.getByRole("button", { name: "forest", exact: true }).click();
+  await navigation.getByRole("button", { name: "the forest", exact: true }).click();
   const contents = page.getByRole("region", { name: "File contents" });
   await expect(contents.getByRole("textbox", { name: "id", exact: true })).toHaveValue("forest");
   await expect(contents).toContainText('_map');
@@ -156,7 +156,7 @@ test("creates linked drafts, saves the whole pack, blocks used deletion, and wir
     await contents.getByRole("combobox", { name: "yields.0.item", exact: true }).selectOption("browser_material");
     await contents.getByRole("spinbutton", { name: "yields.0.min", exact: true }).fill("1");
     await contents.getByRole("spinbutton", { name: "yields.0.max", exact: true }).fill("2");
-    await page.getByRole("navigation").getByRole("button", { name: "forest", exact: true }).click();
+    await page.getByRole("navigation").getByRole("button", { name: "the forest", exact: true }).click();
     await contents.getByRole("combobox", { name: "Existing activity", exact: true }).selectOption("browser_work");
     await contents.getByRole("button", { name: "Link existing", exact: true }).click();
     await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
@@ -418,7 +418,7 @@ test("area workspace creates and saves a linked activity, renames it, and delete
   try {
     await page.goto("/studio/");
     await expect(page.getByRole("status")).toHaveText("Valid · 0 problems");
-    await nav.getByRole("button", { name: "+ new area", exact: true }).click();
+    await nav.getByRole("button", { name: "+ New area", exact: true }).click();
     const create = page.getByRole("dialog", { name: "Create entity" });
     await create.getByRole("textbox", { name: "id", exact: true }).fill("browser_area_seven");
     await create.getByRole("textbox", { name: "name", exact: true }).fill("temporary area");
@@ -476,9 +476,9 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     const beforeArea = JSON.parse(saved.find(f => f.path === areaPath)!.content);
     expect(JSON.parse(renamed.find(f => f.path === areaPath)!.content)).toEqual({ ...beforeArea, activities: ["browser_seven_renamed"] });
     // Reference the temporary landmark from another area's condition builder.
-    await nav.getByRole("button", { name: "forest", exact: true }).click();
+    await nav.getByRole("button", { name: "the forest", exact: true }).click();
     await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("browser_seven_landmark");
-    await nav.getByRole("button", { name: "browser_area_seven", exact: true }).click();
+    await nav.getByRole("button", { name: "temporary area", exact: true }).click();
     await expect(page.getByRole("complementary", { name: "Document context" }).getByRole("region", { name: "Used by Landmark browser_seven_landmark", exact: true })).toContainText("unlockWhen.discovered");
     await contents.getByRole("button", { name: "Remove landmark browser_seven_landmark", exact: true }).click();
     await expect(contents.getByRole("alert")).toContainText("Removal blocked");
@@ -487,9 +487,9 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     const deletion = page.getByRole("dialog", { name: "Delete entity" });
     await expect(deletion).toContainText("Delete blocked"); await expect(deletion.getByRole("button", { name: "Delete draft" })).toBeDisabled();
     await deletion.getByRole("button", { name: "Close dialog" }).click();
-    await nav.getByRole("button", { name: "forest", exact: true }).click();
+    await nav.getByRole("button", { name: "the forest", exact: true }).click();
     await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("forest_edge");
-    await nav.getByRole("button", { name: "browser_area_seven", exact: true }).click();
+    await nav.getByRole("button", { name: "temporary area", exact: true }).click();
     await page.screenshot({ path: "/tmp/textisland-studio-pr07-desktop.png", fullPage: true });
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
