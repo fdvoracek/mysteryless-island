@@ -1,0 +1,856 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`preserves form markup: content/activities/catch_fish.json (form) 1`] = `
+{
+  "length": 36206,
+  "path": "content/activities/catch_fish.json",
+  "sha256": "7ae8282046f0662bede5e4a24ed8e2e8351ee9beb021ec49ace9d10be396d019",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/catch_river_fish.json (form) 1`] = `
+{
+  "length": 36243,
+  "path": "content/activities/catch_river_fish.json",
+  "sha256": "b89f1c10544092d31eceebdcad3457468a6634391da82909c4277871d5f45185",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/chop_wood.json (form) 1`] = `
+{
+  "length": 13183,
+  "path": "content/activities/chop_wood.json",
+  "sha256": "586247353f1b88a96a2f3d14c45dcb1effe1198ea09ac9ae082e96cd7190c392",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/collect_berries.json (form) 1`] = `
+{
+  "length": 13121,
+  "path": "content/activities/collect_berries.json",
+  "sha256": "cdae731be354465e1aa35d45145b7ec7e9185a792682e9624e0c11341557c21a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/collect_shells.json (form) 1`] = `
+{
+  "length": 13603,
+  "path": "content/activities/collect_shells.json",
+  "sha256": "d8874f8ad0ef8685e0eceaec122b4e9cf1ddeb0bb642e19f6c55b0e2dbda7d1f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/collect_stones.json (form) 1`] = `
+{
+  "length": 12621,
+  "path": "content/activities/collect_stones.json",
+  "sha256": "dbc393ec3acb0191d5d540bb9a102a1e14aac693a7bc3d09f4d7147a5bb13268",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/cut_willow.json (form) 1`] = `
+{
+  "length": 11761,
+  "path": "content/activities/cut_willow.json",
+  "sha256": "3fa402c3a9e75a55ca914af2e7bdf7c6ee9b10ac4028049d4ecc3c065748a1e2",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/drink_river.json (form) 1`] = `
+{
+  "length": 13352,
+  "path": "content/activities/drink_river.json",
+  "sha256": "32dadec62e9d5b975bec2fa203bd8cd4b46cc2af5352f3373f9b3c821b06f152",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/drink_stream.json (form) 1`] = `
+{
+  "length": 14128,
+  "path": "content/activities/drink_stream.json",
+  "sha256": "79fc338b87c99fdb64a563211470100eb681eff4250f002e8d8350ac68753feb",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/gather_corn.json (form) 1`] = `
+{
+  "length": 12326,
+  "path": "content/activities/gather_corn.json",
+  "sha256": "f7799dca551e66400273df2ceae5890ce5471be989e66f6fbbd20a8addd351d1",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/gather_wood.json (form) 1`] = `
+{
+  "length": 12074,
+  "path": "content/activities/gather_wood.json",
+  "sha256": "e8a8249ba62569417ffb3005da51693b6daf5682945a0b43a1714cb691ec95e7",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/light_fire.json (form) 1`] = `
+{
+  "length": 24747,
+  "path": "content/activities/light_fire.json",
+  "sha256": "86b3fde50e86d357eacde8577491dc1dc83e284639c79282361a39337dd7887f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/make_fire.json (form) 1`] = `
+{
+  "length": 47935,
+  "path": "content/activities/make_fire.json",
+  "sha256": "9dd1f7df281bd51add19ad39a8c7e5faa7e6b22ca4aad0106de245bf578b5c85",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/sleep.json (form) 1`] = `
+{
+  "length": 396057,
+  "path": "content/activities/sleep.json",
+  "sha256": "1b6b42055091926c92b4c4b88a81956e2a0799dddbf2a23ca1c46e3ebf9d2240",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/stoke_fire.json (form) 1`] = `
+{
+  "length": 19642,
+  "path": "content/activities/stoke_fire.json",
+  "sha256": "081d0ba36f79d630a285c851db3b7c01eedc6466d04c6abbaed3f766d59f239d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/strike_fire.json (form) 1`] = `
+{
+  "length": 43189,
+  "path": "content/activities/strike_fire.json",
+  "sha256": "41dfd985fbdc71357a87452b5a0bc4a6f0ac00e40c093edaee75bdb575fe4af4",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/activities/strip_bark.json (form) 1`] = `
+{
+  "length": 23802,
+  "path": "content/activities/strip_bark.json",
+  "sha256": "4300e458a5e296011d40e4e1ca85773ae328e16338508bc30fb4d8f352967885",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/artwork/island_panorama.json (form) 1`] = `
+{
+  "length": 1759,
+  "path": "content/artwork/island_panorama.json",
+  "sha256": "d560cd65e1a75c43cff1723922647f955d4708db32656a46e5f01b91bf103f0a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/bed.json (form) 1`] = `
+{
+  "length": 11717,
+  "path": "content/buildings/bed.json",
+  "sha256": "0b09591320e74bac2b309fa3d343c2860329be4f2e6941aab034ab1c18e1aa43",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/bee_hive.json (form) 1`] = `
+{
+  "length": 31095,
+  "path": "content/buildings/bee_hive.json",
+  "sha256": "898a4c925d8e099c232810b5e1c588ad9d54102c3712d6998e0fbe9aef9ef057",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/campfire.json (form) 1`] = `
+{
+  "length": 10488,
+  "path": "content/buildings/campfire.json",
+  "sha256": "45a0ee888a498c41d37a6526710a99a4e6c350ad3dcb23a6f53246574d7ba0ef",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/corn_field.json (form) 1`] = `
+{
+  "length": 39393,
+  "path": "content/buildings/corn_field.json",
+  "sha256": "3bf722d5c5f01d9164562def6fdcb1c1cc77592afb399e67c9aaf95fbb0e9933",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/drying_rack.json (form) 1`] = `
+{
+  "length": 34627,
+  "path": "content/buildings/drying_rack.json",
+  "sha256": "46799d9ef4780a3196978c4ee01522f80f6678e80265af818def91044f32fa98",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/fish_trap.json (form) 1`] = `
+{
+  "length": 29460,
+  "path": "content/buildings/fish_trap.json",
+  "sha256": "7f08be4fdc7596991472b2f0ca68f8d3dbc6e6e44fd0768b1432890215dff803",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/fish_weir.json (form) 1`] = `
+{
+  "length": 27005,
+  "path": "content/buildings/fish_weir.json",
+  "sha256": "d0bfa265090f8199ccced3b4c62391aa60797de0f7232f96d1775d91b8c886a9",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/rain_barrel.json (form) 1`] = `
+{
+  "length": 30704,
+  "path": "content/buildings/rain_barrel.json",
+  "sha256": "32b229276d6d282779f95a17a378e5840e4bef77d78dd96a49df263b20765026",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/shelter.json (form) 1`] = `
+{
+  "length": 15906,
+  "path": "content/buildings/shelter.json",
+  "sha256": "6da33c469f3db8390d3bb03c2701beef8ecb7c1278bfc2ab2d7331ca92577833",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/buildings/snares.json (form) 1`] = `
+{
+  "length": 36791,
+  "path": "content/buildings/snares.json",
+  "sha256": "4684990ae6f62fb8d410de363c67c004968ab40275ea4abd6ccac9607a58fc0d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/climate.json (form) 1`] = `
+{
+  "length": 13845,
+  "path": "content/climate.json",
+  "sha256": "3cf960d043e6c5d8bd243517196ecca6ca731044d17ff61e356013399a0bec28",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/events/shipwreck.json (event) 1`] = `
+{
+  "length": 14112,
+  "path": "content/events/shipwreck.json",
+  "sha256": "89ad7e08f455a9a41181062463c895622469b3f16ed876dfceb56b7db31dc535",
+  "view": "event",
+}
+`;
+
+exports[`preserves form markup: content/game.json (form) 1`] = `
+{
+  "length": 82306,
+  "path": "content/game.json",
+  "sha256": "8cfe405c6419b64b25b1417c1f5008d378493f2d08c4b92e509e5ccd4b117612",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/axe.json (form) 1`] = `
+{
+  "length": 2228,
+  "path": "content/items/axe.json",
+  "sha256": "5b0ceffbee50fb3f115fc8faa8ccb308d7c34319e2a93dd300b0dd41212a1139",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/bark_strips.json (form) 1`] = `
+{
+  "length": 2457,
+  "path": "content/items/bark_strips.json",
+  "sha256": "fd79240a81b77f4cc595061c0f7b95cb03133eb49f040a560b5a74059ff0cac2",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/berries.json (form) 1`] = `
+{
+  "length": 7987,
+  "path": "content/items/berries.json",
+  "sha256": "9f43cfe35d8619774081eeb811db40ddf27081e694f94193a84a0fc6bf86df3b",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/can_water.json (form) 1`] = `
+{
+  "length": 8690,
+  "path": "content/items/can_water.json",
+  "sha256": "3043a5efbf4614fe7199eb5e6afe2d505a427583aaeeab32309b193129f46706",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/cooked_fish.json (form) 1`] = `
+{
+  "length": 8385,
+  "path": "content/items/cooked_fish.json",
+  "sha256": "b839934f49ec75e546235a060120b924a4c2619fe90900ee596f2aebed767022",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/cooked_meat.json (form) 1`] = `
+{
+  "length": 8375,
+  "path": "content/items/cooked_meat.json",
+  "sha256": "22c8705ef4d508b842bf518430d9d7747e7e8464e624677a81e64cc3a842a99d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/cooked_shells.json (form) 1`] = `
+{
+  "length": 7998,
+  "path": "content/items/cooked_shells.json",
+  "sha256": "95cb0adf56f0ff399863bc4da179a99ebaf8f37a4c0459478b3b5ffa05981612",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/cordage.json (form) 1`] = `
+{
+  "length": 2455,
+  "path": "content/items/cordage.json",
+  "sha256": "d1f3e3adc17c6f476b8b8ac86d36a5391da32f0e835c7ddacc416d8d5bfa8c66",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/corn.json (form) 1`] = `
+{
+  "length": 21293,
+  "path": "content/items/corn.json",
+  "sha256": "9ea22267056a618b7102daebd23683261381eb01d104660e4acb997d2c938efa",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/dried_fish.json (form) 1`] = `
+{
+  "length": 7992,
+  "path": "content/items/dried_fish.json",
+  "sha256": "d79233cccf6b5f2bc719fea80dfcab3e1a0030c7872c0471f678ca6948aeb5cf",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/dried_meat.json (form) 1`] = `
+{
+  "length": 7556,
+  "path": "content/items/dried_meat.json",
+  "sha256": "015f8261ae007e7547a5face31487a471d226caa3216924d3896a482845d1da4",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/firewood.json (form) 1`] = `
+{
+  "length": 4334,
+  "path": "content/items/firewood.json",
+  "sha256": "5851e0cb2837bc7535246ab666d276fa3975c2400f5adc4d11e09927a1857d25",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/fishing_spear.json (form) 1`] = `
+{
+  "length": 2256,
+  "path": "content/items/fishing_spear.json",
+  "sha256": "32c13e1fa098ed39432a00978d3b2ef418fdd9e396f67a413f2c54c495e28e6d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/hoe.json (form) 1`] = `
+{
+  "length": 2228,
+  "path": "content/items/hoe.json",
+  "sha256": "581fa94569d3d85c6b985ac1150c18c083577c39dc09414fa198281f65b0d18a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/honey.json (form) 1`] = `
+{
+  "length": 8345,
+  "path": "content/items/honey.json",
+  "sha256": "bab6b88304f643c79800f5b58724e7ba43aa577223b8e64627f7498ba942c08a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/knife.json (form) 1`] = `
+{
+  "length": 3865,
+  "path": "content/items/knife.json",
+  "sha256": "1c5e8da0182647f7e7cdbc0734574896aaf567acfec86a3f43311000e0a065e4",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/matches.json (form) 1`] = `
+{
+  "length": 4061,
+  "path": "content/items/matches.json",
+  "sha256": "ac5302ff171e06ab603aa9fb0c95bab16ae60e7823a536d162e63d1501c92e56",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/rations.json (form) 1`] = `
+{
+  "length": 8028,
+  "path": "content/items/rations.json",
+  "sha256": "4e8ade04e0d1340c1aff4cf6a91f2128573caf24ab92421070ea0c7dcc52521a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/raw_fish.json (form) 1`] = `
+{
+  "length": 15357,
+  "path": "content/items/raw_fish.json",
+  "sha256": "7dde73e12aa95a76b613dbbcc00f49c9d96c16725aa79705f7f74ab519ae4990",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/raw_meat.json (form) 1`] = `
+{
+  "length": 36259,
+  "path": "content/items/raw_meat.json",
+  "sha256": "6bf7cd3c2d0d5fc0d5b94719f8089c57efd5344bfadadeb9cab2fec26f670977",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/roasted_corn.json (form) 1`] = `
+{
+  "length": 7980,
+  "path": "content/items/roasted_corn.json",
+  "sha256": "bd594d76d77aefa30805acfc1ef8baf73e712cb5ed6479dc1190cde1e4384ac8",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/rock_knife.json (form) 1`] = `
+{
+  "length": 4384,
+  "path": "content/items/rock_knife.json",
+  "sha256": "cc060b99f8b2a6951095a9f499dfa43cb3175c680492082b25f8c8e73c4eb437",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/shells.json (form) 1`] = `
+{
+  "length": 21099,
+  "path": "content/items/shells.json",
+  "sha256": "a99afb91ebb66796637d238db494dad2638cf1ed6bc6a218abda0c77b549a385",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/stone.json (form) 1`] = `
+{
+  "length": 4388,
+  "path": "content/items/stone.json",
+  "sha256": "71403537b396898b983015f46536b713c073b6a2d0fb328ca15ad8c28b531650",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/summer_clothes.json (form) 1`] = `
+{
+  "length": 2263,
+  "path": "content/items/summer_clothes.json",
+  "sha256": "56a9ee10069cb101136a974a0aa9af6cf7a61e0101dbf293a18769c0d507c75c",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/timber.json (form) 1`] = `
+{
+  "length": 2431,
+  "path": "content/items/timber.json",
+  "sha256": "6540c048edf12dc6ee069c988bbb50ee70bd7f0ce5af6d5f0dd6ed9da5ec3530",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/water_can.json (form) 1`] = `
+{
+  "length": 42628,
+  "path": "content/items/water_can.json",
+  "sha256": "c06cba50597ee042792cb0f83723d54e15a8fecac00641a19f7215622ed3c87e",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/items/willow_twigs.json (form) 1`] = `
+{
+  "length": 2428,
+  "path": "content/items/willow_twigs.json",
+  "sha256": "c1ab21728c25cd0823426e00e856887a137a9b96f6b6a414a437ac4ebdb5fae6",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/better_sleep.json (form) 1`] = `
+{
+  "length": 16288,
+  "path": "content/quests/better_sleep.json",
+  "sha256": "44ac1a19ceff17e5d8ab3b0c0101bfb08adee88301939fde6133ea131d07f046",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_bee_hive.json (form) 1`] = `
+{
+  "length": 9195,
+  "path": "content/quests/build_bee_hive.json",
+  "sha256": "eb42fde58f85523f4c9b2f5ccb1a19af6648c2b1f3d48b7aeb74176aabca6f41",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_corn_field.json (form) 1`] = `
+{
+  "length": 9255,
+  "path": "content/quests/build_corn_field.json",
+  "sha256": "65306c444f3daa12b549d68e5d985620ca25a64cb54fb0f38b406bbc66f288cc",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_drying_rack.json (form) 1`] = `
+{
+  "length": 19406,
+  "path": "content/quests/build_drying_rack.json",
+  "sha256": "26ddcac1ef13e42164b0d03d571c560842154fa8df8b8ae1ff3351cf34025ef2",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_fish_trap.json (form) 1`] = `
+{
+  "length": 13621,
+  "path": "content/quests/build_fish_trap.json",
+  "sha256": "80fefb7e878b0d273a59f1e61732c7553a63bcf6b00f1a01cf0df3d289b2749c",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_fish_weir.json (form) 1`] = `
+{
+  "length": 15186,
+  "path": "content/quests/build_fish_weir.json",
+  "sha256": "0150404d395ff58147f09219c322936c47900ac6508867dff1eec7d7620ef6ed",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_rain_barrel.json (form) 1`] = `
+{
+  "length": 19948,
+  "path": "content/quests/build_rain_barrel.json",
+  "sha256": "f6964fdb64b175071d66ab8c7ce74e22d4a790911d32b0bf8e3b993c8f61f96b",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_shelter.json (form) 1`] = `
+{
+  "length": 18481,
+  "path": "content/quests/build_shelter.json",
+  "sha256": "6d556e27a41179c84704037a6e972e6b1d95bb27d566386242c0ebc9bf1e56bb",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/build_snares.json (form) 1`] = `
+{
+  "length": 9159,
+  "path": "content/quests/build_snares.json",
+  "sha256": "784b36df0637d09fac2a16b2998fd93f9a92d61c11b6f0328c23626f2814da3d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/climb_cliff.json (form) 1`] = `
+{
+  "length": 9420,
+  "path": "content/quests/climb_cliff.json",
+  "sha256": "80d3872ddf53fc1e8dbab6a6d3d613dd445b842ee2a02d497f81600cabc8605f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/cut_logs.json (form) 1`] = `
+{
+  "length": 36974,
+  "path": "content/quests/cut_logs.json",
+  "sha256": "c9b0be5632e0f56991ed2704b38be69fb6c77b6a4679f4faacb77ab961cb2904",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/first_catch.json (form) 1`] = `
+{
+  "length": 14829,
+  "path": "content/quests/first_catch.json",
+  "sha256": "f17d6ea45a77ae27a84f953b4fdbfdf9844700f2e777dbd97c6cbe471f34caac",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/make_bed.json (form) 1`] = `
+{
+  "length": 8378,
+  "path": "content/quests/make_bed.json",
+  "sha256": "d225733ad0a74a52c22ceb6b358fba1dda18676bd87328f3f18c80cfbf3202c5",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/quests/survive_first_night.json (form) 1`] = `
+{
+  "length": 7605,
+  "path": "content/quests/survive_first_night.json",
+  "sha256": "f3b3cfa70f97f5a10e9c82cd425ab8cfef716ca8cec5186e59b288f2949fd6a1",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/recipes/craft_axe.json (form) 1`] = `
+{
+  "length": 10614,
+  "path": "content/recipes/craft_axe.json",
+  "sha256": "b65623f8bb60c8d148e5eac8c650b5db874160f2ffe722f92b81ca6ff156d239",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/recipes/craft_hoe.json (form) 1`] = `
+{
+  "length": 10336,
+  "path": "content/recipes/craft_hoe.json",
+  "sha256": "9618960eebccf25793bbb3b6eccfbb0ff43baeb19f9a6a3de4f050c09517491a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/recipes/craft_rock_knife.json (form) 1`] = `
+{
+  "length": 13332,
+  "path": "content/recipes/craft_rock_knife.json",
+  "sha256": "454b7d15446e383a8d44e9bc38faea651b7bdd9b01aab45ece79cd49e1c4667f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/recipes/craft_rope.json (form) 1`] = `
+{
+  "length": 10840,
+  "path": "content/recipes/craft_rope.json",
+  "sha256": "293388a4e9e8963e6d569b9c454c9e2256823f00fea5fe4224c8068d6f9bdc9d",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/recipes/craft_spear.json (form) 1`] = `
+{
+  "length": 37657,
+  "path": "content/recipes/craft_spear.json",
+  "sha256": "69ce4a196d644893799df9dd86b2f1122babbc8a5afa4914e9f6aa9be363c2f4",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/regions/beach.json (area) 1`] = `
+{
+  "length": 168252,
+  "path": "content/regions/beach.json",
+  "sha256": "6e2ce4467e564b3da53248ef85b839dc96062bdc9df895e256226b63399ff7a4",
+  "view": "area",
+}
+`;
+
+exports[`preserves form markup: content/regions/beach.json (form) 1`] = `
+{
+  "length": 168481,
+  "path": "content/regions/beach.json",
+  "sha256": "ec2fc8aa75fadc02ca8b7a336a43c7e99bccc2fc84a7e19264b0bfa8c098fe6a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/regions/forest.json (area) 1`] = `
+{
+  "length": 90536,
+  "path": "content/regions/forest.json",
+  "sha256": "a302d25b174eaac756ec617d80aa2c40607820cc5b686b10af83026bd2d3f41d",
+  "view": "area",
+}
+`;
+
+exports[`preserves form markup: content/regions/forest.json (form) 1`] = `
+{
+  "length": 88795,
+  "path": "content/regions/forest.json",
+  "sha256": "780759cee63138f4ee42122ceef5e5e511fb26811f2b03018f846379eab1a5ef",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/regions/meadows.json (area) 1`] = `
+{
+  "length": 130703,
+  "path": "content/regions/meadows.json",
+  "sha256": "d145017e739f9fa4be78d943aef4188a49cea4c28126cb05001e9864dce9922a",
+  "view": "area",
+}
+`;
+
+exports[`preserves form markup: content/regions/meadows.json (form) 1`] = `
+{
+  "length": 128558,
+  "path": "content/regions/meadows.json",
+  "sha256": "9ecfa6040c96d351a4b61e5eee08bd1fb1e1ca27d896ae5c4ac193675c5851a3",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/bee_habitat.json (form) 1`] = `
+{
+  "length": 926,
+  "path": "content/sites/bee_habitat.json",
+  "sha256": "e33c317cf4d31e910bf0ae7ad9722e5f1f6cfff5f3771d6846500e0f933f850b",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/camp_ground.json (form) 1`] = `
+{
+  "length": 922,
+  "path": "content/sites/camp_ground.json",
+  "sha256": "00259ed07cae615197626b8eb5f07d8b0a2c75f7ce38159aae4dcdeaef54e7e3",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/coastal_camp.json (form) 1`] = `
+{
+  "length": 933,
+  "path": "content/sites/coastal_camp.json",
+  "sha256": "8f82063fe608e669ec2e053cc40035483831f3f4bdc329ce2024036dc7ee603a",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/cultivable_ground.json (form) 1`] = `
+{
+  "length": 931,
+  "path": "content/sites/cultivable_ground.json",
+  "sha256": "dd2c771160d8c0e2d8168864c33383dfbf86db3fa78f813b323f7bb0e8749e59",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/fishable_water.json (form) 1`] = `
+{
+  "length": 931,
+  "path": "content/sites/fishable_water.json",
+  "sha256": "91f637bdeaf332be846e56f501a485f54c77d9ebdc3cbe46292b40c71c1b6fc9",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/flowing_water.json (form) 1`] = `
+{
+  "length": 929,
+  "path": "content/sites/flowing_water.json",
+  "sha256": "e5114860f8e437e7d007b772da2dc811f42acc04b616dc263c6ffdda9edbd4d3",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/shelter_ground.json (form) 1`] = `
+{
+  "length": 937,
+  "path": "content/sites/shelter_ground.json",
+  "sha256": "c57c0a8e30a7fbeee215187072a5d4d23fa321d97011d26609834d9d975f428f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/sites/small_game_trails.json (form) 1`] = `
+{
+  "length": 931,
+  "path": "content/sites/small_game_trails.json",
+  "sha256": "8f061d5f7ff8abbfbb0b9f688a1f6f4578122bfa17a22fd74646ff261706225c",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/stats.json (form) 1`] = `
+{
+  "length": 97239,
+  "path": "content/stats.json",
+  "sha256": "8c51c0edc0a9af354309e830b8a62aeedebc88ae66fe434a55b88ca8af7a32d6",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/trees/building.json (form) 1`] = `
+{
+  "length": 40326,
+  "path": "content/trees/building.json",
+  "sha256": "4b35370bc8f2e6563b5c6402290de87ce844a024b7fe3983db9979ed43a4cd1f",
+  "view": "form",
+}
+`;
+
+exports[`preserves form markup: content/trees/crafting.json (form) 1`] = `
+{
+  "length": 18921,
+  "path": "content/trees/crafting.json",
+  "sha256": "24a8bbe677755a4889a71d23ae39f822b26831a93eed59937c8b81d9af108342",
+  "view": "form",
+}
+`;
