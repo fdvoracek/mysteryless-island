@@ -361,10 +361,16 @@ visible at ≤760 px / without hover), retaining Remove/Move control names. Thei
 numeric field caption is hidden, as in UX-04b object arrays. Only Event properties gets a card;
 the scene graph, selected panel, checks and add dialogs are unchanged.
 
-Actual deviations from the approved UX-03b scope: none. The existing area/event outer file
-frame remains because shell work is outside this PR; generic sectioned forms retain the UX-03
-bare frame. The mockup has no area/building/task examples, so comparisons use its note, card,
-inspector and row examples. The shell, context rail and new widgets are outside this PR.
+Review fixes: area/event cards now sit directly on the grey background, using the same bare
+file panel as generic sectioned forms; Rename IDs and Used by keep their white frames. Workspace
+scalar rows use the inspector grid's 8 px gap with no added field margins. Each card's unset
+optional fields share one trailing Optional line; notes for unset fields precede their chips.
+Landmark removal displays × with its unchanged accessible name; adding uses “+ add landmark”.
+Linked activities use label + hover/focus ↑ / ↓ / × entry toolbars, always visible at ≤760 px or
+without hover. Existing accessible names and the Add explore flow are preserved.
+
+Actual deviations from the approved UX-03b scope and review fixes: none. The mockup has no
+area/building/task examples, so comparisons use its note, card, inspector and row examples. The shell, context rail and new widgets are outside this PR.
 
 Evidence (captured read-only from shipped content at 1440×900, device scale 1):
 [forest Properties and one landmark beside mockup](ux-03b/area-comparison.jpg),
@@ -377,12 +383,13 @@ Phone `document.documentElement.scrollWidth` is exactly 390.
 
 Shipped content at 1440×900, every card open, `.editor-fields.scrollHeight`:
 
-| Document | Before (`eb72ad7`) | UX-03b | Change |
+| Document | Before (`eb72ad7`) | UX-03b reviewed | Change |
 | --- | ---: | ---: | ---: |
-| `regions/forest.json` | 8,462 px | 8,752 px | +290 px |
+| `regions/forest.json` | 8,462 px | 8,410 px | −52 px |
 | `buildings/fish_trap.json` | 2,679 px | 2,838 px | +159 px |
 | `quests/build_fish_trap.json` | 705 px | 873 px | +168 px |
 
 The plan's approximately 18,800 px forest measurement predates UX-02..05; the before column
-above is the actual requested base. Added help, cards and editable notes increase the fully
-expanded height; collapsed cards make individual groups skimmable without changing content.
+above is the actual requested base. Forest is now 52 px below that baseline and 342 px below
+the initial UX-03b height of 8,752 px. The building/task heights are unchanged by these workspace
+review fixes; their added help and cards still increase their fully expanded heights.

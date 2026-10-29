@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { EventChoice, EventScene, GameEvent } from "../content";
 import { Dialog } from "./dialogs";
-import { AuthorNote, SectionCard, Field, RawField, type FieldProps } from "./form";
+import { AuthorNote, SectionCard, OptionalChip, Field, RawField, type FieldProps } from "./form";
 import { GraphView } from "./graph";
 import { addChoice, addScene, deleteScene, eventChecks, eventGraph, removeChoice, type EventRaw } from "./event";
 import { getAt, whereUsed, type Identity } from "./references";
 import { replaceAt } from "./rename";
-import { hintFor } from "./hints";
+import { hintFor, humanize } from "./hints";
 import { summarize } from "./summary";
+import { initialValue } from "./schema";
 
 type EventEditorProps = FieldProps & { rename: (target: Identity) => void };
 export function EventEditor(props: EventEditorProps) {
@@ -28,7 +29,8 @@ function EventWorkspace(props: EventEditorProps) {
   const keys = Object.keys(GameEvent.shape).filter(key => key !== "scenes");
   const notes = Object.keys(raw).filter(key => key.startsWith("_") && typeof raw[key] === "string");
   const note = (key: string) => <AuthorNote key={key} name={key} value={raw[key] as string} change={value => props.onChange({ ...raw, [key]: value })} />;
-  const fields = (keys: string[]) => keys.map(key => <div className="field-with-note" key={key}>{notes.includes(`_${key}`) && note(`_${key}`)}<Field key={key} {...props} schema={GameEvent.shape[key as keyof typeof GameEvent.shape]} path={key} presentation={{ schema: GameEvent.shape[key as keyof typeof GameEvent.shape], path: key, hint: hintFor(GameEvent, key) }} value={getAt(raw, key)} onChange={v => props.onChange(replaceAt(raw, key, v))} /></div>);
+  const optional = keys.filter(key => getAt(raw, key) === undefined && GameEvent.shape[key as keyof typeof GameEvent.shape].isOptional());
+  const fields = (keys: string[]) => keys.filter(key => !optional.includes(key)).map(key => <div className="field-with-note" key={key}>{notes.includes(`_${key}`) && note(`_${key}`)}<Field key={key} {...props} schema={GameEvent.shape[key as keyof typeof GameEvent.shape]} path={key} presentation={{ schema: GameEvent.shape[key as keyof typeof GameEvent.shape], path: key, hint: hintFor(GameEvent, key) }} value={getAt(raw, key)} onChange={v => props.onChange(replaceAt(raw, key, v))} /></div>);
   const checks = eventChecks(props.owner, props.problems);
   const incoming = removing ? whereUsed(props.documents, props.owner, `scenes.${removing}`).filter(ref => !ref.path.startsWith(`scenes.${removing}.`)) : [];
   const selection = selected && choice !== undefined && selected.choices?.[choice] ? `scenes.${scene}.choices.${choice}` : `scenes.${scene}`;
@@ -41,7 +43,12 @@ function EventWorkspace(props: EventEditorProps) {
     props.onChange(replaceAt(raw, selection, { ...ordered, ...next }));
   };
   return <section className="event-workspace" aria-label="Event editor"><SectionCard name="GameEvent" title="Event properties" preview={summarize(GameEvent, raw, keys, props.documents)} count={props.problems.filter(problem => keys.some(key => problem.path === key || problem.path.startsWith(`${key}.`))).length}>
-      <section>{notes.filter(key => !keys.includes(key.slice(1))).map(note)}{fields(keys)}{Object.keys(raw).filter(key => !(key in GameEvent.shape) && !notes.includes(key)).map(key => <details key={key}><summary>{key}</summary><pre>{JSON.stringify(raw[key], null, 2)}</pre></details>)}</section>
+      <section>{notes.filter(key => !keys.includes(key.slice(1))).map(note)}{fields(keys)}{Object.keys(raw).filter(key => !(key in GameEvent.shape) && !notes.includes(key)).map(key => <details key={key}><summary>{key}</summary><pre>{JSON.stringify(raw[key], null, 2)}</pre></details>)}
+        {optional.length > 0 && <div className="optional-fields"><span>Optional:</span>{optional.map(key => {
+          const chip = <OptionalChip key={key} name={key} label={hintFor(GameEvent, key)?.label ?? humanize(key)} add={() => props.onChange(replaceAt(raw, key, initialValue(GameEvent.shape[key as keyof typeof GameEvent.shape])))} />;
+          return notes.includes(`_${key}`) ? <span className="optional-with-note" key={key}>{note(`_${key}`)}{chip}</span> : chip;
+        })}</div>}
+      </section>
     </SectionCard>
     <GraphView graph={graph} title="Event scene graph" node={n => { setScene(n.id); setChoice(undefined); }} edge={e => { setScene(e.source); setChoice(Number(e.id.split(":").at(-1))); }} />
     <div className="row-actions"><button type="button" onClick={() => setAdding("scene")}>Add scene</button><button type="button" disabled={!selected} onClick={() => setAdding("choice")}>Add choice</button></div>

@@ -174,10 +174,15 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .workspace-object-entry > .form-field { grid-column: 1 / -1; grid-row: 2; margin: 0; }
 .workspace-object-entry > .entry-actions { grid-column: 2; grid-row: 1; flex-wrap: wrap; justify-content: end; }
 .workspace-object-entry:hover > .entry-actions, .workspace-object-entry:focus-within > .entry-actions { opacity: 1; }
+.form-section-body > section > .field-with-note > .form-field, .form-section-body > section > .form-field { margin: 0; }
 .form-section-body > section { min-width: 0; display: grid; gap: 8px; }
 .map-cells { display: grid; gap: 4px; overflow: auto; max-width: 100%; margin: 12px 0; }
 .map-cells button { min-height: 56px; padding: 6px; display: flex; flex-direction: column; gap: 4px; overflow-wrap: anywhere; font-size: 11px; }
-.linked-activity { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 0; border-bottom: 1px solid var(--studio-border); }
+.linked-activity { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 6px 0; }
+.linked-activity + .linked-activity { border-top: 1px solid #eef0f2; }
+.linked-activity > button { flex: 1; min-width: 0; text-align: left; overflow-wrap: anywhere; }
+.linked-activity > .entry-actions { flex: none; }
+.linked-activity:hover > .entry-actions, .linked-activity:focus-within > .entry-actions { opacity: 1; }
 .identity-controls { padding: 18px; border-top: 1px solid var(--studio-border); }
 .identity-controls > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; overflow-wrap: anywhere; }
 .studio-dialog label { display: block; margin: 8px 0; }
@@ -195,6 +200,7 @@ select:focus-visible, textarea:focus-visible { outline: 2px solid var(--studio-a
 .kind-flag { background: #f3f4f6; border-color: #545c66; }
 .graph-view small { display: block; overflow-wrap: anywhere; }
 .event-workspace, .story-workspace { min-width: 0; }
+.event-workspace > .workspace-card { background: var(--studio-panel); }
 @media (max-width: 700px) { .story-panel { grid-column: auto; } .flow-canvas { height: 420px; } }
 .is-start { border: 3px solid var(--studio-accent); }
 .kind-missing { border: 2px dashed var(--studio-error); }

@@ -94,8 +94,9 @@ same chip style. Adding a field uses the existing empty initial value; **Unset**
 
 Activity and Item root forms group set fields into collapsible cards. Activity cards are Basics,
 When can the player do this?, Journal and Results; Item cards are Basics, Use and Item actions.
-Section cards sit directly on the editor background without an outer form frame. The Content form
-heading stays available to assistive technology, with a muted status line above the cards.
+Section cards, including the area workspace and event editor, sit directly on the editor background
+without an outer form frame. The Content form heading stays available to assistive technology,
+with a muted status line above the cards.
 Empty cards are omitted. Future unlisted fields appear in Other, and the root Optional chip line
 follows all cards. Display order does not reorder the JSON. Nested objects and required-only
 Create forms keep their existing layout; JSON mode remains unchanged.
@@ -132,7 +133,12 @@ Text and exploration excludes landmark paths, and Used by has no problem badge.
 
 **[implemented, UX-03b]** Event properties is one remembered card under
 `studio.sections:GameEvent`, with Title / Opens / Only when / Repeat labels and editable root
-notes. The scene graph, selected scene/choice panel and add dialogs retain their existing forms.
+notes. Workspace scalar rows use the inspector's 8 px gap without additional field margins.
+Each workspace card has one trailing Optional chip line for its unset fields; notes for unset
+fields sit before their chips. Landmarks use × with the same Remove name and a “+ add landmark”
+link. Linked activities use ↑ / ↓ / × entry toolbars on hover/focus (always visible at ≤760 px
+or without hover), keeping the existing Move/Unlink names. The scene graph, selected scene/choice
+panel and add dialogs retain their existing forms.
 
 ## JSON editor — [implemented]
 
