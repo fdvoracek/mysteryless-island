@@ -168,6 +168,7 @@ test("creates linked drafts, saves the whole pack, blocks used deletion, and wir
     await page.getByRole("searchbox").fill("browser_material");
     await page.getByRole("navigation").getByRole("button", { name: /^Items/ }).click();
     await page.getByRole("searchbox").fill("browser_material");
+    await page.getByRole("button", { name: "More actions", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
     const deletion = page.getByRole("dialog", { name: "Delete entity" });
     await expect(deletion).toContainText("Delete blocked");
@@ -481,6 +482,7 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     await expect(contents.getByRole("region", { name: "Used by Landmark browser_seven_landmark", exact: true })).toContainText("unlockWhen.discovered");
     await contents.getByRole("button", { name: "Remove landmark browser_seven_landmark", exact: true }).click();
     await expect(contents.getByRole("alert")).toContainText("Removal blocked");
+    await page.getByRole("button", { name: "More actions", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
     const deletion = page.getByRole("dialog", { name: "Delete entity" });
     await expect(deletion).toContainText("Delete blocked"); await expect(deletion.getByRole("button", { name: "Delete draft" })).toBeDisabled();
@@ -492,6 +494,7 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     await page.setViewportSize({ width: 390, height: 844 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.screenshot({ path: "/tmp/textisland-studio-pr07-phone.png", fullPage: true });
+    await page.getByRole("button", { name: "More actions", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
     await expect(deletion.getByRole("region", { name: "Activities left without an area" })).toContainText("browser_seven_renamed");
     await deletion.getByRole("radio", { name: "Delete them too", exact: true }).check();
@@ -720,6 +723,7 @@ test("creation tree: New recipe here, cycle refusal, graph connect and removal w
 
     await nav.getByRole("button", { name: /^Recipes/ }).click();
     await page.getByRole("button", { name: /browser_pick/ }).first().click();
+    await page.getByRole("button", { name: "More actions", exact: true }).click();
     await page.getByRole("button", { name: "Delete", exact: true }).click();
     await page.getByRole("dialog", { name: "Delete entity" }).getByRole("button", { name: "Delete draft", exact: true }).click();
     await expect(page.getByText("2 unsaved files")).toBeVisible();
@@ -1046,7 +1050,8 @@ test("sectioned forms use bare file panels while JSON and small forms keep their
   const contents = page.getByRole("region", { name: "File contents" });
   await expect(contents).toHaveClass("json-panel json-panel-bare");
   await expect(contents.getByRole("heading", { name: "Content form", exact: true })).toHaveCount(1);
-  await expect(contents.locator(".json-heading > span")).toHaveText("Read from disk");
+  await expect(page.locator("footer.studio-status-bar .store-status")).toHaveText("Read from disk");
+  await expect(contents.locator(".json-heading")).not.toContainText("Read from disk");
   expect(await contents.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
   await page.getByRole("button", { name: "JSON", exact: true }).click();
   await expect(contents).toHaveClass("json-panel");

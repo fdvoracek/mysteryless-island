@@ -546,3 +546,23 @@ The permanent markup guard snapshots normalized HTML lengths and SHA-256 hashes 
 fixture Form view and area workspace. Local HTML is written to `test-results/form-markup/` for
 debugging. UI PRs that intentionally change form markup regenerate it with `vitest -u` and say
 so in the PR body; refactors must not.
+
+## Shell — [implemented, UX-06a]
+
+The slim top bar contains the brand, **Search content**, validation chip, **Undo** / **Redo**
+icons, **Save all**, **Create** and **Preview**. Existing shortcuts and actions are unchanged.
+Click the validation chip to scroll to and focus **Diagnostics**. Save reports and request
+errors remain directly below the top bar.
+
+The document header shows a kind breadcrumb button, ID, title, draft-only **Unsaved** badge and
+mono file path. **Form** / **JSON** retain the existing per-file mode; **More actions** (⋯)
+opens **Duplicate** and **Delete**. Escape or an outside pointer press closes the disclosure and
+returns focus to ⋯. Rename IDs and Used by remain below the editor until UX-06b.
+
+The bottom status bar shows problems, **N unsaved files** (including zero), the store status,
+**Refresh from disk**, **Open game ↗** and shortcut hints. Story layout status/retry remains in
+the story toolbar because its rendering is internal to StoryView. At desktop width the document
+header and status bar stick to their edges; document bottom padding clears the footer. At
+≤760 px both are static, bars wrap, and shortcut hints disappear. Page scrolling is retained.
+Create stays in the top bar until UX-07 adds contextual list creation. The changes/diagnostics
+drawers follow in UX-06c; the search palette follows in UX-08.

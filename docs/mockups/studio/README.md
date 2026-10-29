@@ -393,3 +393,29 @@ The plan's approximately 18,800 px forest measurement predates UX-02..05; the be
 above is the actual requested base. Forest is now 52 px below that baseline and 342 px below
 the initial UX-03b height of 8,752 px. The building/task heights are unchanged by these workspace
 review fixes; their added help and cards still increase their fully expanded heights.
+
+## UX-06a implementation differences — [implemented]
+
+Annotations 1–3, 6 and 12 are implemented for the shell scope. Owner-approved differences:
+
+- The existing Search content searchbox stays until UX-08; there is no palette placeholder.
+- Create stays visible until UX-07 adds contextual creation in the list.
+- The exact validation text and inner status role stay. The chip scrolls to and focuses existing
+  Diagnostics; UX-06c adds its drawer. The unsaved count is plain text in the status bar until
+  the changes drawer in UX-06c.
+- Refresh from disk and Open game ↗ live in the status bar beside store status.
+- Story layout status/retry remains in the story toolbar; its rendering belongs to StoryView.
+- The document breadcrumb is a kind button plus ID; the path is retained below the title.
+  Duplicate/Delete use a disclosure list; Rename IDs stays below the form until UX-06b.
+- Page scrolling, existing navigation/list and Preview remain. Fixed-height columns and the
+  context rail are deferred. At ≤760 px bars wrap and document header/status bar are static;
+  neither covers the phone screen. Shortcut hints are hidden. Desktop bottom padding clears
+  the 26 px sticky footer.
+
+Evidence in [ux-06a/](ux-06a/): [top bar beside mockup](ux-06a/top-bar.jpg),
+[document header and menu beside mockup](ux-06a/document-header.jpg),
+[status bar beside mockup](ux-06a/status-bar.jpg), [390px shell](ux-06a/phone.jpg).
+Desktop screenshots use 1440×900 viewports and fixture content, with matching areas cropped
+at 100% scale and placed side by side without resizing. Phone panels use a 390×844 viewport,
+with scrollWidth = 390, showing the top, document header and page-end footer at native scale.
+All four JPEGs are ≤200 KB.
