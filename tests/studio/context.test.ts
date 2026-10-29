@@ -30,6 +30,10 @@ it("classifies linked areas separately, retains incoming counters and groups out
   for (const [id, kind] of [["school_of_fish", "discovery"], ["fishing_spear", "item"], ["raw_fish", "item"]]) {
     expect(context.uses).toContainEqual(expect.objectContaining({ id, kind, identity: expect.objectContaining({ id, kind }) }));
   }
+  expect(context.uses.map(use => use.id)).toEqual(["school_of_fish", "fishing_spear", "raw_fish"]);
+  expect(context.settingsUses.map(group => ({ kind: group.kind, ids: group.uses.map(use => use.id) })))
+    .toEqual([{ kind: "phase", ids: ["dawn", "day", "dusk"] }]);
+  expect(context.settingsUses[0].uses.every(use => use.identity?.file === "content/climate.json")).toBe(true);
   const rawFish = context.uses.filter(use => use.id === "raw_fish");
   expect(rawFish).toHaveLength(1);
   expect(rawFish[0].paths.length).toBeGreaterThan(1);
