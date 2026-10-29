@@ -523,3 +523,36 @@ All captures use a disposable copy of frozen fixture content; no content is writ
 Evidence: [100% comparison](ux-07/comparison.jpeg), [three light-fire rows](ux-07/light-fire.jpeg),
 [390 px phone](ux-07/phone.jpeg). Desktop screenshots use a 1440×900 viewport, with equal-scale
 520 px crops in the comparison. Phone `document.documentElement.scrollWidth` equals 390.
+
+## UX-09 implementation differences — [implemented]
+
+Create retains its existing generic schema form, Kind selector, draft explanation, vertical file
+path/preview and Cancel/Create draft actions. This PR implements the Create behavior described in
+the UX-09 brief, with §5.5 field labels/help, §5.8 keyboard/focus behavior and stable D5 names.
+Differences from the static area mockup:
+
+- The mockup's pre-emptive red errors become errors only after the user changes or leaves a field.
+  A muted “Still needed” line sits below Create draft. The form keeps its current layout and
+  optional prefilled fields; required fields vary with the actual schema. The area's temperature
+  and walk time fields remain nested/shared schema fields, without new mockup-only controls.
+- ID follows Name, Title or Label until manually edited; the faint hint appears below ID once a
+  suggestion has been made. Duplicate waits for a name change. Kind changes reset both behaviors.
+  Suggested values never touch ID. Collision suffixes include all current pack identity values,
+  including nested IDs and unsaved drafts. Collision messages prefer the root entity owner when
+  the same value also names a nested identity.
+- Kind names, dialog titles, accessible field names and Create draft retain existing wording.
+  Existing prefill and tree-staging explanations remain; no Remove-prefill control is added.
+  The file preview stays in place. Top-bar kind defaults follow entity/area/All files context.
+- The shipped enum supplies eight item categories; the choice message lists the real options.
+  ID validity remains unchanged, including the requirement to start with a letter: a numeric-first
+  suggested value keeps Create disabled and shows its ID error only after ID is touched.
+
+Evidence in [ux-09/](ux-09/): [fresh dialog beside mockup](ux-09/fresh-comparison.jpg),
+[suggested ID and file preview](ux-09/suggested-id.jpg),
+[friendly Category error](ux-09/friendly-error.jpg), [390 px dialog](ux-09/phone-390.jpg).
+Desktop source viewports are 1440×900, device scale 1. The comparison places the implementation
+and matching mockup dialog crops side by side at 100%, without resizing either side. The mockup
+uses an area while the fresh implementation demonstrates the required Items summary; schema
+facts and the explicit UX-09 brief govern these behavioral differences. Phone viewport is
+390×844 and measured document scrollWidth is exactly 390. All four JPEGs are below 200 KB.
+Captures use a separate disposable frozen-content copy and write no game content.

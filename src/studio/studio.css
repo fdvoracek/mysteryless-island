@@ -533,3 +533,8 @@ button.layout-failed { color: var(--studio-error); }
 }
 
 @media (max-width: 760px) { .list-heading { top: 0; } .list-foot { bottom: 0; } }
+
+/* UX-09: Create guidance stays quiet until a field is touched. */
+.studio-dialog .create-id-hint { grid-column: 2; display: block; color: var(--studio-faint); font-size: 11px; margin-top: 4px; }
+.studio-dialog .create-needed { color: var(--studio-muted); font-size: 12px; margin-top: 8px; }
+@media (max-width: 760px) { .studio-dialog .create-id-hint { grid-column: 1; } }

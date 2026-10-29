@@ -50,6 +50,17 @@ inserted. A non-global activity needs an area link; a recipe/building needs its 
 Add these through the area workspace and tree editor before saving; ordinary Create adds no links or nodes
 (the explicit “New activity in this area” and “New recipe/building here” shortcuts do).
 
+**[implemented, UX-09]** Create shows field errors only after typing, changing a value, or
+leaving that field. Messages use required/choice guidance and identify the owner of a taken ID.
+A muted “Still needed” line explains the disabled **Create draft** button; validity rules stay
+the same. The root ID follows the first available Name, Title or Label as ASCII snake_case,
+folding diacritics and adding `_2`, `_3`, … for identities already in the pack, including drafts
+and nested IDs. Suggestions never mark ID touched. Editing ID stops suggestions; a prefilled ID
+is preserved. Duplicate leaves ID empty until the name changes. Changing kind resets touch and
+suggestion state. Top-bar Create defaults to the current entity kind, Activities in an area,
+the selected entity kind in All files, and Items elsewhere. Explicit contextual shortcuts retain
+their existing kind and staging behavior.
+
 **Delete** lists “used by” file and field locations and blocks referenced entities. For an area or
 building this includes references to its owned discoveries or cycle steps, including incoming
 references from other parts of the same file for individual landmark removal. Unreferenced deletion
