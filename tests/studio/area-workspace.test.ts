@@ -1,7 +1,8 @@
+import { FormContext, type FieldProps, type FormContextValue } from "../../src/studio/form";
 import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
-import { createElement } from "react";
+import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it } from "vitest";
 import { StudioStore } from "../../src/studio/store";
@@ -29,7 +30,7 @@ function temporaryArea(store: StudioStore) {
 it("round-trips every fixture area unchanged through the workspace and existing widgets", () => {
   const store = setup(), before = structuredClone(store.files), documents = store.view.documents;
   for (const owner of documents.filter(d => d.kind === "regions")) {
-    const html = renderToStaticMarkup(createElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: owner.raw, path: "", lockId: true, documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
+    const html = renderToStaticMarkup(formElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: owner.raw, path: "", lockId: true, documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
     for (const label of ["Properties", "Map and unlock", "Text and exploration", "Linked activities", "Global activities offered here", "Map cell picker", "Existing activity"]) expect(html).toContain(label);
     expect(html).toContain('aria-label="id"'); expect(html).toContain("readOnly");
     store.edit(owner.path, owner.raw); expect(store.drafts.size).toBe(0);
@@ -83,7 +84,7 @@ it("blocks area deletion and landmark removal with exact incoming file/field ref
 it("renders forest cards, editable root notes and landmark hints without double-counting diagnostics", () => {
   const store = setup(), documents = store.view.documents, owner = documents.find(d => d.kind === "regions" && d.id === "forest")!;
   const value = { ...owner.raw as object, _arrive: "Return note", _explore: "Look note", _note: "General note", _raw: { keep: true } };
-  const render = (raw: unknown, path: string) => renderToStaticMarkup(createElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: raw, path: "", lockId: true, documents, owner, problems: [{ file: owner.path, path, message: "Test diagnostic" }], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
+  const render = (raw: unknown, path: string) => renderToStaticMarkup(formElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: raw, path: "", lockId: true, documents, owner, problems: [{ file: owner.path, path, message: "Test diagnostic" }], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
   const html = render(value, "explore.landmarks.0.hours");
   expect([...html.matchAll(/<strong>([^<]+)<\/strong>/g)].map(match => match[1])).toEqual(["Properties", "Map and unlock", "Text and exploration", "Landmarks", "Linked activities", "Used by"]);
   for (const label of ["Travel from camp", "0 = the camp", "Unlocked when", "On return", "Button", "Duration &amp; effort", "Offered when", "Discovery passage", "Journal line"]) expect(html).toContain(label);
@@ -118,7 +119,7 @@ it("renders forest cards, editable root notes and landmark hints without double-
 it("groups unset area fields into one trailing Optional line per card and preserves entry control names", () => {
   const store = setup(), documents = store.view.documents, owner = documents.find(d => d.kind === "regions" && d.id === "forest")!;
   const value = { id: "forest", name: "forest", title: "Forest", description: "Trees.", climate: { baseC: 18 }, travelHours: 1, activities: ["gather_wood"], _artwork: "Art note", _explore: "Explore note" };
-  const html = renderToStaticMarkup(createElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
+  const html = renderToStaticMarkup(formElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
   expect(html.match(/class="optional-fields"/g)).toHaveLength(3);
   for (const [title, next, keys] of [
     ["Properties", "Map and unlock", ["artwork", "siteCapabilities", "order", "shelterWhen"]],
@@ -140,3 +141,9 @@ it("groups unset area fields into one trailing Optional line per card and preser
   expect(html).toContain('class="entry-actions"><button type="button" aria-label="Move up activity gather_wood"');
   expect(html).toContain('aria-label="Unlink gather_wood">×</button>');
 });
+
+function formElement<P extends FieldProps>(component: ComponentType<P>, props: P & FormContextValue) {
+  const { documents, owner, problems, buffers, onError, requiredOnly, lockId, ...field } = props;
+  return createElement(FormContext.Provider, { value: { documents, owner, problems, buffers, onError, requiredOnly, lockId } },
+    createElement(component, field as unknown as P));
+}

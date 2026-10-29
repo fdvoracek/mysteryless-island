@@ -40,4 +40,14 @@ export default [
       { regex: "(^|/)core/(?!engine(?:[.]|$))", message: "Use the public engine API." },
     ] }] },
   },
+  {
+    files: ["src/studio/{form,cards,widgets,rules,text-widget,outcomes,area-workspace,event-editor}.tsx"],
+    rules: {
+      "no-restricted-syntax": ["error", staticOnly, ...importTypes([pure,
+        { regex: "(^|/)content/(?!index(?:[.]|$))", message: "Use the public content surface." },
+        { regex: "(^|/)core/(?!engine(?:[.]|$))", message: "Use the public engine API." },
+      ]), { selector: "JSXSpreadAttribute", message: "Pass Field props explicitly; per-field view must not be inherited." }],
+      "max-len": ["error", { code: 160, ignoreStrings: true, ignoreTemplateLiterals: true, ignoreUrls: true }],
+    },
+  },
 ];

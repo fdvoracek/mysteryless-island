@@ -40,13 +40,14 @@ None. G1 and G2 resolved as D7 and D8.
 
 | PR | Scope | Main files | Risk |
 |---|---|---|---|
-| UX-01 | Docs only: add this plan + mockup, link from STUDIO.md and mockups README | `docs/` | none |
+| UX-01 **[implemented]** | Docs only: add this plan + mockup, link from STUDIO.md and mockups README | `docs/` | none |
 | UX-02 **[implemented]** | Hint registry + inspector grid: `src/studio/hints.ts`; Field renders hinted label/help; label-left grid for scalars; related scalars in one row; unset optional fields become one always-visible chip line “Optional: + icon · + building …”. Hints for Activity, Item, ItemAction, Site, Artwork. | `form.tsx`, `hints.ts`, `studio.css`, tests | medium (form core) |
 | UX-03 **[implemented]** | Collapsible root sections with generic one-line summaries and per-schema localStorage preferences; editable root author notes. Applied to Activity and Item; Site/Artwork gain notes only. | `form.tsx`, `hints.ts`, `summary.ts`, `section-prefs.ts`, `studio.css`, tests | medium |
 | UX-03b **[implemented]** | Extend hints and sections to Region/Landmark (area workspace), Recipe, Building, Quest and GameEvent properties, including workspace comments. | `form.tsx`, `area-workspace.tsx`, `event-editor.tsx`, `hints.ts` | medium |
 | UX-04 **[implemented]** | Condition/effect rules as sentence rows with inline tokens and hover/focus actions; Text as compact serif variant rows with journal counters. | `form.tsx`, `widgets.tsx`, `describe.ts`, `studio.css`, tests | medium-high (tests) |
 | UX-04b **[implemented]** | Compact generic arrays and records: no index boxes, hover/focus row toolbar, “+ add entry” links; Unset on hover/focus; nested object compaction. | `form.tsx`, `studio.css`, tests | medium-high (tests) |
 | UX-05 **[implemented]** | **Outcomes table**: weight + % odds, first text + variant count, effect chips; row expands to full editor. | `widgets.tsx` | low-medium |
+| UX-05.1 **[implemented]** | Form API cleanup with document context, explicit per-field `view`, split form modules, no JSX spreads and a permanent markup hash guard; no visible change. | `form.tsx`, `cards.tsx`, `widgets.tsx`, `rules.tsx`, `text-widget.tsx`, `outcomes.tsx`, workspace/dialog call sites | medium (refactor) |
 | UX-06 | **Context rail + shell**: right rail (problems in this file, Linked from, Referenced by, Uses, Rename IDs); sticky doc header with ⋯ menu; header slimmed; status bar; **changes drawer** with per-file JSON diff and Discard (D8); global Diagnostics opens from the status chip. | `main.tsx` (split into `shell/`), `references.ts` (outgoing refs), `store.ts` (discard) | high — plan first |
 | UX-07 | **Navigation tree** (World / Areas ▸ parts / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |

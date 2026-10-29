@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatContent } from "../content";
 import type { Document } from "./documents";
 import { kindLabels } from "./documents";
-import { Field } from "./form";
+import { Field, FormContext } from "./form";
 import { entitySchemas, identityFields, initialValue } from "./schema";
 import { renamePlan } from "./rename";
 import { StudioStore } from "./store";
@@ -28,7 +28,10 @@ export function CreateDialog({ store, kind: initialKind, prefill, duplicate, are
     {tree && <p>Also stages its creation-tree node: branch <code>{tree.branch}</code>{tree.after.length ? <>, after <code>{tree.after.join(", ")}</code></> : ", no prerequisites"}.</p>}
     {prefill && !duplicate && <p>Pre-filled values are included below and can be edited or unset.</p>}
     {!!nested.length && <section aria-label="IDs requiring replacement"><h3>Replace every nested ID</h3><ul>{nested.map((field) => <li key={field.path}><code>{field.path}</code>: {field.value}</li>)}</ul></section>}
-    <Field schema={schema} value={raw} onChange={setRaw} path="" requiredOnly problems={problems} documents={store.view.documents} owner={owner} onError={(path, message) => setErrors((previous) => previous[path] === message ? previous : { ...previous, [path]: message })} />
+    <FormContext.Provider value={{ documents: store.view.documents, owner, problems, requiredOnly: true,
+      onError: (path, message) => setErrors(previous => previous[path] === message ? previous : { ...previous, [path]: message }) }}>
+      <Field schema={schema} value={raw} onChange={setRaw} path="" />
+    </FormContext.Provider>
     <p><code>content/{kind}/{owner.id || "<id>"}.json</code></p><pre aria-label="Create file preview">{formatContent(raw)}</pre>
     <div className="dialog-actions"><button onClick={close}>Cancel</button><button className="primary" disabled={problems.length > 0 || Object.values(errors).some(Boolean)} onClick={() => created(areaPath ? store.createInArea(areaPath, kind, raw) : tree ? store.createWithTreeNode(kind, raw, tree) : store.create(kind, raw, duplicate?.raw))}>Create draft</button></div>
   </Dialog>;
