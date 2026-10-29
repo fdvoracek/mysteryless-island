@@ -5,7 +5,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, formatContent } from "../../src/content";
+import { Activity, Artwork, Item, Site, Condition, Effect, Outcome, Text, Quest, Recipe, Building, formatContent } from "../../src/content";
 import { Field, fileContentsClass, rootSections } from "../../src/studio/form";
 import { boundedExpansion } from "../../src/studio/widgets";
 import { BUILDER_DEPTH, conditionPhrases, describe, effectPhrases, unionKinds } from "../../src/studio/describe";
@@ -508,4 +508,31 @@ it("bounds expansion indices to the current outcome array without mutating the i
   expect(boundedExpansion(expanded, 0)).toEqual([]);
   expect(boundedExpansion(expanded, 3)).toEqual([0, 2]);
   expect(expanded).toEqual([0, 2]);
+});
+
+
+it("renders recipe, building and task cards in table order with exported nested hints only", () => {
+  for (const [schema, id, titles, labels] of [
+    [Recipe, "craft_rock_knife", ["Basics", "Requirements", "Ways"], ["Makes", "Duration &amp; effort", "Cost", "Journal at start"]],
+    [Building, "fish_trap", ["Basics", "Building it", "Production"], ["Hover hint", "Max per place", "Production cycle"]],
+    [Quest, "build_fish_trap", ["Basics", "Start and finish", "Journal", "Rewards"], ["Starts", "Done when", "Start journal", "Done journal"]],
+  ] as const) {
+    const document = documents.find(d => d.id === id && schemaFor(d.path) === schema)!;
+    expect(document).toBeDefined();
+    // Set optional sections in this render-only copy so their table order is observable.
+    const raw = { ...document.raw as object, ...(schema === Recipe ? { requires: { item: "knife" } } : schema === Quest ? { effects: [{ give: { matches: 1 } }] } : {}) };
+    const html = render(schema, raw, "", document);
+    const headings = [...html.matchAll(/<strong>([^<]+)<\/strong>/g)].map(match => match[1]);
+    expect(headings).toEqual(titles);
+    for (const label of labels) expect(html).toContain(label);
+    if (schema === Building) {
+      const build = html.slice(html.indexOf('data-field="build"'), html.indexOf('<strong>Production</strong>'));
+      expect(build).toContain('>Log</label>');
+      expect(build).not.toContain('Journal at start');
+      const start = html.slice(html.indexOf('data-field="cycle.start"'), html.indexOf('data-field="cycle.collect"'));
+      expect(start).toContain('>Label</label>');
+      expect(start).toContain('aria-label="Duration &amp; effort"');
+      expect(start).toContain('Journal at start');
+    }
+  }
 });

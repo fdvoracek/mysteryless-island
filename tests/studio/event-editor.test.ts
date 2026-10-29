@@ -73,3 +73,15 @@ it("list views and laid-out graphs expose exactly the same nodes and edges; area
   expect(filtered.nodes.every(n => n.areas?.includes("forest") && ["discovery", "quest"].includes(n.kind))).toBe(true);
   expect(filtered.edges.every(e => filtered.nodes.some(n => n.id === e.source) && filtered.nodes.some(n => n.id === e.target))).toBe(true);
 });
+
+
+it("cards only event properties, applies hints and keeps scene controls and comments unchanged", () => {
+  const store = setup(), documents = store.view.documents, owner = documents.find(d => d.id === "shipwreck")!;
+  const value = { ...owner.raw as object, _title: "Title note", _note: "General note", _raw: { keep: true } };
+  const html = renderToStaticMarkup(createElement(EventEditor, { schema: schemaFor(owner.path)!, value, path: "", documents, owner, problems: [], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, rename: () => {} }));
+  expect(html.match(/class="form-section"/g)).toHaveLength(1);
+  for (const label of ["Event properties", ">Title</label>", ">Opens</label>", "+ Only when", "+ Repeat", 'aria-label="Selected scene or choice"', 'aria-label="Event scene graph"', 'aria-label="Event graph checks"', 'aria-label="scenes.start.text"']) expect(html).toContain(label);
+  expect(html.indexOf('aria-label="_title"')).toBeLessThan(html.indexOf('data-field="title"'));
+  expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('data-field="id"'));
+  expect(html).toContain('<summary>_raw</summary>');
+});

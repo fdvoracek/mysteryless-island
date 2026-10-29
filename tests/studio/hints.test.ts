@@ -1,10 +1,13 @@
 import { expect, it } from "vitest";
-import { Activity, Artwork, Item, ItemAction, Site } from "../../src/content";
+import { Activity, Artwork, Item, ItemAction, Site, Region, Landmark, Recipe, RecipeWay, Building, BuildingStep, Quest, GameEvent } from "../../src/content";
 import { hintFor, hints, humanize, staleHints, sections, sectionsFor } from "../../src/studio/hints";
 
 it("binds the shipped hints to exported schema objects and rejects stale shape keys", () => {
-  expect([...hints.keys()]).toEqual([Activity, ItemAction, Item, Site, Artwork]);
+  expect([...hints.keys()]).toEqual([Activity, ItemAction, Item, Site, Artwork, Region, Landmark, Recipe, RecipeWay, Building, BuildingStep, Quest, GameEvent]);
   expect(staleHints()).toEqual([]);
+  expect(staleHints(new Map([[Region, { missing: {} }]]))).toEqual(["Region.missing"]);
+  expect(hintFor(Building.shape.build, "log")).toBeUndefined();
+  expect(hintFor(GameEvent.omit({ scenes: true }), "trigger")).toBeUndefined();
   expect(staleHints(new Map([[Activity, { notAField: {} }]]))).toEqual(["Activity.notAField"]);
 });
 
@@ -20,7 +23,7 @@ it("humanizes fallback labels", () => {
 });
 
 it("binds sections by schema identity and detects unknown, duplicate and split-row keys", () => {
-  expect([...sections.keys()]).toEqual([Activity, Item]);
+  expect([...sections.keys()]).toEqual([Activity, Item, Recipe, Building, Quest]);
   expect(sectionsFor(Activity.optional())).toBe(sections.get(Activity));
   expect(sectionsFor(Activity.omit({ global: true }))).toBeUndefined();
   expect(staleHints(hints, new Map([[Activity, [{ title: "Bad", keys: ["notAField"] }]]]))).toEqual(["sections:Activity.notAField"]);

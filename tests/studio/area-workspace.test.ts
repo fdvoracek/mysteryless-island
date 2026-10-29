@@ -78,3 +78,37 @@ it("blocks area deletion and landmark removal with exact incoming file/field ref
   expect(deletionReferences(store.view.documents, area, "explore.landmarks.0")).toContainEqual(expect.objectContaining({ file: forest.path, path: "unlockWhen.discovered" }));
   expect(() => store.delete(path)).toThrow("referenced");
 });
+
+
+it("renders forest cards, editable root notes and landmark hints without double-counting diagnostics", () => {
+  const store = setup(), documents = store.view.documents, owner = documents.find(d => d.kind === "regions" && d.id === "forest")!;
+  const value = { ...owner.raw as object, _arrive: "Return note", _explore: "Look note", _note: "General note", _raw: { keep: true } };
+  const render = (raw: unknown, path: string) => renderToStaticMarkup(createElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: raw, path: "", lockId: true, documents, owner, problems: [{ file: owner.path, path, message: "Test diagnostic" }], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
+  const html = render(value, "explore.landmarks.0.hours");
+  expect([...html.matchAll(/<strong>([^<]+)<\/strong>/g)].map(match => match[1])).toEqual(["Properties", "Map and unlock", "Text and exploration", "Landmarks", "Linked activities", "Used by"]);
+  for (const label of ["Travel from camp", "0 = the camp", "Unlocked when", "On return", "Button", "Duration &amp; effort", "Offered when", "Discovery passage", "Journal line"]) expect(html).toContain(label);
+  expect(html).toContain('class="field-unit">h</span>');
+  for (const [note, field] of [["_map", "map"], ["_arrive", "arrive"], ["_explore", "explore.name"]]) expect(html.indexOf(`aria-label="${note}"`)).toBeLessThan(html.indexOf(`data-field="${field}"`));
+  expect(html.indexOf('aria-label="_note"')).toBeLessThan(html.indexOf('data-field="id"'));
+  expect(html).toContain('<summary>_raw</summary>');
+  expect(html).not.toContain('landmark-entry');
+  const forest = owner.raw as { explore: { landmarks: { id: string }[] } };
+  expect(html).toContain('<section class="area-workspace" aria-label="Area workspace">');
+  expect(html).toContain('<section aria-label="Used by Area forest">');
+  for (const landmark of forest.explore.landmarks) {
+    expect(html).toContain(`aria-label="Landmark ${landmark.id}"`);
+    expect(html).toContain(`<section aria-label="Used by Landmark ${landmark.id}">`);
+    expect(html).toContain(`Remove landmark ${landmark.id}`);
+    expect(html).toContain(`aria-label="Move up landmark ${landmark.id}"`);
+    expect(html).toContain(`aria-label="Move down landmark ${landmark.id}"`);
+  }
+  const textCard = html.split('<strong>Text and exploration</strong>')[1].split('<strong>Landmarks</strong>')[0];
+  const landmarkCard = html.split('<strong>Landmarks</strong>')[1].split('<strong>Linked activities</strong>')[0];
+  expect(textCard).not.toContain('form-section-problems');
+  expect(landmarkCard).toContain('form-section-problems">1 problem');
+  for (const path of ["explore.landmarks", "activities", "activities.0"]) expect(render(value, path).match(/form-section-problems/g)).toHaveLength(1);
+  const without = { ...value, explore: undefined };
+  const empty = render(without, "explore.name");
+  expect(empty).not.toContain('<strong>Landmarks</strong>');
+  expect(empty).toContain('aria-label="Add explore"');
+});

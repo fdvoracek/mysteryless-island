@@ -100,7 +100,7 @@ function RootSections({ schema, raw, groups, problems, documents, renderFields }
     </SectionCard>;
   });
 }
-function SectionCard({ name, title, preview, count, children }: { name?: string; title: string; preview: string; count: number; children: ReactNode }) {
+export function SectionCard({ name, title, preview, count, children }: { name?: string; title: string; preview: string; count: number; children: ReactNode }) {
   // This prop stays constant after mount: subsequent native/programmatic toggles belong to the DOM.
   const [initialOpen] = useState(() => !name || !readSections(name).includes(title));
   return <details className="form-section" open={initialOpen}>
@@ -113,7 +113,7 @@ function SectionCard({ name, title, preview, count, children }: { name?: string;
     <div className="form-section-body object-fields">{children}</div>
   </details>;
 }
-function AuthorNote({ name, value, change }: { name: string; value: string; change: (value: string) => void }) {
+export function AuthorNote({ name, value, change }: { name: string; value: string; change: (value: string) => void }) {
   const area = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     const element = area.current;
