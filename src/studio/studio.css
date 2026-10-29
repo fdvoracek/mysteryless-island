@@ -403,3 +403,57 @@ button.layout-failed { color: var(--studio-error); }
   .outcome-editor { margin-left: 0; }
 }
 @media (hover: none) { .outcome-actions { opacity: 1; } }
+
+/* UX-06a shell: page scrolling is retained until the column-layout work. */
+:root { --studio-status-height: 26px; --studio-ok-soft: #e5f0e8; --studio-warn-soft: #fbf0e2; }
+.studio-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.studio-body { flex: 1 0 auto; }
+.studio-header { min-height: 48px; padding: 0 12px; gap: 10px; flex-wrap: nowrap; }
+.studio-header .brand { font-size: 13px; white-space: nowrap; font-weight: 600; }
+.studio-header .search { flex: 0 1 420px; margin-left: 16px; }
+.studio-header .search input { padding: 4px 8px; font-size: 13px; background: var(--studio-ground); }
+.header-actions { flex-wrap: nowrap; gap: 8px; }
+.header-actions > button { padding: 4px 10px; font-size: 13px; white-space: nowrap; }
+.header-actions > .validation { border: 0; border-radius: 999px; font-size: 12px; padding: 3px 9px; }
+.validation.ok { background: var(--studio-ok-soft); }
+.document-panel { padding-bottom: calc(28px + var(--studio-status-height)); }
+.document-heading { position: sticky; top: 0; z-index: 5; background: var(--studio-ground); border-bottom: 1px solid var(--studio-border); padding: 12px 0 10px; margin-bottom: 14px; align-items: flex-end; }
+.document-identity { min-width: 0; flex: 1; }
+.document-heading h2 { font-size: 20px; font-weight: 600; margin: 2px 0 4px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+.document-heading .link { padding: 0; border: 0; background: transparent; color: var(--studio-accent); font-size: 12px; }
+.unsaved-badge { font-size: 11px; font-weight: 500; border: 1px solid #ead3b5; border-radius: 4px; padding: 0 5px; background: var(--studio-warn-soft); color: var(--studio-warning); }
+.document-actions { display: flex; gap: 10px; align-items: center; flex: none; }
+.document-actions button { padding: 4px 10px; font-size: 13px; }
+.mode-switch { display: inline-flex; border: 1px solid var(--studio-input-border); border-radius: 6px; overflow: hidden; }
+.mode-switch button { border: 0; border-radius: 0; }
+.mode-switch button[aria-pressed="true"] { background: var(--studio-ink); color: white; }
+.mode-switch button:focus-visible { outline-offset: -2px; }
+.more-menu { position: relative; }
+.more-menu-list { position: absolute; right: 0; top: 100%; min-width: 130px; margin: 4px 0 0; padding: 4px; list-style: none; background: var(--studio-panel); border: 1px solid var(--studio-border); border-radius: 6px; box-shadow: 0 3px 8px #16191d18; }
+.more-menu-list button { width: 100%; border: 0; }
+.studio-status-bar { position: sticky; bottom: 0; z-index: 6; height: var(--studio-status-height); flex: none; display: flex; align-items: center; gap: 16px; padding: 0 12px; border-top: 1px solid var(--studio-border); background: var(--studio-panel); color: var(--studio-muted); font-size: 11.5px; }
+.status-left, .status-right { display: flex; gap: 16px; align-items: center; min-width: 0; }
+.status-left { flex: none; }
+.status-right { margin-left: auto; }
+.status-right > button { font-size: inherit; padding: 1px 6px; white-space: nowrap; }
+.status-right > a, .shortcut-hints { white-space: nowrap; }
+.store-status { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.shortcut-hints { color: var(--studio-faint); }
+.diagnostics:focus-visible { outline: 2px solid var(--studio-accent); outline-offset: 3px; }
+@media (min-width: 761px) and (max-width: 1100px) {
+  .studio-header { flex-wrap: wrap; padding-block: 8px; }
+}
+@media (max-width: 760px) {
+  .studio-body > .studio-columns { flex: none; }
+  .studio-header { flex-wrap: wrap; padding: 10px 16px; gap: 10px; }
+  .studio-header .search { flex: 1 1 100%; margin: 0; max-width: none; }
+  .header-actions { flex-wrap: wrap; margin-left: 0; gap: 8px; }
+  .document-heading { position: static; flex-wrap: wrap; }
+  .document-identity { flex-basis: 100%; }
+  .studio-status-bar { position: static; height: auto; min-height: var(--studio-status-height); flex-wrap: wrap; padding: 6px 16px; gap: 6px; }
+  .status-left, .status-right { flex-wrap: wrap; gap: 6px 12px; }
+  .status-right { margin-left: 0; }
+  .store-status { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+  .shortcut-hints { display: none; }
+  .document-panel { padding-bottom: 16px; }
+}

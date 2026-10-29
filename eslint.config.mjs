@@ -41,7 +41,8 @@ export default [
     ] }] },
   },
   {
-    files: ["src/studio/{form,cards,widgets,rules,text-widget,outcomes,area-workspace,event-editor}.tsx"],
+    files: ["src/studio/{form,cards,widgets,rules,text-widget,outcomes,area-workspace,event-editor}.tsx",
+      "src/studio/main.tsx", "src/studio/shell/*.tsx"],
     rules: {
       "no-restricted-syntax": ["error", staticOnly, ...importTypes([pure,
         { regex: "(^|/)content/(?!index(?:[.]|$))", message: "Use the public content surface." },

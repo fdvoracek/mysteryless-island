@@ -48,7 +48,9 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-04b **[implemented]** | Compact generic arrays and records: no index boxes, hover/focus row toolbar, “+ add entry” links; Unset on hover/focus; nested object compaction. | `form.tsx`, `studio.css`, tests | medium-high (tests) |
 | UX-05 **[implemented]** | **Outcomes table**: weight + % odds, first text + variant count, effect chips; row expands to full editor. | `widgets.tsx` | low-medium |
 | UX-05.1 **[implemented]** | Form API cleanup with document context, explicit per-field `view`, split form modules, no JSX spreads and a permanent markup hash guard; no visible change. | `form.tsx`, `cards.tsx`, `widgets.tsx`, `rules.tsx`, `text-widget.tsx`, `outcomes.tsx`, workspace/dialog call sites | medium (refactor) |
-| UX-06 | **Context rail + shell**: right rail (problems in this file, Linked from, Referenced by, Uses, Rename IDs); sticky doc header with ⋯ menu; header slimmed; status bar; **changes drawer** with per-file JSON diff and Discard (D8); global Diagnostics opens from the status chip. | `main.tsx` (split into `shell/`), `references.ts` (outgoing refs), `store.ts` (discard) | high — plan first |
+| UX-06a **[implemented]** | **Shell header, status bar and document header**: slim top bar, sticky document header with Form/JSON and Duplicate/Delete disclosure, status bar; presentation split into `shell/` under UX-05.1 lint rules. | `main.tsx`, `shell/`, `studio.css` | medium |
+| UX-06b | **Context rail**: problems in this file, Linked from, Referenced by, Uses, Rename IDs. | `main.tsx`/`shell/`, `references.ts` | medium |
+| UX-06c | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8); diagnostics drawer from the status chip. | `shell/`, `store.ts` | high — plan first |
 | UX-07 | **Navigation tree** (World / Areas ▸ parts / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
 | UX-09 | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
@@ -80,18 +82,28 @@ letter-spacing .06–.08em); document title 20 px/600; list title 15 px/600. Gam
 modal, outcome text) always serif 14 px. IDs and paths always mono 11–12 px.
 Radii: inputs 5 px, buttons 6 px, cards 8 px, chips 999 px.
 
-### 5.2 Shell (UX-06, UX-07)
-- Rows: top bar 48 px · content · status bar 26 px. Page itself never scrolls; each column scrolls.
+### 5.2 Shell (UX-06a..UX-06c, UX-07)
+- Rows: top bar 48 px · content · status bar 26 px. UX-06a retains page scrolling; fixed-height
+  columns are deferred. At desktop widths the status bar is sticky at the bottom, with an extra
+  26 px of document bottom padding to keep the last content clear of it. At ≤760 px both bars
+  may wrap, the document header and status bar are static, and shortcut hints are hidden.
+  Owner-approved UX-06a phone behavior takes precedence over the later shell target below.
 - Columns: sidebar 220 px · list 300 px · editor flexible · context rail 280 px.
   ≤1100 px: rail hidden (its content reachable from the ⋯ menu), sidebar 200, list 260.
   ≤760 px: single column (editor), sidebar and list behind a toggle; 16 px gutters; no horizontal
   scroll down to 390 px. Top bar keeps validation chip, “n unsaved”, Save all and ⋯ (brand, ⌘K
   trigger, Undo/Redo and Preview move into ⋯); status bar drops the shortcut hints; rule lines and
   inline rows wrap; outcome table uses fixed layout with wrapping text.
-- Top bar, left to right: brand · ⌘K trigger (max 420 px, looks like a search field, shows `⌘K`) ·
-  spacer · validation chip · unsaved-changes button (warn outline, hidden when 0) · Undo/Redo icon
-  buttons · **Save all** (primary) · Preview · ⋯ (Refresh from disk, Open game ↗). Nothing else.
-- Status bar: problems count · unsaved count · layout save state · right-aligned shortcut hints.
+- UX-06a top bar, left to right: brand · existing Search content searchbox (max 420 px) · spacer ·
+  validation chip · Undo/Redo icon buttons · **Save all** (primary) · **Create** · Preview.
+  **Create stays visible until UX-07** adds “+ New … here” in the list. Search stays until UX-08.
+  The validation button retains its inner status role and scrolls to/focuses existing Diagnostics;
+  the diagnostics drawer follows in UX-06c. Unsaved count lives in the status bar for UX-06a;
+  the changes drawer follows in UX-06c.
+- UX-06a status bar: problems count · “N unsaved files” (including zero) · right-aligned store
+  status, **Refresh from disk**, **Open game ↗**, and “⌘S save · ⌘Z undo” hints.
+  Story layout status and its retry button remain in the story toolbar: they are rendered inside
+  StoryView rather than supplied as a simple prop.
 
 ### 5.3 Sidebar (UX-07)
 Four groups with uppercase micro headings: **World** (Map, Story, Creation trees), **Areas** (each
