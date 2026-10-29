@@ -2,6 +2,11 @@ import { GAME_FLAGS } from "./game-flags";
 import { reservedReason } from "./reserved";
 import type { Document } from "./documents";
 import { identityFields, refKind, schemaFor, visitValue } from "./schema";
+/** Document collection names and the reference kinds used by their root definitions. */
+export const DOCUMENT_REFERENCE_KINDS: Readonly<Record<string, string>> = {
+  items: "item", activities: "activity", regions: "region", quests: "quest", buildings: "building",
+  recipes: "recipe", sites: "site", artwork: "artwork",
+};
 export interface Reference { file: string; path: string; kind: string; id: string; key?: boolean }
 export function getAt(raw: unknown, path: string): unknown {
   return path ? path.split(".").reduce<unknown>((value, key) => value && typeof value === "object" ? (value as Record<string, unknown>)[key] : undefined, raw) : raw;
@@ -52,7 +57,7 @@ export function referenceOptions(kind: string, documents: Document[], owner: Doc
       }
       values = [...actionIds(), ...tags, ...(kind === "action" ? ["explore", "travel"] : [])]; break;
     }
-    default: values = ids(({ item: "items", activity: "activities", region: "regions", quest: "quests", building: "buildings", recipe: "recipes", site: "sites", artwork: "artwork" } as Record<string, string>)[kind] ?? kind);
+    default: values = ids(Object.keys(DOCUMENT_REFERENCE_KINDS).find(key => DOCUMENT_REFERENCE_KINDS[key] === kind) ?? kind);
   }
   return [...new Set(values)].sort();
 }
@@ -73,7 +78,6 @@ export function references(documents: Document[]): Reference[] {
   return result;
 }
 export interface Identity { file: string; path: string; id: string; kind: string; key?: boolean; reserved?: string }
-const direct: Record<string, string> = { items: "item", activities: "activity", regions: "region", quests: "quest", buildings: "building", recipes: "recipe", sites: "site", artwork: "artwork" };
 /** Definitions, distinct from reference positions. Record-key identities retain their owner. */
 const identityIndexes = new WeakMap<Document[], Identity[]>();
 export function identities(documents: Document[]): Identity[] {
@@ -87,7 +91,7 @@ export function identities(documents: Document[]): Identity[] {
       if (typeof value !== "string") return;
       let kind: string | undefined;
       if (!key && path.split(".").at(-1) === "id") {
-        kind = path === "id" ? direct[document.kind] ?? "tree" :
+        kind = path === "id" ? DOCUMENT_REFERENCE_KINDS[document.kind] ?? "tree" :
           /^explore\.landmarks\.\d+\.id$/.test(path) ? "discovery" :
           /^cycle\.(start|collect)\.id$/.test(path) ? "step" :
           /^actions\.\d+\.id$/.test(path) ? "itemAction" :
@@ -141,12 +145,11 @@ export function referenceLabel(kind: string, id: string, documents: Document[]):
   let index = labelIndexes.get(documents);
   if (!index) {
     index = new Map();
-    const direct: Record<string, string> = { items: "item", activities: "activity", regions: "region", quests: "quest", buildings: "building", recipes: "recipe", sites: "site", artwork: "artwork" };
     const add = (kind: string, id: unknown, label: unknown) => {
       if (typeof id === "string" && typeof label === "string" && id !== label) index!.set(`${kind}:${id}`, `${id} — ${label}`);
     };
     for (const document of documents) {
-      add(direct[document.kind], document.id, document.label);
+      add(DOCUMENT_REFERENCE_KINDS[document.kind], document.id, document.label);
       const schema = schemaFor(document.path);
       if (schema) for (const field of identityFields(schema, document.raw)) {
         const parent = getAt(document.raw, field.path.split(".").slice(0, -1).join(".")) as Record<string, unknown> | undefined;
@@ -174,7 +177,8 @@ export function flagUsedBy(documents: Document[], id: string): Reference[] {
 export interface LinkedFrom extends Reference { label: string }
 export interface ReferenceGroup { name?: string; references: Reference[] }
 export interface DocumentUse { kind: string; id: string; paths: string[]; identity?: Identity }
-export interface DocumentContext { linkedFrom: LinkedFrom[]; referencedBy: ReferenceGroup[]; uses: DocumentUse[] }
+export interface SettingsUseGroup { kind: string; uses: DocumentUse[] }
+export interface DocumentContext { linkedFrom: LinkedFrom[]; referencedBy: ReferenceGroup[]; uses: DocumentUse[]; settingsUses: SettingsUseGroup[] }
 
 /** Per-document context; retains source positions and owner-scoped nested definitions. */
 export function documentContext(documents: Document[], document: Document): DocumentContext {
@@ -202,5 +206,16 @@ export function documentContext(documents: Document[], document: Document): Docu
     if (existing) existing.paths.push(ref.path);
     else uses.push({ kind, id: ref.id, paths: [ref.path], ...(identity ? { identity } : {}) });
   }
-  return { linkedFrom, referencedBy, uses };
+  const contentUses: DocumentUse[] = [];
+  const settingsUses: SettingsUseGroup[] = [];
+  for (const use of uses) {
+    if (!use.identity || !["content/game.json", "content/stats.json", "content/climate.json"].includes(use.identity.file)) {
+      contentUses.push(use);
+      continue;
+    }
+    const group = settingsUses.find(group => group.kind === use.kind);
+    if (group) group.uses.push(use);
+    else settingsUses.push({ kind: use.kind, uses: [use] });
+  }
+  return { linkedFrom, referencedBy, uses: contentUses, settingsUses };
 }

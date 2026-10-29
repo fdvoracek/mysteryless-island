@@ -19,6 +19,9 @@ test("context links open Uses definitions and incoming source fields", async ({ 
   await expect(page.getByRole("textbox", { name: "id", exact: true })).toBeFocused();
   await openFish(page);
   const incoming = rail(page).getByRole("button").filter({ hasText: "content/activities/sleep.json ›" }).first();
+  await expect(incoming).toHaveAccessibleName(/^sleep content\/activities\/sleep.json › /);
+  await expect(rail(page).getByRole("button").filter({ hasText: /beach · activity/ }))
+    .toHaveAccessibleName(/the beach · activity \d+ of \d+ content\/regions\/beach.json › activities\.\d+/);
   const sourcePath = (await incoming.locator("code").innerText()).split(" › ")[1];
   await incoming.click();
   await expect(page.locator(".document-heading")).toContainText("content/activities/sleep.json");
@@ -103,4 +106,20 @@ test("area reference groups move intact to the rail with explicit empty states; 
     await page.getByRole("navigation").getByRole("button", { name, exact: true }).click();
     await expect(rail(page)).toHaveCount(0);
   }
+});
+
+
+test("settings Uses follow content cards in one compact line and open the definition", async ({ page }) => {
+  await openFish(page);
+  const uses = rail(page).locator("section").filter({ has: page.getByRole("heading", { name: "Uses", exact: true }) });
+  const cards = uses.locator(".context-reference");
+  await expect(cards).toHaveCount(3);
+  for (const [index, id] of ["school_of_fish", "fishing_spear", "raw_fish"].entries()) await expect(cards.nth(index)).toContainText(id);
+  await expect(uses.locator(".context-settings")).toHaveCount(1);
+  await expect(uses.locator(".context-settings")).toHaveText("phase: dawn · day · dusk");
+  expect(await uses.evaluate(element => [...element.children].map(child => child.className)))
+    .toEqual(["", "context-reference", "context-reference", "context-reference", "context-settings"]);
+  await rail(page).getByRole("button", { name: "day · phase", exact: true }).click();
+  await expect(page.locator(".document-heading")).toContainText("content/climate.json");
+  await expect(page.getByRole("region", { name: "File contents" })).toContainText("Field: phases.2.id");
 });

@@ -430,10 +430,13 @@ buttons with 10.5 px mono paths. Differences from the static mockup:
   columns remain deferred. Navigation/list widths and controls retain the existing UX-06a shell.
 - Below 1100 px the rail stacks after the editor and before Diagnostics, keeping every control
   reachable. Opening Preview stacks it at every width; at 1440 px the editor measures 680 px
-  (minimum required: 480 px). Preview’s existing panel remains the playtesting entry point;
+  (minimum required: 480 px). At ≥1100 px with Preview open, nav/list columns narrow to
+  170 / 210 px to preserve editor width.
+  Preview’s existing panel remains the playtesting entry point;
   there is no Try it section.
-- Uses shows every schema reference, including climate phases; paths are complete and wrap
-  instead of truncating. Repeated targets share one entry with all source paths. Unresolved
+- Uses keeps content targets as cards with complete wrapping paths; references resolved into
+  game/stats/climate settings appear afterward as one compact line per kind (e.g. phase: dawn · day · dusk).
+  Repeated content targets share one entry with all source paths. Unresolved
   targets are visible text marked “(unresolved)”. Labels use the existing reference resolver.
 - IDs preserves every rename control and reserved reason. The root ID is also available from
   More actions, between Duplicate and Delete. Forms/widgets retain their existing markup.

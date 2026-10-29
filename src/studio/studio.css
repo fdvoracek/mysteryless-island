@@ -482,3 +482,6 @@ button.layout-failed { color: var(--studio-error); }
 }
 /* Leave a pixel below the static footer so fractional page heights cannot clip it. */
 @media (max-width: 760px) { .studio-shell { padding-bottom: 1px; } }
+.context-settings { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 4px; font-size: 11px; margin-top: 6px; }
+.context-settings button { border: 0; border-radius: 3px; padding: 1px 0; background: transparent; color: var(--studio-accent); font-size: 11px; }
+.context-settings button:hover { text-decoration: underline; }
