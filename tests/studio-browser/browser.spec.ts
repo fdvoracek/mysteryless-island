@@ -133,7 +133,7 @@ test("creates linked drafts, saves the whole pack, blocks used deletion, and wir
     await dialog.getByRole("textbox", { name: "id", exact: true }).fill("Bad ID");
     await expect(dialog.getByRole("button", { name: "Create draft" })).toBeDisabled();
     await dialog.getByRole("textbox", { name: "id", exact: true }).fill("knife");
-    await expect(dialog.locator('[data-field="id"]')).toContainText("already used by items knife");
+    await expect(dialog.locator('[data-field="id"]')).toContainText(/already used by item knife/i);
     await dialog.getByRole("textbox", { name: "id", exact: true }).fill("browser_material");
     await dialog.getByRole("textbox", { name: "name", exact: true }).fill("browser material");
     await dialog.getByRole("combobox", { name: "category", exact: true }).selectOption("material");

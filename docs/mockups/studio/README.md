@@ -532,7 +532,7 @@ the UX-09 brief, with §5.5 field labels/help, §5.8 keyboard/focus behavior and
 Differences from the static area mockup:
 
 - The mockup's pre-emptive red errors become errors only after the user changes or leaves a field.
-  A muted “Still needed” line sits below Create draft. The form keeps its current layout and
+  A muted “Still needed” line sits below Create draft; it follows rendered field order and names nested fields with parent › child labels, omitting numeric and all/any/not segments. The form keeps its current layout and
   optional prefilled fields; required fields vary with the actual schema. The area's temperature
   and walk time fields remain nested/shared schema fields, without new mockup-only controls.
 - ID follows Name, Title or Label until manually edited; the faint hint appears below ID once a

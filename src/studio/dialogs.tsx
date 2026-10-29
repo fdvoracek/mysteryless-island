@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { z } from "zod";
-import { friendlyProblems, fieldSchema } from "./issues";
+import { friendlyProblems, fieldSchema, neededLabel } from "./issues";
 import { suggestId, takenIds } from "./id-suggest";
 import { hintFor, humanize } from "./hints";
 import { getAt } from "./references";
 import { formatContent } from "../content";
 import type { Document } from "./documents";
-import { kindLabels } from "./documents";
+import { kindLabels, kindSingulars } from "./documents";
 import { Field, FormContext } from "./form";
-import { entitySchemas, identityFields, initialValue, schemaFor, stripComments, unwrap, visitValue } from "./schema";
+import { entitySchemas, identityFields, initialValue, schemaFor, stripComments, unwrap } from "./schema";
 import { renamePlan } from "./rename";
 import { StudioStore } from "./store";
 export function Dialog({ title, children, close }: { title: string; children: ReactNode; close: () => void }) {
@@ -29,6 +29,7 @@ export function CreateDialog({ store, kind: initialKind, prefill, duplicate, are
   const followingRef = useRef(following);
   const [suggested, setSuggested] = useState(false);
   const fields = useRef<HTMLDivElement>(null);
+  const [fieldOrder, setFieldOrder] = useState<string[]>([]);
   const [idHost, setIdHost] = useState<Element | null>(null);
   const schema = entitySchemas[kind];
   const shape = unwrap(schema);
@@ -36,6 +37,11 @@ export function CreateDialog({ store, kind: initialKind, prefill, duplicate, are
     ? ["name", "title", "label"].find(key => key in shape.shape) : undefined;
   const nameLabel = nameField && (hintFor(schema, nameField)?.label ?? humanize(nameField));
   useEffect(() => { setIdHost(fields.current?.querySelector('[data-field="id"]') ?? null); }, [kind]);
+  useEffect(() => {
+    const paths = [...new Set(Array.from(fields.current?.querySelectorAll<HTMLElement>("[data-field]") ?? [])
+      .map(field => field.dataset.field!).filter(Boolean))];
+    setFieldOrder(previous => previous.length === paths.length && previous.every((path, index) => path === paths[index]) ? previous : paths);
+  });
   const touch = (target: EventTarget, changed: boolean) => {
     if (!(target instanceof HTMLElement)) return;
     const path = target.closest<HTMLElement>("[data-field]")?.dataset.field;
@@ -63,19 +69,27 @@ export function CreateDialog({ store, kind: initialKind, prefill, duplicate, are
         .map(field => ({ document, root: field.path === "id" })) : [];
     });
     const usedBy = (owners.find(owner => owner.root) ?? owners[0])?.document;
-    return usedBy ? { ...problem, message: `Use lowercase letters, digits and _ — already used by ${kindLabels[usedBy.kind]?.toLowerCase() ?? usedBy.kind} ${usedBy.label}.` } : problem;
+    return usedBy ? { ...problem, message: `Already used by ${kindSingulars[usedBy.kind] ?? usedBy.kind} ${usedBy.label} — choose a new ID.` } : problem;
   });
   const visible = readable.filter(problem => [...touched].some(path => problem.path === path || problem.path.startsWith(`${path}.`)));
   const blocked = problems.length > 0 || Object.values(errors).some(Boolean);
-  const labelFor = (path: string) => {
-    const parts = path.split("."), key = parts.pop()!;
-    const parent = fieldSchema(schema, parts.join("."));
-    return parent && hintFor(parent, key)?.label || humanize(key);
-  };
-  const fieldOrder: string[] = [];
-  visitValue(schema, raw, ({ path }) => { if (path && !fieldOrder.includes(path)) fieldOrder.push(path); });
+  const schemaOrder = (path: string) => path.split(".").map((key, index, parts) => {
+    const parent = fieldSchema(schema, parts.slice(0, index).join("."));
+    const node = parent && unwrap(parent);
+    const order = node instanceof z.ZodObject ? Object.keys(node.shape).indexOf(key) : /^\d+$/.test(key) ? Number(key) : -1;
+    return order < 0 ? Infinity : order;
+  });
   const missing = [...new Set([...problems.map(problem => problem.path), ...Object.keys(errors).filter(path => errors[path])])]
-    .sort((a, b) => fieldOrder.indexOf(a) - fieldOrder.indexOf(b)).map(labelFor);
+    .sort((a, b) => {
+      const ai = fieldOrder.indexOf(a), bi = fieldOrder.indexOf(b);
+      if (ai >= 0 || bi >= 0) return (ai < 0 ? Infinity : ai) - (bi < 0 ? Infinity : bi);
+      const left = schemaOrder(a), right = schemaOrder(b);
+      for (let index = 0; index < Math.max(left.length, right.length); index++) {
+        const difference = (left[index] ?? -1) - (right[index] ?? -1);
+        if (difference) return difference;
+      }
+      return 0;
+    }).map(path => neededLabel(schema, path));
   const owner = { path: `content/${kind}/draft.json`, kind, raw, id: (raw as { id?: string })?.id ?? "", label: "Draft", formatted: "", hash: "", content: "", encoding: "utf8" } as Document;
   const nested = duplicate ? identityFields(schema, duplicate.raw).filter((field) => field.path !== "id") : [];
   return <Dialog title={duplicate ? "Duplicate entity" : "Create entity"} close={close}>

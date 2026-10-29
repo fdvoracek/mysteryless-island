@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ContentProblem } from "../content";
+import { hintFor, humanize } from "./hints";
 import { branches, unwrap, type Schema } from "./schema";
 
 /** Resolve presentation metadata without changing the store's raw diagnostics. */
@@ -12,6 +13,17 @@ export function fieldSchema(schema: Schema, path: string): Schema | undefined {
   const child = node instanceof z.ZodObject ? node.shape[key] as Schema | undefined
     : node instanceof z.ZodArray ? node.element : node instanceof z.ZodRecord ? node.valueSchema : undefined;
   return child && fieldSchema(child, rest.join("."));
+}
+/** Use meaningful field labels, retaining the nearest parent for nested problems. */
+export function neededLabel(schema: Schema, path: string): string {
+  const parts = path.split(".");
+  const meaningful = parts.map((key, index) => ({ key, index }))
+    .filter(({ key }) => !/^\d+$/.test(key) && !["all", "any", "not"].includes(key)).slice(-2);
+  return meaningful.map(({ key, index }, position) => {
+    const parent = fieldSchema(schema, parts.slice(0, index).join("."));
+    const hint = position === meaningful.length - 1 && parent ? hintFor(parent, key)?.label : undefined;
+    return hint ?? humanize(key);
+  }).join(" › ");
 }
 export type CreateProblem = ContentProblem & { issue?: z.ZodIssue };
 export function friendlyProblems(problems: CreateProblem[], schema: Schema): ContentProblem[] {

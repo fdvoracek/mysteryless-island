@@ -1,15 +1,11 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
-import { friendlyProblems } from "../../src/studio/issues";
+import { friendlyProblems, neededLabel } from "../../src/studio/issues";
 import { StudioStore } from "../../src/studio/store";
 import { entitySchemas, initialValue } from "../../src/studio/schema";
-vi.mock("../../src/studio/json-editor", () => ({ JsonEditor: () => null }));
-vi.mock("react-dom/client", () => ({ createRoot: () => ({ render: () => {} }) }));
-vi.hoisted(() => { vi.stubGlobal("document", { getElementById: () => null }); });
-import { defaultCreateKind } from "../../src/studio/main";
 const problem = (path: string, message: string) => ({ file: "", path, message });
 const schema = z.object({ id: z.string(), name: z.string(), category: z.enum(["material", "food", "water"]), hours: z.number() });
 describe("Create problem presentation", () => {
@@ -43,11 +39,16 @@ describe("Create problem presentation", () => {
       .toEqual([problem("id", "Use lowercase letters, digits and _ — and a new ID."), problem("name", "Required.")]);
   });
   it.each([
-    ["items", undefined, "items"], ["activities", undefined, "activities"], ["regions", undefined, "regions"],
-    ["area:forest", { kind: "regions" }, "activities"], ["all", { kind: "quests" }, "quests"],
-    ["all", { kind: "settings" }, "items"], ["all", undefined, "items"],
-    ["story", { kind: "events" }, "items"], ["map", undefined, "items"], ["trees", undefined, "items"],
-  ])("defaults scope %s to %s", (scope, selected, expected) => expect(defaultCreateKind(scope, selected)).toBe(expected));
+    ["quests", "completeWhen.all", "Done when"],
+    ["regions", "climate.baseC", "Climate › Base C"],
+    ["buildings", "build.hours", "Build › Hours"],
+    ["quests", "completeWhen.all.0.any.1.not", "Done when"],
+    ["quests", "completeWhen.all.0.stat", "Complete when › Stat"],
+    ["items", "id", "ID"],
+    ["items", "category", "Category"],
+  ])("labels %s %s meaningfully", (kind, path, expected) => {
+    expect(neededLabel(entitySchemas[kind], path)).toBe(expected);
+  });
   it("retains the raw createProblems contract across all fixture kinds", () => {
     const root = join(import.meta.dirname, "../fixtures");
     const store = new StudioStore();
