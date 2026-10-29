@@ -42,7 +42,7 @@ p { line-height: 1.6; }
 [aria-current="page"], button[aria-pressed="true"] { background: var(--studio-accent-soft); color: var(--studio-accent); }
 .studio-nav button[aria-current="page"] { font-weight: 500; background: var(--studio-accent-soft); color: var(--studio-accent); }
 .entity-list { padding: 0; }
-.list-heading { position: sticky; top: 48px; z-index: 2; padding: 12px; background: var(--studio-panel); border-bottom: 1px solid #eef0f2; }
+.list-heading { position: sticky; top: 0; z-index: 2; padding: 12px; background: var(--studio-panel); border-bottom: 1px solid #eef0f2; }
 .list-heading h1 { font-size: 15px; font-weight: 600; }
 .list-heading p, .document-heading p, .json-heading span, .empty { font-size: 12px; color: var(--studio-muted); }
 .entity-list .entity-row { width: 100%; display: flex; flex-direction: column; gap: 3px; border: 0; border-bottom: 1px solid #eef0f2; border-radius: 0; padding: 8px 12px; }

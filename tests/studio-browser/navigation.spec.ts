@@ -60,7 +60,18 @@ test("sidebar buttons work by keyboard and the 390px list distinguishes light fi
   const fire = list(page).locator(".entity-row").filter({ has: page.locator("strong", { hasText: /^light fire$/ }) });
   await expect(fire).toHaveCount(3);
   expect(new Set(await fire.locator(".entity-row-meta").allTextContents()).size).toBe(3);
+  for (const meta of await fire.locator(".entity-row-meta").all()) await expect(meta).not.toContainText("campfire");
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
   await expect(list(page).getByRole("button", { name: "+ New activity in the beach", exact: true })).toBeVisible();
+});
+
+test("beach activity rows follow player order and the list heading sticks to the viewport edge", async ({ page }) => {
+  await page.goto("/studio/");
+  await nav(page).getByRole("button", { name: "the beach", exact: true }).click();
+  await expect(list(page).locator(".entity-row code")).toHaveText([
+    "beach", "light_fire", "strike_fire", "make_fire", "stoke_fire", "collect_shells", "collect_stones", "catch_fish", "sleep",
+  ]);
+  await page.evaluate(() => window.scrollTo(0, 300));
+  await expect.poll(async () => (await list(page).locator(".list-heading").boundingBox())?.y).toBe(0);
 });

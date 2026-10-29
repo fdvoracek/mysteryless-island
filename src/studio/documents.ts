@@ -62,8 +62,12 @@ export function readDocuments(all: FileDocument[], validate = true): { documents
 }
 export function areaDocuments(documents: Document[], area: Document): Document[] {
   const links = (area.raw as { activities?: unknown })?.activities;
-  return [area, ...documents.filter((document) => document.kind === "activities"
-    && ((Array.isArray(links) && links.includes(document.id)) || (document.raw as { global?: boolean })?.global))];
+  const activities = documents.filter(document => document.kind === "activities");
+  const linkedIds = new Set(Array.isArray(links) ? links : []);
+  const linked = [...linkedIds].flatMap(id => activities.filter(document => document.id === id));
+  const globals = activities.filter(document => !linkedIds.has(document.id) && (document.raw as { global?: boolean })?.global)
+    .sort((a, b) => a.label.localeCompare(b.label) || a.id.localeCompare(b.id));
+  return [area, ...linked, ...globals];
 }
 /** Diagnostics in `current` beyond those already in `baseline` (multiset match on file, path and message). */
 export function introducedProblems(baseline: ContentProblem[], current: ContentProblem[]): ContentProblem[] {
