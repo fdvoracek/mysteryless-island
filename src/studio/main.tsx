@@ -11,13 +11,14 @@ import { CreateDialog, Dialog, RenameDialog } from "./dialogs";
 import { StoryView } from "./story-view";
 import { EventEditor } from "./event-editor";
 import { AreaWorkspace } from "./area-workspace";
-import { identities, deletionReferences, referenceOptions, whereUsed, type Identity } from "./references";
+import { identities, deletionReferences, referenceOptions, documentContext, type Identity } from "./references";
 import { TreeEditor } from "./tree-editor";
 import { MapEditor } from "./map-editor";
 import { blockerLabel, deletionBlockers } from "./tree";
 import { PreviewPanel } from "./preview-panel";
 import { TopBar } from "./shell/TopBar";
 import { StatusBar } from "./shell/StatusBar";
+import { ContextRail } from "./shell/ContextRail";
 import { DocumentHeader } from "./shell/DocumentHeader";
 import "./studio.css";
 
@@ -104,6 +105,14 @@ function Studio() {
     `${document.path} ${document.id} ${document.label} ${document.encoding === "utf8" ? document.content : ""}`
       .toLowerCase().includes(query.toLowerCase()));
   const selected = documents.find((document) => document.path === selection) ?? visible[0];
+  const selectedPath = selected?.path;
+  const context = useMemo(() => {
+    const document = documents.find(d => d.path === selectedPath);
+    return document ? documentContext(documents, document) : undefined;
+  }, [documents, selectedPath]);
+  const definitions = useMemo(() => identities(documents).filter(id => id.file === selectedPath), [documents, selectedPath]);
+  const rootIdentity = definitions.find(id => id.path === "id");
+  const hasRail = !!selected && !!schemaFor(selected.path) && !["story", "trees", "map"].includes(scope);
   const kinds = Object.keys(kindLabels).filter((kind) => documents.some((document) => document.kind === kind));
   const areas = documents.filter((document) => document.kind === "regions");
   function browse(value: string) { setScope(value); setSelection(""); setField(""); setQuery(""); }
@@ -146,7 +155,7 @@ function Studio() {
       create={() => setCreate({ kind: scope })} togglePreview={() => setPreviewOpen(open => !open)} />
     {store.status && <p className="save-report" role="log">{store.status}</p>}
     {failure && <div role="alert" className="request-error">{failure}. Refresh to try again.</div>}
-    <div className="studio-body">
+    <div className={`studio-body${previewOpen ? " preview-open" : ""}`}>
     <div className="studio-columns">
       <nav className="studio-nav" aria-label="Content navigation">
         <h2>Browse</h2>
@@ -172,17 +181,17 @@ function Studio() {
             {diagnostics.some((problem) => problem.file === document.path) ? " · has problems" : ""}</small></button>)}
         {!visible.length && <p className="empty">{files.length ? "No files match this search." : status}</p>}
       </section>}
-      <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}`}>
+      <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}${hasRail ? " has-context" : ""}`}>
         {scope === "story" ? <StoryView store={store} documents={documents} open={openProblem}
           create={(kind, prefill) => setCreate({ kind, prefill })} />
           : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)}
             open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} />
           : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)}
             open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} />
-          : selected ? <>
+          : selected ? <div className="document-editor">
           <DocumentHeader kind={kindLabels[selected.kind] ?? selected.kind} id={selected.id}
             title={selected.label} path={selected.path} unsaved={store.drafts.has(selected.path)}
-            hasSchema={!!selectedSchema} mode={mode} entity={!!entitySchemas[selected.kind]} busy={store.busy}
+            hasSchema={!!selectedSchema} mode={mode} entity={!!entitySchemas[selected.kind]} busy={store.busy} rootIdentity={rootIdentity} rename={setRenaming}
             browseKind={() => browse(selected.kind)} setMode={setMode}
             duplicate={() => setCreate({ kind: selected.kind, duplicate: selected.path })}
             remove={() => { setDeleteOrphans(false); setDeleting(selected.path); }} />
@@ -214,15 +223,11 @@ function Studio() {
               </FormContext.Provider>
             </fieldset> : <pre tabIndex={0} ref={source} aria-label="Read-only file contents">{selected.encoding === "utf8"
               ? selected.formatted : `${selected.path}\nencoding: base64\nsha256: ${selected.hash}`}</pre>}
-            {selectedSchema && <section className="identity-controls" aria-label="Rename identities"><h3>Rename IDs</h3>
-              {identities(documents).filter(id => id.file === selected.path).map(id => <div key={id.path}><code>{id.path}: {id.id}</code>
-                <button disabled={store.busy || !!id.reserved} title={id.reserved} aria-label={`Rename ${id.path}`}
-                  onClick={() => setRenaming(id)}>Rename ID…</button>{id.reserved && <span className="hint">{id.reserved}</span>}</div>)}</section>}
-            {selectedSchema && !(area && selected.path === area.path) && <section className="used-by" aria-label="Where used"><h3>Used by</h3>
-              {whereUsed(documents, selected).map((ref) => <button key={`${ref.file}:${ref.path}`}
-                onClick={() => openProblem(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>}
           </section>
-        </> : <h2>Content browser</h2>}
+        </div> : <h2>Content browser</h2>}
+        {hasRail && context && <ContextRail documents={documents} context={context} definitions={definitions}
+          problems={diagnostics.filter(problem => problem.file === selectedPath)} busy={store.busy}
+          openProblem={openProblem} rename={setRenaming} />}
         <section className="diagnostics" id="diagnostics" aria-label="Diagnostics" tabIndex={-1}><h2>Diagnostics <span>{diagnostics.length}</span></h2>
           {files.length > 0 && !diagnostics.length && <p className="ok">All content passes the shared registry validation.</p>}
           {diagnostics.length > 0 && <ul>{diagnostics.map((problem, index) => <li key={`${problem.file}:${problem.path}:${index}`}>

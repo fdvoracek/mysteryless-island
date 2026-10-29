@@ -170,3 +170,37 @@ export function referenceLabel(kind: string, id: string, documents: Document[]):
 export function flagUsedBy(documents: Document[], id: string): Reference[] {
   return references(documents).filter(ref => resolvesTo(ref, { kind: "flag", id, file: "", path: "" }, documents));
 }
+
+export interface LinkedFrom extends Reference { label: string }
+export interface ReferenceGroup { name?: string; references: Reference[] }
+export interface DocumentUse { kind: string; id: string; paths: string[]; identity?: Identity }
+export interface DocumentContext { linkedFrom: LinkedFrom[]; referencedBy: ReferenceGroup[]; uses: DocumentUse[] }
+
+/** Per-document context; retains source positions and owner-scoped nested definitions. */
+export function documentContext(documents: Document[], document: Document): DocumentContext {
+  const definitions = identities(documents);
+  const incoming = whereUsed(documents, document);
+  const linkedFrom = incoming.flatMap(ref => {
+    const source = documents.find(d => d.path === ref.file);
+    const match = /^activities\.(\d+)$/.exec(ref.path);
+    const links = (source?.raw as { activities?: unknown[] } | undefined)?.activities;
+    return source?.kind === "regions" && match && Array.isArray(links)
+      ? [{ ...ref, label: `${source.label} · activity ${Number(match[1]) + 1} of ${links.length}` }] : [];
+  });
+  const root = incoming.filter(ref => !linkedFrom.some(link => link.file === ref.file && link.path === ref.path));
+  const referencedBy: ReferenceGroup[] = [{ ...(document.kind === "regions" ? { name: `Area ${document.id}` } : {}), references: root }];
+  if (document.kind === "regions") {
+    for (const definition of definitions.filter(id => id.file === document.path && id.kind === "discovery")) {
+      referencedBy.push({ name: `Landmark ${definition.id}`, references: whereUsed(documents, document, definition.path) });
+    }
+  }
+  const uses: DocumentUse[] = [];
+  for (const ref of references(documents).filter(ref => ref.file === document.path)) {
+    const identity = definitions.find(id => resolvesTo(ref, id, documents));
+    const kind = identity?.kind ?? ref.kind;
+    const existing = uses.find(use => use.kind === kind && use.id === ref.id && use.identity?.file === identity?.file);
+    if (existing) existing.paths.push(ref.path);
+    else uses.push({ kind, id: ref.id, paths: [ref.path], ...(identity ? { identity } : {}) });
+  }
+  return { linkedFrom, referencedBy, uses };
+}

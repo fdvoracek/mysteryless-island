@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-export function MoreMenu({ busy, duplicate, remove }: { busy: boolean; duplicate: () => void; remove: () => void }) {
+import type { Identity } from "../references";
+
+export function MoreMenu({ busy, duplicate, remove, rootIdentity, rename }: {
+  busy: boolean; duplicate: () => void; remove: () => void; rootIdentity?: Identity; rename: (identity: Identity) => void;
+}) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -30,6 +34,8 @@ export function MoreMenu({ busy, duplicate, remove }: { busy: boolean; duplicate
       onClick={() => setOpen(value => !value)}>⋯</button>
     {open && <ul className="more-menu-list">
       <li><button type="button" disabled={busy} onClick={() => act(duplicate)}>Duplicate</button></li>
+      {rootIdentity && <li><button type="button" disabled={busy || !!rootIdentity.reserved} title={rootIdentity.reserved}
+        onClick={() => act(() => rename(rootIdentity))}>Rename ID…</button></li>}
       <li><button type="button" disabled={busy} onClick={() => act(remove)}>Delete</button></li>
     </ul>}
   </div>;

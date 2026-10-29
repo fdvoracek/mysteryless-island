@@ -566,3 +566,21 @@ header and status bar stick to their edges; document bottom padding clears the f
 ≤760 px both are static, bars wrap, and shortcut hints disappear. Page scrolling is retained.
 Create stays in the top bar until UX-07 adds contextual list creation. The changes/diagnostics
 drawers follow in UX-06c; the search palette follows in UX-08.
+
+
+## Context rail — [implemented, UX-06b]
+
+Selected schema documents show Problems in this file, Linked from, Referenced by, Uses and IDs.
+Problems open and focus their field; Linked from shows an activity’s position in each area.
+Incoming references open the source field, while Uses opens the target definition and lists all
+paths using it. Unresolved targets remain visible without a button. Areas include separate
+reference groups for the area and every landmark; empty groups say “Not referenced”. The area
+workspace’s former Used by card now lives here.
+
+IDs keeps reference-aware Rename controls and reserved reasons. The document’s More actions menu
+also offers **Rename ID…** for its root identity, between Duplicate and Delete.
+
+At widths of 1100 px and above the rail is a 280 px sticky column with its own scroll. Below
+1100 px it stacks after the editor, before global Diagnostics. Opening Preview always stacks
+the rail, preserving editor space (at least 480 px at 1440 px). Story, Trees, Map and image views
+have no document rail. There is no Try it section; use the existing Preview panel.

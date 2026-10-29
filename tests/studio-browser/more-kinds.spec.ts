@@ -10,7 +10,8 @@ const card = (page: Page, title: string) => page.locator(".area-workspace > .for
 
 test("area cards remember collapsed landmarks and linked activities across reload", async ({ page }) => {
   await forest(page);
-  await expect(page.locator(".area-workspace > .form-section")).toHaveCount(6);
+  await expect(page.locator(".area-workspace > .form-section")).toHaveCount(5);
+  await expect(card(page, "Used by")).toHaveCount(0);
   const landmark = page.getByRole("region", { name: "Landmark spring", exact: true });
   const toolbar = landmark.locator(":scope > .entry-actions");
   await expect(toolbar).toHaveCSS("opacity", "0");

@@ -704,9 +704,9 @@ exports[`preserves form markup: content/recipes/craft_spear.json (form) 1`] = `
 
 exports[`preserves form markup: content/regions/beach.json (area) 1`] = `
 {
-  "length": 168252,
+  "length": 163602,
   "path": "content/regions/beach.json",
-  "sha256": "6e2ce4467e564b3da53248ef85b839dc96062bdc9df895e256226b63399ff7a4",
+  "sha256": "6a23655d9ae8c6b43109c75591bfb913d0a60463a343cb3619f240d3c127b53b",
   "view": "area",
 }
 `;
@@ -722,9 +722,9 @@ exports[`preserves form markup: content/regions/beach.json (form) 1`] = `
 
 exports[`preserves form markup: content/regions/forest.json (area) 1`] = `
 {
-  "length": 90536,
+  "length": 88979,
   "path": "content/regions/forest.json",
-  "sha256": "a302d25b174eaac756ec617d80aa2c40607820cc5b686b10af83026bd2d3f41d",
+  "sha256": "b21ae36429a050e77cfbcc5f084aa20be55a31e2bcd5784b1bf1689374017ef1",
   "view": "area",
 }
 `;
@@ -740,9 +740,9 @@ exports[`preserves form markup: content/regions/forest.json (form) 1`] = `
 
 exports[`preserves form markup: content/regions/meadows.json (area) 1`] = `
 {
-  "length": 130703,
+  "length": 127529,
   "path": "content/regions/meadows.json",
-  "sha256": "d145017e739f9fa4be78d943aef4188a49cea4c28126cb05001e9864dce9922a",
+  "sha256": "5e1ecd1e447c17596faaf90ca6bd33c1c8713fa100c10dd6e2886124df074dc9",
   "view": "area",
 }
 `;

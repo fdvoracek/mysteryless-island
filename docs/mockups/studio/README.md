@@ -419,3 +419,32 @@ Desktop screenshots use 1440×900 viewports and fixture content, with matching a
 at 100% scale and placed side by side without resizing. Phone panels use a 390×844 viewport,
 with scrollWidth = 390, showing the top, document header and page-end footer at native scale.
 All four JPEGs are ≤200 KB.
+
+## UX-06b implementation differences — [implemented]
+
+Annotation 11 now supplies document Problems, Linked from, Referenced by, Uses and IDs. The rail
+uses the mockup’s 280 px panel, 12 px padding, uppercase micro headings and bordered reference
+buttons with 10.5 px mono paths. Differences from the static mockup:
+
+- Page scrolling remains; the rail alone is sticky with a bounded scroll at ≥1100 px. Fixed-height
+  columns remain deferred. Navigation/list widths and controls retain the existing UX-06a shell.
+- Below 1100 px the rail stacks after the editor and before Diagnostics, keeping every control
+  reachable. Opening Preview stacks it at every width; at 1440 px the editor measures 680 px
+  (minimum required: 480 px). Preview’s existing panel remains the playtesting entry point;
+  there is no Try it section.
+- Uses shows every schema reference, including climate phases; paths are complete and wrap
+  instead of truncating. Repeated targets share one entry with all source paths. Unresolved
+  targets are visible text marked “(unresolved)”. Labels use the existing reference resolver.
+- IDs preserves every rename control and reserved reason. The root ID is also available from
+  More actions, between Duplicate and Delete. Forms/widgets retain their existing markup.
+- Areas retain separate accessible Used by groups for the area and each landmark; empty groups
+  show “Not referenced”. Linked from is omitted when empty. Global Diagnostics remains below.
+- A one-pixel phone bottom clearance prevents fractional document heights clipping the static
+  footer. Keyboard focus keeps the existing 2 px accent outline.
+
+Evidence in [ux-06b/](ux-06b/): [catch_fish beside annotation 11](ux-06b/catch-fish-comparison.jpg),
+[forest and landmark groups](ux-06b/forest.jpg), [1024 px stacked rail](ux-06b/stacked-1024.jpg),
+[390 px rail](ux-06b/phone-390.jpg). Desktop source viewports are 1440×900; the catch_fish comparison
+places both rail crops side by side at 100%, without resizing. The forest, stacked and phone
+images add a caption above a native-size viewport capture. The phone’s measured scrollWidth is
+390. All four JPEG files are ≤200 KB.

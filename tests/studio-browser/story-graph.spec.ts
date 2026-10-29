@@ -137,7 +137,7 @@ test("dragged nodes are pinned, saved without Save all, survive a reload, can be
     // (d) rename a pinned task: the pin follows, in the same save as the content
     await story.getByLabel("Story node", { exact: true }).selectOption("quest:climb_cliff");
     await story.getByRole("button", { name: "Open entity", exact: true }).click();
-    const contents = page.getByRole("region", { name: "File contents" });
+    const contents = page.getByRole("complementary", { name: "Document context" });
     await contents.getByRole("button", { name: "Rename id", exact: true }).click();
     const rename = page.getByRole("dialog", { name: "Rename ID" });
     await rename.getByRole("textbox", { name: "New ID", exact: true }).fill("climb_the_cliff");

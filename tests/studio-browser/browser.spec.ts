@@ -458,7 +458,7 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     const saved = await inventory();
     expect(JSON.parse(saved.find(f => f.path === areaPath)!.content).activities).toEqual(["browser_seven_work"]);
     expect(saved.some(f => f.path === oldActivity)).toBe(true);
-    await contents.getByRole("button", { name: "Rename id", exact: true }).click();
+    await page.getByRole("complementary", { name: "Document context" }).getByRole("button", { name: "Rename id", exact: true }).click();
     const rename = page.getByRole("dialog", { name: "Rename ID" });
     await rename.getByRole("textbox", { name: "New ID", exact: true }).fill("browser_seven_renamed");
     await expect(rename).toContainText("activities.0"); await expect(rename).toContainText("File rename");
@@ -479,7 +479,7 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     await nav.getByRole("button", { name: "forest", exact: true }).click();
     await contents.getByRole("combobox", { name: "unlockWhen.discovered", exact: true }).selectOption("browser_seven_landmark");
     await nav.getByRole("button", { name: "browser_area_seven", exact: true }).click();
-    await expect(contents.getByRole("region", { name: "Used by Landmark browser_seven_landmark", exact: true })).toContainText("unlockWhen.discovered");
+    await expect(page.getByRole("complementary", { name: "Document context" }).getByRole("region", { name: "Used by Landmark browser_seven_landmark", exact: true })).toContainText("unlockWhen.discovered");
     await contents.getByRole("button", { name: "Remove landmark browser_seven_landmark", exact: true }).click();
     await expect(contents.getByRole("alert")).toContainText("Removal blocked");
     await page.getByRole("button", { name: "More actions", exact: true }).click();
@@ -504,17 +504,17 @@ test("area workspace creates and saves a linked activity, renames it, and delete
     await expect(page.getByRole("log")).toContainText("Not written: none");
     await expect.poll(async () => (await inventory()).some(f => [areaPath, newActivity, oldActivity].includes(f.path))).toBe(false);
     await nav.getByRole("button", { name: /^Events/ }).click();
-    await expect(contents.getByRole("button", { name: "Rename scenes.start", exact: true })).toBeDisabled();
-    await expect(contents).toContainText("the engine opens every event at the start scene");
+    await expect(page.getByRole("complementary", { name: "Document context" }).getByRole("button", { name: "Rename scenes.start", exact: true })).toBeDisabled();
+    await expect(page.getByRole("complementary", { name: "Document context" })).toContainText("the engine opens every event at the start scene");
     await nav.getByRole("button", { name: /^Activities/ }).click();
     await page.getByRole("searchbox").fill("sleep");
     await page.getByRole("region", { name: "Entity list" }).getByRole("button").filter({ has: page.locator("code", { hasText: /^sleep$/ }) }).click();
-    await expect(contents.getByRole("button", { name: "Rename id", exact: true })).toBeDisabled();
-    await expect(contents).toContainText('the engine counts every night\'s sleep under this ID');
+    await expect(page.getByRole("complementary", { name: "Document context" }).getByRole("button", { name: "Rename id", exact: true })).toBeDisabled();
+    await expect(page.getByRole("complementary", { name: "Document context" })).toContainText('the engine counts every night\'s sleep under this ID');
     await nav.getByRole("button", { name: /^Game settings/ }).click();
     await page.getByRole("searchbox").fill("stats.json");
     await page.getByRole("region", { name: "Entity list" }).getByRole("button").click();
-    for (let index = 0; index < 4; index++) await expect(contents.getByRole("button", { name: `Rename stats.${index}.id`, exact: true })).toBeDisabled();
+    for (let index = 0; index < 4; index++) await expect(page.getByRole("complementary", { name: "Document context" }).getByRole("button", { name: `Rename stats.${index}.id`, exact: true })).toBeDisabled();
 
   } finally {
     const files = await inventory();
