@@ -539,7 +539,7 @@ existing validated JSON fallback. No gameplay, content, save-format or `describe
 `FormContext` and `useForm()` share one document's references, diagnostics, JSON buffers, error
 reporting and creation/ID flags. Each `Field` receives its own `view` for presentation; nested
 fields construct their view explicitly. ESLint prohibits JSX spreads in the form modules and
-limits lines to 160 characters. Cards, rules, text variants and outcomes live in separate modules;
+limits lines, including JSX, to 160 characters. Cards, rules, text variants and outcomes live in separate modules;
 the original form/widget exports remain available.
 
 The permanent markup guard snapshots normalized HTML lengths and SHA-256 hashes for every

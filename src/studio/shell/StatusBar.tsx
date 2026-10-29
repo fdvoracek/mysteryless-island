@@ -1,9 +1,10 @@
 export function StatusBar({ problemCount, unsaved, status, busy, refresh }: {
   problemCount: number; unsaved: number; status: string; busy: boolean; refresh: () => void;
 }) {
+  const problems = problemCount ? `${problemCount} ${problemCount === 1 ? "problem" : "problems"}` : "✓ 0 problems";
   return <footer className="studio-status-bar">
     <div className="status-left">
-      <span className={problemCount ? "error" : "ok"}>{problemCount ? `${problemCount} problems` : "✓ 0 problems"}</span>
+      <span className={problemCount ? "error" : "ok"}>{problems}</span>
       <span>{unsaved} unsaved files</span>
     </div>
     <div className="status-right">

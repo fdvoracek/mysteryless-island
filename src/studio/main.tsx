@@ -84,17 +84,25 @@ function Studio() {
       if (!(event.metaKey || event.ctrlKey) || document.querySelector("dialog[open]")) return;
       if (event.key.toLowerCase() === "s") { event.preventDefault(); if (store.canSave) void save(); }
       // The JSON editor owns undo while focused; the Studio history stays on the toolbar.
-      if (event.key.toLowerCase() === "z" && !(event.target instanceof Element && event.target.closest(".cm-editor"))) { event.preventDefault(); if (event.shiftKey) redo(); else undo(); }
+      if (event.key.toLowerCase() === "z" && !(event.target instanceof Element && event.target.closest(".cm-editor"))) {
+        event.preventDefault(); if (event.shiftKey) redo(); else undo();
+      }
     };
     const leave = (event: BeforeUnloadEvent) => { if (store.drafts.size) event.preventDefault(); void store.flushLayout(); };
     // Pins autosave after about a second; leaving or hiding the page writes them straight away.
     const hide = () => { if (document.visibilityState === "hidden") void store.flushLayout(); };
     window.addEventListener("keydown", keydown); window.addEventListener("beforeunload", leave); document.addEventListener("visibilitychange", hide);
-    return () => { window.removeEventListener("keydown", keydown); window.removeEventListener("beforeunload", leave); document.removeEventListener("visibilitychange", hide); };
+    return () => {
+      window.removeEventListener("keydown", keydown);
+      window.removeEventListener("beforeunload", leave);
+      document.removeEventListener("visibilitychange", hide);
+    };
   });
   const area = documents.find((document) => `area:${document.id}` === scope);
   const candidates = area ? areaDocuments(documents, area) : documents.filter((document) => scope === "all" || document.kind === scope);
-  const visible = candidates.filter((document) => `${document.path} ${document.id} ${document.label} ${document.encoding === "utf8" ? document.content : ""}`.toLowerCase().includes(query.toLowerCase()));
+  const visible = candidates.filter((document) =>
+    `${document.path} ${document.id} ${document.label} ${document.encoding === "utf8" ? document.content : ""}`
+      .toLowerCase().includes(query.toLowerCase()));
   const selected = documents.find((document) => document.path === selection) ?? visible[0];
   const kinds = Object.keys(kindLabels).filter((kind) => documents.some((document) => document.kind === kind));
   const areas = documents.filter((document) => document.kind === "regions");
@@ -126,7 +134,10 @@ function Studio() {
       documents.filter(other => !removedPaths.has(other.path) || other.path === d.path), d)) : [])] : [];
   const conflict = [...store.conflicts.values()].find((entry) => !hiddenConflicts.includes(`${entry.path}:${entry.disk?.hash ?? "missing"}`));
   const hideConflict = () => { if (conflict) setHiddenConflicts((previous) => [...previous, `${conflict.path}:${conflict.disk?.hash ?? "missing"}`]); };
-  const openCreated = (path: string) => { setCreate(undefined); setScope("all"); setQuery(""); setSelection(path); setMode("form", path); if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`); };
+  const openCreated = (path: string) => {
+    setCreate(undefined); setScope("all"); setQuery(""); setSelection(path); setMode("form", path);
+    if (path.startsWith("content/regions/")) setScope(`area:${path.split("/").at(-1)!.slice(0, -5)}`);
+  };
   return <div className="studio-shell">
     <TopBar query={query} validation={validationText} problemCount={problemCount}
       canUndo={!!store.past.length && !store.busy} canRedo={!!store.future.length && !store.busy}
@@ -138,46 +149,93 @@ function Studio() {
     <div className="studio-body">
     <div className="studio-columns">
       <nav className="studio-nav" aria-label="Content navigation">
-        <h2>Browse</h2><button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button><button aria-current={scope === "trees" ? "page" : undefined} onClick={() => browse("trees")}>Trees</button><button aria-current={scope === "map" ? "page" : undefined} onClick={() => browse("map")}>Map</button><button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
-        <h2>By area</h2>{areas.map((document) => <button key={document.path} aria-current={scope === `area:${document.id}` ? "page" : undefined} onClick={() => browse(`area:${document.id}`)}>{document.id}</button>)}
-        <button onClick={() => setCreate({ kind: "regions" })}>+ new area</button><h2>By kind</h2>{kinds.map((kind) => <button key={kind} aria-current={scope === kind ? "page" : undefined} onClick={() => browse(kind)}>{kindLabels[kind]}<span>{documents.filter((document) => document.kind === kind).length}</span></button>)}
+        <h2>Browse</h2>
+        <button aria-current={scope === "story" ? "page" : undefined} onClick={() => browse("story")}>Story</button>
+        <button aria-current={scope === "trees" ? "page" : undefined} onClick={() => browse("trees")}>Trees</button>
+        <button aria-current={scope === "map" ? "page" : undefined} onClick={() => browse("map")}>Map</button>
+        <button aria-current={scope === "all" ? "page" : undefined} onClick={() => browse("all")}>All files <span>{documents.length}</span></button>
+        <h2>By area</h2>{areas.map((document) => <button key={document.path}
+          aria-current={scope === `area:${document.id}` ? "page" : undefined}
+          onClick={() => browse(`area:${document.id}`)}>{document.id}</button>)}
+        <button onClick={() => setCreate({ kind: "regions" })}>+ new area</button>
+        <h2>By kind</h2>{kinds.map((kind) => <button key={kind} aria-current={scope === kind ? "page" : undefined}
+          onClick={() => browse(kind)}>{kindLabels[kind]}<span>{documents.filter((document) => document.kind === kind).length}</span></button>)}
       </nav>
       {!["story", "trees", "map"].includes(scope) && <section className="entity-list" aria-label="Entity list">
-        <div className="list-heading"><h1>{area ? area.label : kindLabels[scope] ?? "All files"}</h1><p>{visible.length} files{area && " · area and available activities"}</p></div>
-        {visible.map((document) => <button key={document.path} aria-pressed={selected?.path === document.path} onClick={() => { setSelection(document.path); setField(""); }}><strong>{document.label}</strong><code>{document.id}</code>{store.drafts.has(document.path) && <span className="dirty">Unsaved</span>}<small>{kindLabels[document.kind] ?? document.kind}{diagnostics.some((problem) => problem.file === document.path) ? " · has problems" : ""}</small></button>)}
+        <div className="list-heading"><h1>{area ? area.label : kindLabels[scope] ?? "All files"}</h1>
+          <p>{visible.length} files{area && " · area and available activities"}</p></div>
+        {visible.map((document) => <button key={document.path} aria-pressed={selected?.path === document.path}
+          onClick={() => { setSelection(document.path); setField(""); }}>
+          <strong>{document.label}</strong><code>{document.id}</code>
+          {store.drafts.has(document.path) && <span className="dirty">Unsaved</span>}
+          <small>{kindLabels[document.kind] ?? document.kind}
+            {diagnostics.some((problem) => problem.file === document.path) ? " · has problems" : ""}</small></button>)}
         {!visible.length && <p className="empty">{files.length ? "No files match this search." : status}</p>}
       </section>}
       <main className={`document-panel${["story", "trees", "map"].includes(scope) ? " story-panel" : ""}`}>
-        {scope === "story" ? <StoryView store={store} documents={documents} open={openProblem} create={(kind, prefill) => setCreate({ kind, prefill })} /> : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)} open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} /> : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)} open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} /> : selected ? <>
+        {scope === "story" ? <StoryView store={store} documents={documents} open={openProblem}
+          create={(kind, prefill) => setCreate({ kind, prefill })} />
+          : scope === "trees" ? <TreeEditor documents={documents} edit={(path, raw) => store.edit(path, raw)}
+            open={openProblem} rename={setRenaming} newHere={(kind, tree) => setCreate({ kind, tree })} />
+          : scope === "map" ? <MapEditor documents={documents} problems={diagnostics} edit={(path, raw) => store.edit(path, raw)}
+            open={path => { const id = documents.find(d => d.path === path)?.id; if (id) browse(`area:${id}`); }} />
+          : selected ? <>
           <DocumentHeader kind={kindLabels[selected.kind] ?? selected.kind} id={selected.id}
             title={selected.label} path={selected.path} unsaved={store.drafts.has(selected.path)}
             hasSchema={!!selectedSchema} mode={mode} entity={!!entitySchemas[selected.kind]} busy={store.busy}
             browseKind={() => browse(selected.kind)} setMode={setMode}
             duplicate={() => setCreate({ kind: selected.kind, duplicate: selected.path })}
             remove={() => { setDeleteOrphans(false); setDeleting(selected.path); }} />
-          <section className={fileContentsClass(selectedSchema, mode, selected.raw, Boolean(selectedSchema && selected.raw !== undefined && (area && selected.path === area.path || selected.kind === "events")))} aria-label="File contents"><div className="json-heading"><h3>{selected.encoding === "utf8" ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3></div>
+          <section className={fileContentsClass(selectedSchema, mode, selected.raw,
+            Boolean(selectedSchema && selected.raw !== undefined && (area && selected.path === area.path || selected.kind === "events")))}
+            aria-label="File contents"><div className="json-heading">
+              <h3>{selected.encoding === "utf8"
+                ? mode === "form" && selected.raw !== undefined ? "Content form" : "JSON" : "Image file"}</h3></div>
             {field && <p className="field-location">Field: <code>{field}</code></p>}
-            {selectedSchema && selected.encoding === "utf8" && (mode === "json" || selected.raw === undefined) ? <JsonEditor key={selected.path} path={selected.path} text={store.buffersFor(selected.path)[""]?.text ?? (store.drafts.has(selected.path) ? selected.content : selected.formatted)} schema={selectedSchema} problems={diagnostics.filter((p) => p.file === selected.path)} references={(kind, path) => referenceOptions(kind, documents, selected, path)} readOnly={store.busy} reveal={field} onEdit={(text) => store.editJson(selected.path, text)} onSettle={() => store.endTyping()} onProblem={(message) => store.setJsonProblem(selected.path, message)} /> : selectedSchema && selected.raw !== undefined ? <fieldset disabled={store.busy} className="editor-fields" key={`${selected.path}:${historyKey}`}>
+            {selectedSchema && selected.encoding === "utf8" && (mode === "json" || selected.raw === undefined)
+              ? <JsonEditor key={selected.path} path={selected.path}
+                text={store.buffersFor(selected.path)[""]?.text ?? (store.drafts.has(selected.path) ? selected.content : selected.formatted)}
+                schema={selectedSchema} problems={diagnostics.filter((p) => p.file === selected.path)}
+                references={(kind, path) => referenceOptions(kind, documents, selected, path)} readOnly={store.busy} reveal={field}
+                onEdit={(text) => store.editJson(selected.path, text)} onSettle={() => store.endTyping()}
+                onProblem={(message) => store.setJsonProblem(selected.path, message)} />
+              : selectedSchema && selected.raw !== undefined
+                ? <fieldset disabled={store.busy} className="editor-fields" key={`${selected.path}:${historyKey}`}>
               <FormContext.Provider value={{ documents, owner: selected, problems: diagnostics.filter(p => p.file === selected.path),
                 buffers: store.buffersFor(selected.path), lockId: true,
                 onError: (path, message, buffer) => store.error(selected.path, path, message, buffer) }}>
-              {area && selected.path === area.path ? <AreaWorkspace schema={selectedSchema} value={selected.raw} path="" onChange={raw => store.edit(selected.path, raw)} open={openProblem} newActivity={() => setCreate({ kind: "activities", areaPath: selected.path })} /> : selected.kind === "events" ? <EventEditor schema={selectedSchema} value={selected.raw} path="" onChange={raw => store.edit(selected.path, raw)} rename={setRenaming} /> : <Field schema={selectedSchema} value={selected.raw} path="" onChange={(raw) => store.edit(selected.path, raw)} />}
+              {area && selected.path === area.path
+                ? <AreaWorkspace schema={selectedSchema} value={selected.raw} path="" onChange={raw => store.edit(selected.path, raw)}
+                  open={openProblem} newActivity={() => setCreate({ kind: "activities", areaPath: selected.path })} />
+                : selected.kind === "events"
+                  ? <EventEditor schema={selectedSchema} value={selected.raw} path="" onChange={raw => store.edit(selected.path, raw)}
+                    rename={setRenaming} />
+                  : <Field schema={selectedSchema} value={selected.raw} path="" onChange={(raw) => store.edit(selected.path, raw)} />}
               </FormContext.Provider>
-            </fieldset> : <pre tabIndex={0} ref={source} aria-label="Read-only file contents">{selected.encoding === "utf8" ? selected.formatted : `${selected.path}\nencoding: base64\nsha256: ${selected.hash}`}</pre>}
-            {selectedSchema && <section className="identity-controls" aria-label="Rename identities"><h3>Rename IDs</h3>{identities(documents).filter(id => id.file === selected.path).map(id => <div key={id.path}><code>{id.path}: {id.id}</code><button disabled={store.busy || !!id.reserved} title={id.reserved} aria-label={`Rename ${id.path}`} onClick={() => setRenaming(id)}>Rename ID…</button>{id.reserved && <span className="hint">{id.reserved}</span>}</div>)}</section>}
-            {selectedSchema && !(area && selected.path === area.path) && <section className="used-by" aria-label="Where used"><h3>Used by</h3>{whereUsed(documents, selected).map((ref) => <button key={`${ref.file}:${ref.path}`} onClick={() => openProblem(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>}
+            </fieldset> : <pre tabIndex={0} ref={source} aria-label="Read-only file contents">{selected.encoding === "utf8"
+              ? selected.formatted : `${selected.path}\nencoding: base64\nsha256: ${selected.hash}`}</pre>}
+            {selectedSchema && <section className="identity-controls" aria-label="Rename identities"><h3>Rename IDs</h3>
+              {identities(documents).filter(id => id.file === selected.path).map(id => <div key={id.path}><code>{id.path}: {id.id}</code>
+                <button disabled={store.busy || !!id.reserved} title={id.reserved} aria-label={`Rename ${id.path}`}
+                  onClick={() => setRenaming(id)}>Rename ID…</button>{id.reserved && <span className="hint">{id.reserved}</span>}</div>)}</section>}
+            {selectedSchema && !(area && selected.path === area.path) && <section className="used-by" aria-label="Where used"><h3>Used by</h3>
+              {whereUsed(documents, selected).map((ref) => <button key={`${ref.file}:${ref.path}`}
+                onClick={() => openProblem(ref.file, ref.path)}>{ref.file} › {ref.path}</button>)}</section>}
           </section>
         </> : <h2>Content browser</h2>}
         <section className="diagnostics" id="diagnostics" aria-label="Diagnostics" tabIndex={-1}><h2>Diagnostics <span>{diagnostics.length}</span></h2>
           {files.length > 0 && !diagnostics.length && <p className="ok">All content passes the shared registry validation.</p>}
           {diagnostics.length > 0 && <ul>{diagnostics.map((problem, index) => <li key={`${problem.file}:${problem.path}:${index}`}>
-            {documents.some((document) => document.path === problem.file) ? <button className="problem-link" onClick={() => openProblem(problem.file, problem.path)}><code>{problem.file}{problem.path && ` › ${problem.path}`}</code></button> : <code>{problem.file || "Content pack"}</code>}
+            {documents.some((document) => document.path === problem.file)
+              ? <button className="problem-link" onClick={() => openProblem(problem.file, problem.path)}>
+                <code>{problem.file}{problem.path && ` › ${problem.path}`}</code></button> : <code>{problem.file || "Content pack"}</code>}
             <p>{problem.message}</p>
           </li>)}</ul>}
         </section>
       </main>
     </div>
-    {previewOpen && <PreviewPanel store={store} canSave={canSave} save={() => { void save(); }} showDiagnostics={() => document.getElementById("diagnostics")?.scrollIntoView({ block: "start" })} />}
+    {previewOpen && <PreviewPanel store={store} canSave={canSave} save={() => { void save(); }}
+      showDiagnostics={() => document.getElementById("diagnostics")?.scrollIntoView({ block: "start" })} />}
     </div>
     <StatusBar problemCount={problemCount} unsaved={store.drafts.size} status={status} busy={store.busy}
       refresh={() => { void refresh(); }} />
@@ -185,9 +243,31 @@ function Studio() {
       duplicate={documents.find((d) => d.path === create.duplicate)}
       prefill={create.prefill ?? documents.find((d) => d.path === create.duplicate)?.raw as Record<string, unknown> | undefined}
       close={() => setCreate(undefined)} created={openCreated} />}
-    {target && <Dialog title="Delete entity" close={() => setDeleting(undefined)}><p>{usedBy.length ? "Delete blocked: this entity is used by:" : "Stage deletion of this entity? Save all applies the deletion after pack validation."}</p><ul>{usedBy.map((ref) => <li key={`${ref.file}:${ref.path}`}><code>{blockerLabel(documents, ref)}</code></li>)}</ul>{!!orphans.length && <section aria-label="Activities left without an area"><h3>Activities left without an area</h3><ul>{orphans.map(d => <li key={d.path}>{d.id}</li>)}</ul><label><input type="radio" name="orphans" checked={!deleteOrphans} onChange={() => setDeleteOrphans(false)} />Keep — link them elsewhere before saving</label><label><input type="radio" name="orphans" checked={deleteOrphans} onChange={() => setDeleteOrphans(true)} />Delete them too</label></section>}<button disabled={usedBy.length > 0} onClick={() => { store.delete(target.path, deleteOrphans); setDeleting(undefined); setSelection(""); }}>Delete draft</button></Dialog>}
-    {renaming && <RenameDialog store={store} target={renaming} close={() => setRenaming(undefined)} renamed={path => { const inTree = renaming.kind === "treeBranch"; setRenaming(undefined); if (!inTree) { setScope("all"); setSelection(path); setQuery(""); } setHistoryKey(key => key + 1); }} />}
-    {conflict && <Dialog title="File changed on disk" close={hideConflict}><p><code>{conflict.path}</code> has changed on disk. Your draft is retained.</p><div className="dialog-actions"><button disabled={store.moves.has(conflict.path) || [...store.moves.values()].includes(conflict.path)} title="For a pending file move, close this dialog and Undo the rename before reloading either filename." onClick={() => { store.resolve(conflict.path, "reload"); setHistoryKey((key) => key + 1); }}>Reload disk version</button><button onClick={() => { store.resolve(conflict.path, "mine"); hideConflict(); }}>Keep mine</button>{conflict.choice === "mine" && <button disabled={!canSave} onClick={() => { void save(true); }}>Overwrite with freshly checked hash</button>}</div></Dialog>}
+    {target && <Dialog title="Delete entity" close={() => setDeleting(undefined)}><p>{usedBy.length
+      ? "Delete blocked: this entity is used by:" : "Stage deletion of this entity? Save all applies the deletion after pack validation."}</p>
+      <ul>{usedBy.map((ref) => <li key={`${ref.file}:${ref.path}`}><code>{blockerLabel(documents, ref)}</code></li>)}</ul>
+      {!!orphans.length && <section aria-label="Activities left without an area"><h3>Activities left without an area</h3>
+        <ul>{orphans.map(d => <li key={d.path}>{d.id}</li>)}</ul>
+        <label><input type="radio" name="orphans" checked={!deleteOrphans} onChange={() => setDeleteOrphans(false)} />
+          Keep — link them elsewhere before saving</label>
+        <label><input type="radio" name="orphans" checked={deleteOrphans} onChange={() => setDeleteOrphans(true)} />Delete them too</label></section>}
+      <button disabled={usedBy.length > 0}
+        onClick={() => { store.delete(target.path, deleteOrphans); setDeleting(undefined); setSelection(""); }}>Delete draft</button></Dialog>}
+    {renaming && <RenameDialog store={store} target={renaming} close={() => setRenaming(undefined)} renamed={path => {
+      const inTree = renaming.kind === "treeBranch";
+      setRenaming(undefined);
+      if (!inTree) { setScope("all"); setSelection(path); setQuery(""); }
+      setHistoryKey(key => key + 1);
+    }} />}
+    {conflict && <Dialog title="File changed on disk" close={hideConflict}>
+      <p><code>{conflict.path}</code> has changed on disk. Your draft is retained.</p>
+      <div className="dialog-actions">
+        <button disabled={store.moves.has(conflict.path) || [...store.moves.values()].includes(conflict.path)}
+          title="For a pending file move, close this dialog and Undo the rename before reloading either filename."
+          onClick={() => { store.resolve(conflict.path, "reload"); setHistoryKey((key) => key + 1); }}>Reload disk version</button>
+        <button onClick={() => { store.resolve(conflict.path, "mine"); hideConflict(); }}>Keep mine</button>
+        {conflict.choice === "mine" && <button disabled={!canSave}
+          onClick={() => { void save(true); }}>Overwrite with freshly checked hash</button>}</div></Dialog>}
   </div>;
 }
 createRoot(document.getElementById("studio-root")!).render(<Studio />);
