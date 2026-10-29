@@ -49,7 +49,7 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-05 **[implemented]** | **Outcomes table**: weight + % odds, first text + variant count, effect chips; row expands to full editor. | `widgets.tsx` | low-medium |
 | UX-05.1 **[implemented]** | Form API cleanup with document context, explicit per-field `view`, split form modules, no JSX spreads and a permanent markup hash guard; no visible change. | `form.tsx`, `cards.tsx`, `widgets.tsx`, `rules.tsx`, `text-widget.tsx`, `outcomes.tsx`, workspace/dialog call sites | medium (refactor) |
 | UX-06a **[implemented]** | **Shell header, status bar and document header**: slim top bar, sticky document header with Form/JSON and Duplicate/Delete disclosure, status bar; presentation split into `shell/` under UX-05.1 lint rules. | `main.tsx`, `shell/`, `studio.css` | medium |
-| UX-06b | **Context rail**: problems in this file, Linked from, Referenced by, Uses, Rename IDs. | `main.tsx`/`shell/`, `references.ts` | medium |
+| UX-06b **[implemented]** | **Context rail**: problems in this file, Linked from, Referenced by, Uses, Rename IDs. | `main.tsx`/`shell/`, `references.ts` | medium |
 | UX-06c | **Unsaved-changes drawer** with per-file JSON diff and Discard (D8); diagnostics drawer from the status chip. | `shell/`, `store.ts` | high — plan first |
 | UX-07 | **Navigation tree** (World / Areas ▸ parts / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
@@ -89,7 +89,10 @@ Radii: inputs 5 px, buttons 6 px, cards 8 px, chips 999 px.
   may wrap, the document header and status bar are static, and shortcut hints are hidden.
   Owner-approved UX-06a phone behavior takes precedence over the later shell target below.
 - Columns: sidebar 220 px · list 300 px · editor flexible · context rail 280 px.
-  ≤1100 px: rail hidden (its content reachable from the ⋯ menu), sidebar 200, list 260.
+  UX-06b: at ≥1100 px the rail is a 280 px sticky column with its own bounded scroll.
+  Below 1100 px it stacks below the editor, before global Diagnostics, and stays fully reachable.
+  Opening Preview stacks the rail at every width; at 1440 px the editor remains at least 480 px wide.
+  Page scrolling remains; fixed-height columns are deferred.
   ≤760 px: single column (editor), sidebar and list behind a toggle; 16 px gutters; no horizontal
   scroll down to 390 px. Top bar keeps validation chip, “n unsaved”, Save all and ⋯ (brand, ⌘K
   trigger, Undo/Redo and Preview move into ⋯); status bar drops the shortcut hints; rule lines and
@@ -148,9 +151,15 @@ Selected row: accent-soft bg + 3 px accent inset bar. Unsaved = warn dot. Sticky
 
 ### 5.6 Context rail (UX-06)
 Panel bg, 12 px padding. Sections with uppercase micro faint headings: Problems in this file
-(✓ ok line or problem links) · Linked from · Referenced by · Uses · Try it (serif quote of first
-log line + “▶ Play from here” only if the preview can do it without new engine API, else omit).
-Each reference = bordered button: label line + mono 10.5 px path line; click opens source field.
+(✓ No problems or problem links) · Linked from (omitted when empty) · Referenced by · Uses · IDs.
+No Try it section: the existing Preview panel serves playtesting. Incoming references open their
+source field; Uses entries open target definitions and group all paths for each target. Unresolved
+targets stay visible, labelled “(unresolved)”, without a button. Area references retain a group for
+the area and each landmark, with “Not referenced” for empty groups. IDs retains the existing rename
+controls and reserved reasons; the document ⋯ menu also offers root Rename ID….
+Each reference = bordered button: label line + mono 10.5 px path line.
+The rail follows the editor in DOM order and precedes global Diagnostics. Below 1100 px, or while
+Preview is open at any width, it stacks below the editor without a scroll-height limit.
 
 ### 5.7 Overlays (UX-06, UX-08)
 - **Changes drawer**: 420 px from the right between top and status bar, slides (200 ms). Per file:

@@ -457,3 +457,28 @@ button.layout-failed { color: var(--studio-error); }
   .shortcut-hints { display: none; }
   .document-panel { padding-bottom: 16px; }
 }
+
+/* UX-06b: context follows the editor in document order, before Diagnostics. */
+.document-panel.has-context { display: grid; grid-template-columns: minmax(0, 1fr); padding: 0; align-content: start; }
+.has-context > .document-editor { min-width: 0; padding: 0 20px 24px; }
+.has-context > .diagnostics { min-width: 0; margin: 0 20px 24px; }
+.context-rail { min-width: 0; padding: 12px; background: var(--studio-panel); border-top: 1px solid var(--studio-border); }
+.context-rail > section + section { margin-top: 16px; }
+.context-rail h3 { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--studio-faint); margin: 0 0 6px; }
+.context-rail p { font-size: 12px; }
+.context-reference { display: block; width: 100%; text-align: left; padding: 6px 8px; margin-bottom: 5px; border: 1px solid var(--studio-border); border-radius: 6px; overflow-wrap: anywhere; font-size: 12px; }
+.context-reference code { display: block; font-size: 10.5px; color: var(--studio-muted); }
+.context-group { margin-bottom: 10px; }
+.context-group h4 { margin: 0 0 5px; font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.context-empty { color: var(--studio-faint); }
+.context-identities > div { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; overflow-wrap: anywhere; }
+.context-identities code { font-size: 10.5px; }
+.context-identities button { padding: 4px 8px; font-size: 12px; }
+@media (min-width: 1100px) {
+  .studio-body:not(.preview-open) .has-context { grid-template-columns: minmax(0, 1fr) 280px; }
+  .studio-body:not(.preview-open) .context-rail { grid-column: 2; grid-row: 1 / span 2; position: sticky; top: 0; align-self: start; max-height: calc(100vh - 48px); overflow: auto; border-top: 0; border-left: 1px solid var(--studio-border); }
+  .studio-body:not(.preview-open) .has-context > .diagnostics { grid-column: 1; }
+  .preview-open > .studio-columns { grid-template-columns: 170px 210px minmax(0, 1fr); }
+}
+/* Leave a pixel below the static footer so fractional page heights cannot clip it. */
+@media (max-width: 760px) { .studio-shell { padding-bottom: 1px; } }

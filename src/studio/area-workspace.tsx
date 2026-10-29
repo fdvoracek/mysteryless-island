@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Region } from "../content";
 import type { Document } from "./documents";
 import { AuthorNote, SectionCard, OptionalChip, Field, useForm, type FieldProps } from "./form";
-import { getAt, whereUsed, deletionReferences, referenceLabel } from "./references";
+import { getAt, deletionReferences, referenceLabel } from "./references";
 import { initialValue, unwrap, type Schema } from "./schema";
 import { replaceAt } from "./rename";
 import { MapGrid } from "./map-cells";
@@ -54,14 +54,10 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
   );
   const inPath = (path: string, key: string) => path === key || path.startsWith(`${key}.`);
   const card = (title: string, keys: string[], children: ReactNode, preview = summarize(Region, raw, keys, documents)) => {
-    const count =
-      title === "Used by"
-        ? 0
-        : problems.filter(
-            (problem) =>
-              keys.some((key) => inPath(problem.path, key)) &&
-              (title !== "Text and exploration" || !inPath(problem.path, "explore.landmarks")),
-          ).length;
+    const count = problems.filter(
+      (problem) => keys.some((key) => inPath(problem.path, key)) &&
+        (title !== "Text and exploration" || !inPath(problem.path, "explore.landmarks")),
+    ).length;
     const optionalKeys =
       title === "Text and exploration" && explore
         ? [
@@ -116,16 +112,6 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
   const links = Array.isArray(raw.activities) ? (raw.activities as string[]) : [];
   const activities = documents.filter((d) => d.kind === "activities");
   const updateLinks = (next: string[]) => props.onChange({ ...raw, activities: next });
-  const used = (path: string, title: string) => (
-    <section aria-label={`Used by ${title}`}>
-      <h3>{title}</h3>
-      {whereUsed(documents, owner, path).map((ref) => (
-        <button type="button" key={`${ref.file}:${ref.path}`} onClick={() => props.open(ref.file, ref.path)}>
-          {ref.file} › {ref.path}
-        </button>
-      ))}
-    </section>
-  );
   return (
     <section className="area-workspace" aria-label="Area workspace">
       {card(
@@ -311,20 +297,6 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
           </ul>
         </>,
         `activities: ${links.length}`,
-      )}
-      {card(
-        "Used by",
-        [],
-        <div className="used-by">
-          {used("id", `Area ${owner.id}`)}
-          {landmarks.map((entry, index) => (
-            <div key={index}>{used(`explore.landmarks.${index}.id`, `Landmark ${(entry as { id?: string })?.id ?? index}`)}</div>
-          ))}
-        </div>,
-        `references: ${
-          whereUsed(documents, owner, "id").length +
-          landmarks.reduce<number>((count, _, index) => count + whereUsed(documents, owner, `explore.landmarks.${index}.id`).length, 0)
-        }`,
       )}
     </section>
   );

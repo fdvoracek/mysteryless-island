@@ -86,7 +86,7 @@ it("renders forest cards, editable root notes and landmark hints without double-
   const value = { ...owner.raw as object, _arrive: "Return note", _explore: "Look note", _note: "General note", _raw: { keep: true } };
   const render = (raw: unknown, path: string) => renderToStaticMarkup(formElement(AreaWorkspace, { schema: schemaFor(owner.path)!, value: raw, path: "", lockId: true, documents, owner, problems: [{ file: owner.path, path, message: "Test diagnostic" }], onError: () => {}, onChange: () => { throw new Error("Rendering must not edit"); }, open: () => {}, newActivity: () => {} }));
   const html = render(value, "explore.landmarks.0.hours");
-  expect([...html.matchAll(/<strong>([^<]+)<\/strong>/g)].map(match => match[1])).toEqual(["Properties", "Map and unlock", "Text and exploration", "Landmarks", "Linked activities", "Used by"]);
+  expect([...html.matchAll(/<strong>([^<]+)<\/strong>/g)].map(match => match[1])).toEqual(["Properties", "Map and unlock", "Text and exploration", "Landmarks", "Linked activities"]);
   for (const label of ["Travel from camp", "0 = the camp", "Unlocked when", "On return", "Button", "Duration &amp; effort", "Offered when", "Discovery passage", "Journal line"]) expect(html).toContain(label);
   expect(html).toContain('class="field-unit">h</span>');
   for (const [note, field] of [["_map", "map"], ["_arrive", "arrive"], ["_explore", "explore.name"]]) expect(html.indexOf(`aria-label="${note}"`)).toBeLessThan(html.indexOf(`data-field="${field}"`));
@@ -96,10 +96,9 @@ it("renders forest cards, editable root notes and landmark hints without double-
   expect(html).toContain('class="add-link" type="button" aria-label="Add landmark">+ add landmark</button>');
   const forest = owner.raw as { explore: { landmarks: { id: string }[] } };
   expect(html).toContain('<section class="area-workspace" aria-label="Area workspace">');
-  expect(html).toContain('<section aria-label="Used by Area forest">');
+  expect(html).not.toContain("Used by");
   for (const landmark of forest.explore.landmarks) {
     expect(html).toContain(`aria-label="Landmark ${landmark.id}"`);
-    expect(html).toContain(`<section aria-label="Used by Landmark ${landmark.id}">`);
     expect(html).toContain(`aria-label="Remove landmark ${landmark.id}">×</button>`);
     expect(html).toContain(`aria-label="Move up landmark ${landmark.id}"`);
     expect(html).toContain(`aria-label="Move down landmark ${landmark.id}"`);
