@@ -45,7 +45,8 @@ test("outcomes support keyboard editing, selection-safe clicks, ordering and add
   await expect(page.locator(".outcome-first").first()).toHaveText("Edited fish text.");
   await expect(page.getByRole("spinbutton", { name: "outcomes.0.weight", exact: true })).toHaveCount(1);
   await undo(page);
-  await expect(edit(page)).toHaveAttribute("aria-expanded", "false");
+  await expect(edit(page)).toHaveAttribute("aria-expanded", "true");
+  await edit(page).click();
   await page.locator(".outcome-text").first().click();
   await expect(edit(page)).toHaveAttribute("aria-expanded", "true");
   await page.locator(".outcome-text").first().click();

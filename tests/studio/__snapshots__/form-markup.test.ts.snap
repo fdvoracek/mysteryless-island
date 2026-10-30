@@ -355,7 +355,7 @@ exports[`preserves form markup: content/items/corn.json (form) 1`] = `
 {
   "length": 21755,
   "path": "content/items/corn.json",
-  "sha256": "059a3709ea33681e84347208b4f166243b66069d8eba030e21df243d020271fd",
+  "sha256": "603e85c61e00d9f904edeee4bc7d68aa722b5c4849fb1ad635d6894591dbeb9b",
   "view": "form",
 }
 `;
@@ -445,7 +445,7 @@ exports[`preserves form markup: content/items/raw_fish.json (form) 1`] = `
 {
   "length": 15818,
   "path": "content/items/raw_fish.json",
-  "sha256": "48d1b174c5ca52a45e573d5c5a89ba7c9aa3c07bf49eb82828f16bb8a2d8bc3f",
+  "sha256": "6e9076489fd16a4b601f80742cf64d0c30f24449638fd92ca5efb0f97acd8848",
   "view": "form",
 }
 `;
@@ -454,7 +454,7 @@ exports[`preserves form markup: content/items/raw_meat.json (form) 1`] = `
 {
   "length": 37337,
   "path": "content/items/raw_meat.json",
-  "sha256": "d7e29594aa791dbb17d1c77a6f01f28b527d81b47ff0df0fe7ac4932b258bd1f",
+  "sha256": "9374ad56e7ad2a1b8d8db37303596cd67453e6e85301521526a3fcebc38c2017",
   "view": "form",
 }
 `;
@@ -481,7 +481,7 @@ exports[`preserves form markup: content/items/shells.json (form) 1`] = `
 {
   "length": 21560,
   "path": "content/items/shells.json",
-  "sha256": "1f1c7e06abe5f4d6669bb7e68a8906aace5035d83aa766063d98066dc6107f57",
+  "sha256": "ce5d74c8f8cc4cbb9befe2d094d2abcd68de8d538c22ce5ee8674483b11d1cfb",
   "view": "form",
 }
 `;
@@ -517,7 +517,7 @@ exports[`preserves form markup: content/items/water_can.json (form) 1`] = `
 {
   "length": 43730,
   "path": "content/items/water_can.json",
-  "sha256": "9cc3a363b3a01a167eaaee80e271f2d96c11043635ed04caf95fa229abfaf12a",
+  "sha256": "71b5e0f026fb6d221297c64e1c8e3cee3ba6735a74b335eb969e7188f08c91b7",
   "view": "form",
 }
 `;
@@ -661,7 +661,7 @@ exports[`preserves form markup: content/recipes/craft_axe.json (form) 1`] = `
 {
   "length": 10950,
   "path": "content/recipes/craft_axe.json",
-  "sha256": "b307fd741b985f5d20093e035f91795122e289def84d3e0f89facb3a53275ec7",
+  "sha256": "2a6b9202ebe05a903222862c2e7d41c99779d4fe1d5c8056047176b43ca7aad2",
   "view": "form",
 }
 `;
@@ -670,7 +670,7 @@ exports[`preserves form markup: content/recipes/craft_hoe.json (form) 1`] = `
 {
   "length": 10672,
   "path": "content/recipes/craft_hoe.json",
-  "sha256": "b205f782f5da1e95ce890dcfa7c01728f3dff1905a65bce6748209f3a73316d7",
+  "sha256": "23187c334d7d7f0217672127c3f7f8a0a33632dc7e8bc0f4f88bb30d7f9cbdf5",
   "view": "form",
 }
 `;
@@ -679,7 +679,7 @@ exports[`preserves form markup: content/recipes/craft_rock_knife.json (form) 1`]
 {
   "length": 13668,
   "path": "content/recipes/craft_rock_knife.json",
-  "sha256": "fd84ff806f6836bb07bcb6d6db209c86712d67695120220e268952e0db9cdea5",
+  "sha256": "5d0c43b1f8b44f754745627fef9288f20ade1dc3c48999956a36d95c120a0f88",
   "view": "form",
 }
 `;
@@ -688,7 +688,7 @@ exports[`preserves form markup: content/recipes/craft_rope.json (form) 1`] = `
 {
   "length": 11176,
   "path": "content/recipes/craft_rope.json",
-  "sha256": "76619ad8987a613d9e9b9da1f9e8038fe0bad548a3eb1184f4193b12fd69dc94",
+  "sha256": "5defae30d62bc6cad13a2e3858e5dc4a6cf4ac35b558cff2052da43ab31454c2",
   "view": "form",
 }
 `;
@@ -697,7 +697,7 @@ exports[`preserves form markup: content/recipes/craft_spear.json (form) 1`] = `
 {
   "length": 38685,
   "path": "content/recipes/craft_spear.json",
-  "sha256": "0b5ba647f9cee3615766ec655a579e35a57ffbb5541a2fb43a7c539ab87abcb4",
+  "sha256": "00e28fbe2948a8b5dd5959308447c6f2f409f466eba0f1ad8472a56c3a9e71a4",
   "view": "form",
 }
 `;
@@ -706,7 +706,7 @@ exports[`preserves form markup: content/regions/beach.json (area) 1`] = `
 {
   "length": 166307,
   "path": "content/regions/beach.json",
-  "sha256": "bbb431a4c0b758a642117d88d486f9d5801a6c7878fdd445445f90187ffe30d2",
+  "sha256": "e8c028d42621cce0725f9970c40bc06f126c78a0bdbeecfede9f645049b22c9c",
   "view": "area",
 }
 `;
@@ -715,7 +715,7 @@ exports[`preserves form markup: content/regions/beach.json (form) 1`] = `
 {
   "length": 170873,
   "path": "content/regions/beach.json",
-  "sha256": "533e00ff4ee38da2dc3fecad21bb5ad09b79c1240b0fa22c7cca434a2caca405",
+  "sha256": "80024edbbd3cb01edf248da2f1b01dce8c47102ed39956522008023722c8f3c9",
   "view": "form",
 }
 `;
@@ -724,7 +724,7 @@ exports[`preserves form markup: content/regions/forest.json (area) 1`] = `
 {
   "length": 90004,
   "path": "content/regions/forest.json",
-  "sha256": "5179c4b8ccfd3e03543efac9054713e05193f4f90340e0b8d05d5f8850c1f3c7",
+  "sha256": "6a35e469296e37c134e8243b059da8077df0c51195fd14dd1d7a8cb4ba0f2a76",
   "view": "area",
 }
 `;
@@ -733,7 +733,7 @@ exports[`preserves form markup: content/regions/forest.json (form) 1`] = `
 {
   "length": 89682,
   "path": "content/regions/forest.json",
-  "sha256": "437a70c5770b8ca1a5e84e740c3505d3e5ddc2ed65440d065e1748b63f8b98b2",
+  "sha256": "f70ea98a7e86519f253d605cc809c9e3d681802d67ddb8b63eff37965d1d879b",
   "view": "form",
 }
 `;
@@ -742,7 +742,7 @@ exports[`preserves form markup: content/regions/meadows.json (area) 1`] = `
 {
   "length": 130010,
   "path": "content/regions/meadows.json",
-  "sha256": "d2eaf62d26475d471f9ae859e92f6bf8e83224d4e4396dce53c6321c3873d520",
+  "sha256": "9b68f5b3b3d05e7b0ebe5a9f5d3b69f5a8b92512137fe7e35e771c3c893a4d88",
   "view": "area",
 }
 `;
@@ -751,7 +751,7 @@ exports[`preserves form markup: content/regions/meadows.json (form) 1`] = `
 {
   "length": 130707,
   "path": "content/regions/meadows.json",
-  "sha256": "4b525b7fa0bbebbe9ce538ab2ca6e78fef72ebbb65ba90b2ced9d176e68a44b1",
+  "sha256": "47f78f2a5f3ba8ab5f5e9b43ead2e16f6659ad20fddd5d2caac5f45f2a0fa0f1",
   "view": "form",
 }
 `;

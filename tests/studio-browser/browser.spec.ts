@@ -1149,7 +1149,7 @@ test("generic item actions reveal only their toolbar and reorder by keyboard wit
   const secondActions = entries.nth(1).locator(":scope > .entry-actions");
   await page.mouse.move(0, 0);
   await page.getByRole("button", { name: "Edit actions.0", exact: true }).click();
-  await page.getByRole("textbox", { name: "actions.0.id", exact: true }).focus();
+  await page.getByRole("button", { name: "Edit actions.0", exact: true }).focus();
   await page.keyboard.press("Tab");
   await expect(firstActions).toHaveCSS("opacity", "1");
   await expect(secondActions).toHaveCSS("opacity", "0");
@@ -1161,7 +1161,6 @@ test("generic item actions reveal only their toolbar and reorder by keyboard wit
   await expect(page.getByRole("textbox", { name: "actions.0.id", exact: true })).toHaveValue("fill_river");
   await expect(entry).toContainText("Unsaved");
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await page.getByRole("button", { name: "Edit actions.0", exact: true }).click();
   await expect(page.getByRole("textbox", { name: "actions.0.id", exact: true })).toHaveValue("fill");
   await expect(entry).not.toContainText("Unsaved");
   await page.setViewportSize({ width: 390, height: 900 });

@@ -1,3 +1,5 @@
+import { FormContext } from "../../src/studio/form";
+import type { Document } from "../../src/studio/documents";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, it } from "vitest";
@@ -20,7 +22,9 @@ function expansion(length: number, paths: string[], options: ExpansionOptions) {
     expanded = useExpansion("actions", length, paths.map(path => ({ path, file: "", message: "broken" })), options).expanded;
     return null;
   }
-  renderToStaticMarkup(createElement(Probe));
+  renderToStaticMarkup(createElement(FormContext.Provider, {
+    value: { owner: { path: "unit-expansion.json" } as Document, documents: [], problems: [], onError: () => {} },
+  }, createElement(Probe)));
   return expanded;
 }
 it("initializes a single entry open, multiple entries closed, and adds diagnostic entries", () => {
