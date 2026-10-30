@@ -82,6 +82,15 @@ remaining save or use Git to recover. The existing file API guards each write, n
 pack against another editor changing an unrelated file after validation. A `409` retains the
 draft and opens the conflict dialog. A keep-mine choice always needs explicit overwrite.
 
+### Collapsible entries — [implemented, UX-05.2]
+
+Landmarks, item actions and recipe ways have one-line title, ID and metadata rows. Use the
+caret (or click the title or metadata) to expand the existing editor. A single entry starts
+expanded; longer lists start collapsed. Entries with problems, newly added entries and fields
+opened from diagnostics or references expand automatically. Fixing a problem leaves its entry
+open. Reordering keeps expansion with the moved entry; referenced landmarks still block removal.
+Other small object lists remain open. The caret supports Tab, Enter and Space.
+
 ## Inspector layout — [implemented, UX-02]
 
 Scalar fields use a label-left grid, with related set fields together in a row when at least

@@ -59,6 +59,7 @@ test("area author note saves only its string with original key order and all oth
 test("landmark diagnostics badge only Landmarks and reveal the collapsed card and focused field", async ({ page }) => {
   await forest(page);
   const hours = page.getByRole("spinbutton", { name: "explore.landmarks.0.hours", exact: true });
+  await page.getByRole("button", { name: "Edit explore.landmarks.0", exact: true }).click();
   await hours.fill("0");
   await expect(card(page, "Landmarks").locator(".form-section-problems")).toHaveText("1 problem");
   await expect(card(page, "Text and exploration").locator(".form-section-problems")).toHaveCount(0);

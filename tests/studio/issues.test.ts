@@ -41,9 +41,9 @@ describe("Create problem presentation", () => {
   it.each([
     ["quests", "completeWhen.all", "Done when"],
     ["regions", "climate.baseC", "Climate › Base C"],
-    ["buildings", "build.hours", "Build › Hours"],
+    ["buildings", "build.hours", "Building it › Hours"],
     ["quests", "completeWhen.all.0.any.1.not", "Done when"],
-    ["quests", "completeWhen.all.0.stat", "Complete when › Stat"],
+    ["quests", "completeWhen.all.0.stat", "Done when › Stat"],
     ["items", "id", "ID"],
     ["items", "category", "Category"],
   ])("labels %s %s meaningfully", (kind, path, expected) => {
