@@ -19,9 +19,9 @@ export function neededLabel(schema: Schema, path: string): string {
   const parts = path.split(".");
   const meaningful = parts.map((key, index) => ({ key, index }))
     .filter(({ key }) => !/^\d+$/.test(key) && !["all", "any", "not"].includes(key)).slice(-2);
-  return meaningful.map(({ key, index }, position) => {
+  return meaningful.map(({ key, index }) => {
     const parent = fieldSchema(schema, parts.slice(0, index).join("."));
-    const hint = position === meaningful.length - 1 && parent ? hintFor(parent, key)?.label : undefined;
+    const hint = parent ? hintFor(parent, key)?.label : undefined;
     return hint ?? humanize(key);
   }).join(" › ");
 }

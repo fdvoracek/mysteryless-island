@@ -1,3 +1,4 @@
+import { ObjectEntries } from "./entries";
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { z } from "zod";
 import { Condition, Effect, Outcome, type ContentProblem } from "../content";
@@ -7,7 +8,7 @@ import { branchFor, branchLabel, branches, initialValue, refKind, unwrap, type S
 import { rangeCaptions } from "./describe";
 import { Order, OutcomeTable, registerWidgets, type OrderActions } from "./widgets";
 import { referenceLabel, referenceOptions } from "./references";
-import { hintFor, hints, humanize, type FieldHint } from "./hints";
+import { collapsibleEntries, hintFor, hints, humanize, type FieldHint } from "./hints";
 import { AuthorNote, OptionalChip, RootSections, rootSections } from "./cards";
 export { SectionCard, RootSections, rootSections, fileContentsClass, AuthorNote, OptionalChip } from "./cards";
 
@@ -417,6 +418,11 @@ export function Field(props: FieldProps) {
         skipWidget={props.skipWidget}
       />
     );
+  else if (node instanceof z.ZodArray && Array.isArray(value) && collapsibleEntries.has(unwrap(node.element)))
+    control = <ObjectEntries schema={node.element} values={value} path={path} onChange={onChange}
+      renderField={(entry, index) => <Field schema={node.element} value={entry} path={[path, index].filter(v => v !== "").join(".")}
+        onChange={next => onChange(value.map((old, i) => i === index ? next : old))}
+        depth={depth + 1} ruleDepth={props.ruleDepth} skipWidget={false} view={{ inline: false, hideLabel: true }} />} />;
   else if (node instanceof z.ZodArray && Array.isArray(value))
     control = (
       <div className="array-fields">

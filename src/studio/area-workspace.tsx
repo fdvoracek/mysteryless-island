@@ -1,3 +1,4 @@
+import { CollapsibleEntry, useExpansion } from "./entries";
 import { useState, type ReactNode } from "react";
 import { z } from "zod";
 import { Region } from "../content";
@@ -108,6 +109,7 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
   const explore = raw.explore as { landmarks?: unknown[] } | undefined;
   const exploreShape = (unwrap(shape.explore) as z.AnyZodObject).shape;
   const landmarks = Array.isArray(explore?.landmarks) ? explore.landmarks : [];
+  const expansion = useExpansion("explore.landmarks", landmarks.length, problems, { initial: landmarks.length === 1 ? [0] : [] });
   const landmarkSchema = (exploreShape.landmarks as z.ZodArray<Schema>).element;
   const links = Array.isArray(raw.activities) ? (raw.activities as string[]) : [];
   const activities = documents.filter((d) => d.kind === "activities");
@@ -157,14 +159,15 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
         card(
           "Landmarks",
           ["explore.landmarks"],
-          <>
+          <div ref={expansion.ref}>
             {landmarks.map((landmark, index) => {
               const path = `explore.landmarks.${index}`,
                 id = (landmark as { id?: string })?.id ?? String(index);
               const remove = () => {
                 const refs = deletionReferences(documents, owner, path);
                 setBlocked(refs);
-                if (!refs.length)
+                if (!refs.length) {
+                  expansion.remove(index);
                   props.onChange(
                     replaceAt(
                       raw,
@@ -172,12 +175,12 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
                       landmarks.filter((_, i) => i !== index),
                     ),
                   );
+                }
               };
               return (
-                <section data-field={path} tabIndex={-1} className="workspace-object-entry" key={index} aria-label={`Landmark ${id}`}>
-                  <h3>{id || "New landmark"}</h3>
-                  {field(landmarkSchema, path, true)}
-                  <div className="entry-actions">
+                <section data-field={path} tabIndex={-1} className="workspace-object-entry collapsible-entry" key={index} aria-label={`Landmark ${id}`}>
+                  <CollapsibleEntry schema={landmarkSchema} entry={landmark} path={path} index={index} heading
+                    open={expansion.expanded.includes(index)} toggle={() => expansion.toggle(index)} actions={<>
                     <button type="button" aria-label={`Remove landmark ${id}`} onClick={remove}>
                       ×
                     </button>
@@ -188,6 +191,7 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
                         disabled={index + delta < 0 || index + delta >= landmarks.length}
                         aria-label={`Move ${delta < 0 ? "up" : "down"} landmark ${id}`}
                         onClick={() => {
+                          expansion.move(index, delta);
                           const next = [...landmarks];
                           [next[index], next[index + delta]] = [next[index + delta], next[index]];
                           props.onChange(replaceAt(raw, "explore.landmarks", next));
@@ -196,7 +200,9 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
                         {delta < 0 ? "↑" : "↓"}
                       </button>
                     ))}
-                  </div>
+                    </>}>
+                    {field(landmarkSchema, path, true)}
+                  </CollapsibleEntry>
                 </section>
               );
             })}
@@ -204,7 +210,10 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
               className="add-link"
               type="button"
               aria-label="Add landmark"
-              onClick={() => props.onChange(replaceAt(raw, "explore.landmarks", [...landmarks, initialValue(landmarkSchema)]))}
+              onClick={() => {
+                expansion.add();
+                props.onChange(replaceAt(raw, "explore.landmarks", [...landmarks, initialValue(landmarkSchema)]));
+              }}
             >
               + add landmark
             </button>
@@ -218,7 +227,7 @@ export function AreaWorkspace(props: FieldProps & { open: (file: string, path: s
                 ))}
               </div>
             )}
-          </>,
+          </div>,
           `landmarks: ${landmarks.length}`,
         )}
       {card(

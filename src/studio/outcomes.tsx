@@ -1,5 +1,5 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { useId, useMemo } from "react";
+import { useExpansion } from "./entries";
 import { z } from "zod";
 import { Outcome } from "../content";
 import { BUILDER_DEPTH, describe } from "./describe";
@@ -39,55 +39,20 @@ export function OutcomeWidget(props: FieldProps) {
   );
 }
 
-export function boundedExpansion(expanded: number[], length: number): number[] {
-  return expanded.filter((index) => index < length);
-}
+export { boundedExpansion } from "./entries";
 
 export function OutcomeTable(props: FieldProps) {
   const { documents, problems: documentProblems } = useForm();
   const values = props.value as unknown[];
   const node = unwrap(Outcome) as z.AnyZodObject;
   const editorSchema = useMemo(() => node.omit({ weight: true }), [node]);
-  const ref = useRef<HTMLDivElement>(null),
-    pendingFocus = useRef<number | null>(null);
   const id = useId();
   const problems = documentProblems.filter((p) => p.path.startsWith(props.path + "."));
-  // Weight diagnostics belong to the always-visible row, not the hidden editor.
-  const revealIndices = values.flatMap((_, i) =>
-    problems.some(
-      (p) =>
-        (p.path === pathAt(props.path, i) || p.path.startsWith(pathAt(props.path, i) + ".")) &&
-        p.path !== pathAt(pathAt(props.path, i), "weight"),
-    )
-      ? [i]
-      : [],
-  );
-  const [storedExpansion, setExpanded] = useState<number[]>(() => revealIndices);
-  const expanded = boundedExpansion(storedExpansion, values.length);
-  if (expanded.length !== storedExpansion.length) setExpanded(expanded);
-  const diagnosticKey = JSON.stringify(revealIndices);
-  useEffect(() => {
-    setExpanded((old) => [...new Set([...old, ...(JSON.parse(diagnosticKey) as number[])])]);
-  }, [diagnosticKey]);
-  useEffect(() => {
-    const element = ref.current;
-    const reveal = (event: Event) => {
-      const path = (event as CustomEvent<string>).detail;
-      const index = values.findIndex(
-        (_, i) => path.startsWith(pathAt(props.path, i) + ".") && path !== pathAt(pathAt(props.path, i), "weight"),
-      );
-      if (index >= 0) flushSync(() => setExpanded((old) => (old.includes(index) ? old : [...old, index])));
-    };
-    element?.addEventListener("studio:reveal", reveal);
-    return () => element?.removeEventListener("studio:reveal", reveal);
-  }, [props.path, values.length]);
-  useEffect(() => {
-    if (pendingFocus.current === null) return;
-    ref.current
-      ?.querySelector<HTMLInputElement>(`[aria-label="${CSS.escape(pathAt(pathAt(props.path, pendingFocus.current), "weight"))}"]`)
-      ?.focus();
-    pendingFocus.current = null;
-  }, [values.length]);
+  const { ref, expanded, toggle, move, remove, add } = useExpansion(props.path, values.length, problems, {
+    initial: [],
+    ignore: (path, i) => path === pathAt(pathAt(props.path, i), "weight"),
+    focusPath: (i) => pathAt(pathAt(props.path, i), "weight"),
+  });
   if ((props.ruleDepth ?? 0) >= BUILDER_DEPTH)
     return (
       <>
@@ -108,7 +73,6 @@ export function OutcomeTable(props: FieldProps) {
     0,
   );
   const conditional = values.some((value) => object(value).when !== undefined);
-  const toggle = (i: number) => setExpanded((old) => (old.includes(i) ? old.filter((n) => n !== i) : [...old, i]));
   const click = (i: number) => {
     if (!window.getSelection()?.toString()) toggle(i);
   };
@@ -192,11 +156,11 @@ export function OutcomeTable(props: FieldProps) {
                     index={i}
                     length={values.length}
                     remove={() => {
-                      setExpanded((old) => old.filter((n) => n !== i).map((n) => (n > i ? n - 1 : n)));
+                      remove(i);
                       props.onChange(values.filter((_, index) => index !== i));
                     }}
                     move={(delta) => {
-                      setExpanded((old) => old.map((n) => (n === i ? i + delta : n === i + delta ? i : n)));
+                      move(i, delta);
                       props.onChange(reorder(values, i, delta));
                     }}
                   />
@@ -231,8 +195,7 @@ export function OutcomeTable(props: FieldProps) {
         type="button"
         aria-label={`Add ${props.path.split(".").at(-1)} entry`}
         onClick={() => {
-          pendingFocus.current = values.length;
-          setExpanded((old) => [...old, values.length]);
+          add();
           props.onChange([...values, initialValue(Outcome)]);
         }}
       >

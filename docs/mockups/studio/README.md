@@ -556,3 +556,29 @@ uses an area while the fresh implementation demonstrates the required Items summ
 facts and the explicit UX-09 brief govern these behavioral differences. Phone viewport is
 390×844 and measured document scrollWidth is exactly 390. All four JPEGs are below 200 KB.
 Captures use a separate disposable frozen-content copy and write no game content.
+
+## UX-05.2 implementation differences — [implemented]
+
+Landmarks, item actions and recipe ways reuse the UX-05 outcome-row pattern: index, 500-weight
+label (or “Way n”), muted mono ID, unchanged `summarize()` metadata with ellipsis, problem count,
+and an always-visible caret. The inline editor remains mounted with `hidden`. Title and metadata
+clicks respect text selection; the native caret supports Tab, Enter and Space with visible focus.
+Order actions retain hover/focus visibility and stay visible on phones and touch devices.
+
+The static mockup has no object-entry examples; its outcome table supplies row spacing, dividers,
+caret and inline-editor guidance. Object rows use plain content labels rather than outcome serif
+passages. Landmark sections retain their own headings, buttons and reference-blocked deletion;
+actions remain direct children of their existing wrappers for stable browser-test selectors.
+Single-entry lists initially open; other lists collapse. Diagnostics, Reveal and Add expand entries,
+and resolving a problem leaves its editor open. Other small arrays remain unchanged.
+Outcome markup and its existing browser tests are unchanged. No additional UI deviations.
+
+The UX-09 label follow-up applies hints to every retained parent/child segment, including
+“Done when › Stat” and “Building it › Hours”.
+
+Evidence (disposable frozen content, desktop 1440×900, device scale 1):
+[item actions before/after and outcome mockup](ux-05-2/item-actions-comparison.jpg),
+[collapsed beach landmarks](ux-05-2/beach-landmarks.jpg),
+[expanded recipe way](ux-05-2/recipe-way.jpg), [390 px](ux-05-2/phone-390.jpg).
+The comparison uses native-size crops without resizing. The four JPEGs are each ≤200 KB.
+Phone `document.documentElement.scrollWidth` is exactly 390.

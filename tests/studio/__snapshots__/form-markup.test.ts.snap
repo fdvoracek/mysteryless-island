@@ -353,9 +353,9 @@ exports[`preserves form markup: content/items/cordage.json (form) 1`] = `
 
 exports[`preserves form markup: content/items/corn.json (form) 1`] = `
 {
-  "length": 21293,
+  "length": 21755,
   "path": "content/items/corn.json",
-  "sha256": "9ea22267056a618b7102daebd23683261381eb01d104660e4acb997d2c938efa",
+  "sha256": "059a3709ea33681e84347208b4f166243b66069d8eba030e21df243d020271fd",
   "view": "form",
 }
 `;
@@ -443,18 +443,18 @@ exports[`preserves form markup: content/items/rations.json (form) 1`] = `
 
 exports[`preserves form markup: content/items/raw_fish.json (form) 1`] = `
 {
-  "length": 15357,
+  "length": 15818,
   "path": "content/items/raw_fish.json",
-  "sha256": "7dde73e12aa95a76b613dbbcc00f49c9d96c16725aa79705f7f74ab519ae4990",
+  "sha256": "48d1b174c5ca52a45e573d5c5a89ba7c9aa3c07bf49eb82828f16bb8a2d8bc3f",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/items/raw_meat.json (form) 1`] = `
 {
-  "length": 36259,
+  "length": 37337,
   "path": "content/items/raw_meat.json",
-  "sha256": "6bf7cd3c2d0d5fc0d5b94719f8089c57efd5344bfadadeb9cab2fec26f670977",
+  "sha256": "d7e29594aa791dbb17d1c77a6f01f28b527d81b47ff0df0fe7ac4932b258bd1f",
   "view": "form",
 }
 `;
@@ -479,9 +479,9 @@ exports[`preserves form markup: content/items/rock_knife.json (form) 1`] = `
 
 exports[`preserves form markup: content/items/shells.json (form) 1`] = `
 {
-  "length": 21099,
+  "length": 21560,
   "path": "content/items/shells.json",
-  "sha256": "a99afb91ebb66796637d238db494dad2638cf1ed6bc6a218abda0c77b549a385",
+  "sha256": "1f1c7e06abe5f4d6669bb7e68a8906aace5035d83aa766063d98066dc6107f57",
   "view": "form",
 }
 `;
@@ -515,9 +515,9 @@ exports[`preserves form markup: content/items/timber.json (form) 1`] = `
 
 exports[`preserves form markup: content/items/water_can.json (form) 1`] = `
 {
-  "length": 42628,
+  "length": 43730,
   "path": "content/items/water_can.json",
-  "sha256": "c06cba50597ee042792cb0f83723d54e15a8fecac00641a19f7215622ed3c87e",
+  "sha256": "9cc3a363b3a01a167eaaee80e271f2d96c11043635ed04caf95fa229abfaf12a",
   "view": "form",
 }
 `;
@@ -659,99 +659,99 @@ exports[`preserves form markup: content/quests/survive_first_night.json (form) 1
 
 exports[`preserves form markup: content/recipes/craft_axe.json (form) 1`] = `
 {
-  "length": 10614,
+  "length": 10950,
   "path": "content/recipes/craft_axe.json",
-  "sha256": "b65623f8bb60c8d148e5eac8c650b5db874160f2ffe722f92b81ca6ff156d239",
+  "sha256": "b307fd741b985f5d20093e035f91795122e289def84d3e0f89facb3a53275ec7",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/recipes/craft_hoe.json (form) 1`] = `
 {
-  "length": 10336,
+  "length": 10672,
   "path": "content/recipes/craft_hoe.json",
-  "sha256": "9618960eebccf25793bbb3b6eccfbb0ff43baeb19f9a6a3de4f050c09517491a",
+  "sha256": "b205f782f5da1e95ce890dcfa7c01728f3dff1905a65bce6748209f3a73316d7",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/recipes/craft_rock_knife.json (form) 1`] = `
 {
-  "length": 13332,
+  "length": 13668,
   "path": "content/recipes/craft_rock_knife.json",
-  "sha256": "454b7d15446e383a8d44e9bc38faea651b7bdd9b01aab45ece79cd49e1c4667f",
+  "sha256": "fd84ff806f6836bb07bcb6d6db209c86712d67695120220e268952e0db9cdea5",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/recipes/craft_rope.json (form) 1`] = `
 {
-  "length": 10840,
+  "length": 11176,
   "path": "content/recipes/craft_rope.json",
-  "sha256": "293388a4e9e8963e6d569b9c454c9e2256823f00fea5fe4224c8068d6f9bdc9d",
+  "sha256": "76619ad8987a613d9e9b9da1f9e8038fe0bad548a3eb1184f4193b12fd69dc94",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/recipes/craft_spear.json (form) 1`] = `
 {
-  "length": 37657,
+  "length": 38685,
   "path": "content/recipes/craft_spear.json",
-  "sha256": "69ce4a196d644893799df9dd86b2f1122babbc8a5afa4914e9f6aa9be363c2f4",
+  "sha256": "0b5ba647f9cee3615766ec655a579e35a57ffbb5541a2fb43a7c539ab87abcb4",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/regions/beach.json (area) 1`] = `
 {
-  "length": 163602,
+  "length": 166307,
   "path": "content/regions/beach.json",
-  "sha256": "6a23655d9ae8c6b43109c75591bfb913d0a60463a343cb3619f240d3c127b53b",
+  "sha256": "bbb431a4c0b758a642117d88d486f9d5801a6c7878fdd445445f90187ffe30d2",
   "view": "area",
 }
 `;
 
 exports[`preserves form markup: content/regions/beach.json (form) 1`] = `
 {
-  "length": 168481,
+  "length": 170873,
   "path": "content/regions/beach.json",
-  "sha256": "ec2fc8aa75fadc02ca8b7a336a43c7e99bccc2fc84a7e19264b0bfa8c098fe6a",
+  "sha256": "533e00ff4ee38da2dc3fecad21bb5ad09b79c1240b0fa22c7cca434a2caca405",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/regions/forest.json (area) 1`] = `
 {
-  "length": 88979,
+  "length": 90004,
   "path": "content/regions/forest.json",
-  "sha256": "b21ae36429a050e77cfbcc5f084aa20be55a31e2bcd5784b1bf1689374017ef1",
+  "sha256": "5179c4b8ccfd3e03543efac9054713e05193f4f90340e0b8d05d5f8850c1f3c7",
   "view": "area",
 }
 `;
 
 exports[`preserves form markup: content/regions/forest.json (form) 1`] = `
 {
-  "length": 88795,
+  "length": 89682,
   "path": "content/regions/forest.json",
-  "sha256": "780759cee63138f4ee42122ceef5e5e511fb26811f2b03018f846379eab1a5ef",
+  "sha256": "437a70c5770b8ca1a5e84e740c3505d3e5ddc2ed65440d065e1748b63f8b98b2",
   "view": "form",
 }
 `;
 
 exports[`preserves form markup: content/regions/meadows.json (area) 1`] = `
 {
-  "length": 127529,
+  "length": 130010,
   "path": "content/regions/meadows.json",
-  "sha256": "5e1ecd1e447c17596faaf90ca6bd33c1c8713fa100c10dd6e2886124df074dc9",
+  "sha256": "d2eaf62d26475d471f9ae859e92f6bf8e83224d4e4396dce53c6321c3873d520",
   "view": "area",
 }
 `;
 
 exports[`preserves form markup: content/regions/meadows.json (form) 1`] = `
 {
-  "length": 128558,
+  "length": 130707,
   "path": "content/regions/meadows.json",
-  "sha256": "9ecfa6040c96d351a4b61e5eee08bd1fb1e1ca27d896ae5c4ac193675c5851a3",
+  "sha256": "4b525b7fa0bbebbe9ce538ab2ca6e78fef72ebbb65ba90b2ced9d176e68a44b1",
   "view": "form",
 }
 `;

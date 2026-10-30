@@ -285,7 +285,7 @@ button.layout-failed { color: var(--studio-error); }
 .form-section-summary strong { font-size: 13px; flex-shrink: 0; max-width: 70%; }
 .form-section-preview { margin-left: auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--studio-muted); font-size: 12px; }
 .form-section[open] > .form-section-summary > .form-section-preview { display: none; }
-.form-section-problems { color: var(--studio-error); background: var(--studio-ground); border-radius: 999px; padding: 2px 6px; font-size: 12px; flex: none; }
+.form-section-problems, .entry-problems { color: var(--studio-error); background: var(--studio-ground); border-radius: 999px; padding: 2px 6px; font-size: 12px; flex: none; }
 .form-section-body { padding: 4px 14px 14px; border-top: 1px solid #eef0f2; }
 .author-note { background: #fffbea; border: 1px solid #efe3b0; color: #5b4a12; border-radius: 6px; padding: 6px 10px; font-size: 12px; min-width: 0; }
 .author-note textarea { display: block; background: transparent; border: 0; color: inherit; font-family: var(--studio-font); font-size: 12px; padding: 4px 0 0; resize: none; overflow: hidden; }
@@ -538,3 +538,28 @@ button.layout-failed { color: var(--studio-error); }
 .studio-dialog .create-id-hint { grid-column: 2; display: block; color: var(--studio-faint); font-size: 11px; margin-top: 4px; }
 .studio-dialog .create-needed { color: var(--studio-muted); font-size: 12px; margin-top: 8px; }
 @media (max-width: 760px) { .studio-dialog .create-id-hint { grid-column: 1; } }
+
+/* UX-05.2: object entries share the outcome row rhythm and controls. */
+.array-object-entry.collapsible-entry, .workspace-object-entry.collapsible-entry {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px;
+  padding: 7px 6px; align-items: start;
+}
+.collapsible-entry:hover { background: #fafbfc; }
+.entry-summary-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.entry-summary-row .entry-index { flex: none; padding-top: 0; }
+.entry-title { font-size: 13px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.entry-title code { margin-left: 8px; font-size: 11px; color: var(--studio-muted); font-weight: 400; }
+.entry-meta { flex: 1; min-width: 0; color: var(--studio-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.entry-summary-row .outcome-toggle { order: 0; margin-left: auto; }
+.array-object-entry.collapsible-entry > .entry-actions, .workspace-object-entry.collapsible-entry > .entry-actions {
+  grid-column: 2; grid-row: 1;
+}
+.collapsible-entry-editor { background: #fafbfc; grid-column: 1 / -1; padding: 8px 0; min-width: 0; }
+.collapsible-entry-editor[hidden] { display: none; }
+.collapsible-entry-editor > .form-field { margin: 0; }
+@media (max-width: 760px) {
+  .entry-summary-row { gap: 4px; }
+  .entry-title { max-width: 42%; }
+  .entry-title code { margin-left: 4px; }
+  .collapsible-entry > .entry-actions { gap: 0; }
+}

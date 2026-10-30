@@ -189,3 +189,18 @@ export function staleHints(map = hints, sectionMap = sections): string[] {
     return errors;
   });
 }
+
+export interface EntryHint { title?: string; summary: string[] }
+export const collapsibleEntries = new Map<Schema, EntryHint>([
+  [Landmark, { title: "label", summary: ["hours", "effort", "visibleWhen", "requires"] }],
+  [ItemAction, { title: "label", summary: ["hours", "effort", "building", "visibleWhen", "uses"] }],
+  [RecipeWay, { summary: ["hours", "effort", "visibleWhen", "requires"] }],
+]);
+export function staleEntries(map = collapsibleEntries): string[] {
+  return [...map].flatMap(([schema, config]) => {
+    const node = unwrap(schema);
+    return [...(config.title === undefined ? [] : [config.title]), ...config.summary]
+      .filter(key => !(node instanceof z.ZodObject) || !(key in node.shape))
+      .map(key => `${schemaName(schema) ?? "Unknown"}.${key}`);
+  });
+}

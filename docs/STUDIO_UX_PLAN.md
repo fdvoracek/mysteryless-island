@@ -54,7 +54,22 @@ None. G1 and G2 resolved as D7 and D8.
 | UX-07 **[implemented]** | **Navigation tree** (World / Areas / Library / Settings) + list rows with a meta line (requires summary, global, hours) + “New … here” at list foot. | `main.tsx`/`shell/`, `documents.ts` | medium |
 | UX-08 | **⌘K palette**: jump by name/ID/text, contextual create actions. | new `palette.tsx` | low-medium |
 | UX-09 **[implemented]** | **Create dialog**: errors after touch, humanized enum/required messages, ID suggested from name, kind defaults to current context. | `dialogs.tsx` | low |
-| later | Story toolbar compaction; table view for items/recipes (CastleDB-style) | — | deferred |
+| UX-05.2 **[implemented]** | Collapsible object entries (landmarks, item actions, recipe ways): one-line summary row via `summarize()`, expands to the editor (UX-05 pattern). | `entries.tsx`, `form.tsx`, `area-workspace.tsx`, `hints.ts` | medium |
+| UX-10a | **Table view** for a kind scope: “List \| Table” toggle in the list head; the table replaces list + editor columns. Rows = documents of the kind (items filterable by category); columns from a Studio-only `tables.ts` bound to schema objects (D3). Scalar cells editable in place through the existing store (one undo step per cell, drafts, Unsaved drawer, validation unchanged); nested values as read-only summary cells that open the document's form. Sort by column, sticky header and first column. Kinds: items, buildings, activities, recipes, sites. | new `shell/TableView.tsx`, `tables.ts`, `main.tsx`, `studio.css` | medium-high |
+| UX-10b | **Balance columns** (read-only, content arithmetic only): e.g. item made by / used by / yielded by counts, activity expected yield per run (Σ chance × (min+max)/2), recipe and building total cost, building cycle output per hour. No engine formulas. Decide after using UX-10a. | `tables.ts`, pure `balance.ts` | medium |
+| UX-11 | **Story toolbar compaction**: filters, layout options and search in one toolbar row with a “View options” popover; graph gets the freed height. No graph behaviour change. | `story-view.tsx`, `studio.css` | low |
+
+UX-10a, UX-10b and UX-11 are proposals.
+
+Order: UX-09 → UX-05.2 → UX-10a → UX-10b → UX-11; UX-08 optional.
+
+- **D10** Table view is a second view of the same documents: edits go through `store.edit`, so
+  Undo, the Unsaved drawer, validation and Save apply unchanged. (owner 2026-10-29)
+- **D11** Table columns are configured per exported schema object in a Studio-only file (D3
+  binding); unlisted fields stay editable in the form; a stale column key fails a unit test
+  (D7). (owner 2026-10-29)
+- **D12** Balance columns use content arithmetic only; anything needing engine rules stays out
+  of the Studio. (owner 2026-10-29)
 
 Each PR updates `docs/STUDIO.md` (marks [implemented]) and the mockup README differences section.
 
