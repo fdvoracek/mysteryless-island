@@ -23,12 +23,21 @@ function problemExpansion(path: string, length: number, problems: ContentProblem
   return Array.from({ length }, (_, index) => index).filter(index => problems.some(problem =>
     (problem.path === pathAt(path, index) || problem.path.startsWith(pathAt(path, index) + ".")) && !ignore?.(problem.path, index)));
 }
+const sessionExpansion = new Map<string, number[]>();
+
 export function useExpansion(path: string, length: number, problems: ContentProblem[], options: ExpansionOptions) {
+  const { owner } = useForm();
+  const key = `${owner.path}#${path}`;
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
   const ref = useRef<HTMLDivElement>(null), pendingFocus = useRef<number | null>(null);
   const revealIndices = problemExpansion(path, length, problems, options.ignore);
-  const [stored, setExpanded] = useState(() => [...new Set([...options.initial, ...revealIndices])]);
+  const [stored, setExpanded] = useState(() => boundedExpansion(
+    sessionExpansion.get(key) ?? [...new Set([...options.initial, ...revealIndices])], length,
+  ));
   const expanded = boundedExpansion(stored, length);
   if (expanded.length !== stored.length) setExpanded(expanded);
+  useEffect(() => { sessionExpansion.set(key, boundedExpansion(stored, length)); }, [key, stored, length]);
   const diagnosticKey = JSON.stringify(revealIndices);
   useEffect(() => {
     setExpanded(old => [...new Set([...old, ...(JSON.parse(diagnosticKey) as number[])])]);
@@ -38,16 +47,16 @@ export function useExpansion(path: string, length: number, problems: ContentProb
     const reveal = (event: Event) => {
       const target = (event as CustomEvent<string>).detail;
       const index = Array.from({ length }, (_, i) => i).find(i =>
-        (target === pathAt(path, i) || target.startsWith(pathAt(path, i) + ".")) && !options.ignore?.(target, i));
+        (target === pathAt(path, i) || target.startsWith(pathAt(path, i) + ".")) && !optionsRef.current.ignore?.(target, i));
       if (index !== undefined) flushSync(() => setExpanded(old => old.includes(index) ? old : [...old, index]));
     };
     element?.addEventListener("studio:reveal", reveal);
     return () => element?.removeEventListener("studio:reveal", reveal);
-  }, [path, length, options.ignore]);
+  }, [path, length]);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     const index = pendingFocus.current;
-    const fieldPath = options.focusPath?.(index);
+    const fieldPath = optionsRef.current.focusPath?.(index);
     const target = fieldPath
       ? ref.current?.querySelector<HTMLElement>(`[aria-label="${CSS.escape(fieldPath)}"]`)
       : ref.current?.querySelector<HTMLElement>(`[data-entry-editor="${CSS.escape(pathAt(path, index))}"] input, ` +
@@ -88,8 +97,8 @@ export function CollapsibleEntry(props: {
       <button className="outcome-toggle" type="button" aria-label={`Edit ${props.path}`}
         aria-expanded={props.open} aria-controls={id} onClick={props.toggle}>{props.open ? "▾" : "▸"}</button>
     </div>
-    <div className="collapsible-entry-editor" id={id} data-entry-editor={props.path} hidden={!props.open}>{props.children}</div>
     <div className="entry-actions">{props.actions}</div>
+    <div className="collapsible-entry-editor" id={id} data-entry-editor={props.path} hidden={!props.open}>{props.children}</div>
   </>;
 }
 

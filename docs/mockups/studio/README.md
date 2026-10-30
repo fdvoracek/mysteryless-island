@@ -569,6 +569,7 @@ The static mockup has no object-entry examples; its outcome table supplies row s
 caret and inline-editor guidance. Object rows use plain content labels rather than outcome serif
 passages. Landmark sections retain their own headings, buttons and reference-blocked deletion;
 actions remain direct children of their existing wrappers for stable browser-test selectors.
+Expansion is kept per file for the session, including across Undo.
 Single-entry lists initially open; other lists collapse. Diagnostics, Reveal and Add expand entries,
 and resolving a problem leaves its editor open. Other small arrays remain unchanged.
 Outcome markup and its existing browser tests are unchanged. No additional UI deviations.

@@ -115,3 +115,39 @@ test("move and remove preserve expansion for actions, ways and landmarks; refere
   await expect(page.getByRole("alert")).toContainText("Removal blocked: this landmark is referenced.");
   await expect(page.getByRole("region", { name: "Landmark forest_edge", exact: true })).toBeVisible();
 });
+
+
+test("action expansion survives Undo, Redo and document navigation; Tab follows the row actions", async ({ page }) => {
+  await open(page, "Items", "water_can");
+  const toggle = edit(page, "actions.1");
+  await toggle.click();
+  await toggle.focus();
+  for (const name of ["Move up actions.1", "Remove actions.1"]) {
+    // The last entry's disabled down button is skipped by native Tab navigation.
+    await page.keyboard.press("Tab");
+    await expect(page.getByRole("button", { name, exact: true })).toBeFocused();
+  }
+  await page.keyboard.press("Tab");
+  await expect(page.getByRole("textbox", { name: "actions.1.id", exact: true })).toBeFocused();
+  const hours = page.getByRole("spinbutton", { name: "actions.1.hours", exact: true });
+  await hours.fill("0.5");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(hours).toHaveValue("0.25");
+  await page.getByRole("button", { name: "Redo", exact: true }).click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(hours).toHaveValue("0.5");
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  const search = page.getByRole("searchbox");
+  const select = (id: string) => page.getByRole("region", { name: "Entity list" }).getByRole("button")
+    .filter({ has: page.locator("code", { hasText: new RegExp(`^${id}$`) }) }).click();
+  await search.fill("raw_meat");
+  await select("raw_meat");
+  await expect(edit(page, "actions.1")).toHaveAttribute("aria-expanded", "false");
+  await search.fill("water_can");
+  await select("water_can");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(edit(page, "actions.0")).toHaveAttribute("aria-expanded", "false");
+  await open(page, "Items", "water_can");
+  await expect(edit(page, "actions.1")).toHaveAttribute("aria-expanded", "false");
+});
